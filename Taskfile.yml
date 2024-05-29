@@ -1,0 +1,57 @@
+version: '3'
+
+vars:
+  ENV_FILE: .env
+
+dotenv: ['.env']
+
+tasks:
+
+  default:
+    deps: [start]
+
+  # Docker tasks
+
+  docker-start:
+    cmds:
+      - docker compose --env-file {{.ENV_FILE}} up -d --build
+
+  docker-build:
+    cmds:
+      - docker compose --env-file {{.ENV_FILE}} build
+
+  docker-stop:
+    cmds:
+      - docker compose --env-file {{.ENV_FILE}} down
+
+  docker-clean:
+    cmds:
+      - docker compose --env-file {{.ENV_FILE}} down --volumes --remove-orphans
+
+  docker-reset:
+    cmds:
+      - task docker-clean
+      - task docker-start
+
+  # Main Pipeline Tasks
+  install:
+    cmds:
+      - pip install -e .
+
+  start:
+    cmds:
+      - task docker-reset
+      - task install
+
+  reset:
+    cmds: 
+      - task docker-reset
+
+  clean:
+    deps: [docker-clean]
+
+  create-requirements:
+    cmds:
+      - pip install pipreqs
+      - python -m pipreqs.pipreqs --force .
+  

@@ -1,0 +1,98 @@
+
+services:
+  gemini-db:
+    container_name: ${DATABASE_HOSTNAME}
+    hostname: ${DATABASE_HOSTNAME}
+    restart: unless-stopped
+    image: ghcr.io/hydradatabase/hydra:15
+    ports:
+        - "${DATABASE_PORT}:5432"
+    environment:
+        POSTGRES_USER: ${DATABASE_USER}
+        POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+        POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+        - ./gemini/database/scripts:/docker-entrypoint-initdb.d
+    networks:
+        - gemini_network
+    command:
+        - "postgres"
+        - "-c"
+        - "max_connections=1000"
+        - "-c"
+        - "shared_buffers=256MB"
+        - "-c"
+        - "effective_cache_size=768MB"
+        - "-c"
+        - "wal_level=logical"
+    depends_on:
+      - gemini-logger
+
+  gemini-file-store:
+    container_name: ${FILE_SERVER_HOSTNAME}
+    hostname: ${FILE_SERVER_HOSTNAME}
+    restart: unless-stopped
+    image: bitnami/minio:latest
+    ports:
+      - "${FILE_SERVER_PORT}:9000"
+      - "${FILE_SERVER_API_PORT}:9001"
+    environment:
+      - "MINIO_ROOT_USER=${FILE_SERVER_S3_ACCESS_KEY}"
+      - "MINIO_ROOT_PASSWORD=${FILE_SERVER_S3_SECRET_KEY}"
+      - "MINIO_SERVER_ACCESS_KEY=${FILE_SERVER_S3_ACCESS_KEY}"
+      - "MINIO_SERVER_SECRET_KEY=${FILE_SERVER_S3_SECRET_KEY}"
+      - "MINIO_DEFAULT_BUCKETS=${FILE_SERVER_DEFAULT_BUCKETS}"
+    volumes:
+      - gemini-object-storage-data:/data
+    networks:
+      - gemini_network
+    depends_on:
+      - gemini-db
+
+  gemini-logger:
+    container_name: ${LOGGER_HOSTNAME}
+    hostname: ${LOGGER_HOSTNAME}
+    restart: unless-stopped
+    image: redis:latest
+    ports:
+      - "${LOGGER_PORT}:6379"
+    volumes:
+      - gemini-logger-data:/data
+    environment:
+      - "REDIS_PASSWORD=${LOGGER_PASSWORD}"
+      - "REDIS_PORT=${LOGGER_PORT}"
+    networks:
+      - gemini_network
+
+  gemini-rest-api:
+    container_name: ${REST_API_HOSTNAME}
+    hostname: ${REST_API_HOSTNAME}
+    restart: unless-stopped
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: ./gemini/rest_api/Dockerfile
+    ports:
+      - "${REST_API_PORT}:8080"
+    environment:
+      - "REST_API_ROOT_USER=${REST_API_ROOT_USER}"
+      - "REST_API_ROOT_PASSWORD=${REST_API_ROOT_PASSWORD}"
+      - "REST_API_DEBUG=${REST_API_DEBUG}"
+      - "GEMINI_IS_LOCAL=False"
+    networks:
+      - gemini_network
+    depends_on:
+      - gemini-db
+      # - gemini-columnar-store
+      - gemini-file-store
+
+networks:
+  gemini_network:
+    driver: bridge
+
+volumes:
+  gemini-object-storage-data: {}
+  gemini-logger-data: {}
+  gemini-scheduler-data: {}
+

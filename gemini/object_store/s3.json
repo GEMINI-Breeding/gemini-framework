@@ -1,0 +1,18 @@
+{
+    "identities": [
+        {
+            "name": "gemini",
+            "credentials": [
+                {
+                    "accessKey": "gemini",
+                    "secretKey": "baseball"
+                }
+            ],
+            "actions": [
+                "Admin",
+                "Read",
+                "Write"
+            ]
+        }
+    ]
+}
