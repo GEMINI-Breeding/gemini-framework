@@ -30,6 +30,9 @@ class GEMINISensorType(Enum):
   Thermal = 3
   Multispectral = 4
   Weather = 5
+  GPS = 6
+  Calibration = 7
+  Depth = 8
 
 class GEMINIDatasetType(Enum):
   Default = 0

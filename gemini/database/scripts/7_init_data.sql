@@ -80,7 +80,10 @@ VALUES
     (2, 'NIR', '{"description": "NIR Sensor"}'),
     (3, 'Thermal', '{"description": "Thermal Sensor"}'),
     (4, 'Multispectral', '{"description": "Multispectral Sensor"}'),
-    (5, 'Weather', '{"description": "Weather Sensor"}');
+    (5, 'Weather', '{"description": "Weather Sensor"}'),
+    (6, 'GPS', '{"description": "GPS Sensor"}'),
+    (7, 'Calibration', '{"description": "Calibration Sensor"}'),
+    (8, 'Depth', '{"description": "Depth Sensor"}');
 
 
 -- Insert Dataset Types
