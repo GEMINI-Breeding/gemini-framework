@@ -38,7 +38,7 @@ VALUES
     (17, 'MP4', 'video/mp4', '{"description": "MP4 Data Format"}'),
     (18, 'OGG', 'video/ogg', '{"description": "OGG Data Format"}'),
     (19, 'WEBM', 'video/webm', '{"description": "WEBM Data Format"}'),
-    (20, 'Other', 'application/octet-stream', '{"description": "Other Data Format"}');
+    (20, 'NPY', 'application/octet-stream', '{"description": "Numpy Data Format"}');
 
 -- Create Datatype Formats associations
 INSERT INTO gemini.data_type_formats (data_type_id, data_format_id)

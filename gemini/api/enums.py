@@ -21,7 +21,7 @@ class GEMINIDataFormat(Enum):
   MP4 = 17
   OGG = 18
   WEBM = 19
-  Other = 20
+  NPY = 20
 
 class GEMINISensorType(Enum):
   Default = 0
