@@ -114,7 +114,10 @@ class SensorRecord(APIBase):
         for record in searched_records:
             record = record.to_dict()
             record = cls.postprocess_record(record)
-            record = cls.model_validate(record)
+            record = cls.model_construct(
+                _fields_set=cls.model_fields_set,
+                **record
+            )
             yield record
 
     @classmethod
@@ -166,11 +169,17 @@ class SensorRecord(APIBase):
     def _upload_file(cls, absolute_file_path: str, record: dict) -> str:
         file_uri = cls.generate_file_uri(absolute_file_path, record)
         
+
         file_tags = {
             "sensor_name": record.get("sensor_name"),
             "dataset_name": record.get("dataset_name"),
             "collection_date": record.get("collection_date").strftime("%Y-%m-%d"),
-            **record.get("record_info")
+            "experiment_name": record.get("experiment_name") if record.get("experiment_name") else None,
+            "site_name": record.get("site_name") if record.get("site_name") else None,
+            "season_name": record.get("season_name") if record.get("season_name") else None,
+            "plot_number": record.get("plot_number") if record.get("plot_number") else None,
+            "plot_row_number": record.get("plot_row_number") if record.get("plot_row_number") else None,
+            "plot_column_number": record.get("plot_column_number") if record.get("plot_column_number") else None,
         }
 
         storage_service.upload_file(

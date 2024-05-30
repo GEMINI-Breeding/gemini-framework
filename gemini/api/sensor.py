@@ -156,7 +156,8 @@ class Sensor(APIBase):
             site_name: str = None,
             plot_number: int = None,
             plot_row_number: int = None,
-            plot_column_number: int = None
+            plot_column_number: int = None,
+            record_info: dict = None
     ) -> bool:
 
         if timestamp is None:
@@ -167,21 +168,24 @@ class Sensor(APIBase):
         if dataset_name is None:
             dataset_name = f"{self.sensor_name}_{collection_date}"
 
-        record_info = {
+        info = {
             "experiment_name": experiment_name if experiment_name else None,
             "season_name": season_name if season_name else None,
             "site_name": site_name if site_name else None,
             "plot_number": plot_number if plot_number else None,
             "plot_row_number": plot_row_number if plot_row_number else None,
-            "plot_column_number": plot_column_number if plot_column_number else None
+            "plot_column_number": plot_column_number if plot_column_number else None,
         }
+
+        if record_info:
+            info.update(record_info)
 
         record = SensorRecord.create(
             sensor_name=self.sensor_name,
             timestamp=timestamp,
             collection_date=collection_date,
             sensor_data=sensor_data,
-            record_info=record_info,
+            record_info=info,
             dataset_name=dataset_name
         )
 
@@ -201,7 +205,8 @@ class Sensor(APIBase):
         site_name: str = None,
         plot_numbers: List[int] = None,
         plot_row_numbers: List[int] = None,
-        plot_column_numbers: List[int] = None
+        plot_column_numbers: List[int] = None,
+        record_info: List[dict] = None
     ) -> bool:
         
         if timestamps is None:
@@ -220,22 +225,24 @@ class Sensor(APIBase):
 
         for i in track(range(len(sensor_data)), description="Preparing records"):
 
-            record_info = {
+            info = {
                 "experiment_name": experiment_name if experiment_name else None,
                 "season_name": season_name if season_name else None,
                 "site_name": site_name if site_name else None,
                 "plot_number": plot_numbers[i] if plot_numbers else None,
                 "plot_row_number": plot_row_numbers[i] if plot_row_numbers else None,
-                "plot_column_number": plot_column_numbers[i] if plot_column_numbers else None
+                "plot_column_number": plot_column_numbers[i] if plot_column_numbers else None,
             }
 
+            if record_info and record_info[i]:
+                info.update(record_info[i])
         
             record = SensorRecord.create(
                 sensor_name=self.sensor_name,
                 timestamp=timestamps[i],
                 collection_date=collection_date,
                 sensor_data=sensor_data[i],
-                record_info=record_info,
+                record_info=info,
                 dataset_name=dataset_name
             )
 
@@ -280,501 +287,3 @@ class Sensor(APIBase):
         logger_service.info("API", f"Retrieved records for {self.sensor_name}")
         return records
 
-
-
-# from gemini.api.base import APIBase
-# from gemini.api.sensor_record import SensorRecord
-# from gemini.api.enums import (
-#     GEMINIDataFormat,
-#     GEMINIDataType,
-#     GEMINISensorType,
-#     GEMINIDatasetType,
-# )
-# from gemini.models import (
-#     SensorModel,
-#     SensorTypeModel,
-#     DataTypeModel,
-#     DataFormatModel,
-#     ExperimentModel,
-#     SensorPlatformModel,
-#     SensorDatasetModel,
-#     DatasetModel,
-# )
-# from gemini.logger import logger_service
-
-# from typing import Optional, List, Any
-# import pandas as pd
-# from datetime import datetime
-
-
-# class Sensor(APIBase):
-
-#     db_model = SensorModel
-
-#     sensor_name: str
-#     sensor_info: Optional[dict] = None
-
-#     sensor_type_id: Optional[int] = None
-#     sensor_data_type_id: Optional[int] = None
-#     sensor_data_format_id: Optional[int] = None
-
-#     sensor_type: Optional[dict] = None
-#     data_type: Optional[dict] = None
-#     data_format: Optional[dict] = None
-#     platform: Optional[dict] = None
-#     experiments: Optional[List[dict]] = None
-#     datasets: Optional[List[dict]] = None
-
-#     @classmethod
-#     def create(
-#         cls,
-#         sensor_name: str,
-#         sensor_info: dict = None,
-#         sensor_type: GEMINISensorType = None,
-#         sensor_data_type: GEMINIDataType = None,
-#         sensor_data_format: GEMINIDataFormat = None,
-#         experiment_name: str = None,
-#         sensor_platform_name: str = None,
-#     ):
-#         """
-#         Create a new sensor
-
-#         Args:
-#         sensor_name (str): The name of the sensor
-#         sensor_info (dict, optional): Additional information about the sensor. Defaults to None.
-#         sensor_type (GEMINISensorType, optional): The type of the sensor. Defaults to None.
-#         sensor_data_type (GEMINIDataType, optional): The data type of the sensor. Defaults to None.
-#         sensor_data_format (GEMINIDataFormat, optional): The data format of the sensor. Defaults to None.
-#         experiment_name (str, optional): The name of the experiment to add. Defaults to None.
-#         sensor_platform_name (str, optional): The name of the platform. Defaults to None.
-
-#         Returns:
-#         Sensor: The created sensor
-#         """
-
-#         experiment = ExperimentModel.get_by_parameter(
-#             "experiment_name", experiment_name
-#         )
-#         sensor_platform = SensorPlatformModel.get_by_parameter(
-#             "sensor_platform_name", sensor_platform_name
-#         )
-
-#         new_instance = cls.db_model.get_or_create(
-#             sensor_name=sensor_name,
-#             sensor_info=sensor_info,
-#             sensor_type_id=sensor_type.value if sensor_type is not None else None,
-#             sensor_data_type_id=(
-#                 sensor_data_type.value if sensor_data_type is not None else None
-#             ),
-#             sensor_data_format_id=(
-#                 sensor_data_format.value if sensor_data_format is not None else None
-#             ),
-#             sensor_platform_id=(
-#                 sensor_platform.id if sensor_platform is not None else None
-#             ),
-#         )
-
-#         if experiment is not None and experiment not in new_instance.experiments:
-#             new_instance.experiments.append(experiment)
-#             new_instance.save()
-
-#         logger_service.info(
-#             "API",
-#             f"Created a new sensor with name {new_instance.sensor_name} in the database",
-#         )
-#         new_instance = cls.model_validate(new_instance)
-#         return new_instance
-
-#     @classmethod
-#     def get_by_name(cls, sensor_name: str) -> "Sensor":
-#         """
-#         Get a sensor by name
-
-#         Args:
-#         sensor_name (str): The name of the sensor
-
-#         Returns:
-#         Sensor: The sensor with the given name
-#         """
-#         sensor = SensorModel.get_by_parameter("sensor_name", sensor_name)
-#         sensor = cls.model_validate(sensor)
-#         return sensor
-
-#     @classmethod
-#     def get_by_type(cls, sensor_type: GEMINISensorType) -> List["Sensor"]:
-#         """
-#         Get all the sensors of a given type
-
-#         Args:
-#         sensor_type (GEMINISensorType): The type of the sensor
-
-#         Returns:
-#         List[Sensor]: A list of all the sensors of the given type
-#         """
-#         sensors = SensorModel.search(sensor_type_id=sensor_type.value)
-#         sensors = [cls.model_validate(sensor) for sensor in sensors]
-#         return sensors
-
-#     def get_info(self) -> dict:
-#         """
-#         Get the information about a sensor
-
-#         Returns:
-#         dict: The information about the sensor
-#         """
-#         self.refresh()
-#         logger_service.info(
-#             "API",
-#             f"Retrieved information about {self.sensor_name} from the database",
-#         )
-#         return self.sensor_info
-
-#     def set_info(self, sensor_info: Optional[dict] = None) -> "Sensor":
-#         """
-#         Set the information about a sensor
-
-#         Args:
-#         sensor_info (Optional[dict], optional): The information to set. Defaults to None.
-
-#         Returns:
-#         Sensor: The sensor with the updated information
-#         """
-#         self.update(sensor_info=sensor_info)
-#         logger_service.info(
-#             "API",
-#             f"Updated information about {self.sensor_name} in the database",
-#         )
-#         return self
-
-#     def add_info(self, sensor_info: Optional[dict] = None) -> "Sensor":
-#         """
-#         Add information to a sensor
-
-#         Args:
-#         sensor_info (Optional[dict], optional): The information to add. Defaults to None.
-
-#         Returns:
-#         Sensor: The sensor with the added information
-#         """
-#         current_info = self.get_info()
-#         updated_info = {**current_info, **sensor_info}
-#         self.set_info(updated_info)
-#         logger_service.info(
-#             "API",
-#             f"Added information to {self.sensor_name} in the database",
-#         )
-#         return self
-
-#     def remove_info(self, keys_to_remove: List[str]) -> "Sensor":
-#         """
-#         Remove information from a sensor
-
-#         Args:
-#         keys_to_remove (List[str]): The keys to remove
-
-#         Returns:
-#         Sensor: The sensor with the removed information
-#         """
-#         current_info = self.get_info()
-#         for key in keys_to_remove:
-#             current_info.pop(key, None)
-#         self.set_info(current_info)
-#         logger_service.info(
-#             "API",
-#             f"Removed information from {self.sensor_name} in the database",
-#         )
-#         return self
-
-#     def get_platform(self) -> dict:
-#         """
-#         Get the platform of a sensor
-
-#         Returns:
-#         Any: The platform of the sensor
-#         """
-#         self.refresh()
-#         platform = self.platform
-#         logger_service.info(
-#             "API",
-#             f"Retrieved platform for {self.sensor_name} from the database",
-#         )
-#         return platform
-
-#     def set_platform(self, sensor_platform_name: str) -> "Sensor":
-#         """
-#         Set the platform for a sensor
-
-#         Args:
-#         sensor_platform_name (str): The name of the platform
-
-#         Returns:
-#         Sensor: The sensor with the updated platform
-#         """
-#         sensor_platform = SensorPlatformModel.get_by_parameter(
-#             "sensor_platform_name", sensor_platform_name
-#         )
-#         self.update(sensor_platform_id=sensor_platform.id)
-#         logger_service.info(
-#             "API",
-#             f"Set platform for {self.sensor_name} to {sensor_platform_name}",
-#         )
-#         return self
-
-#     def get_experiments(self) -> List[dict]:
-#         """
-#         Get the experiments associated with a sensor
-
-#         Returns:
-#         List[Any]: The experiments associated with the sensor
-#         """
-#         self.refresh()
-#         experiments = self.experiments
-#         logger_service.info(
-#             "API",
-#             f"Retrieved experiments associated with {self.sensor_name} from the database",
-#         )
-#         return experiments
-
-#     def add_experiment(self, experiment_name: str) -> "Sensor":
-#         """
-#         Add an experiment to a sensor
-
-#         Args:
-#         experiment_name (str): The name of the experiment to add
-
-#         Returns:
-#         Sensor: The sensor with the added experiment
-#         """
-#         experiment = ExperimentModel.get_by_parameter(
-#             "experiment_name", experiment_name
-#         )
-#         if experiment is None:
-#             raise ValueError(f"Experiment {experiment_name} not found")
-#         if experiment not in self.experiments:
-#             self.experiments.append(experiment)
-#             self.save()
-#         logger_service.info(
-#             "API",
-#             f"Added experiment {experiment_name} to {self.sensor_name}",
-#         )
-#         return self
-
-#     def get_datasets(self) -> List[dict]:
-#         """
-#         Get the datasets associated with a sensor
-
-#         Returns:
-#         List[dict]: The datasets associated with the sensor
-#         """
-#         self.refresh()
-#         datasets = self.datasets
-#         logger_service.info(
-#             "API",
-#             f"Retrieved datasets associated with {self.sensor_name} from the database",
-#         )
-#         return datasets
-
-#     def add_dataset(self, dataset_name: str) -> "Sensor":
-#         pass
-
-#     def get_type(self) -> dict:
-#         """
-#         Get the type of a sensor
-
-#         Returns:
-#         dict: The type of the sensor
-#         """
-#         self.refresh()
-#         sensor_type = self.sensor_type
-#         logger_service.info(
-#             "API",
-#             f"Retrieved type for {self.sensor_name} from the database",
-#         )
-#         return sensor_type
-
-#     def set_type(self, sensor_type: GEMINISensorType) -> "Sensor":
-#         pass
-
-#     def get_data_type(self) -> dict:
-#         """
-#         Get the data type of a sensor
-
-#         Returns:
-#         dict: The data type of the sensor
-#         """
-#         self.refresh()
-#         data_type = self.data_type
-#         logger_service.info(
-#             "API",
-#             f"Retrieved data type for {self.sensor_name} from the database",
-#         )
-#         return data_type
-
-#     def set_data_type(self, sensor_data_type: GEMINIDataType) -> "Sensor":
-#         pass
-
-#     def get_data_format(self) -> dict:
-#         """
-#         Get the data format of a sensor
-
-#         Returns:
-#         dict: The data format of the sensor
-#         """
-#         self.refresh()
-#         data_format = self.data_format
-#         logger_service.info(
-#             "API",
-#             f"Retrieved data format for {self.sensor_name} from the database",
-#         )
-#         return data_format
-
-#     def set_data_format(self, sensor_data_format: GEMINIDataFormat) -> "Sensor":
-#         pass
-
-#     # Todo: Sensor Data Handling
-#     def get_records(
-#         self,
-#         collection_date: datetime = None,
-#         experiment: str = None,
-#         season: str = None,
-#         site: str = None,
-#         plot_number: int = None,
-#         plot_row_number: int = None,
-#         plot_column_number: int = None,
-#         record_info: dict = None,
-#         as_dataframe: bool = False,
-#     ) -> List[SensorRecord]:
-#         """
-#         Get the records generated by a sensor
-
-#         Args:
-#         collection_date (datetime, optional): The collection date of the records. Defaults to None.
-#         experiment (str, optional): The experiment of the records. Defaults to None.
-#         season (str, optional): The season of the records. Defaults to None.
-#         site (str, optional): The site of the records. Defaults to None.
-#         plot_number (int, optional): The plot number of the records. Defaults to None.
-#         plot_row_number (int, optional): The plot row number of the records. Defaults to None.
-#         plot_column_number (int, optional): The plot column number of the records. Defaults to None.
-#         record_info (dict, optional): The information about the records. Defaults to None.
-#         as_dataframe (bool, optional): Whether to return the records as a pandas DataFrame. Defaults to False.
-#         """
-#         self.refresh()
-#         searched_records = SensorRecord.search(
-#             collection_date=collection_date,
-#             experiment_name=experiment,
-#             season_name=season,
-#             site_name=site,
-#             sensor_name=self.sensor_name,
-#             plot_number=plot_number,
-#             plot_row_number=plot_row_number,
-#             plot_column_number=plot_column_number,
-#             record_info=record_info,
-#         )
-#         logger_service.info(
-#             "API",
-#             f"Retrieved records generated by {self.sensor_name} from the database",
-#         )
-#         if as_dataframe:
-#             searched_records = pd.DataFrame(searched_records)
-#         return searched_records
-
-#     def add_record(
-#         self,
-#         timestamp: datetime,
-#         sensor_data: dict,
-#         collection_date: datetime = None,
-#         record_info: dict = None,
-#         experiment_name: str = None,
-#         season_name: str = None,
-#         site_name: str = None,
-#         plot_number: int = None,
-#         plot_row_number: int = None,
-#         plot_column_number: int = None,
-#     ):
-#         """
-#         Add a record generated by a sensor
-
-#         Args:
-#         timestamp (datetime): The timestamp of the record
-#         collection_date (datetime): The collection date of the record
-#         sensor_data (dict): The data of the record
-#         record_info (dict, optional): The information about the record. Defaults to None.
-#         experiment_name (str, optional): The name of the experiment. Defaults to None.
-#         season_name (str, optional): The name of the season. Defaults to None.
-#         site_name (str, optional): The name of the site. Defaults to None.
-#         plot_number (int, optional): The plot number. Defaults to None.
-#         plot_row_number (int, optional): The plot row number. Defaults to None.
-#         plot_column_number (int, optional): The plot column number. Defaults to None.
-#         """
-#         new_record = SensorRecord.create(
-#             sensor_name=self.sensor_name,
-#             timestamp=timestamp,
-#             collection_date=collection_date if collection_date else timestamp.date(),
-#             sensor_data=sensor_data,
-#             record_info=record_info,
-#             experiment_name=experiment_name,
-#             season_name=season_name,
-#             site_name=site_name,
-#             plot_number=plot_number,
-#             plot_row_number=plot_row_number,
-#             plot_column_number=plot_column_number,
-#         )
-#         logger_service.info(
-#             "API",
-#             f"Added record generated by {self.sensor_name} to the database",
-#         )
-#         return new_record
-
-#     def add_records(
-#         self,
-#         sensor_data: List[dict],
-#         timestamps: List[datetime] = None,
-#         record_info: dict = None,
-#         experiment_name: str = None,
-#         season_name: str = None,
-#         site_name: str = None,
-#         plot_number: List[int] = None,
-#         plot_row_number: List[int] = None,
-#         plot_column_number: List[int] = None,
-#     ):
-#         """
-#         Add multiple records generated by a sensor
-
-#         Args:
-#         timestamps (List[datetime]): The timestamps of the records
-#         sensor_data (List[dict]): The data of the records
-#         record_info (dict, optional): The information about the records. Defaults to None.
-#         experiment_name (str, optional): The name of the experiment. Defaults to None.
-#         season_name (str, optional): The name of the season. Defaults to None.
-#         site_name (str, optional): The name of the site. Defaults to None.
-#         plot_number (int, optional): The plot number. Defaults to None.
-#         plot_row_number (int, optional): The plot row number. Defaults to None.
-#         plot_column_number (int, optional): The plot column number. Defaults to None.
-#         """
-
-#         if timestamps is None:
-#             timestamps = [datetime.now() for _ in range(len(sensor_data))]
-
-#         if len(timestamps) != len(sensor_data):
-#             raise ValueError("Timestamps and record data must have the same length")
-
-#         records = SensorRecord.create_bulk(
-#             timestamp=timestamps,
-#             sensor_name=self.sensor_name,
-#             collection_date=[timestamp.date() for timestamp in timestamps],
-#             sensor_data=sensor_data,
-#             record_info=record_info,
-#             experiment_name=experiment_name,
-#             season_name=season_name,
-#             site_name=site_name,
-#             plot_number=plot_number,
-#             plot_row_number=plot_row_number,
-#             plot_column_number=plot_column_number,
-#         )
-
-#         logger_service.info(
-#             "API",
-#             f"Added records generated by {self.sensor_name} to the database",
-#         )
-
-#         return records
