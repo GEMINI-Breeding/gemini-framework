@@ -77,6 +77,42 @@ CREATE TABLE IF NOT EXISTS gemini.experiment_datasets (
 );
 
 -------------------------------------------------------------------------------
+-- Experiment Models Table
+
+CREATE TABLE IF NOT EXISTS gemini.experiment_models (
+    experiment_id UUID REFERENCES gemini.experiments(id) ON DELETE CASCADE,
+    model_id UUID REFERENCES gemini.models(id) ON DELETE CASCADE,
+    info JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (experiment_id, model_id)
+);
+
+-------------------------------------------------------------------------------
+-- Experiment Procedures Table
+
+CREATE TABLE IF NOT EXISTS gemini.experiment_procedures (
+    experiment_id UUID REFERENCES gemini.experiments(id) ON DELETE CASCADE,
+    procedure_id UUID REFERENCES gemini.procedures(id) ON DELETE CASCADE,
+    info JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (experiment_id, procedure_id)
+);
+
+-------------------------------------------------------------------------------
+-- Experiment Scripts Table
+
+CREATE TABLE IF NOT EXISTS gemini.experiment_scripts (
+    experiment_id UUID REFERENCES gemini.experiments(id) ON DELETE CASCADE,
+    script_id UUID REFERENCES gemini.scripts(id) ON DELETE CASCADE,
+    info JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (experiment_id, script_id)
+);
+
+-------------------------------------------------------------------------------
 -- Plot Cultivars Table
 
 CREATE TABLE IF NOT EXISTS gemini.plot_cultivars (

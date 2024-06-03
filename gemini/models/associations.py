@@ -81,7 +81,38 @@ class ExperimentCultivarModel(BaseModel):
     )
 
 
+class ExperimentModelModel(BaseModel):
+    __tablename__ = "experiment_models"
+    
+    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
+    model_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.models.id", ondelete="CASCADE"))
+    info: Mapped[dict] = mapped_column(JSON, default={})
+    
+    __table_args__ = (
+        PrimaryKeyConstraint("experiment_id", "model_id"),
+    )
+    
+class ExperimentProcedureModel(BaseModel):
+    __tablename__ = "experiment_procedures"
+    
+    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
+    procedure_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.procedures.id", ondelete="CASCADE"))
+    info: Mapped[dict] = mapped_column(JSON, default={})
+    
+    __table_args__ = (
+        PrimaryKeyConstraint("experiment_id", "procedure_id"),
+    )
 
+class ExperimentScriptModel(BaseModel):
+    __tablename__ = "experiment_scripts"
+    
+    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
+    script_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.scripts.id", ondelete="CASCADE"))
+    info: Mapped[dict] = mapped_column(JSON, default={})
+    
+    __table_args__ = (
+        PrimaryKeyConstraint("experiment_id", "script_id"),
+    )
 
 class ExperimentDatasetModel(BaseModel):
     __tablename__ = "experiment_datasets"
