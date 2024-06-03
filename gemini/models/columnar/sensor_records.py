@@ -23,7 +23,7 @@ class SensorRecordModel(ColumnarBaseModel):
             'dataset_name', 
             'sensor_id', 
             'sensor_name', 
-            'sensor_data',
+            'record_info',
             name='sensor_records_unique'
         ),
     )

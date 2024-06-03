@@ -23,7 +23,7 @@ class ProcedureRecordModel(ColumnarBaseModel):
             'dataset_name', 
             'procedure_id', 
             'procedure_name', 
-            'procedure_data',
+            'record_info',
             name='procedure_records_unique'
         ),
     )

@@ -32,7 +32,7 @@ class TraitRecordModel(ColumnarBaseModel):
             "dataset_name",
             "trait_id",
             "trait_name",
-            "trait_value",
+            "record_info",
             name="trait_records_unique"
         ),
     )

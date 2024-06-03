@@ -23,7 +23,7 @@ class ScriptRecordModel(ColumnarBaseModel):
             'dataset_name', 
             'script_id', 
             'script_name', 
-            'script_data',
+            'record_info',
             name='script_records_unique'
         ),
     )

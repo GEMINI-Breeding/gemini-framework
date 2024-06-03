@@ -24,7 +24,7 @@ class ModelRecordModel(ColumnarBaseModel):
             'dataset_name', 
             'model_id', 
             'model_name', 
-            'model_data',
+            'record_info',
             name='model_records_unique'
         ),
     )

@@ -18,7 +18,7 @@ class DatasetRecordModel(ColumnarBaseModel):
             'collection_date', 
             'dataset_id', 
             'dataset_name', 
-            'dataset_data',
+            'record_info',
             name='dataset_records_unique'
         ),
     )
