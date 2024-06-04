@@ -1,11 +1,6 @@
 from typing import Optional, List, Any, Generator
 from pydantic import Field, BaseModel, ConfigDict
 from gemini.api.base import APIBase
-from gemini.api.experiment import Experiment
-from gemini.api.season import Season
-from gemini.api.site import Site
-from gemini.api.dataset import Dataset
-from gemini.api.plot import Plot
 from gemini.models import ProcedureRecordModel, ProcedureModel, DatasetModel
 from gemini.logger import logger_service
 from gemini.object_store import storage_service
@@ -29,13 +24,22 @@ class ProcedureRecord(APIBase):
     procedure_data: Optional[dict] = None
     record_info: Optional[dict] = None
 
+    @classmethod
+    def create(cls, **kwargs) -> 'ProcedureRecord':
+        record = ProcedureRecord.model_construct(
+            _fields_set=ProcedureRecord.model_fields_set,
+            **kwargs
+        )
+        return record
+    
+
 
     @classmethod
     def add(cls, records: List['ProcedureRecord']) -> bool:
         try:
             records_to_insert = []
             dataset_id = DatasetModel.get_or_create(name=records[0].dataset_name).id
-            procedure_id = ProcedureModel.get_by_parameter("procedure_name", records[0].procedure_name).id
+            procedure_id = ProcedureModel.get_by_parameters(procedure_name=records[0].procedure_name).id
             for record in records:
                 record_to_insert = {}
                 record_to_insert['timestamp'] = record.timestamp
@@ -47,7 +51,13 @@ class ProcedureRecord(APIBase):
                 record_to_insert['procedure_data'] = record.procedure_data
                 record_to_insert['record_info'] = record.record_info
                 records_to_insert.append(record_to_insert)
+
+            # Preprocess records
+            for record in track(records_to_insert, description="Preprocessing Procedure Records"):
+                record = cls.preprocess_record(record)
+
             ProcedureRecordModel.insert_bulk("procedure_records_unique", records_to_insert)
+
             logger_service.info(
                 "API",
                 f"Created {len(records)} new procedure records in the database",
@@ -103,11 +113,14 @@ class ProcedureRecord(APIBase):
 
     @classmethod
     def search(cls, **kwargs) -> Generator['ProcedureRecord', None, None]:
-        searched_records = ProcedureRecordModel.search(**kwargs)
+        searched_records = ProcedureRecordModel.stream(**kwargs)
         for record in searched_records:
             record = record.to_dict()
             record = cls.postprocess_record(record)
-            record = cls.model_validate(record)
+            record = cls.model_construct(
+                _fields_set=cls.model_fields_set,
+                **record
+            )
             yield record
 
     @classmethod
@@ -124,7 +137,7 @@ class ProcedureRecord(APIBase):
 
         logger_service.info(
             "API",
-            f"Preprocessed procedure record with id {record.id}",
+            f"Preprocessed procedure record with id {record.get('id')}",
         )
 
         return record
@@ -162,8 +175,14 @@ class ProcedureRecord(APIBase):
             "procedure_name": record.get("procedure_name"),
             "dataset_name": record.get("dataset_name"),
             "collection_date": record.get("collection_date").strftime("%Y-%m-%d"),
-            **record.get("record_info")
+            "experiment_name": record.get("experiment_name"),
+            "site_name": record.get("site_name"),
+            "season_name": record.get("season_name"),
+            "plot_number": record.get("plot_number") if record.get("plot_number") else None,
+            "plot_row_number": record.get("plot_row_number") if record.get("plot_row_number") else None,
+            "plot_column_number": record.get("plot_column_number") if record.get("plot_column_number") else None,
         }
+        
         storage_service.upload_file(
             file_path=absolute_file_path,
             key=file_uri,
@@ -172,7 +191,7 @@ class ProcedureRecord(APIBase):
 
         logger_service.info(
             "API",
-            f"Uploaded procedure data file for procedure record with id {record['id']}",
+            f"Uploaded procedure data file for procedure record with id {record.get('id')}",
         )
 
         return file_uri

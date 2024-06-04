@@ -285,7 +285,7 @@ class _BaseModel(DeclarativeBase, SerializeMixin):
             # stmt = insert(cls)
             stmt = pg_insert(cls)
             unique_keys = cls.unique_fields()
-            stmt = stmt.on_conflict_do_nothing(index_elements=unique_keys)
+            stmt = stmt.on_conflict_do_nothing(constraint=constraint)
             session.execute(stmt, data)
             session.commit()
             return True

@@ -3,8 +3,8 @@ from gemini.api.base import APIBase
 from gemini.api.sensor_type import SensorType
 from gemini.api.data_type import DataType
 from gemini.api.data_format import DataFormat
-from gemini.api.sensor_platform import SensorPlatform
 from gemini.api.dataset import Dataset
+from gemini.api.sensor_platform import SensorPlatform
 from gemini.api.sensor_record import SensorRecord
 from gemini.models import SensorModel, ExperimentModel, SensorPlatformModel, DatasetModel
 from gemini.logger import logger_service
@@ -112,38 +112,6 @@ class Sensor(APIBase):
         logger_service.info("API", f"Retrieved datasets for {self.sensor_name} from the database")
         return self.datasets
     
-    def add_dataset(
-            self,
-            dataset_name: str,
-            dataset_info: dict = None,
-            is_derived: bool = False,
-            collection_date: Optional[date] = None,
-            dataset_type: GEMINIDataType = GEMINIDataType.Default
-        ) -> Dataset:
-
-        if not collection_date:
-            collection_date = datetime.now().date()
-
-        if not dataset_name:
-            dataset_name = f"{self.sensor_name}_{collection_date}"
-
-        db_sensor = SensorModel.get_by_parameters(sensor_name=self.sensor_name)
-
-        created_dataset = DatasetModel.get_or_create(
-            dataset_name=dataset_name,
-            dataset_info=dataset_info,
-            is_derived=is_derived,
-            collection_date=collection_date,
-            dataset_type_id=dataset_type.value
-        )
-
-        if db_sensor and created_dataset not in db_sensor.datasets:
-            db_sensor.datasets.append(created_dataset)
-            db_sensor.save()
-
-        logger_service.info("API", f"Added dataset {dataset_name} to {self.sensor_name}")
-        return Dataset.model_validate(created_dataset)
-    
     # Todo: Data Handling
     def add_record(
             self,
@@ -220,6 +188,13 @@ class Sensor(APIBase):
 
         if dataset_name is None:
             dataset_name = f"{self.sensor_name}_{collection_date}"
+
+        
+        db_sensor = SensorModel.get_by_parameters(sensor_name=self.sensor_name)
+        db_dataset = DatasetModel.get_or_create(dataset_name=dataset_name)
+        if db_dataset not in db_sensor.datasets:
+            db_sensor.datasets.append(db_dataset)
+            db_sensor.save()
 
         records = []
 

@@ -195,10 +195,18 @@ VALUES
     ((SELECT id FROM gemini.models WHERE model_name = 'Default'), '{"description": "Default Model Run 4"}'),
     ((SELECT id FROM gemini.models WHERE model_name = 'Default'), '{"description": "Default Model Run 5"}');
 
+INSERT INTO gemini.experiment_models (experiment_id, model_id)
+VALUES
+    ((SELECT id FROM gemini.experiments WHERE experiment_name = 'Default'), (SELECT id FROM gemini.models WHERE model_name = 'Default'));
+
 -- Insert Generic Default Trait
 INSERT INTO gemini.traits (trait_name, trait_info, trait_units, trait_level_id)
 VALUES
     ('Default', '{"description": "Default Trait"}', 'Default Units', (SELECT id FROM gemini.trait_levels WHERE trait_level_name = 'Default'));
+
+INSERT INTO gemini.experiment_traits (experiment_id, trait_id)
+VALUES
+    ((SELECT id FROM gemini.experiments WHERE experiment_name = 'Default'), (SELECT id FROM gemini.traits WHERE trait_name = 'Default'));
 
 -- Insert Default Sensor Platform
 INSERT INTO gemini.sensor_platforms (sensor_platform_name, sensor_platform_info)
@@ -233,10 +241,18 @@ VALUES
     ((SELECT id FROM gemini.scripts WHERE script_name = 'Default'), '{"description": "Default Script Run 4"}'),
     ((SELECT id FROM gemini.scripts WHERE script_name = 'Default'), '{"description": "Default Script Run 5"}');
 
+INSERT INTO gemini.experiment_scripts (experiment_id, script_id)
+VALUES
+    ((SELECT id FROM gemini.experiments WHERE experiment_name = 'Default'), (SELECT id FROM gemini.scripts WHERE script_name = 'Default'));
+
 -- Insert Default Procedure
 INSERT INTO gemini.procedures (procedure_name, procedure_info)
 VALUES
     ('Default', '{"description": "Default Procedure"}');
+
+INSERT INTO gemini.experiment_procedures (experiment_id, procedure_id)
+VALUES
+    ((SELECT id FROM gemini.experiments WHERE experiment_name = 'Default'), (SELECT id FROM gemini.procedures WHERE procedure_name = 'Default'));
 
 -- Insert 5 Procedure Runs for this procedure
 INSERT INTO gemini.procedure_runs (procedure_id, procedure_run_info)
@@ -311,6 +327,13 @@ VALUES
     ((SELECT id FROM gemini.models WHERE model_name = 'Default'), (SELECT id FROM gemini.datasets WHERE dataset_name = 'Default Model Dataset 1')),
     ((SELECT id FROM gemini.models WHERE model_name = 'Default'), (SELECT id FROM gemini.datasets WHERE dataset_name = 'Default Model Dataset 2')),
     ((SELECT id FROM gemini.models WHERE model_name = 'Default'), (SELECT id FROM gemini.datasets WHERE dataset_name = 'Default Model Dataset 3'));
+
+--- Assign all datasets to Experiment 'Default'
+INSERT INTO gemini.experiment_datasets (experiment_id, dataset_id)
+SELECT (SELECT id FROM gemini.experiments WHERE experiment_name = 'Default'), id
+FROM gemini.datasets;
+
+
 
 ------------------------------------------------------------
 -- Insert the initial data for the database

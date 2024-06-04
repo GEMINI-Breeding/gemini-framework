@@ -1,14 +1,15 @@
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Union
 from gemini.api.base import APIBase
 from gemini.models import ScriptRunModel, ScriptModel
 from gemini.logger import logger_service
 
+from uuid import UUID
 
 class ScriptRun(APIBase):
 
     db_model = ScriptRunModel
 
-    script_id: Optional[str] = None
+    script_id: Optional[Union[str, UUID]] = None
     script_run_info: Optional[dict] = None
 
     @classmethod

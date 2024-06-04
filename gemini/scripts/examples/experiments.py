@@ -1,14 +1,13 @@
 from gemini.api import Experiment
 
-test_experiment = Experiment.create(experiment_name="Test Experiment")
+gemini = Experiment(experiment_name="Default")
 
-test_experiment.add_info(
-    {
-        "location": "Kathmandu, Nepal",
-        "latitude": 27.7172,
-        "longitude": 85.324,
-        "altitude": 1400
-    }
-)
-
-print(test_experiment)
+print(gemini.sites)
+print(gemini.seasons)
+print(gemini.sensors)
+print(gemini.traits)
+print(gemini.resources)
+print(gemini.cultivars)
+print(gemini.datasets)
+print(gemini.scripts)
+print(gemini.procedures)

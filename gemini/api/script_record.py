@@ -1,12 +1,7 @@
 from typing import Optional, List, Any, Generator
 from gemini.api.base import APIBase
-from gemini.api.experiment import Experiment
-from gemini.api.season import Season
-from gemini.api.site import Site
-from gemini.api.plot import Plot
-from gemini.api.script import Script
-from gemini.api.dataset import Dataset
 from gemini.models import ScriptModel, ScriptRunModel, DatasetModel
+from gemini.models import ScriptRecordModel
 from gemini.logger import logger_service
 from gemini.object_store import storage_service
 from datetime import datetime, date
@@ -41,8 +36,8 @@ class ScriptRecord(APIBase):
     def add(cls, records: List['ScriptRecord']) -> bool:
         try:
             records_to_insert = []
-            script_id = ScriptModel.get_by_parameter("script_name", records[0].script_name).id
-            dataset_id = DatasetModel.get_by_parameter("dataset_name", records[0].dataset_name).id
+            script_id = ScriptModel.get_by_parameters(script_name=records[0].script_name).id
+            dataset_id = DatasetModel.get_or_create(dataset_name=records[0].dataset_name).id
             for record in records:
                 record_to_insert = {}
                 record_to_insert["timestamp"] = record.timestamp
@@ -54,7 +49,14 @@ class ScriptRecord(APIBase):
                 record_to_insert["script_data"] = record.script_data
                 record_to_insert["record_info"] = record.record_info
                 records_to_insert.append(record_to_insert)
-            ScriptRunModel.insert_bulk("script_runs", records_to_insert)
+
+            # Preprocess records
+            for record in track(records_to_insert, description="Preprocessing Script Records"):
+                record = cls.preprocess_record(record)
+                
+            ScriptRecordModel.insert_bulk("script_records_unique", records_to_insert)
+
+
             logger_service.info(
                 "API",
                 f"Inserted {len(records)} script records into the database",
@@ -109,11 +111,14 @@ class ScriptRecord(APIBase):
 
     @classmethod
     def search(cls, **kwargs) -> Generator['ScriptRecord', None, None]:
-        searched_records = ScriptRunModel.stream(**kwargs)
+        searched_records = ScriptRecordModel.stream(**kwargs)
         for record in searched_records:
             record = record.to_dict()
             record = cls.postprocess_record(record)
-            record = cls.model_validate(record)
+            record = cls.model_construct(
+                _fields_set=cls.model_fields_set,
+                **record
+            )
             yield record
 
     @classmethod
@@ -130,7 +135,7 @@ class ScriptRecord(APIBase):
 
         logger_service.info(
             "API",
-            f"Preprocessed the record with id {record['id']}",
+            f"Preprocessed the record with id {record.get('id')}",
         )
         return record
     
@@ -170,7 +175,12 @@ class ScriptRecord(APIBase):
             "script_name": record.get("script_name"),
             "dataset_name": record.get("dataset_name"),
             "collection_date": record.get("collection_date"),
-            **record.get("record_info")
+            "experiment_name": record.get("experiment_name"),
+            "site_name": record.get("site_name"),
+            "season_name": record.get("season_name"),
+            "plot_number": record.get("plot_number") if record.get("plot_number") else None,
+            "plot_row_number": record.get("plot_row_number") if record.get("plot_row_number") else None,
+            "plot_column_number": record.get("plot_column_number") if record.get("plot_column_number") else None
         }
 
         storage_service.upload_file(

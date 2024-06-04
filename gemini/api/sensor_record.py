@@ -37,7 +37,7 @@ class SensorRecord(APIBase):
         try:
             records_to_insert = []
             sensor_id = SensorModel.get_by_parameters(sensor_name=records[0].sensor_name).id
-            dataset_id = DatasetModel.get_or_create(dataset_name=records[0].dataset_name).id
+            dataset_id = DatasetModel.get_by_parameters(dataset_name=records[0].dataset_name).id
             for record in records:
                 record_to_insert = {}
                 record_to_insert["timestamp"] = record.timestamp

@@ -33,3 +33,6 @@ class ExperimentModel(BaseModel):
     cultivars = relationship('CultivarModel', secondary='gemini.experiment_cultivars')
     datasets = relationship('DatasetModel', secondary='gemini.experiment_datasets')
     traits = relationship('TraitModel', secondary='gemini.experiment_traits')
+    models = relationship('ModelModel', secondary='gemini.experiment_models')
+    scripts = relationship('ScriptModel', secondary='gemini.experiment_scripts')
+    procedures = relationship('ProcedureModel', secondary='gemini.experiment_procedures')

@@ -7,7 +7,7 @@ from gemini.object_store import storage_service
 
 import os
 import io
-
+from uuid import UUID
 
 class Resource(APIBase):
 
@@ -18,7 +18,7 @@ class Resource(APIBase):
     is_external: Optional[bool] = None
     resource_info: Optional[dict] = None
     resource_data_format_id: Optional[int] = None
-    resource_experiment_id: Optional[str] = None
+    resource_experiment_id: Optional[Union[str, UUID]] = None
 
 
     @classmethod
