@@ -58,8 +58,16 @@ class Dataset(APIBase):
     @classmethod
     def get(cls, dataset_name: str) -> "Dataset":
         db_instance = cls.db_model.get_by_parameters(dataset_name=dataset_name)
+        if db_instance is None:
+            return None
         logger_service.info("API", f"Retrieved dataset with name {dataset_name} from the database")
         return cls.model_validate(db_instance)
+    
+    @classmethod
+    def get_by_type(cls, dataset_type: GEMINIDatasetType) -> List["Dataset"]:
+        db_instances = cls.db_model.search(dataset_type_id=dataset_type.value)
+        logger_service.info("API", f"Retrieved datasets with type {dataset_type} from the database")
+        return [cls.model_validate(db_instance) for db_instance in db_instances]
     
     def get_info(self) -> dict:
         self.refresh()

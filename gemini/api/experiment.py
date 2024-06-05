@@ -113,5 +113,98 @@ class Experiment(APIBase):
             f"Removed information from {self.experiment_name} in the database",
         )
         return self
+    
+    
+    def get_sensors(self) -> List[Sensor]:
+        self.refresh()
+        logger_service.info(
+            "API",
+            f"Retrieved sensors for {self.experiment_name} from the database",
+        )
+        return self.sensors
+    
+    
+    def get_traits(self) -> List[Trait]:
+        self.refresh()
+        logger_service.info(
+            "API",
+            f"Retrieved traits for {self.experiment_name} from the database",
+        )
+        return self.traits
+    
+    
+    def get_resources(self) -> List[Resource]:
+        self.refresh()
+        logger_service.info(
+            "API",
+            f"Retrieved resources for {self.experiment_name} from the database",
+        )
+        return self.resources
+    
+    
+    def get_sites(self) -> List[Site]:
+        self.refresh()
+        logger_service.info(
+            "API",
+            f"Retrieved sites for {self.experiment_name} from the database",
+        )
+        return self.sites
+    
+    
+    def get_seasons(self) -> List[Season]:
+        self.refresh()
+        logger_service.info(
+            "API",
+            f"Retrieved seasons for {self.experiment_name} from the database",
+        )
+        return self.seasons
+    
+    
+    def get_cultivars(self) -> List[Cultivar]:
+        self.refresh()
+        logger_service.info(
+            "API",
+            f"Retrieved cultivars for {self.experiment_name} from the database",
+        )
+        return self.cultivars
+    
+    
+    def get_datasets(self) -> List[Dataset]:
+        self.refresh()
+        logger_service.info(
+            "API",
+            f"Retrieved datasets for {self.experiment_name} from the database",
+        )
+        return self.datasets
+    
+    
+    def get_scripts(self) -> List[Script]:
+        self.refresh()
+        logger_service.info(
+            "API",
+            f"Retrieved scripts for {self.experiment_name} from the database",
+        )
+        return self.scripts
+    
+    
+    def get_procedures(self) -> List[Procedure]:
+        self.refresh()
+        logger_service.info(
+            "API",
+            f"Retrieved procedures for {self.experiment_name} from the database",
+        )
+        return self.procedures
+    
+    
+    def get_models(self) -> List[Model]:
+        self.refresh()
+        logger_service.info(
+            "API",
+            f"Retrieved models for {self.experiment_name} from the database",
+        )
+        return self.models
+    
+    
+    
 
 

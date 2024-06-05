@@ -1,8 +1,9 @@
 from litestar import Litestar, Router, get
 from litestar.openapi.config import OpenAPIConfig
-from litestar.openapi.plugins import ScalarRenderPlugin, SwaggerRenderPlugin
+from litestar.openapi.plugins import ScalarRenderPlugin, SwaggerRenderPlugin, RapidocRenderPlugin, RedocRenderPlugin, StoplightRenderPlugin
 
 from gemini.rest_api.controllers import controllers
+from gemini.rest_api.src.file_handler import FileHandler
 
 import os
 
@@ -10,7 +11,7 @@ openapi_config = OpenAPIConfig(
     title="GEMINI REST API",
     version="1.0.0",
     description="REST API for the GEMINI project",
-    render_plugins=[SwaggerRenderPlugin()],
+    render_plugins=[StoplightRenderPlugin()]
 )
 
 
@@ -33,12 +34,17 @@ for key, value in controllers.items():
         tags=[key.capitalize()],
     )
     routers.append(router)
+
+
 app = Litestar(route_handlers=[root_handler, *routers], openapi_config=openapi_config)
 
-# Create folder for upload
-if not os.path.exists("uploads"):
-    os.makedirs("uploads")
 
-# Create folder for download
-if not os.path.exists("downloads"):
-    os.makedirs("downloads")
+
+
+# # Create folder for upload
+# if not os.path.exists("uploads"):
+#     os.makedirs("uploads")
+
+# # Create folder for download
+# if not os.path.exists("downloads"):
+#     os.makedirs("downloads")

@@ -263,6 +263,13 @@ VALUES
     ((SELECT id FROM gemini.procedures WHERE procedure_name = 'Default'), '{"description": "Default Procedure Run 4"}'),
     ((SELECT id FROM gemini.procedures WHERE procedure_name = 'Default'), '{"description": "Default Procedure Run 5"}');
 
+-- Create 3 Default Datasets
+INSERT INTO gemini.datasets (dataset_name, collection_date, dataset_info, dataset_type_id)
+VALUES
+    ('Default Dataset 1', '2020-01-01', '{"description": "Default Dataset 1"}', (SELECT id FROM gemini.dataset_types WHERE dataset_type_name = 'Other')),
+    ('Default Dataset 2', '2021-01-01', '{"description": "Default Dataset 2"}', (SELECT id FROM gemini.dataset_types WHERE dataset_type_name = 'Other')),
+    ('Default Dataset 3', '2022-01-01', '{"description": "Default Dataset 3"}', (SELECT id FROM gemini.dataset_types WHERE dataset_type_name = 'Other'));
+
 -- Create 3 Datasets for Default Trait
 INSERT INTO gemini.datasets (dataset_name, collection_date, dataset_info, dataset_type_id)
 VALUES

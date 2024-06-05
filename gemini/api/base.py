@@ -7,6 +7,7 @@ from abc import abstractmethod
 
 from gemini.models.base_model import BaseModel as DBBaseModel
 from gemini.models.columnar.columnar_base_model import ColumnarBaseModel
+from gemini.models.views.view_base import ViewBaseModel
 from gemini.logger import logger_service
 
 
@@ -28,10 +29,7 @@ class APIBase(BaseModel):
     @classmethod
     def check_db_model(cls, data: Any) -> Any:
 
-        if isinstance(data, DBBaseModel):
-            return data
-        
-        if isinstance(data, ColumnarBaseModel):
+        if isinstance(data, (DBBaseModel, ColumnarBaseModel, ViewBaseModel)):
             return data
         
         db_instance = cls.db_model.get_or_create(**data)

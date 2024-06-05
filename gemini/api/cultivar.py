@@ -41,14 +41,14 @@ class Cultivar(APIBase):
     def get(cls, cultivar_population: str, cultivar_accession: str) -> "Cultivar":
         db_instance = cls.db_model.get_by_parameters(cultivar_population=cultivar_population, cultivar_accession=cultivar_accession)
         logger_service.info("API", f"Retrieved cultivar with accession {cultivar_accession} from the database")
-        return cls.model_validate(db_instance)
+        return cls.model_validate(db_instance) if db_instance else None
     
     @classmethod
     def get_population_accessions(cls, cultivar_population: str) -> List["Cultivar"]:
         cultivars = cls.db_model.search(cultivar_population=cultivar_population)
         cultivars = [cls.model_validate(cultivar) for cultivar in cultivars]
         logger_service.info("API", f"Retrieved {len(cultivars)} accessions of {cultivar_population} from the database")
-        return cultivars
+        return cultivars if cultivars else None
     
     def get_info(self) -> dict:
         self.refresh()

@@ -3,6 +3,9 @@
 .conda
 /sample_data
 /gemini_data
+/gemini-data
+/uploads
+/downloads
 /data
 ./gemini/api/examples/data
 cprofile.out

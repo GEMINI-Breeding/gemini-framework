@@ -1,125 +1,108 @@
-from litestar.contrib.pydantic import PydanticDTO
 from litestar.controller import Controller
-from litestar.dto import DTOConfig, DTOData
 from litestar.enums import RequestEncodingType, MediaType
-from litestar.params import Body
 from litestar.handlers import get, post, patch, delete
+from litestar.params import Body
+from litestar import Response
+
 from pydantic import BaseModel, UUID4
+from datetime import datetime, date
+
+from gemini.api.experiment import Experiment
+from gemini.api.cultivar import Cultivar
 
 from typing import List, Annotated, Optional
-from datetime import datetime, date
-from uuid import UUID
-
-from gemini.api.cultivar import Cultivar
-from gemini.api.experiment import Experiment
-from gemini.api.plot import Plot
 
 class CultivarInput(BaseModel):
-    cultivar_population: str
-    cultivar_accession: Optional[str] = None
+    cultivar_accession: str = "Test Accession"
+    cultivar_population: str = "Test Population"
+    experiment_name: str = "Test Experiment"
     cultivar_info: Optional[dict] = {}
-    experiment_name: Optional[str] = None
-
+    
+    
 class CultivarController(Controller):
-
-    # Filter cultivars
+    
+    # Get Cultivars
     @get()
     async def get_cultivars(
-        self, 
-        cultivar_population: Optional[str] = None,
-        cultivar_accession: Optional[str] = None,
+        self,
+        experiment_name: Optional[str] = "Test Experiment",
+        cultivar_population: Optional[str] = "Test Population",
+        cultivar_accession: Optional[str] = "Test Accession",
         cultivar_info: Optional[dict] = None
-        ) -> List[Cultivar]:
+    ) -> List[Cultivar]:
+        experiment = Experiment.get(experiment_name=experiment_name)
         cultivars = Cultivar.search(
+            experiment_id=experiment.id,
             cultivar_population=cultivar_population,
             cultivar_accession=cultivar_accession,
             cultivar_info=cultivar_info
         )
+        if cultivars is None:
+            return Response(content="No cultivars found", status_code=404)
         return cultivars
     
-    # Get Cultivar by population
-    @get(path="/{cultivar_population:str}")
-    async def get_population_accessions(self, cultivar_population: str) -> List[Cultivar]:
-        cultivars = Cultivar.get_accessions(cultivar_population=cultivar_population)
-        return cultivars
     
-    # Get Cultivar by population and accession
-    @get(path="/{cultivar_population:str}/{cultivar_accession:str}")
-    async def get_cultivar(self, cultivar_population: str, cultivar_accession: str) -> Cultivar:
-        cultivar = Cultivar.get_by_name(
-            cultivar_accession=cultivar_accession,
-            cultivar_population=cultivar_population
-        )
-        return cultivar
-    
-    # Get Cultivar By ID
-    @get(path="/id/{cultivar_id:uuid}")
-    async def get_cultivar_by_id(self, cultivar_id: UUID) -> Cultivar:
-        cultivar = Cultivar.get_by_id(cultivar_id)
-        return cultivar
-    
-    # Create a new cultivar
+    # Create a new Cultivar
     @post()
     async def create_cultivar(
         self, data: Annotated[CultivarInput, Body]
-        ) -> Cultivar:
+    ) -> Cultivar:
         cultivar = Cultivar.create(
             cultivar_population=data.cultivar_population,
             cultivar_accession=data.cultivar_accession,
             cultivar_info=data.cultivar_info,
             experiment_name=data.experiment_name
         )
+        if cultivar is None:
+            return Response(content="Cultivar already exists", status_code=409)
         return cultivar
     
-    # Get Cultivar info
-    @get(path="/{cultivar_population:str}/{cultivar_accession:str}/info")
-    async def get_cultivar_info(self, cultivar_population: str, cultivar_accession: str) -> dict:
-        cultivar = Cultivar.get_by_name(
-            cultivar_population=cultivar_population,
-            cultivar_accession=cultivar_accession
-        )
-        return cultivar.cultivar_info
     
-    # Set Cultivar info
-    @patch(path="/{cultivar_population:str}/{cultivar_accession:str}/info")
+    # Get Population Accessions
+    @get('/{cultivar_population:str}/accessions')
+    async def get_population_accessions(
+        self,
+        cultivar_population: str
+    ) -> List[Cultivar]:
+        cultivars = Cultivar.get_population_accessions(cultivar_population=cultivar_population)
+        if cultivars is None:
+            return Response(content="No cultivars found", status_code=404)
+        return cultivars
+    
+    # Get by population and accession
+    @get('/population/{cultivar_population:str}/accession/{cultivar_accession:str}')
+    async def get_cultivar(
+        self,
+        cultivar_population: str,
+        cultivar_accession: str
+    ) -> Cultivar:
+        cultivar = Cultivar.get(cultivar_population=cultivar_population, cultivar_accession=cultivar_accession)
+        if cultivar is None:
+            return Response(content="Cultivar not found", status_code=404)
+        return cultivar
+    
+    # Get Cultivar Info
+    @get('/population/{cultivar_population:str}/accession/{cultivar_accession:str}/info')
+    async def get_cultivar_info(
+        self,
+        cultivar_population: str,
+        cultivar_accession: str
+    ) -> dict:
+        cultivar = Cultivar.get(cultivar_population=cultivar_population, cultivar_accession=cultivar_accession)
+        if cultivar is None:
+            return Response(content="Cultivar not found", status_code=404)
+        return cultivar.get_info()
+    
+    # Set Cultivar Info
+    @patch('/population/{cultivar_population:str}/accession/{cultivar_accession:str}/info')
     async def set_cultivar_info(
-        self, cultivar_population: str, cultivar_accession: str, data: dict
-        ) -> Cultivar:
-        cultivar = Cultivar.get_by_name(
-            cultivar_population=cultivar_population,
-            cultivar_accession=cultivar_accession
-        )
-        cultivar = cultivar.set_info(cultivar_info=data)
-        return cultivar
-    
-    # Delete Cultivar by population and accession
-    @delete(path="/{cultivar_population:str}/{cultivar_accession:str}")
-    async def delete_cultivar(
-        self, cultivar_population: str, cultivar_accession: str
-        ) -> None:
-        cultivar = Cultivar.get_by_name(
-            cultivar_population=cultivar_population,
-            cultivar_accession=cultivar_accession
-        )
-        cultivar.delete()
-
-    # Get Cultivar Experiments
-    @get(path="/{cultivar_population:str}/{cultivar_accession:str}/experiments")
-    async def get_cultivar_experiments(self, cultivar_population: str, cultivar_accession: str) -> List[Experiment]:
-        cultivar = Cultivar.get_by_name(
-            cultivar_population=cultivar_population,
-            cultivar_accession=cultivar_accession
-        )
-        return cultivar.experiments
-    
-    # Get Cultivar Plots
-    @get(path="/{cultivar_population:str}/{cultivar_accession:str}/plots")
-    async def get_cultivar_plots(self, cultivar_population: str, cultivar_accession: str) -> List[Plot]:
-        cultivar = Cultivar.get_by_name(
-            cultivar_population=cultivar_population,
-            cultivar_accession=cultivar_accession
-        )
-        if not cultivar:
-            return []
-        return cultivar.plots
-    
+        self,
+        cultivar_population: str,
+        cultivar_accession: str,
+        data: dict
+    ) -> dict:
+        cultivar = Cultivar.get(cultivar_population=cultivar_population, cultivar_accession=cultivar_accession)
+        if cultivar is None:
+            return Response(content="Cultivar not found", status_code=404)
+        cultivar.set_info(cultivar_info=data)
+        return cultivar.get_info()

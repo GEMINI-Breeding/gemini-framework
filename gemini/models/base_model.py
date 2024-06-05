@@ -187,7 +187,7 @@ class _BaseModel(DeclarativeBase, SerializeMixin):
                     conditions.append(attribute.ilike(f"%{value}%"))
                 else:
                     conditions.append(attribute == value)
-            query = query.where(or_(*conditions))
+            query = query.where(*conditions)
             result = session.execute(query).scalars().all()
             return result
         except Exception as e:

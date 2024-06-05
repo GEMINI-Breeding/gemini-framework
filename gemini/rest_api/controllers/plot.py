@@ -1,171 +1,143 @@
-from litestar.contrib.pydantic import PydanticDTO
 from litestar.controller import Controller
-from litestar.response import Stream
-from litestar import Request
-from litestar.dto import DTOConfig, DTOData
 from litestar.enums import RequestEncodingType, MediaType
-from litestar.params import Body
 from litestar.handlers import get, post, patch, delete
-from litestar.serialization import encode_json, default_serializer
-from pydantic import BaseModel
-from collections.abc import AsyncGenerator
-from typing import List, Annotated, Optional
-from datetime import datetime, date
-from uuid import UUID
+from litestar.params import Body
+from litestar.response import Stream
+from litestar.serialization import encode_json
+from litestar import Response
 
-from gemini.api.plot import Plot
+from pydantic import BaseModel, UUID4
+from datetime import datetime, date
+from collections.abc import AsyncGenerator
+
 from gemini.api.experiment import Experiment
 from gemini.api.season import Season
 from gemini.api.site import Site
 from gemini.api.cultivar import Cultivar
+from gemini.api.plot import Plot, PlotSearchParameters
+from gemini.api.plant import Plant
 
-async def plot_generator(**params) -> AsyncGenerator[bytes, None]:
-    plots = Plot.search(**params)
+from typing import List, Annotated, Optional
+
+async def plot_search_generator(search_parameters: PlotSearchParameters) -> AsyncGenerator[bytes, None]:
+    plots = Plot.search(search_parameters=search_parameters)
     for plot in plots:
-        plot = plot.model_dump_json()
+        plot = plot.model_dump_json(exclude_none=True)
         yield plot
 
 class PlotInput(BaseModel):
-    plot_number: int
-    plot_row_number: int
-    plot_column_number: int
-    experiment_name: Optional[str] = None
-    season_name: Optional[str] = None
-    site_name: Optional[str] = None
-    cultivar_population: Optional[str] = None
-    cultivar_accession: Optional[str] = None
-    plot_info: Optional[dict] = {}
+    experiment_name: str = "Test Experiment"
+    season_name: str = "2023"
+    site_name: str = "Test Site"
+    plot_number: int = 1
+    plot_row_number: int = 1
+    plot_column_number: int = 1
     plot_geometry_info: Optional[dict] = {}
-
-
+    plot_info: Optional[dict] = {}
+    cultivar_accession : Optional[str] = "Test Cultivar"
+    cultivar_population : Optional[str] = "Test Population"
+    
 class PlotController(Controller):
-
-    # Filter plots
+    
+    # Get Plots
     @get()
     async def get_plots(
         self,
-        plot_number: Optional[int] = None,
-        plot_row_number: Optional[int] = None,
-        plot_column_number: Optional[int] = None,
         experiment_name: Optional[str] = None,
         season_name: Optional[str] = None,
         site_name: Optional[str] = None,
-        cultivar_population: Optional[str] = None,
-        cultivar_accession: Optional[str] = None,
-        plot_info: Optional[dict] = None,
+        plot_number: Optional[int] = None,
+        plot_row_number: Optional[int] = None,
+        plot_column_number: Optional[int] = None,
         plot_geometry_info: Optional[dict] = None,
+        plot_info: Optional[dict] = None
     ) -> Stream:
-            return Stream(
-                plot_generator(
-                    plot_number=plot_number,
-                    plot_row_number=plot_row_number,
-                    plot_column_number=plot_column_number,
-                    experiment_name=experiment_name,
-                    season_name=season_name,
-                    site_name=site_name,
-                    cultivar_population=cultivar_population,
-                    cultivar_accession=cultivar_accession,
-                    plot_info=plot_info,
-                    plot_geometry_info=plot_geometry_info
-                )
-            )
-    
-    # Get Plot by ID
-    @get(path="/id/{plot_id:uuid}")
-    async def get_plot_by_id(self, plot_id: UUID) -> Plot:
-        plot = Plot.get_by_id(plot_id)
-        return plot
-
-
-    # Create a new plot
-    @post()
-    async def create_plot(
-        self, data: Annotated[PlotInput, Body]
-        ) -> Plot:
-        plot = Plot.create(
-            plot_number=data.plot_number,
-            plot_row_number=data.plot_row_number,
-            plot_column_number=data.plot_column_number,
-            experiment_name=data.experiment_name,
-            season_name=data.season_name,
-            site_name=data.site_name,
-            cultivar_population=data.cultivar_population,
-            cultivar_accession=data.cultivar_accession,
-            plot_info=data.plot_info,
-            plot_geometry_info=data.plot_geometry_info
+        plot_search_parameters = PlotSearchParameters(
+            experiment_name=experiment_name,
+            season_name=season_name,
+            site_name=site_name,
+            plot_number=plot_number,
+            plot_row_number=plot_row_number,
+            plot_column_number=plot_column_number,
+            plot_geometry_info=plot_geometry_info,
+            plot_info=plot_info
         )
+        return Stream(plot_search_generator(plot_search_parameters))
+    
+    # # Create a plot
+    @post()
+    async def create_plot(self, plot_input: PlotInput) -> Plot:
+        plot = Plot.create(
+            experiment_name=plot_input.experiment_name,
+            season_name=plot_input.season_name,
+            site_name=plot_input.site_name,
+            plot_number=plot_input.plot_number,
+            plot_row_number=plot_input.plot_row_number,
+            plot_column_number=plot_input.plot_column_number,
+            plot_geometry_info=plot_input.plot_geometry_info,
+            plot_info=plot_input.plot_info,
+            cultivar_accession=plot_input.cultivar_accession,
+            cultivar_population=plot_input.cultivar_population
+        )
+        if not plot:
+            return Response(status_code=400)
         return plot
     
-    # Delete Plot Based on ID
-    @delete(path="/id/{plot_id:uuid}")
-    async def delete_plot(self, plot_id: UUID) -> None:
+    # Get Plot Info
+    @get('/{plot_id:str}/info')
+    async def get_plot_info(self, plot_id: str) -> dict:
         plot = Plot.get_by_id(plot_id)
+        if not plot:
+            return Response(status_code=404)
+        return plot.get_info()
+    
+    # Set Plot Info
+    @patch('/{plot_id:str}/info')
+    async def set_plot_info(self, plot_id: str, data: dict) -> dict:
+        plot = Plot.get_by_id(plot_id)
+        if not plot:
+            return Response(status_code=404)
+        plot.set_info(data)
+        return plot.get_info()
+    
+    # Delete Plot
+    @delete('/{plot_id:str}')
+    async def delete_plot(self, plot_id: str) -> None:
+        plot = Plot.get_by_id(plot_id)
+        if not plot:
+            return Response(status_code=404)
         plot.delete()
-
-    # Get Plot info based on ID
-    @get(path="/id/{plot_id:uuid}/info")
-    async def get_plot_info(self, plot_id: UUID) -> dict:
-        plot = Plot.get_by_id(plot_id)
-        plot_info = plot.get_info()
-        return plot_info
-    
-    # Set Plot info based on ID
-    @patch(path="/id/{plot_id:uuid}/info")
-    async def set_plot_info(
-        self, plot_id: UUID, data: dict
-    ) -> Plot:
-        plot = Plot.get_by_id(plot_id)
-        plot = plot.set_info(plot_info=data)
-        return plot
-    
-    # Get Plot geometry info based on ID
-    @get(path="/id/{plot_id:uuid}/geometry")
-    async def get_plot_geometry_info(self, plot_id: UUID) -> dict:
-        plot = Plot.get_by_id(plot_id)
-        plot_geometry_info = plot.get_geometry()
-        return plot_geometry_info
-    
-    # Set Plot geometry info based on ID
-    @patch(path="/id/{plot_id:uuid}/geometry")
-    async def set_plot_geometry_info(
-        self, plot_id: UUID, data: dict
-    ) -> Plot:
-        plot = Plot.get_by_id(plot_id)
-        plot = plot.set_geometry(geometry_info=data)
-        return plot
-    
-    # Get Experiment for a plot
-    @get(path="/id/{plot_id:uuid}/experiment")
-    async def get_plot_experiment(self, plot_id: UUID) -> Experiment:
-        plot = Plot.get_by_id(plot_id)
-        experiment = plot.get_experiment()
-        return experiment
-    
-    # Get Season for a plot
-    @get(path="/id/{plot_id:uuid}/season")
-    async def get_plot_season(self, plot_id: UUID) -> Season:
-        plot = Plot.get_by_id(plot_id)
-        season = plot.get_season()
-        return season
-    
-    # Get Site for a plot
-    @get(path="/id/{plot_id:uuid}/site")
-    async def get_plot_site(self, plot_id: UUID) -> Site:
-        plot = Plot.get_by_id(plot_id)
-        site = plot.get_site()
-        return site
-    
-    # Get Cultivars for a plot
-    @get(path="/id/{plot_id:uuid}/cultivars")
-    async def get_plot_cultivars(self, plot_id: UUID) -> List[Cultivar]:
-        plot = Plot.get_by_id(plot_id)
-        cultivars = plot.get_cultivars()
-        return cultivars
-    
-
-    
-
-  
- 
         
-
+    # Get Plot Experiment
+    @get('/{plot_id:str}/experiment')
+    async def get_plot_experiment(self, plot_id: str) -> Experiment:
+        plot = Plot.get_by_id(plot_id)
+        if not plot:
+            return Response(status_code=404)
+        return plot.experiment
+    
+    # Get Plot Season
+    @get('/{plot_id:str}/season')
+    async def get_plot_season(self, plot_id: str) -> Season:
+        plot = Plot.get_by_id(plot_id)
+        if not plot:
+            return Response(status_code=404)
+        return plot.season
+    
+    # Get Plot Site
+    @get('/{plot_id:str}/site')
+    async def get_plot_site(self, plot_id: str) -> Site:
+        plot = Plot.get_by_id(plot_id)
+        if not plot:
+            return Response(status_code=404)
+        return plot.site
+    
+    # Get Plot Cultivars
+    @get('/{plot_id:str}/cultivars')
+    async def get_plot_cultivars(self, plot_id: str) -> List[Cultivar]:
+        plot = Plot.get_by_id(plot_id)
+        if not plot:
+            return Response(status_code=404)
+        return plot.cultivars
+        
+   
