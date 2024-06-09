@@ -73,6 +73,17 @@ class Trait(APIBase):
         )
         return cls.model_validate(db_instance) if db_instance else None
     
+    @classmethod
+    def get_by_experiment(cls, experiment_name: str) -> List["Trait"]:
+        db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+        db_traits = db_experiment.traits
+        traits = [cls.model_validate(db_trait) for db_trait in db_traits]
+        logger_service.info(
+            "API",
+            f"Retrieved traits for experiment {experiment_name} from the database",
+        )
+        return traits
+    
     def get_level(self) -> TraitLevel:
         self.refresh()
         logger_service.info(

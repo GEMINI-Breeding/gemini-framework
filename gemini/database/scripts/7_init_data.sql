@@ -102,9 +102,9 @@ VALUES
 ------------------------------------------------------------
 
 -- Insert Generic Experiment
-INSERT INTO gemini.experiments (experiment_name, experiment_start_date, experiment_end_date)
+INSERT INTO gemini.experiments (experiment_name, experiment_info, experiment_start_date, experiment_end_date)
 VALUES
-    ('Default', '2020-01-01', '2025-12-31');
+    ('Default', '{"description": "Default Experiment"}', '2020-01-01', '2025-12-31');
 
 -- Insert Generic Seasons for each year of the Generic Experiment
 INSERT INTO gemini.seasons (season_name, season_start_date, season_end_date, experiment_id)
@@ -347,9 +347,10 @@ FROM gemini.datasets;
 ------------------------------------------------------------
 
 -- Insert GEMINI Experiment
-INSERT INTO gemini.experiments (experiment_name, experiment_start_date, experiment_end_date)
+INSERT INTO gemini.experiments (experiment_name, experiment_info, experiment_start_date, experiment_end_date)
 VALUES
-    ('GEMINI', '2020-01-01', '2025-12-31');
+    ('GEMINI', '{"description": "GEMINI Experiment"}', '2020-01-01', '2025-12-31');
+
 
 -- Insert Seasons for each year of the GEMINI Experiment
 INSERT INTO gemini.seasons (season_name, season_start_date, season_end_date, experiment_id)

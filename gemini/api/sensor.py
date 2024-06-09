@@ -72,6 +72,19 @@ class Sensor(APIBase):
         logger_service.info("API", f"Retrieved sensor with name {sensor_name} from the database")
         return cls.model_validate(db_instance)
     
+    @classmethod
+    def get_by_experiment(cls, experiment_name: str) -> List["Sensor"]:
+        db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+        db_sensors = db_experiment.sensors
+        logger_service.info("API", f"Retrieved sensors for experiment {experiment_name} from the database")
+        return [cls.model_validate(db_sensor) for db_sensor in db_sensors]
+    
+    def get_by_platform(cls, sensor_platform_name: str) -> List["Sensor"]:
+        db_sensor_platform = SensorPlatformModel.get_by_parameters(sensor_platform_name=sensor_platform_name)
+        db_sensors = SensorModel.get_by_parameters(sensor_platform_id=db_sensor_platform.id)
+        logger_service.info("API", f"Retrieved sensors for platform {sensor_platform_name} from the database")
+        return [cls.model_validate(db_sensor) for db_sensor in db_sensors]
+    
     def get_info(self) -> dict:
         self.refresh()
         logger_service.info("API", f"Retrieved information about {self.sensor_name} from the database")

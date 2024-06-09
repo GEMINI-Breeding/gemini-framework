@@ -64,6 +64,15 @@ class Dataset(APIBase):
         return cls.model_validate(db_instance)
     
     @classmethod
+    def get_by_experiment(cls, experiment_name: str) -> List["Dataset"]:
+        db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+        if db_experiment is None:
+            return []
+        db_datasets = db_experiment.datasets
+        logger_service.info("API", f"Retrieved datasets with experiment {experiment_name} from the database")
+        return [cls.model_validate(db_dataset) for db_dataset in db_datasets]
+    
+    @classmethod
     def get_by_type(cls, dataset_type: GEMINIDatasetType) -> List["Dataset"]:
         db_instances = cls.db_model.search(dataset_type_id=dataset_type.value)
         logger_service.info("API", f"Retrieved datasets with type {dataset_type} from the database")

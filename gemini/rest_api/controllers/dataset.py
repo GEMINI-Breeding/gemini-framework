@@ -12,11 +12,6 @@ from datetime import datetime, date
 from collections.abc import AsyncGenerator
 
 from gemini.api.experiment import Experiment
-from gemini.api.season import Season
-from gemini.api.site import Site
-from gemini.api.cultivar import Cultivar
-from gemini.api.plot import Plot, PlotSearchParameters
-from gemini.api.plant import Plant
 from gemini.api.dataset import Dataset
 from gemini.api.dataset_record import DatasetRecord
 from gemini.api import GEMINIDatasetType
@@ -30,7 +25,6 @@ async def dataset_record_search_generator(dataset_name: str, search_parameters: 
     for record in records:
         record = record.model_dump_json(exclude_none=True)
         yield record
-
 
 class DatasetInput(BaseModel):
     dataset_name: str = "Test Dataset"
@@ -57,25 +51,6 @@ class DatasetRecordInput(BaseModel):
     plot_row_number: int = 1
     plot_column_number: int = 1
     record_info: Optional[dict] = {}
-    
-
-class DatasetRecordFilesInput(BaseModel):
-    
-    model_config = {
-        "arbitrary_types_allowed": True
-    }
-    
-    files: List[UploadFile]
-    timestamps : List[datetime] = None  
-    experiment_name: str = "Test Experiment"
-    season_name: str = "2023"
-    site_name: str = "Test Site"
-    plot_numbers: List[int] = None
-    plot_row_numbers: List[int] = None
-    plot_column_numbers: List[int] = None
-    record_info: Optional[dict] = {}
-    
-
     
     
 class DatasetController(Controller):
@@ -177,32 +152,13 @@ class DatasetController(Controller):
         )
         return success
     
-    @post('/{dataset_name:str}/records/files')
-    async def add_dataset_file_records(
-        self,
-        dataset_name: str,
-        data: Annotated[DatasetRecordFilesInput, Body(media_type=RequestEncodingType.MULTI_PART)]
-    ) -> bool:
-        files = data.files
-        if not files:
-            return Response(content="No files found", status_code=400)
-        file_paths = []
-        for file in files:
-            file_path = await file_handler.create_file(file)
-            file_paths.append(file_path)
-            
-        dataset = Dataset.get(dataset_name=dataset_name)
-        if dataset is None:
-            return Response(content="Dataset not found", status_code=404)
-        
-        pass
-    
     
     # Search Dataset Records
     @get('/{dataset_name:str}/record')
     async def search_dataset_records(
         self,
         dataset_name: str,
+        collection_date: Optional[date] = None,
         experiment_name: Optional[str] = None,
         season_name: Optional[str] = None,
         site_name: Optional[str] = None,
@@ -212,6 +168,7 @@ class DatasetController(Controller):
         record_info: Optional[dict] = None
     ) -> Stream:
         search_parameters = {
+            "collection_date": collection_date,
             "experiment_name": experiment_name,
             "season_name": season_name,
             "site_name": site_name,

@@ -184,7 +184,7 @@ class _BaseModel(DeclarativeBase, SerializeMixin):
                 elif isinstance(attribute.type, DATE):
                     conditions.append(attribute == value)
                 elif isinstance(attribute.type, String):
-                    conditions.append(attribute.ilike(f"%{value}%"))
+                    conditions.append(attribute == value)
                 else:
                     conditions.append(attribute == value)
             query = query.where(*conditions)

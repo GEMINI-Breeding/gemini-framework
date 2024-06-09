@@ -2,7 +2,7 @@ from sqlalchemy import JSON, String, TIMESTAMP, UniqueConstraint, CheckConstrain
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from gemini.models.base_model import BaseModel
 
@@ -15,7 +15,7 @@ class ExperimentModel(BaseModel):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     experiment_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    experiment_info: Mapped[dict] = mapped_column(JSON, default={})
+    experiment_info: Mapped[dict] = mapped_column(JSONB, nullable=True)
     experiment_start_date: Mapped[date] = mapped_column(DATE, nullable=False, default=datetime.now)
     experiment_end_date: Mapped[date] = mapped_column(DATE, nullable=False, default=datetime.now)
 

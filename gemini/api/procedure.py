@@ -34,7 +34,6 @@ class Procedure(APIBase):
             procedure_info=procedure_info
         )
         
-        
         db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
         if db_experiment and db_instance not in db_experiment.procedures:
             db_experiment.procedures.append(db_instance)
@@ -47,9 +46,7 @@ class Procedure(APIBase):
             "API",
             f"Created a new instance of {cls.__name__} with id {instance.id}",
         )
-        
-        
-        
+    
         return instance
     
     @classmethod
@@ -57,6 +54,13 @@ class Procedure(APIBase):
         db_instance = ProcedureModel.get_by_parameters(procedure_name=procedure_name)
         logger_service.info("API", f"Retrieved procedure with name {procedure_name} from the database")
         return cls.model_validate(db_instance)
+    
+    @classmethod
+    def get_by_experiment(cls, experiment_name: str) -> List["Procedure"]:
+        db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+        db_procedures = db_experiment.procedures
+        logger_service.info("API", f"Retrieved procedures for experiment {experiment_name} from the database")
+        return [cls.model_validate(db_procedure) for db_procedure in db_procedures]
     
     def get_info(self) -> dict:
         self.refresh()

@@ -204,7 +204,8 @@ class APIBase(BaseModel):
             instance = self.model_validate(db_instance)
             for key, value in instance.model_dump().items():
                 if hasattr(self, key) and key != "id":
-                    setattr(self, key, value)
+                    actual_value = getattr(instance, key)
+                    setattr(self, key, actual_value)
             logger_service.info(
                 "API",
                 f"Refreshed the instance of {self.__class__.__name__} with id {self.id} from the database",

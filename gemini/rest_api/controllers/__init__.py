@@ -7,9 +7,10 @@ from gemini.rest_api.controllers.dataset import DatasetController
 
 controllers = {
     "experiments": ExperimentController,
-    "seasons": SeasonController,
-    "sites": SiteController,
     "cultivars": CultivarController,
-    "plots": PlotController,
-    "datasets": DatasetController
+    # "seasons": SeasonController,
+    # "sites": SiteController,
+    # "cultivars": CultivarController,
+    # "plots": PlotController,
+    # "datasets": DatasetController
 }

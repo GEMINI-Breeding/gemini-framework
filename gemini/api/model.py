@@ -3,7 +3,7 @@ from gemini.api.base import APIBase
 from gemini.api.dataset import Dataset
 from gemini.api.model_run import ModelRun
 from gemini.api.model_record import ModelRecord
-from gemini.models import ModelModel, DatasetModel
+from gemini.models import ModelModel, DatasetModel, ExperimentModel
 from gemini.logger import logger_service
 from typing import List, Optional, Any
 
@@ -30,11 +30,15 @@ class Model(APIBase):
         model_info: dict = None,
         experiment_name: str = None
     ):
+        db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
         db_instance = ModelModel.get_or_create(
             model_name=model_name,
             model_url=model_url,
             model_info=model_info
         )
+        if db_experiment and db_instance not in db_experiment.models:
+            db_experiment.models.append(db_instance)
+            db_experiment.save()
         instance = cls.model_validate(db_instance)
         logger_service.info(
             "API",
@@ -47,6 +51,13 @@ class Model(APIBase):
         db_instance = ModelModel.get_by_parameters(model_name=model_name)
         logger_service.info("API", f"Retrieved model with name {model_name} from the database")
         return cls.model_validate(db_instance)
+    
+    @classmethod
+    def get_by_experiment(cls, experiment_name: str) -> List["Model"]:
+        db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+        db_models = db_experiment.models
+        logger_service.info("API", f"Retrieved models for experiment {experiment_name} from the database")
+        return [cls.model_validate(db_model) for db_model in db_models]
     
     def get_info(self) -> dict:
         self.refresh()
@@ -81,10 +92,6 @@ class Model(APIBase):
         self.refresh()
         logger_service.info("API", f"Retrieved model runs for model {self.model_name} from the database")
         return self.model_runs
-
-    # Todo: Add and remove datasets
-    # Todo: Add and remove records
-    # Todo: Add and remove model runs
 
     def add_record(
             self,

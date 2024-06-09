@@ -62,6 +62,17 @@ class Script(APIBase):
         )
         return script
     
+    @classmethod
+    def get_by_experiment(cls, experiment_name: str) -> List["Script"]:
+        db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+        db_scripts = db_experiment.scripts
+        scripts = [cls.model_validate(db_script) for db_script in db_scripts]
+        logger_service.info(
+            "API",
+            f"Retrieved scripts for experiment {experiment_name} from the database",
+        )
+        return scripts
+    
     def get_info(self) -> dict:
         self.refresh()
         logger_service.info(
