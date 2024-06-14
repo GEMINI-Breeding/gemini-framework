@@ -6,6 +6,7 @@ from gemini.api.procedure_run import ProcedureRun
 from gemini.api.procedure_record import ProcedureRecord
 from gemini.logger import logger_service
 from gemini.models import ProcedureModel, DatasetModel, ExperimentModel
+from gemini.models import ExperimentProceduresViewModel
 
 from uuid import UUID
 from datetime import datetime, date
@@ -25,9 +26,9 @@ class Procedure(APIBase):
     @classmethod
     def create(
         cls,
-        procedure_name: str,
-        procedure_info: dict = None,
-        experiment_name: str = None
+        procedure_name: str ='Default',
+        procedure_info: dict = {}, 
+        experiment_name: str = 'Default'
     ):
         db_instance = ProcedureModel.get_or_create(
             procedure_name=procedure_name,
@@ -86,6 +87,20 @@ class Procedure(APIBase):
         logger_service.info("API", f"Removed information from {self.procedure_name} in the database")
         return self
     
+    @classmethod
+    def search(
+        cls,
+        experiment_name: str = None,
+        **search_parameters: Any
+    ) -> List["Procedure"]:
+        procedures = ExperimentProceduresViewModel.search(
+            experiment_name=experiment_name,
+            **search_parameters
+        )
+        procedures = [cls.model_validate(procedure) for procedure in procedures]
+        logger_service.info("API", f"Retrieved {len(procedures)} procedures from the database")
+        return procedures if procedures else None
+    
     def get_datasets(self) -> List[Dataset]:
         self.refresh()
         logger_service.info("API", f"Retrieved datasets for {self.procedure_name} from the database")
@@ -95,6 +110,7 @@ class Procedure(APIBase):
         self.refresh()
         logger_service.info("API", f"Retrieved procedure runs for {self.procedure_name} from the database")
         return self.procedure_runs
+
     
     # Todo: Add, remove, and get datasets from a procedure
     # Todo: Add, remove, and get procedure runs from a procedure
@@ -105,14 +121,14 @@ class Procedure(APIBase):
         procedure_data: dict,
         timestamp: datetime = None,
         collection_date: date = None,
-        dataset_name: str = None,
-        experiment_name: str = None,
-        season_name: str = None,
-        site_name: str = None,
-        plot_number: int = None,
-        plot_row_number: int = None,
-        plot_column_number: int = None,
-        record_info: dict = None
+        dataset_name: str = 'Default',
+        experiment_name: str = 'Default',
+        season_name: str = '2023',
+        site_name: str = 'Default',
+        plot_number: int = -1,
+        plot_row_number: int = -1,
+        plot_column_number: int = -1,
+        record_info: dict = {}
     ) -> bool:
         
         if timestamp is None:

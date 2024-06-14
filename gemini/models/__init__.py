@@ -46,3 +46,13 @@ from gemini.models.views.dataset_views import (
     ScriptDatasetsViewModel,
     ModelDatasetsViewModel,
 )
+from gemini.models.views.experiment_views import (
+    ExperimentSitesViewModel,
+    ExperimentTraitsViewModel,
+    ExperimentSensorsViewModel,
+    ExperimentCultivarsViewModel,
+    ExperimentDatasetsViewModel,
+    ExperimentModelsViewModel,
+    ExperimentProceduresViewModel,
+    ExperimentScriptsViewModel
+)

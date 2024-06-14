@@ -341,7 +341,6 @@ SELECT (SELECT id FROM gemini.experiments WHERE experiment_name = 'Default'), id
 FROM gemini.datasets;
 
 
-
 ------------------------------------------------------------
 -- Insert the initial data for the database
 ------------------------------------------------------------

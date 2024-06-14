@@ -15,8 +15,8 @@ class SensorPlatform(APIBase):
     @classmethod
     def create(
         cls,
-        sensor_platform_name: str,
-        sensor_platform_info: dict = None
+        sensor_platform_name: str = 'Default',
+        sensor_platform_info: dict = {}
     ):
         db_instance = cls.db_model.get_or_create(
             sensor_platform_name=sensor_platform_name,

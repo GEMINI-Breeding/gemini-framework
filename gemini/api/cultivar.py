@@ -1,6 +1,6 @@
 from typing import Any, Optional, List
 from gemini.api.base import APIBase
-from gemini.models import CultivarModel, ExperimentModel, PlotViewModel
+from gemini.models import CultivarModel, ExperimentModel, PlotViewModel, ExperimentCultivarsViewModel
 from gemini.logger import logger_service
 from pydantic import computed_field
 
@@ -17,10 +17,10 @@ class Cultivar(APIBase):
     @classmethod
     def create(
         cls,
-        cultivar_population: str,
-        cultivar_accession: str = None,
-        cultivar_info: dict = None,
-        experiment_name: str = None,
+        cultivar_population: str ='Default',
+        cultivar_accession: str = 'Default',
+        cultivar_info: dict = {},
+        experiment_name: str = 'Default'
     ):
         
         db_instance = cls.db_model.get_or_create(
@@ -73,5 +73,22 @@ class Cultivar(APIBase):
         self.set_info(updated_info)
         logger_service.info("API", f"Removed information from {self.cultivar_accession} in the database")
         return self
+    
+    @classmethod
+    def search(cls,
+        experiment_name: str = None,
+        **search_parameters: Any
+    ) -> List["Cultivar"]:
+        cultivars = ExperimentCultivarsViewModel.search(
+            experiment_name=experiment_name,
+            **search_parameters
+        )
+        cultivars = [cls.model_validate(cultivar) for cultivar in cultivars]
+        logger_service.info("API", f"Retrieved {len(cultivars)} cultivars from the database")
+        return cultivars if cultivars else None
+    
+        
+   
+        
     
 

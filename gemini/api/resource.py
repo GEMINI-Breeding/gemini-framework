@@ -27,8 +27,8 @@ class Resource(APIBase):
         resource_file_path: Any,
         resource_name: str = None,
         resource_tags: dict = None,
-        resource_info: dict = None,
-        experiment_name: str = None,
+        resource_info: dict = {},
+        experiment_name: str = 'Default'
     ):
         
         return cls.upload(

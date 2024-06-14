@@ -22,6 +22,13 @@ class Season(APIBase):
         db_instance = SeasonModel.get_by_parameters(experiment_id=db_experiment.id, season_name=season_name)
         logger_service.info("API", f"Retrieved season with name {season_name} from the database")
         return cls.model_validate(db_instance)
+    
+    @classmethod
+    def get_by_experiment(cls, experiment_name: str):
+        db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+        db_instances = SeasonModel.search(experiment_id=db_experiment.id)
+        logger_service.info("API", f"Retrieved seasons for experiment {experiment_name} from the database")
+        return [cls.model_validate(db_instance) for db_instance in db_instances]
 
     def get_info(self) -> dict:
         self.refresh()

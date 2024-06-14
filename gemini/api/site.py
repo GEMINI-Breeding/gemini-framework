@@ -1,6 +1,6 @@
 from typing import Optional, List, Any
 from gemini.api.base import APIBase
-from gemini.models import SiteModel, ExperimentModel
+from gemini.models import SiteModel, ExperimentModel, ExperimentSitesViewModel
 from gemini.logger import logger_service
 
 
@@ -18,11 +18,11 @@ class Site(APIBase):
     def create(
         cls,
         site_name: str,
-        site_city: str = None,
-        site_state: str = None,
-        site_country: str = None,
-        site_info: dict = None,
-        experiment_name: str = None
+        site_city: str = 'Default',
+        site_state: str = 'Default',
+        site_country: str = 'Default',
+        site_info: dict = {},
+        experiment_name: str = 'Default'
     ):
         
         db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
@@ -73,5 +73,18 @@ class Site(APIBase):
         logger_service.info("API", f"Removed information from {self.site_name} in the database")
         return self
     
+    @classmethod
+    def search(
+        cls,
+        experiment_name: str = None,
+        **kwargs
+    ) -> List["Site"]:
+        db_sites = ExperimentSitesViewModel.search(
+            experiment_name=experiment_name,
+            **kwargs
+        )
+        logger_service.info("API", f"Retrieved sites from the database")
+        return [cls.model_validate(db_site) for db_site in db_sites]
+
 
 

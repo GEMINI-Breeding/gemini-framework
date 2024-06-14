@@ -1,10 +1,11 @@
 from gemini.api import Trait, TraitRecord
 from random import randint
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 import os
 
 start_date = "2021-01-01"
-end_date = "2021-01-05"
+end_date = "2025-01-01"
 trait_name = "Average Temperature"
 records_per_day = 144
 avg_temp_trait = Trait.create(
@@ -12,6 +13,7 @@ avg_temp_trait = Trait.create(
     trait_units="Celsius",
     experiment_name="GEMINI",
 )
+
 
 # For everyday between start_date and end_date
 current_date = start_date
@@ -21,6 +23,8 @@ while current_date <= end_date:
 
     timestamps = []
     trait_values = []
+    
+    year = int(current_date[:4])
 
     # 144 timestamps for that day
     for i in range(records_per_day):
@@ -37,9 +41,11 @@ while current_date <= end_date:
         timestamps=timestamps,
         dataset_name=f"{trait_name}_{current_date}",
         experiment_name="GEMINI",
-        season_name="2021",
+        season_name=year,
         site_name="Davis"
     )
 
-    current_date = (datetime.strptime(current_date, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
+    # Go to next season
+    current_date = datetime.strptime(current_date, "%Y-%m-%d") + relativedelta(years=1)
+    current_date = current_date.strftime("%Y-%m-%d")
         

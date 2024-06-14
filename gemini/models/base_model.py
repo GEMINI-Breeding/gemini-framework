@@ -98,6 +98,8 @@ class _BaseModel(DeclarativeBase, SerializeMixin):
         try:
             query = select(cls)
             kwargs = cls.validate_fields(**kwargs)
+            if kwargs == {}:
+                return None
             for key, value in kwargs.items():
                 attribute = getattr(cls, key)
                 if isinstance(attribute.type, JSONB):

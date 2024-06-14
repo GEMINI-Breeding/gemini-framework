@@ -15,27 +15,29 @@ from gemini.api.season import Season
 from gemini.api.site import Site
 from gemini.api.cultivar import Cultivar
 from gemini.api.plot import Plot, PlotSearchParameters
-from gemini.api.plant import Plant
+
+from gemini.rest_api.src.models import (
+    PlotBase,
+    PlotInput,
+    PlotOutput,
+    PlotSearch,
+    ExperimentOutput,
+    SeasonOutput,
+    SiteOutput,
+    CultivarOutput
+)
 
 from typing import List, Annotated, Optional
 
-async def plot_search_generator(search_parameters: PlotSearchParameters) -> AsyncGenerator[bytes, None]:
-    plots = Plot.search(search_parameters=search_parameters)
+async def plot_search_generator(search_parameters: PlotSearch) -> AsyncGenerator[bytes, None]:
+    search_parameters = search_parameters.model_dump(exclude=None)
+    search_parameters = PlotSearchParameters.model_validate(search_parameters)
+    plots = Plot.search(search_parameters)
     for plot in plots:
         plot = plot.model_dump_json(exclude_none=True)
         yield plot
 
-class PlotInput(BaseModel):
-    experiment_name: str = "Test Experiment"
-    season_name: str = "2023"
-    site_name: str = "Test Site"
-    plot_number: int = 1
-    plot_row_number: int = 1
-    plot_column_number: int = 1
-    plot_geometry_info: Optional[dict] = {}
-    plot_info: Optional[dict] = {}
-    cultivar_accession : Optional[str] = "Test Cultivar"
-    cultivar_population : Optional[str] = "Test Population"
+
     
 class PlotController(Controller):
     
@@ -52,92 +54,155 @@ class PlotController(Controller):
         plot_geometry_info: Optional[dict] = None,
         plot_info: Optional[dict] = None
     ) -> Stream:
-        plot_search_parameters = PlotSearchParameters(
-            experiment_name=experiment_name,
-            season_name=season_name,
-            site_name=site_name,
-            plot_number=plot_number,
-            plot_row_number=plot_row_number,
-            plot_column_number=plot_column_number,
-            plot_geometry_info=plot_geometry_info,
-            plot_info=plot_info
-        )
-        return Stream(plot_search_generator(plot_search_parameters))
+        try:
+            plot_search_parameters = PlotSearch(
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name,
+                plot_number=plot_number,
+                plot_row_number=plot_row_number,
+                plot_column_number=plot_column_number,
+                plot_geometry_info=plot_geometry_info,
+                plot_info=plot_info
+            )
+            return Stream(plot_search_generator(plot_search_parameters))
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
     
-    # # Create a plot
+    # Create a plot
     @post()
-    async def create_plot(self, plot_input: PlotInput) -> Plot:
-        plot = Plot.create(
-            experiment_name=plot_input.experiment_name,
-            season_name=plot_input.season_name,
-            site_name=plot_input.site_name,
-            plot_number=plot_input.plot_number,
-            plot_row_number=plot_input.plot_row_number,
-            plot_column_number=plot_input.plot_column_number,
-            plot_geometry_info=plot_input.plot_geometry_info,
-            plot_info=plot_input.plot_info,
-            cultivar_accession=plot_input.cultivar_accession,
-            cultivar_population=plot_input.cultivar_population
-        )
-        if not plot:
-            return Response(status_code=400)
-        return plot
-    
-    # Get Plot Info
+    async def create_plot(
+        self,
+        data: Annotated[PlotInput, Body]
+    ) -> PlotOutput:
+        try:
+            plot = Plot.create(
+                experiment_name=data.experiment_name,
+                season_name=data.season_name,
+                site_name=data.site_name,
+                plot_number=data.plot_number,
+                plot_row_number=data.plot_row_number,
+                plot_column_number=data.plot_column_number,
+                plot_geometry_info=data.plot_geometry_info,
+                plot_info=data.plot_info,
+                cultivar_accession=data.cultivar_accession,
+                cultivar_population=data.cultivar_population
+            )
+            if not plot:
+                return Response(status_code=400)
+            plot = plot.model_dump()
+            return PlotOutput.model_validate(plot)
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+        
+    # Get Plot Info by plot ID
     @get('/{plot_id:str}/info')
-    async def get_plot_info(self, plot_id: str) -> dict:
-        plot = Plot.get_by_id(plot_id)
-        if not plot:
-            return Response(status_code=404)
-        return plot.get_info()
-    
-    # Set Plot Info
+    async def get_plot_info(
+        self,
+        plot_id: str
+    ) -> dict:
+        try:
+            plot = Plot.get_by_id(plot_id)
+            if not plot:
+                return Response(status_code=404)
+            return plot.get_info()
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+        
+    # Set Plot Info by plot ID
     @patch('/{plot_id:str}/info')
-    async def set_plot_info(self, plot_id: str, data: dict) -> dict:
-        plot = Plot.get_by_id(plot_id)
-        if not plot:
-            return Response(status_code=404)
-        plot.set_info(data)
-        return plot.get_info()
-    
-    # Delete Plot
+    async def set_plot_info(
+        self,
+        plot_id: str,
+        data: dict
+    ) -> dict:
+        try:
+            plot = Plot.get_by_id(plot_id)
+            if not plot:
+                return Response(status_code=404)
+            plot.set_info(data)
+            return plot.get_info()
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+        
+        
+    # Delete Plot by plot ID
     @delete('/{plot_id:str}')
-    async def delete_plot(self, plot_id: str) -> None:
-        plot = Plot.get_by_id(plot_id)
-        if not plot:
-            return Response(status_code=404)
-        plot.delete()
+    async def delete_plot(
+        self,
+        plot_id: str
+    ) -> None:
+        try:
+            plot = Plot.get_by_id(plot_id)
+            if not plot:
+                return Response(status_code=404)
+            plot.delete()
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
         
-    # Get Plot Experiment
+    # Get Plot Experiment by plot ID
     @get('/{plot_id:str}/experiment')
-    async def get_plot_experiment(self, plot_id: str) -> Experiment:
-        plot = Plot.get_by_id(plot_id)
-        if not plot:
-            return Response(status_code=404)
-        return plot.experiment
-    
-    # Get Plot Season
-    @get('/{plot_id:str}/season')
-    async def get_plot_season(self, plot_id: str) -> Season:
-        plot = Plot.get_by_id(plot_id)
-        if not plot:
-            return Response(status_code=404)
-        return plot.season
-    
-    # Get Plot Site
-    @get('/{plot_id:str}/site')
-    async def get_plot_site(self, plot_id: str) -> Site:
-        plot = Plot.get_by_id(plot_id)
-        if not plot:
-            return Response(status_code=404)
-        return plot.site
-    
-    # Get Plot Cultivars
-    @get('/{plot_id:str}/cultivars')
-    async def get_plot_cultivars(self, plot_id: str) -> List[Cultivar]:
-        plot = Plot.get_by_id(plot_id)
-        if not plot:
-            return Response(status_code=404)
-        return plot.cultivars
+    async def get_plot_experiment(
+        self,
+        plot_id: str
+    ) -> ExperimentOutput:
+        try:
+            plot = Plot.get_by_id(plot_id)
+            if not plot:
+                return Response(status_code=404)
+            experiment = plot.get_experiment()
+            experiment = experiment.model_dump(exclude_none=True)
+            return ExperimentOutput.model_validate(experiment)
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
         
-   
+    # Get Plot Season by plot ID
+    @get('/{plot_id:str}/season')
+    async def get_plot_season(
+        self,
+        plot_id: str
+    ) -> SeasonOutput:
+        try:
+            plot = Plot.get_by_id(plot_id)
+            if not plot:
+                return Response(status_code=404)
+            season = plot.get_season()
+            season = season.model_dump(exclude_none=True)
+            return SeasonOutput.model_validate(season)
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+        
+    # Get Plot Site by plot ID
+    @get('/{plot_id:str}/site')
+    async def get_plot_site(
+        self,
+        plot_id: str
+    ) -> SiteOutput:
+        try:
+            plot = Plot.get_by_id(plot_id)
+            if not plot:
+                return Response(status_code=404)
+            site = plot.get_site()
+            site = site.model_dump(exclude_none=True)
+            return SiteOutput.model_validate(site)
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+        
+    # Get Plot Cultivars by plot ID
+    @get('/{plot_id:str}/cultivars')
+    async def get_plot_cultivars(
+        self,
+        plot_id: str
+    ) -> List[CultivarOutput]:
+        try:
+            plot = Plot.get_by_id(plot_id)
+            if not plot:
+                return Response(status_code=404)
+            cultivars = plot.get_cultivars()
+            cultivars = [cultivar.model_dump(exclude_none=True) for cultivar in cultivars]
+            cultivars = [CultivarOutput.model_validate(cultivar) for cultivar in cultivars]
+            return cultivars
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+
+    # Todo: Set Plot Number, Row Number, Column Number by plot ID

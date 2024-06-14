@@ -1,10 +1,11 @@
 from typing import Any, Optional, List
-from gemini.api.base import APIBase
+from gemini.api.base import APIBase, ID
 from gemini.api.trait_level import TraitLevel
 from gemini.api.trait_record import TraitRecord
 from gemini.api.dataset import Dataset
 from gemini.api.enums import GEMINITraitLevel
 from gemini.models import TraitModel, ExperimentModel, TraitLevelModel, DatasetModel
+from gemini.models import ExperimentTraitsViewModel
 from gemini.logger import logger_service
 
 from datetime import datetime, date
@@ -27,11 +28,11 @@ class Trait(APIBase):
     @classmethod
     def create(
         cls,
-        trait_name: str,
-        trait_units: str = None,
+        trait_name: str = 'Default',
+        trait_units: str = 'Default',
         trait_level: GEMINITraitLevel = GEMINITraitLevel.Default,
-        trait_metrics: dict = None,
-        experiment_name: str = None,
+        trait_metrics: dict = {},
+        experiment_name: str = 'Default'
     ):
         db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
         db_trait_level = TraitLevelModel.get_by_parameters(trait_level_name=trait_level.name)
@@ -83,6 +84,24 @@ class Trait(APIBase):
             f"Retrieved traits for experiment {experiment_name} from the database",
         )
         return traits
+    
+    @classmethod
+    def search(
+        cls,
+        experiment_name: str = None,
+        **search_parameters : Any
+    ) -> List["Trait"]:
+        traits = ExperimentTraitsViewModel.search(
+            experiment_name=experiment_name,
+            **search_parameters
+        )
+        traits = [cls.model_validate(trait) for trait in traits]
+        logger_service.info(
+            "API",
+            f"Retrieved traits for experiment {experiment_name} from the database",
+        )
+        return traits
+
     
     def get_level(self) -> TraitLevel:
         self.refresh()

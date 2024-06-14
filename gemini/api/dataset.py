@@ -4,6 +4,7 @@ from gemini.api.enums import GEMINIDatasetType
 from gemini.api.dataset_type import DatasetType
 from gemini.api.dataset_record import DatasetRecord
 from gemini.models import DatasetModel, ExperimentModel, DatasetTypeModel
+from gemini.models import ExperimentDatasetsViewModel
 from gemini.logger import logger_service
 from gemini.object_store import storage_service
 
@@ -26,12 +27,12 @@ class Dataset(APIBase):
     @classmethod
     def create(
         cls,
-        dataset_name: str,
-        dataset_info: dict = None,
+        dataset_name: str = 'Default',
+        dataset_info: dict = {},
         is_derived: bool = False,
         collection_date: date = None,
         dataset_type: GEMINIDatasetType = GEMINIDatasetType.Default,
-        experiment_name: str = None
+        experiment_name: str = 'Default'
     ):
         
         db_dataset_type = DatasetTypeModel.get_by_id(dataset_type.value)
@@ -102,20 +103,34 @@ class Dataset(APIBase):
         logger_service.info("API", f"Removed information from {self.dataset_name} in the database")
         return self
     
+    @classmethod
+    def search(
+        cls,
+        experiment_name: str = None,
+        **search_parameters: Any
+    ) -> List["Dataset"]:
+        datasets = ExperimentDatasetsViewModel.search(
+            experiment_name=experiment_name,
+            **search_parameters
+        )
+        datasets = [cls.model_validate(dataset) for dataset in datasets]
+        logger_service.info("API", f"Retrieved {len(datasets)} datasets from the database")
+        return datasets if datasets else None
+    
     # Todo: Add Records and Search Records methods
     def add_record(
             self,
             dataset_data: dict,
             timestamp: datetime = None,
             collection_date: date = None,
-            dataset_name: str = None,
-            experiment_name: str = None,
-            season_name: str = None,
-            site_name: str = None,
-            plot_number: int = None,
-            plot_row_number: int = None,
-            plot_column_number: int = None,
-            record_info: dict = None
+            dataset_name: str = 'Default',
+            experiment_name: str = 'Default',
+            season_name: str = '2023',
+            site_name: str = 'Default',
+            plot_number: int = -1,
+            plot_row_number: int = -1,
+            plot_column_number: int = -1,
+            record_info: dict = {}
     ) -> bool:
         
         if timestamp is None:

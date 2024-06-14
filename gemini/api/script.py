@@ -4,6 +4,7 @@ from gemini.api.script_run import ScriptRun
 from gemini.api.script_record import ScriptRecord
 from gemini.api.dataset import Dataset
 from gemini.models import ScriptModel, ScriptRunModel, DatasetModel, ExperimentModel
+from gemini.models import ExperimentScriptsViewModel
 
 from gemini.logger import logger_service
 
@@ -27,11 +28,11 @@ class Script(APIBase):
     @classmethod
     def create(
         cls,
-        script_name: str,
-        script_url: str = None,
-        script_extension: str = None,
-        script_info: dict = None,
-        experiment_name: str = None
+        script_name: str = 'Default',
+        script_url: str = 'Default',
+        script_extension: str = 'Default',
+        script_info: dict = {},
+        experiment_name: str = 'Default'
     ):
         new_instance = cls.db_model.get_or_create(
             script_name=script_name,
@@ -110,6 +111,23 @@ class Script(APIBase):
         )
         return self
     
+    @classmethod
+    def search(
+        cls,
+        experiment_name: str = None,
+        **search_parameters: Any
+    ) -> List["Script"]:
+        scripts = ExperimentScriptsViewModel.search(
+            experiment_name=experiment_name,
+            **search_parameters
+        )
+        scripts = [cls.model_validate(script) for script in scripts]
+        logger_service.info(
+            "API",
+            f"Retrieved scripts from the database",
+        )
+        return scripts
+    
     def get_datasets(self) -> List[Dataset]:
         self.refresh()
         logger_service.info(
@@ -135,14 +153,14 @@ class Script(APIBase):
         script_data: dict,
         timestamp: datetime = None,
         collection_date: date = None,
-        dataset_name: str = None,
-        experiment_name: str = None,
-        season_name: str = None,
-        site_name: str = None,
-        plot_number: int = None,
-        plot_row_number: int = None,
-        plot_column_number: int = None,
-        record_info: dict = None
+        dataset_name: str = 'Default',
+        experiment_name: str = 'Default',
+        season_name: str = '2023',
+        site_name: str = 'Default',
+        plot_number: int = -1,
+        plot_row_number: int = -1,
+        plot_column_number: int = -1,
+        record_info: dict = {}
     ) -> bool:
         
         if timestamp is None:

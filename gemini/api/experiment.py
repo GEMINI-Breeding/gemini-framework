@@ -122,7 +122,7 @@ class Experiment(APIBase):
             f"Retrieved sensors for {self.experiment_name} from the database",
         )
         return self.sensors
-    
+        
     
     def get_traits(self) -> List[Trait]:
         self.refresh()

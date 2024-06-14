@@ -10,6 +10,7 @@ from gemini.models.columnar.columnar_base_model import ColumnarBaseModel
 from gemini.models.views.view_base import ViewBaseModel
 from gemini.logger import logger_service
 
+ID = Union[UUID, int, str]
 
 class APIBase(BaseModel):
     """
@@ -23,7 +24,6 @@ class APIBase(BaseModel):
         extra="allow"
     )
 
-    id: Optional[Union[UUID, int, str]] = None
 
     @model_validator(mode="before")
     @classmethod

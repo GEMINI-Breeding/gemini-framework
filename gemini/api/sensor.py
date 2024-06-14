@@ -7,6 +7,7 @@ from gemini.api.dataset import Dataset
 from gemini.api.sensor_platform import SensorPlatform
 from gemini.api.sensor_record import SensorRecord
 from gemini.models import SensorModel, ExperimentModel, SensorPlatformModel, DatasetModel
+from gemini.models import ExperimentSensorsViewModel
 from gemini.logger import logger_service
 from gemini.api.enums import GEMINIDataFormat, GEMINIDataType, GEMINISensorType
 
@@ -34,13 +35,13 @@ class Sensor(APIBase):
     @classmethod
     def create(
         cls,
-        sensor_name: str,
-        sensor_info: dict = None,
-        sensor_platform_name: str = None,
+        sensor_name: str = 'Default',
+        sensor_info: dict = {},
+        sensor_platform_name: str = 'Default',
         sensor_type: GEMINISensorType = GEMINIDataFormat.Default,
         sensor_data_type: GEMINIDataType = GEMINIDataType.Default,
         sensor_data_format: GEMINIDataFormat = GEMINIDataFormat.Default,
-        experiment_name: str = None
+        experiment_name: str = 'Default'
     ):
         
         db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
@@ -79,6 +80,12 @@ class Sensor(APIBase):
         logger_service.info("API", f"Retrieved sensors for experiment {experiment_name} from the database")
         return [cls.model_validate(db_sensor) for db_sensor in db_sensors]
     
+    @classmethod
+    def get_by_type(cls, sensor_type: GEMINISensorType) -> List["Sensor"]:
+        db_sensors = SensorModel.get_by_parameters(sensor_type_id=sensor_type.value)
+        logger_service.info("API", f"Retrieved sensors of type {sensor_type.name} from the database")
+        return [cls.model_validate(db_sensor) for db_sensor in db_sensors]
+    
     def get_by_platform(cls, sensor_platform_name: str) -> List["Sensor"]:
         db_sensor_platform = SensorPlatformModel.get_by_parameters(sensor_platform_name=sensor_platform_name)
         db_sensors = SensorModel.get_by_parameters(sensor_platform_id=db_sensor_platform.id)
@@ -109,6 +116,30 @@ class Sensor(APIBase):
         logger_service.info("API", f"Removed information from {self.sensor_name} in the database")
         return self
     
+    @classmethod
+    def search(
+        cls,
+        experiment_name: str = None,
+        sensor_platform_name: str = None,
+        sensor_type: GEMINISensorType = None,
+        sensor_data_type: GEMINIDataType = None,
+        sensor_data_format: GEMINIDataFormat = None,
+        **search_parameters: Any
+    ) -> List["Sensor"]:
+        db_sensor_platform = SensorPlatformModel.get_by_parameters(sensor_platform_name=sensor_platform_name)
+        db_sensors = ExperimentSensorsViewModel.search(
+            experiment_name=experiment_name,
+            sensor_platform_id=db_sensor_platform.id if db_sensor_platform else None,
+            sensor_type_id=sensor_type.value if sensor_type else None,
+            sensor_data_type_id=sensor_data_type.value if sensor_data_type else None,
+            sensor_data_format_id=sensor_data_format.value if sensor_data_format else None,
+            **search_parameters
+        )
+        db_sensors = [cls.model_validate(db_sensor) for db_sensor in db_sensors]
+        logger_service.info("API", f"Retrieved {len(db_sensors)} sensors from the database")
+        return db_sensors if db_sensors else None    
+    
+    
     def get_platform(self) -> SensorPlatform:
         self.refresh()
         logger_service.info("API", f"Retrieved platform for {self.sensor_name} from the database")
@@ -131,14 +162,14 @@ class Sensor(APIBase):
             sensor_data: dict,
             timestamp: datetime = None,
             collection_date: date = None,
-            dataset_name: str = None,
-            experiment_name: str = None,
-            season_name: str = None,
-            site_name: str = None,
-            plot_number: int = None,
-            plot_row_number: int = None,
-            plot_column_number: int = None,
-            record_info: dict = None
+            dataset_name: str = 'Default',
+            experiment_name: str = 'Default',
+            season_name: str = '2023',
+            site_name: str = 'Default',
+            plot_number: int = -1,
+            plot_row_number: int = -1,
+            plot_column_number: int = -1,
+            record_info: dict = {}
     ) -> bool:
 
         if timestamp is None:

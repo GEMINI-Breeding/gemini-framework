@@ -25,8 +25,6 @@ ID = Union[int, str, UUID]
 # Base Model class for all litestar controllers
 class RESTAPIBase(BaseModel):
 
-    id: Optional[ID] = None
-
     model_config = ConfigDict(
         protected_namespaces=(),
         arbitrary_types_allowed=True,
@@ -50,8 +48,7 @@ class ExperimentSearch(ExperimentBase):
     experiment_name: Optional[str] = None
 
 class ExperimentOutput(ExperimentBase):
-    pass
-
+    id: Optional[ID] = None
 
 
 # --------------------------------
@@ -64,14 +61,14 @@ class SeasonBase(RESTAPIBase):
     season_end_date: Optional[date] = None
 
 class SeasonInput(SeasonBase):
-    experiment_name: Optional[str] = None
+    experiment_name: str = 'Default'
 
 class SeasonSearch(SeasonBase):
     season_name: Optional[str] = None
     experiment_name: Optional[str] = None
 
 class SeasonOutput(SeasonBase):
-    pass
+    id: Optional[ID] = None
 
 # --------------------------------
 # Site Classes
@@ -84,14 +81,15 @@ class SiteBase(RESTAPIBase):
     site_info: Optional[JSONB] = None
 
 class SiteInput(SiteBase):
-    experiment_name: Optional[str] = None
-
+    experiment_name: str = 'Default'
+    
+    
 class SiteSearch(SiteBase):
     site_name: Optional[str] = None
     experiment_name: Optional[str] = None
 
 class SiteOutput(SiteBase):
-    pass
+    id: Optional[ID] = None
 
 # --------------------------------
 # Cultivar Classes
@@ -102,14 +100,14 @@ class CultivarBase(RESTAPIBase):
     cultivar_info: Optional[JSONB] = None
 
 class CultivarInput(CultivarBase):
-    experiment_name: Optional[str] = None
+    experiment_name: str = 'Default'
 
 class CultivarSearch(CultivarBase):
     cultivar_population: Optional[str] = None
     experiment_name: Optional[str] = None
 
 class CultivarOutput(CultivarBase):
-    pass
+    id: Optional[ID] = None
 
 # --------------------------------
 # Plot Classes
@@ -127,6 +125,7 @@ class PlotInput(PlotBase):
     site_name: Optional[str] = None
     cultivar_accession: Optional[str] = None
     cultivar_population: Optional[str] = None
+    
 
 class PlotSearch(PlotBase):
     plot_number: Optional[int] = None
@@ -137,6 +136,8 @@ class PlotSearch(PlotBase):
     cultivar_population: Optional[str] = None
 
 class PlotOutput(PlotBase):
+    id : Optional[ID] = None
+    
     experiment_id: Optional[ID] = None
     season_id: Optional[ID] = None
     site_id: Optional[ID] = None
@@ -156,14 +157,14 @@ class TraitBase(RESTAPIBase):
     trait_metrics: Optional[JSONB] = None
 
 class TraitInput(TraitBase):
-    experiment_name: Optional[str] = None
+    experiment_name: str = 'Default'
 
 class TraitSearch(TraitBase):
     trait_name: Optional[str] = None
     experiment_name: Optional[str] = None
 
 class TraitOutput(TraitBase):
-    pass
+    id : Optional[ID] = None
 
 # --------------------------------
 # Sensor Classes
@@ -177,8 +178,8 @@ class SensorBase(RESTAPIBase):
     sensor_info: Optional[JSONB] = None
 
 class SensorInput(SensorBase):
-    experiment_name: Optional[str] = None
-    sensor_platform_name: Optional[str] = None
+    experiment_name: str = 'Default'
+    sensor_platform_name: str = 'Default'
 
 class SensorSearch(SensorBase):
     sensor_name: Optional[str] = None
@@ -186,7 +187,7 @@ class SensorSearch(SensorBase):
     sensor_platform_name: Optional[str] = None
 
 class SensorOutput(SensorBase):
-    pass
+    id : Optional[ID] = None
 
 # --------------------------------
 # Sensor Platform Classes
@@ -202,7 +203,7 @@ class SensorPlatformSearch(SensorPlatformBase):
     sensor_platform_name: Optional[str] = None
 
 class SensorPlatformOutput(SensorPlatformBase):
-    pass
+    id : Optional[ID] = None
 
 # --------------------------------
 # Resource Classes
@@ -216,8 +217,8 @@ class ResourceBase(RESTAPIBase):
     resource_experiment_id: Optional[ID] = None
 
 class ResourceInput(ResourceBase):
+    experiment_name: str = 'Default'
     resource_file: Optional[UploadFile] = None
-    experiment_name: Optional[str] = None
 
 class ResourceSearch(ResourceBase):
     resource_uri: Optional[str] = None
@@ -225,7 +226,7 @@ class ResourceSearch(ResourceBase):
     experiment_name: Optional[str] = None
 
 class ResourceOutput(ResourceBase):
-    pass
+    id : Optional[ID] = None
 
 
 # --------------------------------
@@ -237,14 +238,14 @@ class ModelBase(RESTAPIBase):
     model_info: Optional[JSONB] = None
 
 class ModelInput(ModelBase):
-    experiment_name: Optional[str] = None
+    experiment_name: str = 'Default'
 
 class ModelSearch(ModelBase):
     model_name: Optional[str] = None
     experiment_name: Optional[str] = None
 
 class ModelOutput(ModelBase):
-    pass
+    id : Optional[ID] = None
 
 # --------------------------------
 # Procedure Classes
@@ -254,14 +255,14 @@ class ProcedureBase(RESTAPIBase):
     procedure_info: Optional[JSONB] = None
 
 class ProcedureInput(ProcedureBase):
-    experiment_name: Optional[str] = None
+    experiment_name: str = 'Default'
 
 class ProcedureSearch(ProcedureBase):
     procedure_name: Optional[str] = None
     experiment_name: Optional[str] = None
 
 class ProcedureOutput(ProcedureBase):
-    pass
+    id : Optional[ID] = None
 
 # --------------------------------
 # Script Classes
@@ -273,14 +274,14 @@ class ScriptBase(RESTAPIBase):
     script_info: Optional[JSONB] = None
 
 class ScriptInput(ScriptBase):
-    experiment_name: Optional[str] = None
+    experiment_name: str = 'Default'
 
 class ScriptSearch(ScriptBase):
     script_name: Optional[str] = None
     experiment_name: Optional[str] = None
 
 class ScriptOutput(ScriptBase):
-    pass
+    id : Optional[ID] = None
 
 # --------------------------------
 # Dataset Classes
@@ -292,22 +293,35 @@ class DatasetBase(RESTAPIBase):
     dataset_type_id: Optional[ID] = None
 
 class DatasetInput(DatasetBase):
-    experiment_name: Optional[str] = None
+    experiment_name: str = 'Default'
 
 class DatasetSearch(DatasetBase):
     dataset_name: Optional[str] = None
     experiment_name: Optional[str] = None
 
 class DatasetOutput(DatasetBase):
-    pass
+    id: Optional[ID] = None
 
 # --------------------------------
 # Record Classes
 # --------------------------------
+
 class RecordBase(RESTAPIBase):
     timestamp: datetime
     collection_date: Optional[date] = None
-    dataset_name: Optional[str] = None
+    record_info: Optional[JSONB] = None
+    
+class RecordInput(RecordBase):
+    experiment_name: Optional[str] = None
+    season_name: Optional[str] = None
+    site_name: Optional[str] = None
+    plot_number: Optional[int] = None
+    plot_row_number: Optional[int] = None
+    plot_column_number: Optional[int] = None
+    
+class RecordSearch(RecordBase):
+    timestamp: Optional[datetime] = None
+    collection_date: Optional[date] = None
     experiment_name: Optional[str] = None
     season_name: Optional[str] = None
     site_name: Optional[str] = None
@@ -315,16 +329,7 @@ class RecordBase(RESTAPIBase):
     plot_row_number: Optional[int] = None
     plot_column_number: Optional[int] = None
     record_info: Optional[JSONB] = None
-
-class RecordInput(RecordBase):
-
-
-
-    file : Optional[UploadFile] = None
-
-class RecordSearch(RecordBase):
-    timestamp: Optional[datetime] = None
-
+    
 class RecordOutput(RecordBase):
     pass
 
@@ -333,104 +338,62 @@ class RecordOutput(RecordBase):
 # --------------------------------
 
 class DatasetRecordBase(RecordBase):
+    dataset_id: ID
+    dataset_name: str
     dataset_data: JSONB
-
+    
 class DatasetRecordInput(RecordInput):
-    dataset_data: Optional[JSONB] = None
-
-class DatasetRecordSearch(RecordSearch):
-    dataset_name: Optional[str] = None
-
-class DatasetRecordOutput(RecordOutput):
+    dataset_name: str
     dataset_data: JSONB
+    
+class DatasetRecordSearch(RecordSearch):
+    dataset_id: Optional[ID] = None
+    dataset_name: Optional[str] = None
+    
+class DatasetRecordOutput(DatasetRecordBase):
+    pass
 
 # --------------------------------
 # Sensor Record Classes
 # --------------------------------
+
 class SensorRecordBase(RecordBase):
+    sensor_id: ID
     sensor_name: str
     sensor_data: JSONB
-
+    
 class SensorRecordInput(RecordInput):
     sensor_name: str
-    sensor_data: Optional[JSONB] = None
-
-class SensorRecordSearch(RecordSearch):
-    sensor_name: Optional[str] = None
-
-class SensorRecordOutput(RecordOutput):
-    sensor_name: str
     sensor_data: JSONB
-
+    dataset_name: Optional[str] = None
+    file: Optional[UploadFile] = None
+    
+class SensorRecordSearch(RecordSearch):
+    sensor_id: Optional[ID] = None
+    sensor_name: Optional[str] = None
+    dataset_name: Optional[str] = None
+    
+class SensorRecordOutput(SensorRecordBase):
+    pass
 
 # --------------------------------
 # Trait Record Classes
 # --------------------------------
-class TraitRecordBase(RecordBase):
-    trait_name: str
-    trait_data: JSONB
 
+class TraitRecordBase(RecordBase):
+    trait_id: ID
+    trait_name: str
+    trait_value: float
+    
 class TraitRecordInput(RecordInput):
     trait_name: str
-    trait_data: Optional[JSONB] = None
-
+    trait_value: float
+    dataset_name: Optional[str] = None
+    
 class TraitRecordSearch(RecordSearch):
+    trait_id: Optional[ID] = None
     trait_name: Optional[str] = None
-
-class TraitRecordOutput(RecordOutput):
-    trait_name: str
-    trait_data: JSONB
-
-# --------------------------------
-# Procedure Record Classes
-# --------------------------------
-class ProcedureRecordBase(RecordBase):
-    procedure_name: str
-    procedure_data: JSONB
-
-class ProcedureRecordInput(RecordInput):
-    procedure_name: str
-    procedure_data: Optional[JSONB] = None
-
-class ProcedureRecordSearch(RecordSearch):
-    procedure_name: Optional[str] = None
-
-class ProcedureRecordOutput(RecordOutput):
-    procedure_name: str
-    procedure_data: JSONB
-
-# --------------------------------
-# Script Record Classes
-# --------------------------------
-class ScriptRecordBase(RecordBase):
-    script_name: str
-    script_data: JSONB
-
-class ScriptRecordInput(RecordInput):
-    script_name: str
-    script_data: Optional[JSONB] = None
-
-class ScriptRecordSearch(RecordSearch):
-    script_name: Optional[str] = None
-
-class ScriptRecordOutput(RecordOutput):
-    script_name: str
-    script_data: JSONB
-
-# --------------------------------
-# Model Record Classes
-# --------------------------------
-class ModelRecordBase(RecordBase):
-    model_name: str
-    model_data: JSONB
-
-class ModelRecordInput(RecordInput):
-    model_name: str
-    model_data: Optional[JSONB] = None
-
-class ModelRecordSearch(RecordSearch):
-    model_name: Optional[str] = None
-
-class ModelRecordOutput(RecordOutput):
-    model_name: str
-    model_data: JSONB
+    dataset_name: Optional[str] = None
+    
+class TraitRecordOutput(TraitRecordBase):
+    pass

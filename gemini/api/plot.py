@@ -45,26 +45,26 @@ class Plot(APIBase):
     @classmethod
     def create(
         cls,
-        experiment_name: str,
-        season_name: str,
-        site_name: str,
-        plot_number: int,
-        plot_row_number: int = None,
-        plot_column_number: int = None,
-        plot_geometry_info: dict = None,
-        plot_info: dict = None,
-        cultivar_accession: str = None,
-        cultivar_population: str = None,
+        experiment_name: str = 'Default',
+        season_name: str = 'Default',
+        site_name: str = 'Default',
+        plot_number: int = -1,
+        plot_row_number: int = -1,
+        plot_column_number: int = -1,
+        plot_geometry_info: dict = {},
+        plot_info: dict = {},
+        cultivar_accession: str = 'Default',
+        cultivar_population: str = 'Default',
     ):
-        experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-        season = SeasonModel.get_by_parameters(experiment_id=experiment.id, season_name=season_name)
-        site = SiteModel.get_by_parameters(site_name=site_name)
-
-        cultivar = CultivarModel.get_by_parameters(
+        experiment = ExperimentModel.get_or_create(experiment_name=experiment_name) 
+        season = SeasonModel.get_or_create(experiment_id=experiment.id, season_name=season_name)
+        site = SiteModel.get_or_create(site_name=site_name)
+        
+        cultivar = CultivarModel.get_or_create(
             cultivar_population=cultivar_population,
             cultivar_accession=cultivar_accession,
         )
-
+        
         new_instance = cls.db_model.get_or_create(
             plot_number=plot_number,
             plot_row_number=plot_row_number,

@@ -28,9 +28,6 @@ from gemini.rest_api.src.models import (
 from typing import List, Annotated, Optional
 
 
-
-
-
 class ExperimentController(Controller):
     
     # Get Experiments
@@ -123,6 +120,8 @@ class ExperimentController(Controller):
         except Exception as e:
             return Response(content=str(e), status_code=500)
         
+    # Todo: Create a new Season for an Experiment
+        
     # Get Experiment Sites by Experiment Name
     @get(path="/{experiment_name:str}/sites")
     async def get_experiment_sites(self, experiment_name: str) -> List[SiteOutput]:
@@ -136,6 +135,8 @@ class ExperimentController(Controller):
             return sites
         except Exception as e:
             return Response(content=str(e), status_code=500)
+        
+    # Todo: Create a new Site for an Experiment
         
     # Get Experiment Sensors by Experiment Name
     @get(path="/{experiment_name:str}/sensors")
@@ -151,6 +152,8 @@ class ExperimentController(Controller):
         except Exception as e:
             return Response(content=str(e), status_code=500)
         
+    # Todo: Create a new Sensor for an Experiment
+        
     # Get Experiment Traits by Experiment Name
     @get(path="/{experiment_name:str}/traits")
     async def get_experiment_traits(self, experiment_name: str) -> List[TraitOutput]:
@@ -164,6 +167,8 @@ class ExperimentController(Controller):
             return traits
         except Exception as e:
             return Response(content=str(e), status_code=500)
+        
+    # Todo: Create a new Trait for an Experiment
         
     # Get Experiment Resources by Experiment Name
     @get(path="/{experiment_name:str}/resources")
@@ -179,6 +184,8 @@ class ExperimentController(Controller):
         except Exception as e:
             return Response(content=str(e), status_code=500)
         
+    # Todo: Create a new Resource for an Experiment
+        
     # Get Experiment Cultivars by Experiment Name
     @get(path="/{experiment_name:str}/cultivars")
     async def get_experiment_cultivars(self, experiment_name: str) -> List[CultivarOutput]:
@@ -192,6 +199,8 @@ class ExperimentController(Controller):
             return cultivars
         except Exception as e:
             return Response(content=str(e), status_code=500)
+    
+    # Todo: Create a new Cultivar for an Experiment
         
     # Get Experiment Datasets by Experiment Name
     @get(path="/{experiment_name:str}/datasets")
@@ -207,6 +216,8 @@ class ExperimentController(Controller):
         except Exception as e:
             return Response(content=str(e), status_code=500)
         
+    # Todo: Create a new Dataset for an Experiment
+        
     # Get Experiment Scripts by Experiment Name
     @get(path="/{experiment_name:str}/scripts")
     async def get_experiment_scripts(self, experiment_name: str) -> List[ScriptOutput]:
@@ -220,6 +231,8 @@ class ExperimentController(Controller):
             return scripts
         except Exception as e:
             return Response(content=str(e), status_code=500)
+    
+    # Todo: Create a new Script for an Experiment
         
     # Get Experiment Procedures by Experiment Name
     @get(path="/{experiment_name:str}/procedures")
@@ -234,6 +247,8 @@ class ExperimentController(Controller):
             return procedures
         except Exception as e:
             return Response(content=str(e), status_code=500)
+        
+    # Todo: Create a new Procedure for an Experiment
         
     # Get Experiment Models by Experiment Name
     @get(path="/{experiment_name:str}/models")
