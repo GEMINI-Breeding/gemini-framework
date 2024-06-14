@@ -1,5 +1,5 @@
 from typing import Optional, List, Any, Generator
-from gemini.api.base import APIBase
+from gemini.api.base import APIBase, ID
 from gemini.models import ScriptModel, ScriptRunModel, DatasetModel
 from gemini.models import ScriptRecordModel
 from gemini.logger import logger_service
@@ -17,9 +17,9 @@ class ScriptRecord(APIBase):
 
     timestamp: Optional[datetime] = None
     collection_date: Optional[date] = None
-    dataset_id: Optional[UUID] = None
+    dataset_id: Optional[ID] = None
     dataset_name: Optional[str] = None
-    script_id: Optional[UUID] = None
+    script_id: Optional[ID] = None
     script_name: Optional[str] = None
     script_data: Optional[dict] = None
     record_info: Optional[dict] = None
@@ -70,7 +70,7 @@ class ScriptRecord(APIBase):
             return False
         
     @classmethod
-    def get(cls, record_id: UUID) -> 'ScriptRecord':
+    def get(cls, record_id: ID) -> 'ScriptRecord':
         record = ScriptRunModel.get_by_id(record_id)
         return cls.model_validate(record)
     

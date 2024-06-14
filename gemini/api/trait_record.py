@@ -1,5 +1,5 @@
 from typing import Optional, List, Any, Generator
-from gemini.api.base import APIBase
+from gemini.api.base import APIBase, ID
 from gemini.models import TraitRecordModel, TraitModel, DatasetModel
 from gemini.logger import logger_service
 
@@ -14,7 +14,9 @@ class TraitRecord(APIBase):
     timestamp: Optional[datetime] = None
     collection_date: Optional[date] = None
     dataset_name: Optional[str] = None
+    dataset_id: Optional[ID] = None
     trait_name: Optional[str] = None
+    trait_id: Optional[ID] = None
     trait_value: Optional[float] = None
     record_info: Optional[dict] = None
 
@@ -58,7 +60,7 @@ class TraitRecord(APIBase):
             return False
         
     @classmethod
-    def get(cls, record_id: UUID) -> 'TraitRecord':
+    def get(cls, record_id: ID) -> 'TraitRecord':
         record = cls.db_model.get_by_id(record_id)
         return cls.model_validate(record)
     

@@ -1,6 +1,6 @@
 from typing import Optional, List, Any, Generator
 from pydantic import Field, BaseModel, ConfigDict
-from gemini.api.base import APIBase
+from gemini.api.base import APIBase, ID
 from gemini.models import ProcedureRecordModel, ProcedureModel, DatasetModel
 from gemini.logger import logger_service
 from gemini.object_store import storage_service
@@ -17,9 +17,9 @@ class ProcedureRecord(APIBase):
 
     timestamp: Optional[datetime] = None
     collection_date: Optional[date] = None
-    dataset_id: Optional[UUID] = None
+    dataset_id: Optional[ID] = None
     dataset_name: Optional[str] = None
-    procedure_id: Optional[UUID] = None
+    procedure_id: Optional[ID] = None
     procedure_name: Optional[str] = None
     procedure_data: Optional[dict] = None
     record_info: Optional[dict] = None
@@ -71,7 +71,7 @@ class ProcedureRecord(APIBase):
             return False
         
     @classmethod
-    def get(cls, record_id: UUID) -> 'ProcedureRecord':
+    def get(cls, record_id: ID) -> 'ProcedureRecord':
         record = ProcedureRecordModel.get_by_id(record_id)
         return cls.model_validate(record)
     

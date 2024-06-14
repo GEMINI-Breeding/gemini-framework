@@ -34,7 +34,8 @@ async def plot_search_generator(search_parameters: PlotSearch) -> AsyncGenerator
     search_parameters = PlotSearchParameters.model_validate(search_parameters)
     plots = Plot.search(search_parameters)
     for plot in plots:
-        plot = plot.model_dump_json(exclude_none=True)
+        plot = plot.model_dump(exclude_none=True)
+        plot = encode_json(plot)
         yield plot
 
 
@@ -95,6 +96,45 @@ class PlotController(Controller):
         except Exception as e:
             return Response(content=str(e), status_code=500)
         
+    # Get Plots given experiment, season and site
+    @get('/experiment/{experiment_name:str}/season/{season_name:str}/site/{site_name:str}')
+    async def get_plots_by_experiment_season_site(
+        self,
+        experiment_name: str,
+        season_name: str,
+        site_name: str
+    ) -> List[PlotOutput]:
+        try:
+            plots = Plot.get_plots(
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name
+            )
+            plots = [plot.model_dump(exclude_none=True) for plot in plots]
+            plots = [PlotOutput.model_validate(plot) for plot in plots]
+            return plots
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+        
+    # Get Plots given cultivar population and accession
+    @get('/cultivar/{cultivar_population:str}/{cultivar_accession:str}')
+    async def get_plots_by_cultivar(
+        self,
+        cultivar_population: str,
+        cultivar_accession: str
+    ) -> List[PlotOutput]:
+        try:
+            plots = Plot.get_cultivar_plots(
+                cultivar_population=cultivar_population,
+                cultivar_accession=cultivar_accession
+            )
+            plots = [plot.model_dump(exclude_none=True) for plot in plots]
+            plots = [PlotOutput.model_validate(plot) for plot in plots]
+            return plots
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+
+
     # Get Plot Info by plot ID
     @get('/{plot_id:str}/info')
     async def get_plot_info(
@@ -125,6 +165,37 @@ class PlotController(Controller):
         except Exception as e:
             return Response(content=str(e), status_code=500)
         
+    # Get Plot Geometry Info by plot ID
+    @get('/{plot_id:str}/geometry')
+    async def get_plot_geometry_info(
+        self,
+        plot_id: str
+    ) -> dict:
+        try:
+            plot = Plot.get_by_id(plot_id)
+            if not plot:
+                return Response(status_code=404)
+            return plot.get_geometry_info()
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+        
+    # Set Plot Geometry Info by plot ID
+    @patch('/{plot_id:str}/geometry')
+    async def set_plot_geometry_info(
+        self,
+        plot_id: str,
+        data: dict
+    ) -> dict:
+        try:
+            plot = Plot.get_by_id(plot_id)
+            if not plot:
+                return Response(status_code=404)
+            plot.set_geometry_info(data)
+            return plot.get_geometry_info()
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+        
+    
         
     # Delete Plot by plot ID
     @delete('/{plot_id:str}')

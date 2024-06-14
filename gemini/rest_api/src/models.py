@@ -155,6 +155,7 @@ class TraitBase(RESTAPIBase):
     trait_units: Optional[str] = None
     trait_level_id: Optional[ID] = None
     trait_metrics: Optional[JSONB] = None
+    trait_info: Optional[JSONB] = None
 
 class TraitInput(TraitBase):
     experiment_name: str = 'Default'

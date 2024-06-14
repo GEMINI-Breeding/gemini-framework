@@ -113,6 +113,43 @@ class Plot(APIBase):
         plot = cls.model_validate(plot)
         return plot
     
+    @classmethod
+    def get_plots(
+        cls,
+        experiment_name: str,
+        season_name: str = None,
+        site_name: str = None
+    ):
+        experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+        season = SeasonModel.get_by_parameters(experiment_id=experiment.id, season_name=season_name)
+        site = SiteModel.get_by_parameters(site_name=site_name)
+
+        plots = PlotViewModel.search(
+            experiment_id=experiment.id,
+            season_id=season.id,
+            site_id=site.id
+        )
+        
+        plots = [cls.model_validate(plot) for plot in plots]
+        return plots
+    
+    @classmethod
+    def get_cultivar_plots(
+        cls,
+        cultivar_population: str,
+        cultivar_accession: str
+    ):
+        cultivar = CultivarModel.get_by_parameters(
+            cultivar_population=cultivar_population,
+            cultivar_accession=cultivar_accession
+        )
+        if not cultivar:
+            return []
+        plots = PlotCultivarViewModel.search(cultivar_id=cultivar.id)
+        plots = [cls.model_validate(plot) for plot in plots]
+        return plots
+    
+    
     def get_info(self) -> dict:
         self.refresh()
         logger_service.info(

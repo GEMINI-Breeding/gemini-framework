@@ -32,6 +32,7 @@ class Trait(APIBase):
         trait_units: str = 'Default',
         trait_level: GEMINITraitLevel = GEMINITraitLevel.Default,
         trait_metrics: dict = {},
+        trait_info: dict = {},
         experiment_name: str = 'Default'
     ):
         db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
@@ -40,7 +41,8 @@ class Trait(APIBase):
             trait_name=trait_name,
             trait_units=trait_units,
             trait_level_id=db_trait_level.id,
-            trait_metrics=trait_metrics
+            trait_metrics=trait_metrics,
+            trait_info=trait_info
         )
 
         if db_experiment and db_instance not in db_experiment.traits:

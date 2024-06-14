@@ -32,11 +32,11 @@ class SeasonController(Controller):
     @get()
     async def get_seasons(
         self,
-        experiment_name: Optional[str] = None,
         season_name: Optional[str] = None,
         season_start_date: Optional[date] = None,
         season_end_date: Optional[date] = None,
-        season_info: Optional[dict] = None
+        season_info: Optional[dict] = None,
+        experiment_name: Optional[str] = 'Default'
     ) -> List[SeasonOutput]:
         try:
             experiment = Experiment.get(experiment_name=experiment_name)

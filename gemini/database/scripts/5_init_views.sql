@@ -35,6 +35,10 @@ USING columnar
 AS
 SELECT
     p.id AS plot_id,
+    p.plot_number AS plot_number,
+    p.plot_row_number AS plot_row_number,
+    p.plot_column_number AS plot_column_number,
+    p.plot_info AS plot_info,
     c.id AS cultivar_id,
     c.cultivar_accession,
     c.cultivar_population

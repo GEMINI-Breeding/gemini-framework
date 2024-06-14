@@ -1,12 +1,11 @@
 from typing import Optional, List, Any, Generator
 from pydantic import Field, BaseModel, ConfigDict
-from gemini.api.base import APIBase
+from gemini.api.base import APIBase, ID
 from gemini.models import ModelRecordModel, DatasetModel, ModelModel
 from gemini.logger import logger_service
 from gemini.object_store import storage_service
 from pydantic import BaseModel
 from datetime import datetime, date
-from uuid import UUID
 from rich.progress import track
 
 import os
@@ -17,9 +16,9 @@ class ModelRecord(APIBase):
 
     timestamp: Optional[datetime] = None
     collection_date: Optional[date] = None
-    dataset_id: Optional[UUID] = None
+    dataset_id: Optional[ID] = None
     dataset_name: Optional[str] = None
-    model_id: Optional[UUID] = None
+    model_id: Optional[ID] = None
     model_name: Optional[str] = None
     model_data: Optional[dict] = None
     record_info: Optional[dict] = None
@@ -70,7 +69,7 @@ class ModelRecord(APIBase):
             return False
         
     @classmethod
-    def get(cls, record_id: UUID) -> 'ModelRecord':
+    def get(cls, record_id: ID) -> 'ModelRecord':
         record = ModelRecordModel.get_by_id(record_id)
         return cls.model_validate(record)
     

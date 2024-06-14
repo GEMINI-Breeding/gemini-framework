@@ -1,5 +1,5 @@
 from typing import Optional, List, Any, Generator
-from gemini.api.base import APIBase
+from gemini.api.base import APIBase, ID
 from gemini.models import SensorRecordModel, SensorModel, DatasetModel
 from gemini.logger import logger_service
 
@@ -19,7 +19,9 @@ class SensorRecord(APIBase):
     timestamp: Optional[datetime] = None
     collection_date: Optional[date] = None
     dataset_name: Optional[str] = None
+    dataset_id: Optional[ID] = None
     sensor_name: Optional[str] = None
+    sensor_id: Optional[ID] = None
     sensor_data: Optional[dict] = None
     record_info: Optional[dict] = None
 
@@ -68,7 +70,7 @@ class SensorRecord(APIBase):
             return False
         
     @classmethod
-    def get(cls, record_id: UUID) -> 'SensorRecord':
+    def get(cls, record_id: ID) -> 'SensorRecord':
         record = cls.db_model.get_by_id(record_id)
         return cls.model_validate(record)
     

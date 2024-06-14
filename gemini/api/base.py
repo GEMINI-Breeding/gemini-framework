@@ -24,6 +24,8 @@ class APIBase(BaseModel):
         extra="allow"
     )
 
+    id: Optional[ID] = None
+
 
     @model_validator(mode="before")
     @classmethod

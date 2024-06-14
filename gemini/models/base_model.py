@@ -127,12 +127,14 @@ class _BaseModel(DeclarativeBase, SerializeMixin):
             # Remove non-unique fields from the kwargs
             unique_fields = cls.unique_fields()
             kwargs = cls.validate_fields(**kwargs)
-            unique_kwargs = {key: value for key, value in kwargs.items() if key in unique_fields}
+            unique_kwargs = {key: value for key, value in kwargs.items() if key in unique_fields}        
+            # If Unique Kwarg is empty, return None
+            if unique_kwargs == {}:
+                return None
             instance = cls.get_by_parameters(**unique_kwargs)
             if instance:
                 return instance
             else:
-            
                 instance = cls(**kwargs)
                 session.add(instance)
                 session.commit()

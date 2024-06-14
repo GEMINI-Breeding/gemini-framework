@@ -1,6 +1,6 @@
 from typing import Optional, List, Any, Generator
 from pydantic import Field, BaseModel, ConfigDict
-from gemini.api.base import APIBase
+from gemini.api.base import APIBase, ID
 from gemini.models import DatasetRecordModel, DatasetModel
 from gemini.logger import logger_service
 from gemini.object_store import storage_service
@@ -16,7 +16,7 @@ class DatasetRecord(APIBase):
 
     timestamp: Optional[datetime] = None
     collection_date: Optional[date] = None
-    dataset_id : Optional[UUID] = None
+    dataset_id : Optional[ID] = None
     dataset_name : Optional[str] = None
     dataset_data: Optional[dict] = None
     record_info: Optional[dict] = None
@@ -56,7 +56,7 @@ class DatasetRecord(APIBase):
             return False
         
     @classmethod
-    def get(cls, record_id: UUID) -> 'DatasetRecord':
+    def get(cls, record_id: ID) -> 'DatasetRecord':
         record = DatasetRecordModel.get_by_id(record_id)
         return record
     

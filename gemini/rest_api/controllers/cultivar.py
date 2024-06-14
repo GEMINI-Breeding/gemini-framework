@@ -54,7 +54,8 @@ class CultivarController(Controller):
             cultivar = Cultivar.create(
                 cultivar_population=data.cultivar_population,
                 cultivar_accession=data.cultivar_accession,
-                cultivar_info=data.cultivar_info
+                cultivar_info=data.cultivar_info,
+                experiment_name=data.experiment_name
             )
             if cultivar is None:
                 return Response(content="Cultivar already exists", status_code=409)
