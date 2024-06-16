@@ -56,3 +56,5 @@ from gemini.models.views.experiment_views import (
     ExperimentProceduresViewModel,
     ExperimentScriptsViewModel
 )
+
+from gemini.models.views.sensor_records_immv import SensorRecordsIMMVModel

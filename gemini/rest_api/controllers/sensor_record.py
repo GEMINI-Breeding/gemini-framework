@@ -22,7 +22,7 @@ from gemini.rest_api.src.models import (
 from typing import List, Annotated, Optional
 
 
-async def sensor_record_search_generator(search_parameters: SensorRecordSearch) -> AsyncGenerator[SensorRecordOutput, None]:
+async def sensor_record_search_generator(search_parameters: SensorRecordSearch) -> AsyncGenerator[bytes, None]:
     search_parameters = search_parameters.model_dump(exclude_none=True)
     sensor = Sensor.get(search_parameters["sensor_name"])
     

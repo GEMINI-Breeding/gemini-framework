@@ -276,3 +276,23 @@ FROM
     JOIN gemini.datasets d ON md.dataset_id = d.id;
 
     
+-------------------------------------------------------------------------------
+-- IMMV
+-------------------------------------------------------------------------------
+
+SET default_table_access_method = 'columnar';
+SET max_parallel_workers = 1;
+
+-------------------------------------------------------------------------------
+-- Sensor Records IMMV
+-------------------------------------------------------------------------------
+SELECT create_immv('gemini.sensor_records_immv', 'select * from gemini.sensor_records');
+
+-------------------------------------------------------------------------------
+-- Trait Records IMMV
+-------------------------------------------------------------------------------
+SELECT create_immv('gemini.trait_records_immv', 'select * from gemini.trait_records');
+
+
+SET max_parallel_workers = DEFAULT;
+SET default_table_access_method = 'heap';

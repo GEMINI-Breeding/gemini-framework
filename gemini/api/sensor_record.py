@@ -1,6 +1,6 @@
 from typing import Optional, List, Any, Generator
 from gemini.api.base import APIBase, ID
-from gemini.models import SensorRecordModel, SensorModel, DatasetModel
+from gemini.models import SensorRecordModel, SensorModel, DatasetModel, SensorRecordsIMMVModel
 from gemini.logger import logger_service
 
 
@@ -112,10 +112,10 @@ class SensorRecord(APIBase):
     
     @classmethod
     def search(cls, **kwargs) -> Generator['SensorRecord', None, None]:
-        searched_records = cls.db_model.stream(**kwargs)
+        searched_records = SensorRecordsIMMVModel.search(**kwargs)
         for record in searched_records:
             record = record.to_dict()
-            record = cls.postprocess_record(record)
+            # record = cls.postprocess_record(record)
             record = cls.model_construct(
                 _fields_set=cls.model_fields_set,
                 **record

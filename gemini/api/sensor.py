@@ -297,12 +297,18 @@ class Sensor(APIBase):
         # Remove None values from record_info
         record_info = {k: v for k, v in record_info.items() if v is not None}
 
-        records = SensorRecord.search(
+        return SensorRecord.search(
             sensor_name=self.sensor_name,
             collection_date=collection_date,
             record_info = record_info
         )
 
-        logger_service.info("API", f"Retrieved records for {self.sensor_name}")
-        return records
+        # records = SensorRecord.search(
+        #     sensor_name=self.sensor_name,
+        #     collection_date=collection_date,
+        #     record_info = record_info
+        # )
+
+        # logger_service.info("API", f"Retrieved records for {self.sensor_name}")
+        # return records
 

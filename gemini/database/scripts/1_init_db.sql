@@ -9,5 +9,6 @@ CREATE SCHEMA IF NOT EXISTS gemini;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp"; -- Used for generating UUIDs
 CREATE EXTENSION IF NOT EXISTS "pgcrypto"; -- Used for generating passwords
 CREATE EXTENSION IF NOT EXISTS columnar; -- Used for columnar storage
+CREATE EXTENSION IF NOT EXISTS pg_ivm;
 
 ALTER DATABASE gemini_db SET default_table_access_method = 'heap';
