@@ -112,10 +112,9 @@ class SensorRecord(APIBase):
     
     @classmethod
     def search(cls, **kwargs) -> Generator['SensorRecord', None, None]:
-        searched_records = SensorRecordsIMMVModel.search(**kwargs)
-        for record in searched_records:
+        for record in SensorRecordsIMMVModel.stream(**kwargs):
             record = record.to_dict()
-            # record = cls.postprocess_record(record)
+            record = cls.postprocess_record(record)
             record = cls.model_construct(
                 _fields_set=cls.model_fields_set,
                 **record

@@ -9,7 +9,7 @@ from typing import List
 
 # from psycopg2.errors import ProgrammingError
 from sqlalchemy.exc import ProgrammingError
-from gemini.models.db import session
+from gemini.models.db import session, engine
 
 
 metadata_obj = MetaData(schema="gemini")
@@ -219,11 +219,43 @@ class _BaseModel(DeclarativeBase, SerializeMixin):
                 else:
                     query = query.where(attribute == value)
             query = query.execution_options(yield_per=1000)
-            for row in session.execute(query).scalars():
-                yield row
+            for partition in session.scalars(query).partitions():
+                for instance in partition:
+                    yield instance
+            # return session.execute(query).scalars()
         except ProgrammingError as e:
             session.rollback()
             pass
+        except Exception as e:
+            session.rollback()
+            raise e
+        
+    @classmethod
+    def stream_raw(cls, **kwargs):
+        """
+        Stream data using SQLAlchemy Core.
+        """
+        try:
+            table = cls.__table__
+            query = select(cls)
+            for key, value in kwargs.items():
+                attribute = getattr(cls, key)
+                if isinstance(attribute.type, JSONB):
+                    query = query.where(attribute.contains(value))
+                elif isinstance(attribute.type, TIMESTAMP):
+                    query = query.where(attribute >= value)
+                elif isinstance(attribute.type, DATE):
+                    query = query.where(attribute == value)
+                elif isinstance(attribute.type, String):
+                    query = query.where(attribute == value)
+                else:
+                    query = query.where(attribute == value)
+                query = query.execution_options(yield_per=1000)
+            with engine.connect() as conn:
+                result = conn.execute(query).scalars().partitions()
+                for partition in result:
+                    for instance in partition:
+                        yield instance
         except Exception as e:
             session.rollback()
             raise e

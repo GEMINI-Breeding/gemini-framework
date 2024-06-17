@@ -71,26 +71,26 @@ class Sensor(APIBase):
     def get(cls, sensor_name: str) -> "Sensor":
         db_instance = cls.db_model.get_by_parameters(sensor_name=sensor_name)
         logger_service.info("API", f"Retrieved sensor with name {sensor_name} from the database")
-        return cls.model_validate(db_instance)
+        return cls.model_validate(db_instance) if db_instance else None
     
     @classmethod
     def get_by_experiment(cls, experiment_name: str) -> List["Sensor"]:
         db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
         db_sensors = db_experiment.sensors
         logger_service.info("API", f"Retrieved sensors for experiment {experiment_name} from the database")
-        return [cls.model_validate(db_sensor) for db_sensor in db_sensors]
+        return [cls.model_validate(db_sensor) for db_sensor in db_sensors] if db_sensors else None
     
     @classmethod
     def get_by_type(cls, sensor_type: GEMINISensorType) -> List["Sensor"]:
         db_sensors = SensorModel.get_by_parameters(sensor_type_id=sensor_type.value)
         logger_service.info("API", f"Retrieved sensors of type {sensor_type.name} from the database")
-        return [cls.model_validate(db_sensor) for db_sensor in db_sensors]
+        return [cls.model_validate(db_sensor) for db_sensor in db_sensors] if db_sensors else None
     
     def get_by_platform(cls, sensor_platform_name: str) -> List["Sensor"]:
         db_sensor_platform = SensorPlatformModel.get_by_parameters(sensor_platform_name=sensor_platform_name)
         db_sensors = SensorModel.get_by_parameters(sensor_platform_id=db_sensor_platform.id)
         logger_service.info("API", f"Retrieved sensors for platform {sensor_platform_name} from the database")
-        return [cls.model_validate(db_sensor) for db_sensor in db_sensors]
+        return [cls.model_validate(db_sensor) for db_sensor in db_sensors] if db_sensors else None
     
     def get_info(self) -> dict:
         self.refresh()
@@ -303,12 +303,5 @@ class Sensor(APIBase):
             record_info = record_info
         )
 
-        # records = SensorRecord.search(
-        #     sensor_name=self.sensor_name,
-        #     collection_date=collection_date,
-        #     record_info = record_info
-        # )
-
-        # logger_service.info("API", f"Retrieved records for {self.sensor_name}")
-        # return records
+       
 

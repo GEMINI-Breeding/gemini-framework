@@ -359,7 +359,7 @@ GET http://localhost:5600/api/sensor_records
     
 ### Filter Sensor Records by Sensor Name and collection date
 GET http://localhost:5600/api/sensor_records
-    ?sensor_name=Weather%20Sensor
+    ?sensor_name=Campbell%20CR1000
 
 
 ### Filter Sensor Records by Sensor Name, collection date, experiment and site
