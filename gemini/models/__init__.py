@@ -58,3 +58,4 @@ from gemini.models.views.experiment_views import (
 )
 
 from gemini.models.views.sensor_records_immv import SensorRecordsIMMVModel
+from gemini.models.views.trait_records_immv import TraitRecordsIMMVModel

@@ -219,10 +219,9 @@ class _BaseModel(DeclarativeBase, SerializeMixin):
                 else:
                     query = query.where(attribute == value)
             query = query.execution_options(yield_per=1000)
-            for partition in session.scalars(query).partitions():
+            for partition in session.execute(query).scalars().partitions():
                 for instance in partition:
-                    yield instance
-            # return session.execute(query).scalars()
+                    yield instance 
         except ProgrammingError as e:
             session.rollback()
             pass
@@ -236,8 +235,8 @@ class _BaseModel(DeclarativeBase, SerializeMixin):
         Stream data using SQLAlchemy Core.
         """
         try:
-            table = cls.__table__
             query = select(cls)
+            kwargs = cls.validate_fields(**kwargs)
             for key, value in kwargs.items():
                 attribute = getattr(cls, key)
                 if isinstance(attribute.type, JSONB):

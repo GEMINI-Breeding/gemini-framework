@@ -1,6 +1,6 @@
 from typing import Optional, List, Any, Generator
 from gemini.api.base import APIBase, ID
-from gemini.models import TraitRecordModel, TraitModel, DatasetModel
+from gemini.models import TraitRecordModel, TraitModel, DatasetModel, TraitRecordsIMMVModel
 from gemini.logger import logger_service
 
 from datetime import datetime, date
@@ -102,7 +102,7 @@ class TraitRecord(APIBase):
     
     @classmethod
     def search(cls, **kwargs) -> Generator['TraitRecord', None, None]:
-        searched_records = cls.db_model.stream(**kwargs)
+        searched_records = TraitRecordsIMMVModel.stream(**kwargs)
         for record in searched_records:
             record = record.to_dict()
             record = cls.model_construct(
@@ -110,3 +110,5 @@ class TraitRecord(APIBase):
                 **record
             )
             yield record
+            
+    

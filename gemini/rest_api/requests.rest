@@ -360,6 +360,7 @@ GET http://localhost:5600/api/sensor_records
 ### Filter Sensor Records by Sensor Name and collection date
 GET http://localhost:5600/api/sensor_records
     ?sensor_name=Campbell%20CR1000
+    &experiment_name=GEMINI
 
 
 ### Filter Sensor Records by Sensor Name, collection date, experiment and site
@@ -367,3 +368,13 @@ GET http://localhost:5600/api/sensor_records
     ?sensor_name=Weather%20Sensor
     &site_name=Davis
     &season_name=2021
+
+# ---------------------------------------------------------------------------
+# Trait Records
+# ---------------------------------------------------------------------------
+
+### Get All Trait Records
+### Check example_trait_data.py
+GET http://localhost:5600/api/trait_records
+    ?trait_name=Average%20Temperature
+    

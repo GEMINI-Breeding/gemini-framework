@@ -40,34 +40,17 @@ async def sensor_record_search_generator(search_parameters: SensorRecordSearch) 
     search_parameters = search_parameters.model_dump(exclude_none=True)
 
     for record in SensorRecordsIMMVModel.stream_raw(**search_parameters):
+        await sleep(0)
         record = SensorRecord.get_by_id(id=record)
         record = record.model_dump(exclude_none=True)
         yield encode_json(record)
 
 
-# async def sensor_record_search_generator(search_parameters: SensorRecordSearch) -> AsyncGenerator[bytes, None]:
-#     search_parameters = search_parameters.model_dump(exclude_none=True)
-#     sensor = Sensor.get(search_parameters["sensor_name"])
-    
-#     # Remove sensor_name from search parameters
-#     search_parameters.pop("sensor_name")
-
-#     for record in sensor.get_records(**search_parameters):
-#         record = record.model_dump(exclude_none=True)
-#         yield encode_json(record)
-
-    # return sensor.get_records(**search_parameters)
-
-    # sensor_records = sensor.get_records(**search_parameters)
-    
-    # for record in sensor_records:
-    #     record = record.model_dump_json(exclude_none=True)
-    #     yield record
 
 class SensorRecordController(Controller):
 
     # Get Sensor Records
-    @get(content_media_type='application/x-ndjson')
+    @get()
     async def get_sensor_records(
         self,
         sensor_name: str,

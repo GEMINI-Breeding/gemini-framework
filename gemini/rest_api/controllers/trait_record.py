@@ -10,7 +10,6 @@ from collections.abc import AsyncGenerator
 
 from gemini.api.trait import Trait
 from gemini.api.trait_record import TraitRecord
-
 from gemini.rest_api.src.models import (
     TraitRecordBase,
     TraitRecordInput,
@@ -19,20 +18,33 @@ from gemini.rest_api.src.models import (
     TraitOutput
 )
 
+from gemini.models import TraitRecordsIMMVModel
+
 from typing import List, Annotated, Optional
 
-async def trait_record_search_generator(search_parameters: TraitRecordSearch) -> AsyncGenerator[bytes, None]:
+
+async def trait_record_search_genertor(search_parameters: TraitRecordSearch) -> AsyncGenerator[bytes, None]:
+    
+    record_info = search_parameters.record_info or {}
+    record_info.update({
+        "experiment_name": search_parameters.experiment_name,
+        "season_name": search_parameters.season_name,
+        "site_name": search_parameters.site_name,
+        "plot_number": search_parameters.plot_number,
+        "plot_row_number": search_parameters.plot_row_number,
+        "plot_column_number": search_parameters.plot_column_number
+    })
+    
+    record_info = {k: v for k, v in record_info.items() if v is not None}
+    search_parameters.record_info = record_info
     search_parameters = search_parameters.model_dump(exclude_none=True)
-    trait = Trait.get(trait_name=search_parameters['trait_name'])
     
-    # Remove trait_name from search parameters
-    search_parameters.pop('trait_name')
-    trait_records = trait.get_records(**search_parameters)
-    
-    for record in trait_records:
-        record = record.model_dump_json(exclude_none=True)
-        yield record
+    for record in TraitRecordsIMMVModel.stream_raw(**search_parameters):
+        record = TraitRecord.get_by_id(id=record)
+        record = record.model_dump(exclude_none=True)
+        yield encode_json(record)
         
+    
 
 class TraitRecordController(Controller):
           
@@ -51,6 +63,10 @@ class TraitRecordController(Controller):
         record_info: Optional[dict] = None
     ) -> Stream:
         try:
+            trait = Trait.get(trait_name=trait_name)
+            if not trait:
+                return Response(content="Trait not found", status_code=404)
+            
             search_parameters = TraitRecordSearch(
                 trait_name=trait_name,
                 collection_date=collection_date,
@@ -62,8 +78,7 @@ class TraitRecordController(Controller):
                 plot_column_number=plot_column_number,
                 record_info=record_info
             )
-            records = Stream(trait_record_search_generator(search_parameters))
-            return records
+            return Stream(trait_record_search_genertor(search_parameters))
         except Exception as e:
             return Response(content=str(e), status_code=500)
         
