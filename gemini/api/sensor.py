@@ -180,6 +180,12 @@ class Sensor(APIBase):
         if dataset_name is None:
             dataset_name = f"{self.sensor_name}_{collection_date}"
 
+        db_sensor = SensorModel.get_by_parameters(sensor_name=self.sensor_name)
+        db_dataset = DatasetModel.get_or_create(dataset_name=dataset_name)
+        if db_dataset not in db_sensor.datasets:
+            db_sensor.datasets.append(db_dataset)
+            db_sensor.save()
+
         info = {
             "experiment_name": experiment_name if experiment_name else None,
             "season_name": season_name if season_name else None,
@@ -200,12 +206,18 @@ class Sensor(APIBase):
             record_info=info,
             dataset_name=dataset_name
         )
-
-        record_id = SensorRecord.add([record])
-        if len(record_id) == 0 or not record_id:
+        records = SensorRecord.add([record])
+        records = list(records)
+        if len(records) == 0 or not records:
             logger_service.error("API", f"Failed to add record to {self.sensor_name}")
             return None
-        return SensorRecord.get(record_id[0])
+        return records[0]
+
+        # record_id = list(SensorRecord.add([record]))
+        # if len(record_id) == 0 or not record_id:
+        #     logger_service.error("API", f"Failed to add record to {self.sensor_name}")
+        #     return None
+        # return SensorRecord.get(record_id[0])
     
     def add_records(
         self,
@@ -219,7 +231,8 @@ class Sensor(APIBase):
         plot_numbers: List[int] = None,
         plot_row_numbers: List[int] = None,
         plot_column_numbers: List[int] = None,
-        record_info: List[dict] = None
+        record_info: List[dict] = None,
+        stream_results: bool = False
     ) -> List[SensorRecord]:
         
         if timestamps is None:
@@ -269,7 +282,11 @@ class Sensor(APIBase):
             records.append(record)
 
         logger_service.info("API", f"Adding records to {self.sensor_name}")
-        return SensorRecord.add(records)
+        records = SensorRecord.add(records)
+        if stream_results:
+            return records
+        return list(records)
+
 
     def get_records(
         self,

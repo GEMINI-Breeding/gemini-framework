@@ -332,13 +332,14 @@ class RecordSearch(RecordBase):
     record_info: Optional[JSONB] = None
     
 class RecordOutput(RecordBase):
-    pass
+    id: Optional[ID] = None
 
 # --------------------------------
 # Dataset Record Classes
 # --------------------------------
 
 class DatasetRecordBase(RecordBase):
+
     dataset_id: ID
     dataset_name: str
     dataset_data: JSONB
@@ -352,7 +353,7 @@ class DatasetRecordSearch(RecordSearch):
     dataset_name: Optional[str] = None
     
 class DatasetRecordOutput(DatasetRecordBase):
-    pass
+    id: Optional[ID] = None
 
 # --------------------------------
 # Sensor Record Classes
@@ -375,7 +376,7 @@ class SensorRecordSearch(RecordSearch):
     dataset_name: Optional[str] = None
     
 class SensorRecordOutput(SensorRecordBase):
-    pass
+    id: Optional[ID] = None
 
 # --------------------------------
 # Trait Record Classes
@@ -397,4 +398,4 @@ class TraitRecordSearch(RecordSearch):
     dataset_name: Optional[str] = None
     
 class TraitRecordOutput(TraitRecordBase):
-    pass
+    id: Optional[ID] = None
