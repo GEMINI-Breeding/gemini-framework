@@ -92,8 +92,6 @@ class SensorRecordController(Controller):
         data: Annotated[SensorRecordInput, Body(media_type=RequestEncodingType.MULTI_PART)]
     ) -> SensorRecordOutput:
         try:
-
-
             sensor = Sensor.get(data.sensor_name)
             if not sensor:
                 return Response(content="Sensor not found", status_code=404)
@@ -103,10 +101,12 @@ class SensorRecordController(Controller):
             
             if data.file:
                 local_file_path = await file_handler.create_file(data.file)
-                data.sensor_data = data.sensor_data or {}
-                data.sensor_data.update({"file": local_file_path}) if data.sensor_data else None
+                sensor_data = data.sensor_data or {}
+                sensor_data.update({"file": local_file_path})
+                data.sensor_data = sensor_data
 
-            record_add_successful = sensor.add_record(
+
+            record = sensor.add_record(
                 sensor_data=data.sensor_data,
                 experiment_name=data.experiment_name,
                 timestamp=data.timestamp,
@@ -120,14 +120,11 @@ class SensorRecordController(Controller):
                 record_info=data.record_info
             )
 
-            if not record_add_successful:
-                return Response(content="Record could not be added", status_code=500)
-            
+            if not record:
+                return Response(content="Failed to create sensor record", status_code=500)
 
-
-
-            # record = record.model_dump(exclude_none=True)
-            # return SensorRecordOutput.model_validate(record)
+            record = record.model_dump(exclude_none=True)
+            return SensorRecordOutput.model_validate(record)
         except Exception as e:
             return Response(content=str(e), status_code=500)
 

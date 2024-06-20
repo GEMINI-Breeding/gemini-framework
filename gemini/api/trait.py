@@ -201,7 +201,8 @@ class Trait(APIBase):
             plot_numbers: List[int] = None,
             plot_row_numbers: List[int] = None,
             plot_column_numbers: List[int] = None,
-            record_info: List[dict] = None
+            record_info: List[dict] = None,
+            stream_results: bool = False
     ) -> List[TraitRecord]:
         
         if timestamps is None:
@@ -252,7 +253,10 @@ class Trait(APIBase):
             "API",
             f"Adding records to {self.trait_name} in the database",
         )
-        return TraitRecord.add(records)
+        records = TraitRecord.add(records)
+        if stream_results:
+            return records
+        return list(records)
     
     def get_records(
         self,
