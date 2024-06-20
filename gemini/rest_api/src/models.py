@@ -365,7 +365,7 @@ class SensorRecordBase(RecordBase):
     
 class SensorRecordInput(RecordInput):
     sensor_name: str
-    sensor_data: JSONB
+    sensor_data: Optional[JSONB] = None
     dataset_name: Optional[str] = None
     file: Optional[UploadFile] = None
     

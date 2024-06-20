@@ -170,7 +170,7 @@ class Sensor(APIBase):
             plot_row_number: int = -1,
             plot_column_number: int = -1,
             record_info: dict = {}
-    ) -> bool:
+    ) -> SensorRecord:
 
         if timestamp is None:
             timestamp = datetime.now()
@@ -201,11 +201,12 @@ class Sensor(APIBase):
             dataset_name=dataset_name
         )
 
-        success = SensorRecord.add([record])
-        logger_service.info("API", f"Added record to {self.sensor_name}") if success else logger_service.error("API", f"Failed to add record to {self.sensor_name}")
-        return success
-
-
+        record_id = SensorRecord.add([record])
+        if len(record_id) == 0 or not record_id:
+            logger_service.error("API", f"Failed to add record to {self.sensor_name}")
+            return None
+        return SensorRecord.get(record_id[0])
+    
     def add_records(
         self,
         sensor_data: List[dict],
@@ -219,7 +220,7 @@ class Sensor(APIBase):
         plot_row_numbers: List[int] = None,
         plot_column_numbers: List[int] = None,
         record_info: List[dict] = None
-    ) -> bool:
+    ) -> List[SensorRecord]:
         
         if timestamps is None:
             timestamps = [datetime.now() for _ in range(len(sensor_data))]
@@ -268,9 +269,7 @@ class Sensor(APIBase):
             records.append(record)
 
         logger_service.info("API", f"Adding records to {self.sensor_name}")
-        success = SensorRecord.add(records)
-        logger_service.info("API", f"Added records to {self.sensor_name}") if success else logger_service.error("API", f"Failed to add records to {self.sensor_name}")
-        return success
+        return SensorRecord.add(records)
 
     def get_records(
         self,

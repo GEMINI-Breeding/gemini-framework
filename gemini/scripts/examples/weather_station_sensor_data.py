@@ -66,13 +66,19 @@ for data_file in data_files:
 
         print("Number of records to add: ", len(records_to_add))
 
-        weather_sensor.add_records(
+        added_records = weather_sensor.add_records(
             timestamps=timestamps,
             sensor_data=records_to_add,
             experiment_name="GEMINI",
             season_name=f"{year}",
             site_name="Davis"
         )
+
+        added_records = list(added_records)
+        sensor_records.extend(added_records)
+
+
+
 
         
 

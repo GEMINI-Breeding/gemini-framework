@@ -35,7 +35,7 @@ class SensorRecord(APIBase):
         return record
 
     @classmethod
-    def add(cls, records: List['SensorRecord']) -> bool:
+    def add(cls, records: List['SensorRecord']) -> Generator['SensorRecord', None, None]:
         try:
             records_to_insert = []
             sensor_id = SensorModel.get_by_parameters(sensor_name=records[0].sensor_name).id
@@ -56,18 +56,26 @@ class SensorRecord(APIBase):
             for record in track(records_to_insert, description="Preprocessing Sensor Records"):
                 record = cls.preprocess_record(record)
 
-            cls.db_model.insert_bulk("sensor_records_unique", records_to_insert)
+            inserted_record_ids = cls.db_model.insert_bulk("sensor_records_unique", records_to_insert)
+            if inserted_record_ids is None:
+                raise ValueError("Failed to insert records into the database")
+            elif inserted_record_ids == []:
+                return []
             logger_service.info(
                 "API",
                 f"Added {len(records)} sensor records to the database",
             )
-            return True
+            for record_id in inserted_record_ids:
+                record = cls.get(record_id)
+                yield record
+        
+
         except Exception as e:
             logger_service.error(
                 "API",
-                f"Failed to add sensor records to the database",
+                f"Failed to add sensor records to the database: {e}",
             )
-            return False
+            return []
         
     @classmethod
     def get(cls, record_id: ID) -> 'SensorRecord':
@@ -164,7 +172,17 @@ class SensorRecord(APIBase):
         collection_date = record.get("collection_date").strftime("%Y-%m-%d")
         file_uri = f"sensor_data/{collection_date}/{record.get('sensor_name')}/{file_name}"
         return file_uri
-        
+    
+    def get_download_uri(self) -> str:
+        self.refresh()
+        file_uri = self.sensor_data.get("file_uri")
+        if not file_uri:
+            raise ValueError("No file URI found in sensor data")
+
+        download_url = storage_service.get_presigned_download_url(
+            key=file_uri
+        )
+        return download_url
 
     @classmethod
     def _upload_file(cls, absolute_file_path: str, record: dict) -> str:

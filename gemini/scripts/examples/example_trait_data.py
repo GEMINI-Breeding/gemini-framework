@@ -36,7 +36,7 @@ while current_date <= end_date:
         trait_value = randint(0, 40)
         trait_values.append(trait_value)
 
-    avg_temp_trait.add_records(
+    added_records = avg_temp_trait.add_records(
         trait_values=trait_values,
         timestamps=timestamps,
         dataset_name=f"{trait_name}_{current_date}",
@@ -44,6 +44,9 @@ while current_date <= end_date:
         season_name=year,
         site_name="Davis"
     )
+
+    for record in added_records:
+        print(record)
 
     # Go to next season
     current_date = datetime.strptime(current_date, "%Y-%m-%d") + relativedelta(years=1)

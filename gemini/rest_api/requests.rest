@@ -369,6 +369,29 @@ GET http://localhost:5600/api/sensor_records
     &site_name=Davis
     &season_name=2021
 
+### Add File Records
+POST http://localhost:5600/api/sensor_records HTTP/1.1
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="timestamp"
+
+2021-09-05T12:00:00
+--boundary
+Content-Disposition: form-data; name="sensor_name"
+
+Weather Sensor
+--boundary
+Content-Disposition: form-data; name="experiment_name"
+
+GEMINI
+--boundary
+Content-Disposition: form-data; name="file"; filename="example.jpg"
+Content-Type: image/jpeg
+
+< ./example.jpg
+--boundary--
+
 # ---------------------------------------------------------------------------
 # Trait Records
 # ---------------------------------------------------------------------------

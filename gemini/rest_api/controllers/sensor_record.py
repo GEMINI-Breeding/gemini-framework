@@ -21,6 +21,8 @@ from gemini.rest_api.src.models import (
 )
 
 from gemini.models import SensorRecordsIMMVModel
+from gemini.rest_api.src.file_handler import file_handler
+from gemini.object_store import storage_service
 
 from typing import List, Annotated, Optional
 
@@ -40,7 +42,6 @@ async def sensor_record_search_generator(search_parameters: SensorRecordSearch) 
     search_parameters = search_parameters.model_dump(exclude_none=True)
 
     for record in SensorRecordsIMMVModel.stream_raw(**search_parameters):
-        await sleep(0)
         record = SensorRecord.get_by_id(id=record)
         record = record.model_dump(exclude_none=True)
         yield encode_json(record)
@@ -88,15 +89,24 @@ class SensorRecordController(Controller):
     @post()
     async def create_sensor_record(
         self,
-        data: Annotated[SensorRecordInput, Body]
+        data: Annotated[SensorRecordInput, Body(media_type=RequestEncodingType.MULTI_PART)]
     ) -> SensorRecordOutput:
         try:
+
 
             sensor = Sensor.get(data.sensor_name)
             if not sensor:
                 return Response(content="Sensor not found", status_code=404)
             
-            record = sensor.add_record(
+            if data.sensor_data is None and data.file is None:
+                return Response(content="Sensor data or file is required", status_code=400)
+            
+            if data.file:
+                local_file_path = await file_handler.create_file(data.file)
+                data.sensor_data = data.sensor_data or {}
+                data.sensor_data.update({"file": local_file_path}) if data.sensor_data else None
+
+            record_add_successful = sensor.add_record(
                 sensor_data=data.sensor_data,
                 experiment_name=data.experiment_name,
                 timestamp=data.timestamp,
@@ -109,10 +119,34 @@ class SensorRecordController(Controller):
                 plot_column_number=data.plot_column_number,
                 record_info=data.record_info
             )
-            if record is None:
-                return Response(content="Record already exists", status_code=400)
-            record = record.model_dump(exclude_none=True)
-            return SensorRecordOutput.model_validate(record)
+
+            if not record_add_successful:
+                return Response(content="Record could not be added", status_code=500)
+            
+
+
+
+            # record = record.model_dump(exclude_none=True)
+            # return SensorRecordOutput.model_validate(record)
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+
+
+    # Get Download URI by Record ID
+    @get('/{record_id:str}/download')
+    async def get_download_uri(
+        self,
+        record_id: str
+    ) -> str:
+        try:
+            record = SensorRecord.get_by_id(record_id)
+            if not record:
+                return Response(content="Record not found", status_code=404)
+            # Check if record has file_uri
+            download_url = record.get_download_uri()
+            if not download_url:
+                return Response(content="No file URI found in sensor data", status_code=400)
+            return download_url
         except Exception as e:
             return Response(content=str(e), status_code=500)
         

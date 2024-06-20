@@ -317,33 +317,32 @@ class _BaseModel(DeclarativeBase, SerializeMixin):
     @classmethod
     def insert_bulk(cls, constraint: str, data: List[dict]):
         try:
-            # stmt = insert(cls)
-            stmt = pg_insert(cls)
-            unique_keys = cls.unique_fields()
-            stmt = stmt.on_conflict_do_nothing(constraint=constraint)
-            session.execute(stmt, data)
+            table = cls.__table__
+            stmt = pg_insert(table).on_conflict_do_nothing(constraint=constraint).returning(table.c.id)
+            inserted_records = session.execute(stmt, data, execution_options={"populate_existing": True})
+            inserted_ids = [record.id for record in inserted_records]
             session.commit()
-            return True
+            return inserted_ids
         except Exception as e:
             session.rollback()
-            return False
+            raise e
+
 
     @classmethod
     def upsert_bulk(cls, constraint: str, upsert_on: str, data: List[dict]):
         try:
-            stmt = pg_insert(cls)
+            table = cls.__table__
+            stmt = pg_insert(table)
             stmt = stmt.on_conflict_do_update(
                 constraint=constraint, set_={upsert_on: stmt.excluded[upsert_on]}
-            )
-            stmt = stmt.returning(cls)
-            instances = session.scalars(
-                stmt, data, execution_options={"populate_existing": True}
-            ).all()
+            ).returning(table.c.id)
+            inserted_records = session.execute(stmt, data, execution_options={"populate_existing": True})
+            inserted_ids = [record.id for record in inserted_records]
             session.commit()
-            return instances
+            return inserted_ids
         except Exception as e:
             session.rollback()
-            return []
+            raise e
 
 
 class BaseModel(_BaseModel):

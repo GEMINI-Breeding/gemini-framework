@@ -30,7 +30,7 @@ class TraitRecord(APIBase):
         return record
 
     @classmethod
-    def add(cls, records: List['TraitRecord']) -> bool:
+    def add(cls, records: List['TraitRecord']) -> Generator['TraitRecord', None, None]:
         try:
             records_to_insert = []
             dataset_id = DatasetModel.get_by_parameters(dataset_name=records[0].dataset_name).id
@@ -46,12 +46,17 @@ class TraitRecord(APIBase):
                 record_to_add['trait_value'] = record.trait_value
                 record_to_add['record_info'] = record.record_info
                 records_to_insert.append(record_to_add)
-            cls.db_model.insert_bulk("trait_records_unique", records_to_insert)
-            logger_service.info(
-                "API",
-                f"Added {len(records)} trait records to the database",
-            )
-            return True
+            
+            inserted_record_ids = cls.db_model.insert_bulk("trait_records_unique", records_to_insert)
+            if inserted_record_ids is None:
+                raise ValueError("Failed to insert records")
+            elif inserted_record_ids == []:
+                return []
+            
+            for record_id in inserted_record_ids:
+                record = cls.get(record_id)
+                yield record
+
         except Exception as e:
             logger_service.error(
                 "API",
@@ -59,7 +64,7 @@ class TraitRecord(APIBase):
             )
             return False
         
-    @classmethod
+    @classmethod 
     def get(cls, record_id: ID) -> 'TraitRecord':
         record = cls.db_model.get_by_id(record_id)
         return cls.model_validate(record)

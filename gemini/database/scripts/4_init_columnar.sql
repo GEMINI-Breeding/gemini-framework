@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS gemini.dataset_records (
 
 ALTER TABLE gemini.dataset_records ADD CONSTRAINT dataset_records_unique UNIQUE NULLS DISTINCT (timestamp, collection_date, dataset_id, dataset_name, record_info);
 
+CREATE INDEX dataset_records_record_info_idx ON gemini.dataset_records USING GIN (record_info);
 ------------------------------------------------------------------------------
 -- Sensor Records Table
 ------------------------------------------------------------------------------
@@ -37,6 +38,7 @@ CREATE TABLE IF NOT EXISTS gemini.sensor_records (
 
 ALTER TABLE gemini.sensor_records ADD CONSTRAINT sensor_records_unique UNIQUE NULLS DISTINCT (timestamp, collection_date, dataset_id, dataset_name, sensor_id, sensor_name, record_info);
 
+CREATE INDEX sensor_records_record_info_idx ON gemini.sensor_records USING GIN (record_info);
 
 ------------------------------------------------------------------------------
 -- Trait Records Table
@@ -56,6 +58,7 @@ CREATE TABLE IF NOT EXISTS gemini.trait_records (
 
 ALTER TABLE gemini.trait_records ADD CONSTRAINT trait_records_unique UNIQUE NULLS DISTINCT (timestamp, collection_date, dataset_id, dataset_name, trait_id, trait_name, record_info);
 
+CREATE INDEX trait_records_record_info_idx ON gemini.trait_records USING GIN (record_info);
 
 ------------------------------------------------------------------------------
 -- Procedure Records Table
@@ -75,6 +78,7 @@ CREATE TABLE IF NOT EXISTS gemini.procedure_records (
 
 ALTER TABLE gemini.procedure_records ADD CONSTRAINT procedure_records_unique UNIQUE NULLS DISTINCT (timestamp, collection_date, dataset_id, dataset_name, procedure_id, procedure_name, record_info);
 
+CREATE INDEX procedure_records_record_info_idx ON gemini.procedure_records USING GIN (record_info);
 
 ------------------------------------------------------------------------------
 -- Script Records Table
@@ -94,7 +98,7 @@ CREATE TABLE IF NOT EXISTS gemini.script_records (
 
 ALTER TABLE gemini.script_records ADD CONSTRAINT script_records_unique UNIQUE NULLS DISTINCT (timestamp, collection_date, dataset_id, dataset_name, script_id, script_name, record_info);
 
-
+CREATE INDEX script_records_record_info_idx ON gemini.script_records USING GIN (record_info);
 ------------------------------------------------------------------------------
 -- Model Records Table
 ------------------------------------------------------------------------------
@@ -113,3 +117,4 @@ CREATE TABLE IF NOT EXISTS gemini.model_records (
 
 ALTER TABLE gemini.model_records ADD CONSTRAINT model_records_unique UNIQUE NULLS DISTINCT (timestamp, collection_date, dataset_id, dataset_name, model_id, model_name, record_info);
 
+CREATE INDEX model_records_record_info_idx ON gemini.model_records USING GIN (record_info);

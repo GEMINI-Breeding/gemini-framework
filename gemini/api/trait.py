@@ -147,7 +147,7 @@ class Trait(APIBase):
             plot_row_number: int = None,
             plot_column_number: int = None,
             record_info: dict = None
-    ) -> bool:
+    ) -> TraitRecord:
         
         if timestamp is None:
             timestamp = datetime.now()
@@ -179,12 +179,14 @@ class Trait(APIBase):
             record_info=info
         )
 
-        success = TraitRecord.add([record])
-        logger_service.info(
-            "API",
-            f"Added record to {self.trait_name} in the database",
-        )
-        return success
+        record_id = TraitRecord.add([record])
+        if len(record_id) == 0 or not record_id:
+            logger_service.error("API", "Failed to add record to the database")
+            return None
+        
+        return TraitRecord.get(record_id[0])
+
+
     
     def add_records(
             self,
@@ -200,7 +202,7 @@ class Trait(APIBase):
             plot_row_numbers: List[int] = None,
             plot_column_numbers: List[int] = None,
             record_info: List[dict] = None
-    ) -> bool:
+    ) -> List[TraitRecord]:
         
         if timestamps is None:
             timestamps = [datetime.now() for _ in range(len(trait_values))]
@@ -246,12 +248,11 @@ class Trait(APIBase):
             )
             records.append(record)
 
-        success = TraitRecord.add(records)
         logger_service.info(
             "API",
-            f"Added {len(records)} records to {self.trait_name} in the database",
+            f"Adding records to {self.trait_name} in the database",
         )
-        return success
+        return TraitRecord.add(records)
     
     def get_records(
         self,
