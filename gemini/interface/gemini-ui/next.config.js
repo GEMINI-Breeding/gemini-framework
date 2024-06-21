@@ -7,7 +7,7 @@ const nextConfig = {
         return [
             {
                 source: '/api/:path*',
-                destination: `http://${flaskConfig.host}:${flaskConfig.port}/:path*`,
+                destination: `http://${flaskConfig.host}:${flaskConfig.port}/api/:path*`,
             },
         ]
     },
