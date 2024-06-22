@@ -1,5 +1,5 @@
 from litestar.controller import Controller             
-from litestar.handlers import get, post, put, delete
+from litestar.handlers import get, post, put, delete, patch
 from litestar.params import Body
 from litestar import Response
 
@@ -113,7 +113,7 @@ class SensorController(Controller):
             return Response(content=str(e), status_code=500)
         
     # Set Sensor Info by Sensor Name
-    @put('/{sensor_name:str}/info')
+    @patch('/{sensor_name:str}/info')
     async def set_sensor_info(
         self,
         sensor_name: str,
@@ -123,9 +123,11 @@ class SensorController(Controller):
             sensor = Sensor.get(sensor_name)
             if not sensor:
                 return Response(content="Sensor not found", status_code=404)
-            return sensor.set_info(data)
+            sensor.set_info(data)
+            return sensor.get_info()
         except Exception as e:
             return Response(content=str(e), status_code=500)
+
         
     # Get Sensor Datasets
     @get('/{sensor_name:str}/datasets')

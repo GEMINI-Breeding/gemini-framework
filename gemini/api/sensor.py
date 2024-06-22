@@ -82,7 +82,7 @@ class Sensor(APIBase):
     
     @classmethod
     def get_by_type(cls, sensor_type: GEMINISensorType) -> List["Sensor"]:
-        db_sensors = SensorModel.get_by_parameters(sensor_type_id=sensor_type.value)
+        db_sensors = SensorModel.search(sensor_type_id=sensor_type.value)
         logger_service.info("API", f"Retrieved sensors of type {sensor_type.name} from the database")
         return [cls.model_validate(db_sensor) for db_sensor in db_sensors] if db_sensors else None
     

@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 
-const flaskConfig = require('./api.config.js')
+const flaskConfig = require('./api.config.js').flaskConfig
 
 const nextConfig = {
     rewrites: async () => {
