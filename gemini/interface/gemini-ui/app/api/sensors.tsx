@@ -1,4 +1,3 @@
-import test from "node:test";
 import { isLocal, flaskConfig } from "../../api.config"
 import { Sensor, Dataset } from "../types"
 

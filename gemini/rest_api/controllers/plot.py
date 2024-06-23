@@ -34,9 +34,8 @@ async def plot_search_generator(search_parameters: PlotSearch) -> AsyncGenerator
     search_parameters = PlotSearchParameters.model_validate(search_parameters)
     plots = Plot.search(search_parameters)
     for plot in plots:
-        plot = plot.model_dump(exclude_none=True)
-        plot = encode_json(plot)
-        yield plot
+        plot = plot.model_dump(exclude_none=True, exclude_unset=True)
+        yield encode_json(plot) + b'\n'
 
 
     
@@ -66,7 +65,7 @@ class PlotController(Controller):
                 plot_geometry_info=plot_geometry_info,
                 plot_info=plot_info
             )
-            return Stream(plot_search_generator(plot_search_parameters))
+            return Stream(plot_search_generator(plot_search_parameters), media_type='application/ndjson')
         except Exception as e:
             return Response(content=str(e), status_code=500)
     

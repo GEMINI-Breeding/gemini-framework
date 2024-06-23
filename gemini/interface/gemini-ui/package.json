@@ -28,6 +28,7 @@
 		"@typescript-eslint/eslint-plugin": "^7.10.0",
 		"@typescript-eslint/parser": "^7.10.0",
 		"autoprefixer": "10.4.19",
+		"can-ndjson-stream": "^1.0.2",
 		"clsx": "2.1.1",
 		"eslint": "^8.56.0",
 		"eslint-config-next": "14.2.1",
@@ -49,5 +50,8 @@
 		"tailwind-variants": "0.1.20",
 		"tailwindcss": "3.4.3",
 		"typescript": "5.0.4"
+	},
+	"devDependencies": {
+		"@types/ndjson": "^2.0.4"
 	}
 }

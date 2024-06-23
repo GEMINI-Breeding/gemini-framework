@@ -1,5 +1,4 @@
-const experimentsAPI = require("./api/experiments");
-const sensorsAPI = require("./api/sensors");
+const plotsAPI = require("./api/plots");
 import { Experiment } from "./types";
 
 export default async function Home() {
