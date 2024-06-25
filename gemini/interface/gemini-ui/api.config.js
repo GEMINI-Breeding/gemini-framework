@@ -10,6 +10,6 @@ const flaskConfig = {
 }
 
 // Add Base URL to config
-flaskConfig.baseURL = `http://${flaskConfig.host}:${flaskConfig.port}/api/`
+flaskConfig.baseURL = `http://${flaskConfig.host}:${flaskConfig.port}/api`
 
 module.exports = { isLocal, flaskConfig }

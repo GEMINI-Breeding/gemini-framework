@@ -356,6 +356,13 @@ Content-Type: application/json
 GET http://localhost:5600/api/sensor_records
     ?sensor_name=Campbell%20CR1000
     &collection_date=2023-09-05
+
+### Get Default Sensor Records
+GET http://localhost:5600/api/sensor_records
+    ?sensor_name=Default
+
+### Trying to get without any parameters
+GET http://localhost:5600/api/sensor_records
     
 ### Filter Sensor Records by Sensor Name and collection date
 GET http://localhost:5600/api/sensor_records

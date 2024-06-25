@@ -1,4 +1,7 @@
-const plotsAPI = require("./api/plots");
+// const plotsAPI = require("./api/plots");
+// const seasonsAPI = require("./api/seasons");
+// const plotsAPI = require("./api/plots");
+const sensorRecordsAPI = require("./api/sensor_records");
 import { Experiment } from "./types";
 
 export default async function Home() {

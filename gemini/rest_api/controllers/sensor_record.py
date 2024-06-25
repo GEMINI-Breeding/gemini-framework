@@ -26,7 +26,7 @@ from gemini.object_store import storage_service
 
 from typing import List, Annotated, Optional
 
-async def sensor_record_search_generator(search_parameters: SensorRecordSearch) -> AsyncGenerator[bytes, None]:
+async def sensor_record_search_generator(search_parameters: SensorRecordSearch) -> AsyncGenerator[SensorRecordOutput, None]:
     
     record_info = search_parameters.record_info or {}
     record_info.update({
@@ -43,8 +43,9 @@ async def sensor_record_search_generator(search_parameters: SensorRecordSearch) 
 
     for record in SensorRecordsIMMVModel.stream_raw(**search_parameters):
         record = SensorRecord.get_by_id(id=record)
-        record = record.model_dump(exclude_none=True)
-        yield encode_json(record)
+        record = record.model_dump_json(exclude_none=True, exclude_unset=True)
+        record = record + '\n'
+        yield record
 
 
 
@@ -81,7 +82,7 @@ class SensorRecordController(Controller):
                 plot_column_number=plot_column_number,
                 record_info=record_info
             )
-            return Stream(sensor_record_search_generator(search_parameters))
+            return Stream(sensor_record_search_generator(search_parameters), media_type='application/ndjson')
         except Exception as e:
             return Response(content=str(e), status_code=500)
         

@@ -186,6 +186,23 @@ class Plot(APIBase):
         )
         return self
     
+
+    def get_geometry_info(self) -> dict:
+        self.refresh()
+        logger_service.info(
+            "API",
+            f"Retrieved geometry information about plot {self.plot_number} from the database",
+        )
+        return self.plot_geometry_info
+    
+    def set_geometry_info(self, plot_geometry_info: Optional[dict] = None) -> "Plot":
+        self.update(plot_geometry_info=plot_geometry_info)
+        logger_service.info(
+            "API",
+            f"Set geometry information about plot {self.plot_number} in the database",
+        )
+        return self
+    
     def get_experiment(self) -> Experiment:
         self.refresh()
         logger_service.info(

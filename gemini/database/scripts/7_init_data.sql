@@ -341,6 +341,135 @@ SELECT (SELECT id FROM gemini.experiments WHERE experiment_name = 'Default'), id
 FROM gemini.datasets;
 
 
+-- Insert Test Sensor Records
+DO $$
+DECLARE
+    i INTEGER := 0;
+BEGIN
+    WHILE i < 1000 LOOP
+        INSERT INTO gemini.sensor_records (
+            timestamp,
+            sensor_name,
+            sensor_data,
+            record_info
+        ) VALUES (
+            NOW() + (i || ' seconds')::INTERVAL,
+            'Default',
+            json_build_object('value', random()),
+            '{"experiment": "Default", "site": "Default", "season": "Default"}'
+        );
+        i := i + 1;
+    END LOOP;
+END $$;
+
+-- Insert Test Trait Records
+DO $$
+DECLARE
+    i INTEGER := 0;
+BEGIN
+    WHILE i < 1000 LOOP
+        INSERT INTO gemini.trait_records (
+            timestamp,
+            trait_name,
+            trait_value,
+            record_info
+        ) VALUES (
+            NOW() + (i || ' seconds')::INTERVAL,
+            'Default',
+            random(),
+            '{"experiment": "Default", "site": "Default", "season": "Default"}'
+        );
+        i := i + 1;
+    END LOOP;
+END $$;
+
+-- Insert Test Dataset Records
+DO $$
+DECLARE
+    i INTEGER := 0;
+BEGIN
+    WHILE i < 1000 LOOP
+        INSERT INTO gemini.dataset_records (
+            timestamp,
+            dataset_name,
+            dataset_data,
+            record_info
+        ) VALUES (
+            NOW() + (i || ' seconds')::INTERVAL,
+            'Default',
+            json_build_object('value', random()),
+            '{"experiment": "Default", "site": "Default", "season": "Default"}'
+        );
+        i := i + 1;
+    END LOOP;
+END $$;
+
+-- Insert Test Model Records
+DO $$
+DECLARE
+    i INTEGER := 0;
+BEGIN
+    WHILE i < 1000 LOOP
+        INSERT INTO gemini.model_records (
+            timestamp,
+            model_name,
+            model_data,
+            record_info
+        ) VALUES (
+            NOW() + (i || ' seconds')::INTERVAL,
+            'Default',
+            json_build_object('value', random()),
+            '{"experiment": "Default", "site": "Default", "season": "Default"}'
+        );
+        i := i + 1;
+    END LOOP;
+END $$;
+
+-- Insert Test Procedure Records
+DO $$
+DECLARE
+    i INTEGER := 0;
+BEGIN
+    WHILE i < 1000 LOOP
+        INSERT INTO gemini.procedure_records (
+            timestamp,
+            procedure_name,
+            procedure_data,
+            record_info
+        ) VALUES (
+            NOW() + (i || ' seconds')::INTERVAL,
+            'Default',
+            json_build_object('value', random()),
+            '{"experiment": "Default", "site": "Default", "season": "Default"}'
+        );
+        i := i + 1;
+    END LOOP;
+END $$;
+
+-- Insert Test Script Records
+DO $$
+DECLARE
+    i INTEGER := 0;
+BEGIN
+    WHILE i < 1000 LOOP
+        INSERT INTO gemini.script_records (
+            timestamp,
+            script_name,
+            script_data,
+            record_info
+        ) VALUES (
+            NOW() + (i || ' seconds')::INTERVAL,
+            'Default',
+            json_build_object('value', random()),
+            '{"experiment": "Default", "site": "Default", "season": "Default"}'
+        );
+        i := i + 1;
+    END LOOP;
+END $$;
+
+
+
+
 ------------------------------------------------------------
 -- Insert the initial data for the database
 ------------------------------------------------------------

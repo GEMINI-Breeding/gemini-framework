@@ -29,13 +29,14 @@ from gemini.rest_api.src.models import (
 
 from typing import List, Annotated, Optional
 
-async def plot_search_generator(search_parameters: PlotSearch) -> AsyncGenerator[bytes, None]:
+async def plot_search_generator(search_parameters: PlotSearch) -> AsyncGenerator[PlotOutput, None]:
     search_parameters = search_parameters.model_dump(exclude=None)
     search_parameters = PlotSearchParameters.model_validate(search_parameters)
     plots = Plot.search(search_parameters)
     for plot in plots:
-        plot = plot.model_dump(exclude_none=True, exclude_unset=True)
-        yield encode_json(plot) + b'\n'
+        plot = plot.model_dump_json(exclude_none=True, exclude_unset=True)
+        plot = plot + '\n'
+        yield plot
 
 
     
@@ -65,7 +66,7 @@ class PlotController(Controller):
                 plot_geometry_info=plot_geometry_info,
                 plot_info=plot_info
             )
-            return Stream(plot_search_generator(plot_search_parameters), media_type='application/ndjson')
+            return Stream(plot_search_generator(plot_search_parameters), media_type='application/x-ndjson')
         except Exception as e:
             return Response(content=str(e), status_code=500)
     

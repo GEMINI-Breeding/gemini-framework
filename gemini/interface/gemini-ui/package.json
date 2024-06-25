@@ -52,6 +52,8 @@
 		"typescript": "5.0.4"
 	},
 	"devDependencies": {
-		"@types/ndjson": "^2.0.4"
+		"@types/ndjson": "^2.0.4",
+		"react-dnd": "^16.0.1",
+		"react-dnd-html5-backend": "^16.0.1"
 	}
 }
