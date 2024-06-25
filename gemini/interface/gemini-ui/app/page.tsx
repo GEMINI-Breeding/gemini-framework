@@ -1,21 +1,10 @@
-// const plotsAPI = require("./api/plots");
-// const seasonsAPI = require("./api/seasons");
-// const plotsAPI = require("./api/plots");
-const sensorRecordsAPI = require("./api/sensor_records");
-import { Experiment } from "./types";
+import Container from "@/components/dropbox/container"
 
 export default async function Home() {
   // const data = await experimentsAPI.getExperiments({experiment_name: "GEMINI"});
   return (
     <div>
-      {/* <h1>Experiments</h1>
-      <ul>
-        {data.map((experiment: Experiment) => (
-          <li key={experiment.id}>
-            <h2>{experiment.experiment_name}</h2>
-          </li>
-        ))}
-      </ul> */}
+      <Container />
     </div>
   )
 } 
