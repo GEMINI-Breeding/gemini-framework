@@ -2,9 +2,9 @@
 
 import { AppShell, Group, Burger, Stack, Skeleton, Text, Box, Divider } from '@mantine/core';
 import { AppShellNavbar, AppShellHeader, AppShellMain } from '@mantine/core';
-import { NavLink } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import Logo from './logo';
+import Logo from '@/app/logo';
+import classes from './shell.module.css';
 
 
 // Icons
@@ -23,11 +23,10 @@ const navbarLinks = [
 ];
 
 
-export default function GEMINIAppShell() {
+export default function Shell({children} : Readonly<{children: React.ReactNode}>) {
     
     const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
     const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
-  
 
     const links = navbarLinks.map((link) => (
       <>
@@ -48,6 +47,7 @@ export default function GEMINIAppShell() {
           collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },
         }}
         padding="md"
+        className={classes.main}
       >
         <AppShellHeader>
           <Group h="100%" px="md">
@@ -59,7 +59,7 @@ export default function GEMINIAppShell() {
         <AppShellNavbar p="md">
             <Stack gap="md">{links}</Stack>
         </AppShellNavbar>
-        <AppShellMain bg={"white"}></AppShellMain>
+        <AppShellMain className={classes.main}>{children}</AppShellMain>
       </AppShell>
     );
   }

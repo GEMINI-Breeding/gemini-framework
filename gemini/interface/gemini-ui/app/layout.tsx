@@ -8,6 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 import "@mantine/core/styles.css"
 import {ColorSchemeScript, DEFAULT_THEME, MantineProvider} from "@mantine/core";
 import { createTheme, MantineGradient } from "@mantine/core";
+import Shell from "@/components/shell/shell";
 
 export const metadata: Metadata = {
   title: "GEMINI",
@@ -25,7 +26,9 @@ export default function RootLayout({
       <head>
       </head>
       <body className={inter.className}>
-        <MantineProvider defaultColorScheme="light">{children}</MantineProvider>
+        <MantineProvider defaultColorScheme="light">
+          <Shell>{children}</Shell>
+        </MantineProvider>
       </body>
     </html>
   );
