@@ -1,4 +1,4 @@
-import { isLocal, flaskConfig } from "@/api.config";
+import { isLocal, flaskConfig } from '@/api.config';
 import { Cultivar } from "../types";
 
 // Get Cultivars

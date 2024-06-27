@@ -1,4 +1,4 @@
-import { isLocal, flaskConfig } from "../../api.config"
+import { isLocal, flaskConfig } from '@/api.config';
 import { Sensor, Dataset } from "../types"
 
 // Get Sensors

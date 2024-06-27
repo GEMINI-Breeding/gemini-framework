@@ -1,4 +1,4 @@
-import { isLocal, flaskConfig } from '../../api.config'
+import { isLocal, flaskConfig } from '@/api.config';
 import { Experiment, Season, Site, Sensor, Trait, Cultivar, Resource, Dataset } from "../types"
 
 // Get Experiments
