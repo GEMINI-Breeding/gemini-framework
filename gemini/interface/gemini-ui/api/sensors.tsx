@@ -1,5 +1,5 @@
 import { isLocal, flaskConfig } from '@/api.config';
-import { Sensor, Dataset } from "../types"
+import { Sensor, Dataset } from "@/api/types";
 
 // Get Sensors
 async function getSensors(params?: object): Promise<Sensor[]> {

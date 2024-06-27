@@ -1,5 +1,5 @@
 import {isLocal, flaskConfig} from "@/api.config";
-import { Sensor, SensorRecord } from "../types";
+import { Sensor, SensorRecord } from "@/api/types";
 
 
 // Get Sensor Records

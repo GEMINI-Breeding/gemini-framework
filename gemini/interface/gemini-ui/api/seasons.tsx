@@ -1,5 +1,5 @@
 import { isLocal, flaskConfig } from "@/api.config";
-import { Season } from "../types";
+import { Season } from "@/api/types";
 
 // Get Seasons
 async function getSeasons(params?: object): Promise<Season[]> {
