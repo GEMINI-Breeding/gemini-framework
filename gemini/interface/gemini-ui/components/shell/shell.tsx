@@ -1,25 +1,29 @@
 "use client";
 
-import { AppShell, Group, Burger, Stack, Skeleton, Text, Box, Divider } from '@mantine/core';
+import { AppShell, Group, Burger, Stack, Text} from '@mantine/core';
 import { AppShellNavbar, AppShellHeader, AppShellMain } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import Logo from '@/app/logo';
 import classes from './shell.module.css';
-
+import Link from "next/link";
 
 // Icons
 import {
   IconHome,
   IconUpload,
   IconDrone,
-  IconPlant
+  IconPlant,
+  IconFlask2,
+  IconMap
 } from '@tabler/icons-react';
 
 const navbarLinks = [
     { title: 'Home', href: '/' , icon: IconHome},
-    { title: 'Upload', href: '/upload', icon: IconUpload },
+    { title: 'Upload Data', href: '/upload', icon: IconUpload },
+    { title: 'Experiments', href: '/experiments', icon: IconFlask2 },
     { title: 'Sensors', href: '/sensors', icon: IconDrone },
-    { title: 'Traits', href: '/traits', icon: IconPlant }
+    { title: 'Traits', href: '/traits', icon: IconPlant },
+    { title: 'Locations', href: '/locations', icon: IconMap }
 ];
 
 
@@ -29,20 +33,23 @@ export default function Shell({children} : Readonly<{children: React.ReactNode}>
     const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
 
     const links = navbarLinks.map((link) => (
-      <>
-        <Group key={link.title} gap="lg">
-          {link.icon && <link.icon size={22} />}
-          <Text size="lg" fw={600}> {link.title} </Text>
-        </Group>
-        <Divider />
-      </>
+        <div key={link.title} className={classes.link}>
+            <Group>
+            {link.icon && <link.icon size={22} />}
+            <Text size="lg" fw={600}>
+                <Link href={link.href} passHref>
+                    {link.title}
+                </Link>
+            </Text>
+            </Group>
+        </div>
     ));
 
     return (
       <AppShell
         header={{ height: 60 }}
         navbar={{
-          width: 300,
+          width: 225,
           breakpoint: 'sm',
           collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },
         }}
@@ -57,7 +64,7 @@ export default function Shell({children} : Readonly<{children: React.ReactNode}>
           </Group>
         </AppShellHeader>
         <AppShellNavbar p="md">
-            <Stack gap="md">{links}</Stack>
+            <Stack gap="xs">{links}</Stack>
         </AppShellNavbar>
         <AppShellMain className={classes.main}>{children}</AppShellMain>
       </AppShell>

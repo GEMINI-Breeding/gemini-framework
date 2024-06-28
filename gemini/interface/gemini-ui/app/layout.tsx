@@ -14,8 +14,6 @@ export const metadata: Metadata = {
   description: "User Interface to browse and work with GEMINI Data"
 };
 
-
-
 export default function RootLayout({
   children,
 }: Readonly<{
