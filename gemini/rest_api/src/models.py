@@ -399,3 +399,8 @@ class TraitRecordSearch(RecordSearch):
     
 class TraitRecordOutput(TraitRecordBase):
     id: Optional[ID] = None
+
+# --------------------------------
+# System
+# --------------------------------
+

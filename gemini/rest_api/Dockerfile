@@ -20,5 +20,5 @@ ENV PYTHONPATH "${PYTHONPATH}:/gemini-framework"
 EXPOSE 8080
 
 # Start the GEMINI REST API Flask application using waitress
-CMD ["litestar", "--app", "gemini.rest_api.src.app:app", "run", "--host", "0.0.0.0", "--port", "8080"]
-
+# Use the shell form to execute a shell command that runs both processes
+CMD ["./gemini/rest_api/start.sh"]

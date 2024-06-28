@@ -17,7 +17,7 @@ class Logger:
         self.redis = redis.StrictRedis(
             host=logger_host,
             port=logger_port,
-            db=0
+            db=1
         )
         atexit.register(self.dump_to_file)
 

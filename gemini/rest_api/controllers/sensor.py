@@ -5,7 +5,7 @@ from litestar import Response
 
 from gemini.api.sensor import Sensor
 from gemini.api.enums import GEMINISensorType, GEMINIDataType, GEMINIDataFormat
-
+from gemini.rest_api.worker import task_queue
 from gemini.rest_api.src.models import (
     SensorBase,
     SensorInput,
@@ -14,6 +14,8 @@ from gemini.rest_api.src.models import (
 )
 
 from typing import List, Optional, Any, Annotated
+
+
 
 class SensorController(Controller):
     
@@ -144,6 +146,17 @@ class SensorController(Controller):
             datasets = [dataset.model_dump(exclude_none=True) for dataset in datasets]
             datasets = [DatasetOutput.model_validate(dataset) for dataset in datasets]
             return datasets
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+        
+    
+    # Test Task Queue
+    @get('/test')
+    async def test_task_queue(self) -> dict:
+        try:
+            job = await task_queue.enqueue("get_system_time", timeout=0)
+            job_info = job.to_dict()
+            return job_info
         except Exception as e:
             return Response(content=str(e), status_code=500)
         
