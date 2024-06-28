@@ -17,6 +17,12 @@ print(f"Connecting to Redis at {redis_url}")
 task_queue = Queue.from_url(f'redis://{redis_host}:{redis_port}')
 
 
+def get_job_info(job_id) -> dict:
+    redis_instance = task_queue.redis
+    # Get the value from the key 'job_id' from redis
+    job_info = redis_instance.get(job_id)
+    return job_info
+    
 # Startup Process
 async def startup(ctx):
     print("Worker started")

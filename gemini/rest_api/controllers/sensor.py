@@ -155,7 +155,7 @@ class SensorController(Controller):
     async def test_task_queue(self) -> dict:
         try:
             job = await task_queue.enqueue("get_system_time", timeout=0)
-            job_info = job.to_dict()
+            job_info = job.info()
             return job_info
         except Exception as e:
             return Response(content=str(e), status_code=500)
