@@ -132,3 +132,18 @@ export type TraitRecord = RecordBase & {
     trait_value: number;
 }
 
+export type JobInfo = {
+    key: string;
+    function: string;
+    queue: string;
+    progress: number;
+    attempts: number;
+    status: string;
+    process_ms: number;
+    start_ms: number;
+    total_ms: number;
+    result: any;
+    error: string;
+    meta: object;
+}
+

@@ -16,6 +16,7 @@ import {
   IconFlask2,
   IconMap
 } from '@tabler/icons-react';
+import ExperimentSelector from '../experimentselector/experimentselector';
 
 const navbarLinks = [
     { title: 'Home', href: '/' , icon: IconHome},
@@ -57,10 +58,14 @@ export default function Shell({children} : Readonly<{children: React.ReactNode}>
         className={classes.main}
       >
         <AppShellHeader>
-          <Group h="100%" px="md">
-            <Burger opened={mobileOpened} onClick={toggleMobile} hiddenFrom="sm" size="sm" />
-            <Burger opened={desktopOpened} onClick={toggleDesktop} visibleFrom="sm" size="sm" />
-            <Logo />
+          <Group justify='space-between' align='center' h='100%'>
+            <Group h="100%" px="md">
+              <Burger opened={mobileOpened} onClick={toggleMobile} hiddenFrom="sm" size="sm" />
+              <Burger opened={desktopOpened} onClick={toggleDesktop} visibleFrom="sm" size="sm" />
+              <Logo />
+            </Group>
+            <Group h="100%" px="md">
+            </Group>
           </Group>
         </AppShellHeader>
         <AppShellNavbar p="md">

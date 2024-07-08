@@ -20,7 +20,7 @@ cachetools==5.3.3
 openpyxl==3.1.2
 celery==5.4.0
 litestar==2.8.3
-saq
+saq[web, hiredis]
 
 
 

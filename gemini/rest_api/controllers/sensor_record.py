@@ -2,6 +2,7 @@ from litestar.controller import Controller
 from litestar.enums import RequestEncodingType, MediaType
 from litestar.handlers import get, post, patch, delete, put
 from litestar.params import Body
+from litestar.datastructures import UploadFile
 from litestar.response import Stream
 from litestar.serialization import encode_json
 from litestar import Response
@@ -17,12 +18,14 @@ from gemini.rest_api.src.models import (
     SensorRecordInput,
     SensorRecordOutput,
     SensorRecordSearch,
-    SensorOutput
+    SensorOutput,
+    JobInfo
 )
 
 from gemini.models import SensorRecordsIMMVModel
 from gemini.rest_api.src.file_handler import file_handler
 from gemini.object_store import storage_service
+from gemini.rest_api.worker import task_queue
 
 from typing import List, Annotated, Optional
 
@@ -207,3 +210,23 @@ class SensorRecordController(Controller):
             return None
         except Exception as e:
             return Response(content=str(e), status_code=500)
+        
+
+    # Process a records file 
+    # This function takes in a file, and processes is based on file_name
+    # Itll determine if the file is coming from Drone, Rover, AMIGA etc.
+    # It'll then process the file and add the records to the database
+    @post('/process_files')
+    async def process_files(
+        self,
+        data: Annotated[list[UploadFile], Body(media_type=RequestEncodingType.MULTI_PART)]
+    ) -> JobInfo:
+        try:
+            for file in data:
+                print(file.filename)
+                print(file.content_type)
+            return JobInfo()
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+        
+

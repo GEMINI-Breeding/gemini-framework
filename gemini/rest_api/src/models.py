@@ -13,6 +13,7 @@ from uuid import UUID
 
 import json
 from datetime import datetime, date
+from saq import Job
 
 def str_to_dict(value: Any) -> dict:
     if isinstance(value, str):
@@ -400,7 +401,39 @@ class TraitRecordSearch(RecordSearch):
 class TraitRecordOutput(TraitRecordBase):
     id: Optional[ID] = None
 
+
+
 # --------------------------------
 # System
 # --------------------------------
 
+class JobInfo(RESTAPIBase):
+    key: str
+    function: str
+    queue: str
+    progress: float
+    attempts: int
+    status: str
+    process_ms: Optional[int] = None
+    start_ms: Optional[int] = None
+    total_ms: Optional[int] = None
+    result: Optional[Any] = None
+    error: Optional[str] = None
+    meta: Optional[dict] = None
+    
+    @classmethod
+    def from_job(cls, job: Job) -> 'JobInfo':
+        return cls(
+            key=job.key,
+            function=job.function,
+            queue=job.get_queue().name,
+            progress=job.progress,
+            attempts=job.attempts,
+            status=job.status,
+            process_ms=job.duration("process"),
+            start_ms=job.duration("start"),
+            total_ms=job.duration("total"),
+            result=job.result,
+            error=job.error,
+            meta=job.meta
+        )
