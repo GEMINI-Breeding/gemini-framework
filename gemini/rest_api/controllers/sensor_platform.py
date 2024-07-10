@@ -38,6 +38,19 @@ class SensorPlatformController(Controller):
             return sensor_platforms
         except Exception as e:
             return Response(content=str(e), status_code=500)
+    
+    # Get Sensor Platforms by ID
+    @get(path="/id/{sensor_platform_id:str}")
+    async def get_sensor_platform_by_id(
+        self, sensor_platform_id: str
+    ) -> SensorPlatformOutput:
+        try:
+            sensor_platform = SensorPlatform.get_by_id(sensor_platform_id=sensor_platform_id)
+            if sensor_platform is None:
+                return Response(content="Sensor platform not found", status_code=404)
+            return SensorPlatformOutput.model_validate(sensor_platform.model_dump())
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
         
     # Create a new Sensor Platform
     @post()

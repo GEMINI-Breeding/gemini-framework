@@ -22,7 +22,7 @@ import uuid
 class TraitModel(BaseModel):
     __tablename__ = "traits"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
     trait_name: Mapped[str] = mapped_column(String(255), nullable=False)
     trait_units: Mapped[str] = mapped_column(String(255), default='units')
     trait_level_id: Mapped[int] = mapped_column(Integer, ForeignKey("gemini.trait_levels.id"), default=0)

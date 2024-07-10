@@ -83,6 +83,18 @@ class ExperimentController(Controller):
         except Exception as e:
             return Response(content=str(e), status_code=500)
         
+    # Get Experiment by ID
+    @get(path="/id/{experiment_id:str}")
+    async def get_experiment_by_id(self, experiment_id: str) -> ExperimentOutput:
+        try:
+            experiment = Experiment.get_by_id(experiment_id=experiment_id)
+            if not experiment:
+                return Response(content="Experiment not found", status_code=404)
+            return ExperimentOutput.model_validate(experiment.model_dump())
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+        
+        
     # Get Experiment Info by Experiment Name
     @get(path="/{experiment_name:str}/info")
     async def get_experiment_info(self, experiment_name: str) -> dict:

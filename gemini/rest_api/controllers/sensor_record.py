@@ -58,7 +58,8 @@ class SensorRecordController(Controller):
     @get()
     async def get_sensor_records(
         self,
-        sensor_name: str,
+        sensor_name: Optional[str] = None,
+        sensor_id: Optional[str] = None,
         collection_date: Optional[date] = None,
         experiment_name: Optional[str] = None,
         season_name: Optional[str] = None,
@@ -70,7 +71,12 @@ class SensorRecordController(Controller):
     ) -> Stream:
         try:
             
-            sensor = Sensor.get(sensor_name)
+            # Check if sensor_id is provided
+            if sensor_id:
+                sensor = Sensor.get_by_id(sensor_id)
+            elif sensor_name:
+                sensor = Sensor.get(sensor_name)
+                
             if not sensor:
                 return Response(content="Sensor not found", status_code=404)
 

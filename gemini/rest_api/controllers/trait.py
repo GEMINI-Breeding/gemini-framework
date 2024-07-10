@@ -64,6 +64,20 @@ class TraitController(Controller):
         except Exception as e:
             return Response(content=str(e), status_code=500)
         
+    
+    # Get Traits by ID
+    @get(path="/id/{trait_id:str}")
+    async def get_trait_by_id(
+        self, trait_id: str
+    ) -> TraitOutput:
+        try:
+            trait = Trait.get_by_id(trait_id=trait_id)
+            if trait is None:
+                return Response(content="Trait not found", status_code=404)
+            return TraitOutput.model_validate(trait.model_dump())
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+        
     # Get Traits by Level ID
     @get(path="/level/{trait_level_id:int}")
     async def get_traits_by_level(

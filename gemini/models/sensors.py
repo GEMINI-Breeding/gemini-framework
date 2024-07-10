@@ -21,7 +21,7 @@ import uuid
 class SensorModel(BaseModel):
     __tablename__ = "sensors"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
     sensor_name: Mapped[str] = mapped_column(String(255), nullable=False)
     sensor_platform_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.sensor_platforms.id"))
     sensor_type_id: Mapped[int] = mapped_column(Integer, ForeignKey("gemini.sensor_types.id"), default=0)

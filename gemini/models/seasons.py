@@ -13,7 +13,7 @@ import uuid
 class SeasonModel(BaseModel):
     __tablename__ = "seasons"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
     experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('gemini.experiments.id'))
     season_name: Mapped[str] = mapped_column(String(255), nullable=False)
     season_info: Mapped[dict] = mapped_column(JSONB, default={})

@@ -21,7 +21,7 @@ import uuid
 class ProcedureModel(BaseModel):
     __tablename__ = "procedures"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
     procedure_name: Mapped[str] = mapped_column(String(255))
     procedure_info: Mapped[dict] = mapped_column(JSON, default={})
     

@@ -13,7 +13,7 @@ import uuid
 class ExperimentModel(BaseModel):
     __tablename__ = "experiments"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
     experiment_name: Mapped[str] = mapped_column(String(255), nullable=False)
     experiment_info: Mapped[dict] = mapped_column(JSONB, nullable=True)
     experiment_start_date: Mapped[date] = mapped_column(DATE, nullable=False, default=datetime.now)

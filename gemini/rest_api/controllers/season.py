@@ -55,6 +55,19 @@ class SeasonController(Controller):
         except Exception as e:
             return Response(content=str(e), status_code=500)
         
+    # Get Season by ID
+    @get(path="/id/{season_id:str}")
+    async def get_season_by_id(
+        self, season_id: str
+    ) -> SeasonOutput:
+        try:
+            season = Season.get_by_id(id=season_id)
+            if season is None:
+                return Response(content="Season not found", status_code=404)
+            season = SeasonOutput.model_validate(season.model_dump())
+            return season
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
         
     # Get Season Info by Season and Experiment
     @get('/{season_name:str}/experiment/{experiment_name:str}/info')

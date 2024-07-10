@@ -1,15 +1,18 @@
 import { Sensor } from "@/api/types";
 import { Badge, Card, CardSection, Group, Text, Box} from "@mantine/core";
 import { Button, Grid, GridCol } from "@mantine/core";
+import { GEMINIDataFormats, GEMINIDataTypes, GEMINISensorTypes } from "@/api/enums";
 import classes from './cards.module.css';
 import Link from "next/link";
 
 interface SensorCardProps {
-    sensor_id: string;
     sensor: Sensor;
 }
 
-export default function SensorCard({ sensor_id, sensor }: SensorCardProps) {
+export default function SensorCard({ sensor }: SensorCardProps) {
+
+
+
     return (
         <div>
             <Box className={classes.sensorcard}>
@@ -19,7 +22,13 @@ export default function SensorCard({ sensor_id, sensor }: SensorCardProps) {
                             {sensor.sensor_name}
                         </Text>
                         <Badge color="blue" variant="filled">
-                            {sensor.sensor_type_id}
+                            {GEMINISensorTypes[sensor.sensor_type_id]}
+                        </Badge>
+                        <Badge color="green" variant="filled">
+                            {GEMINIDataTypes[sensor.sensor_data_type_id]}
+                        </Badge>
+                        <Badge color="red" variant="filled">
+                            {GEMINIDataFormats[sensor.sensor_data_format_id]}
                         </Badge>
                     </Group>
                     <Group>
@@ -27,7 +36,7 @@ export default function SensorCard({ sensor_id, sensor }: SensorCardProps) {
                             View Info
                         </Button>
                         <Button>
-                            <Link href={`/sensors/${sensor_id}`} passHref>
+                            <Link href={`/sensors/${sensor.id}`}>
                                 View Data
                             </Link>
                         </Button>

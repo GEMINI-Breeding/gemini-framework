@@ -22,7 +22,7 @@ import uuid
 class ResourceModel(BaseModel):
     __tablename__ = "resources"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
     resource_uri: Mapped[str] = mapped_column(String(255), nullable=False)
     resource_file_name: Mapped[str] = mapped_column(String(255), nullable=False)
     is_external: Mapped[bool] = mapped_column(Boolean, default=False)

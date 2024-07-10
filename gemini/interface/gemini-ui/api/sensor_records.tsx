@@ -1,50 +1,20 @@
 import {isLocal, flaskConfig} from "@/api.config";
 import { Sensor, SensorRecord, JobInfo } from "@/api/types";
-import exp from "constants";
-
+import ndjsonStream from "can-ndjson-stream";
 
 // Get Sensor Records
-async function getSensorRecords(params?: object): Promise<SensorRecord[]> {
-    try{
+async function getSensorRecords(params?: object): Promise<ReadableStream<Object>> {
+    try {
         const queryString = new URLSearchParams(params as Record<string, string>).toString();
-        const response = await fetch(`${flaskConfig.baseURL}/sensor_records?${queryString}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/x-ndjson',
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const reader = response.body!.getReader();
-        const decoder = new TextDecoder();
-        let sensorRecords: SensorRecord[] = [];
-
-        while (true) {
-            const {done, value} = await reader.read();
-            if (done) { break; }
-            const chunk = decoder.decode(value, {stream: true});
-            const lines = chunk.split('\n').filter(line => line.trim());
-            lines.forEach(line => {
-                try {
-                    const sensorRecord = JSON.parse(line);
-                    sensorRecords.push(sensorRecord);
-                } catch (error) {
-                    debugger;
-                    console.error("Error parsing NDJSON: ", error);
-                }
-            });
-        }
-
-        return sensorRecords;
-
+        const response = await fetch(`${flaskConfig.baseURL}/sensor_records?${queryString}`);
+        const reader = ndjsonStream(response.body!);
+        return reader
     } catch (error) {
         console.log("Error in getSensorRecords: ", error);
-        return [];
+        return {} as ReadableStream<Object>;
     }
 }
+
 
 // Create a sensor record (can also include a file)
 async function createSensorRecord(params?: object, fileInput?: File): Promise<SensorRecord> {
@@ -108,8 +78,26 @@ async function processSensorRecordFiles(files?: File[]): Promise<JobInfo> {
     }
 }
 
+
+// Utility Function to Flatten Sensor Record
+function flattenSensorRecord(sensorRecord: SensorRecord): object {
+    let flatRecord: { [key: string]: any } = {
+        timestamp: sensorRecord.timestamp,
+        collection_date: sensorRecord.collection_date,
+        sensor_name: sensorRecord.sensor_name,
+    };
+
+    Object.entries(sensorRecord.sensor_data).forEach(([key, value]) => {
+        flatRecord[key] = value;
+    });
+
+    // Attach Record Info
+    return flatRecord;
+}
+
 export default {
     getSensorRecords,
     createSensorRecord,
-    processSensorRecordFiles
+    processSensorRecordFiles,
+    flattenSensorRecord
 }

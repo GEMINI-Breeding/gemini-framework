@@ -21,7 +21,7 @@ import uuid
 class ModelModel(BaseModel):
     __tablename__ = "models"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
     model_name: Mapped[str] = mapped_column(String(255))
     model_url: Mapped[str] = mapped_column(String(255))
     model_info: Mapped[dict] = mapped_column(JSON, default={})

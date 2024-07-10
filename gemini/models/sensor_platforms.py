@@ -21,7 +21,7 @@ import uuid
 class SensorPlatformModel(BaseModel):
   __tablename__ = 'sensor_platforms'
 
-  id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+  id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
   sensor_platform_name: Mapped[str] = mapped_column(String(255), nullable=False)
   sensor_platform_info: Mapped[dict] = mapped_column(JSON, default={})
 

@@ -96,6 +96,21 @@ class PlotController(Controller):
         except Exception as e:
             return Response(content=str(e), status_code=500)
         
+    # Get a plot by ID
+    @get('/{plot_id:str}')
+    async def get_plot_by_id(
+        self,
+        plot_id: str
+    ) -> PlotOutput:
+        try:
+            plot = Plot.get_by_id(plot_id)
+            if not plot:
+                return Response(status_code=404)
+            plot = plot.model_dump(exclude_none=True)
+            return PlotOutput.model_validate(plot)
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+        
     # Get Plots given experiment, season and site
     @get('/experiment/{experiment_name:str}/season/{season_name:str}/site/{site_name:str}')
     async def get_plots_by_experiment_season_site(

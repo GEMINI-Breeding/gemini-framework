@@ -49,6 +49,19 @@ class SiteController(Controller):
         except Exception as e:
             return Response(content=str(e), status_code=500)
         
+    # Get Site by ID
+    @get(path="/id/{site_id:str}")
+    async def get_site_by_id(
+        self, site_id: str
+    ) -> SiteOutput:
+        try:
+            site = Site.get_by_id(site_id=site_id)
+            if site is None:
+                return Response(content="Site not found", status_code=404)
+            return SiteOutput.model_validate(site.model_dump())
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+        
     # Create a new Site
     @post()
     async def create_site(

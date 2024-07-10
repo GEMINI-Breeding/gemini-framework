@@ -1,5 +1,5 @@
 from typing import Optional, List, Any, Union
-from pydantic import Field
+from pydantic import Field, AliasChoices
 from gemini.api.base import APIBase, ID
 from gemini.api.sensor_type import SensorType
 from gemini.api.data_type import DataType
@@ -20,7 +20,7 @@ class Sensor(APIBase):
 
     db_model = SensorModel
 
-    id: Optional[ID] = Field(None, alias="sensor_id")
+    id: Optional[ID] = Field(None, validation_alias=AliasChoices("sensor_id", "id"))
     sensor_name: str
     sensor_info: Optional[dict] = None
     sensor_platform_id: Optional[Union[int, str, UUID]] = None

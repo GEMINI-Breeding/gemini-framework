@@ -20,7 +20,7 @@ import uuid
 class SiteModel(BaseModel):
   __tablename__ = 'sites'
 
-  id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+  id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
   site_name: Mapped[str] = mapped_column(String(255), nullable=False)
   site_city: Mapped[str] = mapped_column(String(255), default='')
   site_state: Mapped[str] = mapped_column(String(255), default='')

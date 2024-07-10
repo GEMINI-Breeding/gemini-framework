@@ -21,7 +21,7 @@ class ModelRunModel(BaseModel):
 
     __tablename__ = "model_runs"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
     model_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.models.id", ondelete="CASCADE"))
     model_run_info: Mapped[dict] = mapped_column(JSONB, default={})
 

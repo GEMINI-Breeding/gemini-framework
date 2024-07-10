@@ -21,7 +21,7 @@ import uuid
 class PlantModel(BaseModel):
     __tablename__ = "plants"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
     plot_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.plots.id"))
     plant_number: Mapped[int] = mapped_column(Integer)
     plant_info: Mapped[dict] = mapped_column(JSONB, default={})

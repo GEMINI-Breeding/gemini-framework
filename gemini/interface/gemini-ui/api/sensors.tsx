@@ -5,22 +5,24 @@ import { Sensor, Dataset } from "@/api/types";
 async function getSensors(params?: object): Promise<Sensor[]> {
     try {
         const queryString = new URLSearchParams(params as Record<string, string>).toString();
-        const response = await fetch(`${flaskConfig.baseURL}/sensors?${queryString}`, {
+        const url = `${flaskConfig.baseURL}/sensors?${queryString}`;
+        const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
+            cache: 'no-store'
         });
         if (!response.ok) {
             console.log(response.statusText);
-            return [];
+            return [] as Sensor[];
         }
         const data = await response.json();
-        return data;
+        return data as Sensor[];
     }
     catch (error) {
         console.log("Error in getSensors: ", error);
-        return [];
+        return [] as Sensor[];
     }
 }
 
@@ -39,7 +41,7 @@ async function createSensor(params?: object): Promise<Sensor> {
             return {} as Sensor;
         }
         const data = await response.json();
-        return data;
+        return data as Sensor;
     }
     catch (error) {
         console.log("Error in createSensor: ", error);
@@ -61,10 +63,32 @@ async function getSensor(sensor_name: string): Promise<Sensor> {
             return {} as Sensor;
         }
         const data = await response.json();
-        return data;
+        return data as Sensor;
     }
     catch (error) {
         console.log("Error in getSensor: ", error);
+        return {} as Sensor;
+    }
+}
+
+// Get Sensor By ID
+async function getSensorById(sensor_id: string): Promise<Sensor> {
+    try {
+        const response = await fetch(`${flaskConfig.baseURL}/sensors/id/${sensor_id}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        if (!response.ok) {
+            console.log(response.statusText);
+            return {} as Sensor;
+        }
+        const data = await response.json();
+        return data as Sensor;
+    }
+    catch (error) {
+        console.log("Error in getSensorById: ", error);
         return {} as Sensor;
     }
 }
@@ -141,6 +165,7 @@ export default {
     getSensors,
     createSensor,
     getSensor,
+    getSensorById,
     getSensorInfo,
     setSensorInfo,
     getSensorDatasets

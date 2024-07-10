@@ -71,6 +71,18 @@ class SensorController(Controller):
         except Exception as e:
             return Response(content=str(e), status_code=500)
             
+    # Get Sensor by ID
+    @get('/id/{sensor_id:str}')
+    async def get_sensor_by_id(
+        self, sensor_id: str
+    ) -> SensorOutput:
+        try:
+            sensor = Sensor.get_by_id(sensor_id)
+            if not sensor:
+                return Response(content="Sensor not found", status_code=404)
+            return SensorOutput.model_validate(sensor.model_dump(exclude_none=True))
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
     
     # Get Sensor by Sensor Type ID
     @get('/type/{sensor_type_id:int}')
@@ -94,6 +106,20 @@ class SensorController(Controller):
     ) -> SensorOutput:
         try:
             sensor = Sensor.get(sensor_name)
+            if not sensor:
+                return Response(content="Sensor not found", status_code=404)
+            return SensorOutput.model_validate(sensor.model_dump(exclude_none=True))
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+        
+        
+    # Get Sensor by Sensor ID
+    @get('/id/{sensor_id:str}')
+    async def get_sensor_by_id(
+        self, sensor_id: str
+    ) -> SensorOutput:
+        try:
+            sensor = Sensor.get_by_id(sensor_id)
             if not sensor:
                 return Response(content="Sensor not found", status_code=404)
             return SensorOutput.model_validate(sensor.model_dump(exclude_none=True))

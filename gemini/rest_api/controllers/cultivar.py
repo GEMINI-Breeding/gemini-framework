@@ -45,6 +45,20 @@ class CultivarController(Controller):
         except Exception as e:
             return Response(content=str(e), status_code=500)
             
+    # Get Cultivar by ID
+    @get(path="/id/{cultivar_id:str}")
+    async def get_cultivar_by_id(
+        self, cultivar_id: str
+    ) -> CultivarOutput:
+        try:
+            cultivar = Cultivar.get_by_id(cultivar_id=cultivar_id)
+            if cultivar is None:
+                return Response(content="Cultivar not found", status_code=404)
+            cultivar = CultivarOutput.model_validate(cultivar.model_dump())
+            return cultivar
+        except Exception as e:
+            return Response(content=str(e), status_code=500)    
+        
     # Create a new Cultivar
     @post()
     async def create_cultivar(

@@ -20,7 +20,7 @@ import uuid
 class ScriptRunModel(BaseModel):
     __tablename__ = "script_runs"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
     script_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.scripts.id", ondelete="CASCADE"))
     script_run_info: Mapped[dict] = mapped_column(JSON, default={})
 

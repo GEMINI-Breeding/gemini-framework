@@ -35,8 +35,8 @@ class DataTypeFormatModel(BaseModel):
 class ExperimentSiteModel(BaseModel):
     __tablename__ = "experiment_sites"
 
-    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
-    site_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.sites.id", ondelete="CASCADE"))
+    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
+    site_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.sites.id", ondelete="CASCADE"))
     info: Mapped[dict] = mapped_column(JSON, default={})
 
     __table_args__ = (
@@ -46,8 +46,8 @@ class ExperimentSiteModel(BaseModel):
 class ExperimentSensorModel(BaseModel):
     __tablename__ = "experiment_sensors"
 
-    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
-    sensor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.sensors.id", ondelete="CASCADE"))
+    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
+    sensor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.sensors.id", ondelete="CASCADE"))
     info: Mapped[dict] = mapped_column(JSON, default={})
 
     __table_args__ = (
@@ -59,8 +59,8 @@ class ExperimentSensorModel(BaseModel):
 class ExperimentTraitModel(BaseModel):
     __tablename__ = "experiment_traits"
 
-    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
-    trait_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.traits.id", ondelete="CASCADE"))
+    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
+    trait_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.traits.id", ondelete="CASCADE"))
     info: Mapped[dict] = mapped_column(JSON, default={})
 
     __table_args__ = (
@@ -72,8 +72,8 @@ class ExperimentTraitModel(BaseModel):
 class ExperimentCultivarModel(BaseModel):
     __tablename__ = "experiment_cultivars"
 
-    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
-    cultivar_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.cultivars.id", ondelete="CASCADE"))
+    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
+    cultivar_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.cultivars.id", ondelete="CASCADE"))
     info: Mapped[dict] = mapped_column(JSON, default={})
 
     __table_args__ = (
@@ -84,8 +84,8 @@ class ExperimentCultivarModel(BaseModel):
 class ExperimentModelModel(BaseModel):
     __tablename__ = "experiment_models"
     
-    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
-    model_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.models.id", ondelete="CASCADE"))
+    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
+    model_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.models.id", ondelete="CASCADE"))
     info: Mapped[dict] = mapped_column(JSON, default={})
     
     __table_args__ = (
@@ -95,8 +95,8 @@ class ExperimentModelModel(BaseModel):
 class ExperimentProcedureModel(BaseModel):
     __tablename__ = "experiment_procedures"
     
-    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
-    procedure_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.procedures.id", ondelete="CASCADE"))
+    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
+    procedure_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.procedures.id", ondelete="CASCADE"))
     info: Mapped[dict] = mapped_column(JSON, default={})
     
     __table_args__ = (
@@ -106,8 +106,8 @@ class ExperimentProcedureModel(BaseModel):
 class ExperimentScriptModel(BaseModel):
     __tablename__ = "experiment_scripts"
     
-    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
-    script_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.scripts.id", ondelete="CASCADE"))
+    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
+    script_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.scripts.id", ondelete="CASCADE"))
     info: Mapped[dict] = mapped_column(JSON, default={})
     
     __table_args__ = (
@@ -117,8 +117,8 @@ class ExperimentScriptModel(BaseModel):
 class ExperimentDatasetModel(BaseModel):
     __tablename__ = "experiment_datasets"
 
-    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
-    dataset_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.datasets.id", ondelete="CASCADE"))
+    experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.experiments.id", ondelete="CASCADE"))
+    dataset_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.datasets.id", ondelete="CASCADE"))
     info: Mapped[dict] = mapped_column(JSON, default={})
 
     __table_args__ = (
@@ -130,8 +130,8 @@ class ExperimentDatasetModel(BaseModel):
 class PlotCultivarModel(BaseModel):
     __tablename__ = "plot_cultivars"
 
-    plot_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.plots.id", ondelete="CASCADE"))
-    cultivar_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.cultivars.id", ondelete="CASCADE"))
+    plot_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.plots.id", ondelete="CASCADE"))
+    cultivar_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.cultivars.id", ondelete="CASCADE"))
     info: Mapped[dict] = mapped_column(JSON, default={})
 
     __table_args__ = (
@@ -143,8 +143,8 @@ class PlotCultivarModel(BaseModel):
 class TraitSensorModel(BaseModel):
     __tablename__ = "trait_sensors"
 
-    trait_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.traits.id", ondelete="CASCADE"))
-    sensor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.sensors.id", ondelete="CASCADE"))
+    trait_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.traits.id", ondelete="CASCADE"))
+    sensor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.sensors.id", ondelete="CASCADE"))
     info: Mapped[dict] = mapped_column(JSON, default={})
 
     __table_args__ = (
@@ -156,8 +156,8 @@ class TraitSensorModel(BaseModel):
 class SensorDatasetModel(BaseModel):
     __tablename__ = "sensor_datasets"
 
-    sensor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.sensors.id", ondelete="CASCADE"))
-    dataset_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.datasets.id", ondelete="CASCADE"))
+    sensor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.sensors.id", ondelete="CASCADE"))
+    dataset_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.datasets.id", ondelete="CASCADE"))
     info: Mapped[dict] = mapped_column(JSON, default={})
 
     __table_args__ = (
@@ -169,8 +169,8 @@ class SensorDatasetModel(BaseModel):
 class TraitDatasetModel(BaseModel):
     __tablename__ = "trait_datasets"
 
-    trait_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.traits.id", ondelete="CASCADE"))
-    dataset_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.datasets.id", ondelete="CASCADE"))
+    trait_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.traits.id", ondelete="CASCADE"))
+    dataset_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.datasets.id", ondelete="CASCADE"))
     info: Mapped[dict] = mapped_column(JSON, default={})
 
     __table_args__ = (
@@ -182,8 +182,8 @@ class TraitDatasetModel(BaseModel):
 class ModelDatasetModel(BaseModel):
     __tablename__ = "model_datasets"
 
-    model_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.models.id", ondelete="CASCADE"))
-    dataset_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.datasets.id", ondelete="CASCADE"))
+    model_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.models.id", ondelete="CASCADE"))
+    dataset_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.datasets.id", ondelete="CASCADE"))
     info: Mapped[dict] = mapped_column(JSON, default={})
 
     __table_args__ = (
@@ -195,8 +195,8 @@ class ModelDatasetModel(BaseModel):
 class ScriptDatasetModel(BaseModel):
     __tablename__ = "script_datasets"
 
-    script_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.scripts.id", ondelete="CASCADE"))
-    dataset_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.datasets.id", ondelete="CASCADE"))
+    script_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.scripts.id", ondelete="CASCADE"))
+    dataset_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.datasets.id", ondelete="CASCADE"))
     info: Mapped[dict] = mapped_column(JSON, default={})
 
     __table_args__ = (
@@ -208,8 +208,8 @@ class ScriptDatasetModel(BaseModel):
 class ProcedureDatasetModel(BaseModel):
     __tablename__ = "procedure_datasets"
 
-    procedure_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.procedures.id", ondelete="CASCADE"))
-    dataset_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.datasets.id", ondelete="CASCADE"))
+    procedure_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.procedures.id", ondelete="CASCADE"))
+    dataset_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.datasets.id", ondelete="CASCADE"))
     info: Mapped[dict] = mapped_column(JSON, default={})
 
     __table_args__ = (

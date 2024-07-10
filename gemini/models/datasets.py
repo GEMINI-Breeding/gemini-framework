@@ -23,7 +23,7 @@ class DatasetModel(BaseModel):
 
     __tablename__ = "datasets"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
     collection_date: Mapped[date] = mapped_column(TIMESTAMP, default=datetime.now)
     dataset_name: Mapped[str] = mapped_column(String(255))
     dataset_info: Mapped[dict] = mapped_column(JSON, default={})

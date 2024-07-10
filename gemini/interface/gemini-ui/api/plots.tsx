@@ -319,13 +319,6 @@ async function getPlotCultivars(plotId: string): Promise<Cultivar[]> {
     }
 }
 
-async function testAPI() {
-    const data = await getPlots();
-    console.log(data);
-}
-
-testAPI();
-
 export default {
     getPlots,
     createPlot,

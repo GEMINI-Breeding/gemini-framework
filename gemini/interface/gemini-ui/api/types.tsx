@@ -146,4 +146,3 @@ export type JobInfo = {
     error: string;
     meta: object;
 }
-

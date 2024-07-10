@@ -20,7 +20,7 @@ import uuid
 class ScriptModel(BaseModel):
     __tablename__ = "scripts"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
     script_name: Mapped[str] = mapped_column(String(255))
     script_url: Mapped[str] = mapped_column(String(255))
     script_extension: Mapped[str] = mapped_column(String(255))
