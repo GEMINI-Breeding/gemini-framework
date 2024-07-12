@@ -1,5 +1,5 @@
 import {isLocal, flaskConfig} from "@/api.config";
-import { Sensor, SensorRecord, JobInfo } from "@/api/types";
+import { Sensor, SensorRecord, JobInfo } from "@/app/api/types";
 import ndjsonStream from "can-ndjson-stream";
 
 // Get Sensor Records

@@ -1,9 +1,9 @@
 "use client";
 
-import experiments from "@/api/experiments";
+import experiments from "@/app/api/experiments";
 import { MantineProvider } from "@mantine/core";
 import { createContext } from "react";
-import { Experiment, Season, Sensor, Site, Trait } from "@/api/types";
+import { Experiment, Season, Sensor, Site, Trait } from "@/app/api/types";
 
 
 interface GEMINIContextProps {

@@ -10,8 +10,8 @@ import GEMINIProvider from "./providers";
 import { MantineProvider } from "@mantine/core";
 import Shell from "@/components/shell/shell";
 
-import experimentsAPI from "@/api/experiments";
-import { Experiment } from "@/api/types";
+import experimentsAPI from "@/app/api/experiments";
+import { Experiment } from "@/app/api/types";
 
 export const metadata: Metadata = {
   title: "GEMINI",

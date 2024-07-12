@@ -1,6 +1,6 @@
 import { Divider, Space, Title } from "@mantine/core";
-import Sensors from "@/api/sensors";
-import { Sensor } from "@/api/types";
+import Sensors from "@/app/api/sensors";
+import { Sensor } from "@/app/api/types";
 import SensorCard from "@/components/datacards/sensorcard";
 import CenterMessage from "@/components/centermessage";
 

@@ -1,7 +1,7 @@
-import { Sensor } from "@/api/types";
+import { Sensor } from "@/app/api/types";
 import { Badge, Card, CardSection, Group, Text, Box} from "@mantine/core";
 import { Button, Grid, GridCol } from "@mantine/core";
-import { GEMINIDataFormats, GEMINIDataTypes, GEMINISensorTypes } from "@/api/enums";
+import { GEMINIDataFormats, GEMINIDataTypes, GEMINISensorTypes } from "@/app/api/enums";
 import classes from './cards.module.css';
 import Link from "next/link";
 

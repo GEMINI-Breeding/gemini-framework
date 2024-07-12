@@ -1,5 +1,5 @@
 import {isLocal, flaskConfig} from "@/api.config";
-import {Plot, Experiment, Season, Site, Cultivar} from "@/api/types";
+import {Plot, Experiment, Season, Site, Cultivar} from "@/app/api/types";
 
 // Get Plots
 async function getPlots(params?: object): Promise<Plot[]> {

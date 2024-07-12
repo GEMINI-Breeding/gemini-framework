@@ -1,5 +1,5 @@
 import { DataTable, DataTableColumn } from "mantine-datatable";
-import SensorRecords from "@/api/sensor_records";
+import SensorRecords from "@/app/api/sensor_records";
 import { Suspense } from "react";
 import { LoadingOverlay } from "@mantine/core";
 import { ReadableStream } from "node:stream/web";

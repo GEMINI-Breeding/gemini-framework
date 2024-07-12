@@ -1,5 +1,5 @@
 import { isLocal, flaskConfig } from '@/api.config';
-import { Cultivar } from "@/api/types";
+import { Cultivar } from "@/app/api/types";
 // Get Cultivars
 async function getCultivars(params?: object): Promise<Cultivar[]> {
     try {

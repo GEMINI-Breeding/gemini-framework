@@ -2,7 +2,7 @@
 
 import { Group, Select, Text } from '@mantine/core';
 import { useState } from 'react';
-import experimentsAPI from "@/api/experiments";
+import experimentsAPI from "@/app/api/experiments";
 
 interface ExperimentSelectorProps {
     experimentNames: string[];

@@ -1,5 +1,5 @@
 import { isLocal, flaskConfig } from '@/api.config';
-import { Experiment, Season, Site, Sensor, Trait, Cultivar, Resource, Dataset } from "@/api/types";
+import { Experiment, Season, Site, Sensor, Trait, Cultivar, Resource, Dataset } from "@/app/api/types";
 
 // Get Experiments
 async function getExperiments(params?:object) : Promise<Experiment[]> {
