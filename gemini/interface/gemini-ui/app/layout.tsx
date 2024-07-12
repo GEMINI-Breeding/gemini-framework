@@ -20,16 +20,24 @@ export const metadata: Metadata = {
 
 
 export async function getGEMINIProps() {
-  
+  debugger;
   const experiments = await experimentsAPI.getExperiments();
+
+  if (experiments.length === 0) {
+    return {
+      experiments: [],
+      currentExperiment: null,
+      seasons: [],
+      sites: [],
+      sensors: [],
+      traits: []
+    };
+  }
+
   const currentExperiment = experiments[0];
-  // Get Seasons
   const seasons = await experimentsAPI.getExperimentSeasons(currentExperiment.experiment_name);
-  // Get Sites
   const sites = await experimentsAPI.getExperimentSites(currentExperiment.experiment_name);
-  // Get Sensors
   const sensors = await experimentsAPI.getExperimentSensors(currentExperiment.experiment_name);
-  // Get Traits
   const traits = await experimentsAPI.getExperimentTraits(currentExperiment.experiment_name);
 
   return {
@@ -56,9 +64,11 @@ export default async function RootLayout({
       <head>
       </head>
       <body className={inter.className}>
+        <GEMINIProvider {...serverProps}>
           <MantineProvider>
             <Shell>{children}</Shell>
           </MantineProvider>
+        </GEMINIProvider>
       </body>
     </html>
   );

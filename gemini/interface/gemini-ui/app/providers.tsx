@@ -7,12 +7,12 @@ import { Experiment, Season, Sensor, Site, Trait } from "@/app/api/types";
 
 
 interface GEMINIContextProps {
-    experiments: Experiment[];
-    currentExperiment: Experiment;
-    seasons: Season[];
-    sites: Site[];
-    sensors: Sensor[];
-    traits: Trait[];
+    experiments?: Experiment[];
+    currentExperiment?: Experiment | null;
+    seasons?: Season[];
+    sites?: Site[];
+    sensors?: Sensor[];
+    traits?: Trait[];
 }
 
 const GEMINIContext = createContext<GEMINIContextProps>({} as GEMINIContextProps);
