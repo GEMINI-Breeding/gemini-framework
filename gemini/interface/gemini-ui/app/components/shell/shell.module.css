@@ -1,0 +1,16 @@
+.main {
+    background: white;
+}
+
+.link {
+    display: block;
+    padding: 10px;
+    align: center;
+    color: black;
+}
+
+.link:hover {
+    color: white;
+    background: black;
+    border-radius: 10px;
+}
