@@ -1,4 +1,4 @@
-import { isLocal, flaskConfig } from "api.config.js";
+import { isLocal, flaskConfig } from "../api.config";
 import { Season } from "./types";
 
 // Get Seasons

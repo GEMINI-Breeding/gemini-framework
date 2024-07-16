@@ -3,6 +3,7 @@ import { Group, Burger, Stack, Text} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import classes from './shell.module.css';
 import Logo from "../logo/logo";
+import {Link} from '@remix-run/react';
 
 // Icons for the navbar
 import {
@@ -27,14 +28,14 @@ export default function Shell({children} : Readonly<{children: React.ReactNode}>
     const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
 
     const links = navbarLinks.map((link) => (
-        <div key={link.title} className={classes.link}>
+        <Link to={link.href} key={link.title} className={classes.link}>
             <Group>
             {link.icon && <link.icon size={22} />}
             <Text size="lg" fw={600}>
                 {link.title}
             </Text>
             </Group>
-        </div>
+        </Link>
     ));
 
     return (

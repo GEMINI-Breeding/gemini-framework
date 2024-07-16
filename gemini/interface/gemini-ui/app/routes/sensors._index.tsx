@@ -4,7 +4,7 @@ import { Sensor } from "api/types";
 import { useLoaderData } from "@remix-run/react";
 
 import SensorCard from "app/components/datacards/sensorcard";
-import CenterMessage from "app/components/centermessage";
+import CenterMessage from "app/components/centermessage/centermessage";
 
 export async function loader() {
     const sensors = await Sensors.getSensors();

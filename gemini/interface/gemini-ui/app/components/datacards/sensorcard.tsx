@@ -2,6 +2,7 @@ import { Sensor } from "api/types";
 import { Badge, Paper, Group, Text, Box} from "@mantine/core";
 import { Button } from "@mantine/core";
 import { GEMINIDataFormats, GEMINIDataTypes, GEMINISensorTypes } from "api/enums";
+import { Link } from "@remix-run/react";
 
 interface SensorCardProps {
     sensor: Sensor;
@@ -30,9 +31,11 @@ export default function SensorCard({ sensor }: SensorCardProps) {
                         <Button>
                             View Info
                         </Button>
-                        <Button>
-                            View Data
-                        </Button>
+                        <Link to={`/sensors/${sensor.id}`}>
+                            <Button>
+                                View Data
+                            </Button>
+                        </Link>
                     </Group>             
                 </Group>
             </Paper>
