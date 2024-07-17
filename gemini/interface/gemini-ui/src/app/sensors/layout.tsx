@@ -7,9 +7,9 @@ export default function SensorLayout({children}: Readonly<{children: React.React
             <Title order={1}>Sensors</Title>
             <Divider />
             <Space h="md" />
-            <Stack gap="md">
+            <div>
                 {children}
-            </Stack>
+            </div>
         </div>
     );
 }

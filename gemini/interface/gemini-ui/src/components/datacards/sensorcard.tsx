@@ -9,7 +9,7 @@ interface SensorCardProps {
 
 export default function SensorCard({ sensor }: SensorCardProps) {
     return (
-        <Paper p="lg" shadow="xs" style={{ marginBottom: 10 }}>
+        <Paper shadow="md" radius="md" p="md" withBorder>
             <Group justify="space-between">
                 <Group>
                     <Text size="xl" fw={700}>
@@ -27,9 +27,9 @@ export default function SensorCard({ sensor }: SensorCardProps) {
                 </Group>
                 <Group>
                     <Button>View Info</Button>
-                    <Button>
-                        <Link href={`/sensors/${sensor.id}`}>View Data</Link>
-                    </Button>
+                    <Link href={`/sensors/${sensor.id}`}>
+                       <Button>View Data</Button>
+                    </Link>
                 </Group>
             </Group>
         </Paper>
