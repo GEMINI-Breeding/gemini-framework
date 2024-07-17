@@ -19,7 +19,9 @@
     "@mantine/nprogress": "^7.11.2",
     "@tabler/icons-react": "^3.11.0",
     "can-ndjson-stream": "^1.0.2",
+    "clsx": "^2.1.1",
     "dayjs": "^1.11.11",
+    "mantine-datatable": "^7.11.2",
     "next": "14.2.5",
     "react": "^18",
     "react-dom": "^18"

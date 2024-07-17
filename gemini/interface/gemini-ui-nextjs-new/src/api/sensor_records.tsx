@@ -7,11 +7,14 @@ async function getSensorRecords(params?: object): Promise<ReadableStream<Object>
     try {
         const queryString = new URLSearchParams(params as Record<string, string>).toString();
         const response = await fetch(`${apiConfig.baseURL}/sensor_records?${queryString}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const reader = ndjsonStream(response.body!);
-        return reader
+        return reader;
     } catch (error) {
         console.log("Error in getSensorRecords: ", error);
-        return {} as ReadableStream<Object>;
+        return new ReadableStream();
     }
 }
 

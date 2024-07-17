@@ -1,6 +1,9 @@
+"use client";
+
 import {Divider, Space, Title} from "@mantine/core";
 import Sensors from "@/api/sensors";
 import SensorRecords from "@/api/sensor_records";
+import DataViewer from "@/components/dataviewer/dataviewer";
 
 export default async function SensorDataView({params} : {params: {sensor_id: string}}) {
     const sensor = await Sensors.getSensorById(params.sensor_id);
@@ -9,8 +12,8 @@ export default async function SensorDataView({params} : {params: {sensor_id: str
     return (
         <div>
             <Title order={3}>{sensor.sensor_name}</Title>
-            <Divider />
             <Space h="md" />
+            <DataViewer columns={[]} stream={sensorData} />
         </div>
     );
 }
