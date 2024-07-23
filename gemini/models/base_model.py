@@ -206,13 +206,26 @@ class _BaseModel(DeclarativeBase, SerializeMixin):
         """
         try:
             query = session.query(cls)
+            kwargs = cls.validate_fields(**kwargs)
+            for key, value in kwargs.items():
+                attribute = getattr(cls, key)
+                if isinstance(attribute.type, JSONB):
+                    query = query.filter(attribute.contains(value))
+                elif isinstance(attribute.type, TIMESTAMP):
+                    query = query.filter(attribute >= value)
+                elif isinstance(attribute.type, DATE):
+                    query = query.filter(attribute == value)
+                elif isinstance(attribute.type, String):
+                    query = query.filter(attribute == value)
+                else:
+                    query = query.filter(attribute == value)
             number_of_records = query.count()
             number_of_pages = number_of_records // page_limit
             if page_number > 0:
                 query = query.offset((page_number - 1) * page_limit)
             query = query.limit(page_limit)
             query_result = query.all()
-            return number_of_pages, query_result
+            return number_of_records, number_of_pages, query_result
         except Exception as e:
             session.rollback()
             raise e

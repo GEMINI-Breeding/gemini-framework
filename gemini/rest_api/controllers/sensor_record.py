@@ -5,7 +5,7 @@ from litestar.params import Body
 from litestar.datastructures import UploadFile
 from litestar.response import Stream
 from litestar.serialization import encode_json
-from litestar import Response
+from litestar import Response, Request
 
 from datetime import datetime, date
 from collections.abc import AsyncGenerator
@@ -17,6 +17,7 @@ from gemini.rest_api.src.models import (
     SensorRecordBase,
     SensorRecordInput,
     SensorRecordOutput,
+    SensorRecordsPaginatedOutput,
     SensorRecordSearch,
     SensorOutput,
     JobInfo
@@ -58,7 +59,7 @@ class SensorRecordController(Controller):
     @get()
     async def get_sensor_records(
         self,
-        sensor_name: Optional[str] = None,
+        sensor_name: str,
         sensor_id: Optional[str] = None,
         collection_date: Optional[date] = None,
         experiment_name: Optional[str] = None,
@@ -95,6 +96,74 @@ class SensorRecordController(Controller):
         except Exception as e:
             return Response(content=str(e), status_code=500)
         
+    # Get Paginated Sensor Records
+    @get('/paginate', name='get_paginated_sensor_records')
+    async def get_paginated_sensor_records(
+        self,
+        request: Request,
+        sensor_name: str,
+        sensor_id: Optional[str] = None,
+        collection_date: Optional[date] = None,
+        experiment_name: Optional[str] = None,
+        season_name: Optional[str] = None,
+        site_name: Optional[str] = None,
+        plot_number: Optional[int] = None,
+        plot_row_number: Optional[int] = None,
+        plot_column_number: Optional[int] = None,
+        record_info: Optional[dict] = None,
+        order_by: Optional[str] = 'timestamp',
+        page_number: Optional[int] = 1,
+        page_limit: Optional[int] = 50
+    ) -> List[SensorRecordsPaginatedOutput]:
+        try:
+            # Check if sensor_id is provided
+            if sensor_id:
+                sensor = Sensor.get_by_id(sensor_id)
+            elif sensor_name:
+                sensor = Sensor.get(sensor_name)
+                
+            if not sensor:
+                return Response(content="Sensor not found", status_code=404)
+
+
+            search_parameters = SensorRecordSearch(
+                sensor_name=sensor_name,
+                collection_date=collection_date,
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name,
+                plot_number=plot_number,
+                plot_row_number=plot_row_number,
+                plot_column_number=plot_column_number,
+                record_info=record_info
+            )
+            search_parameters = search_parameters.model_dump(exclude_none=True)
+            number_of_records, number_of_pages, records = SensorRecordsIMMVModel.paginate(
+                order_by=order_by,
+                page_number=page_number,
+                page_limit=page_limit,
+                **search_parameters
+            )
+
+            # Generate URLs for next and previous pages
+            previous_page_url, next_page_url = self.generate_pagination_urls(request, page_number, number_of_pages)
+
+            records = [records.to_dict() for records in records]
+
+            paginated_response = SensorRecordsPaginatedOutput(
+                total_records=number_of_records,
+                total_pages=number_of_pages,
+                current_page=page_number,
+                page_limit=page_limit,
+                previous_page=None if page_number == 1 else previous_page_url,
+                next_page=None if page_number == number_of_pages else next_page_url,
+                records = records,
+            )
+            return paginated_response
+
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+
     # Create Sensor Record
     @post()
     async def create_sensor_record(
@@ -218,6 +287,8 @@ class SensorRecordController(Controller):
             return Response(content=str(e), status_code=500)
         
 
+
+
     # Process a records file 
     # This function takes in a file, and processes is based on file_name
     # Itll determine if the file is coming from Drone, Rover, AMIGA etc.
@@ -234,5 +305,32 @@ class SensorRecordController(Controller):
             return JobInfo()
         except Exception as e:
             return Response(content=str(e), status_code=500)
+        
+
+    # Utility function for generating pagination URLs
+    def generate_pagination_urls(self, request, page_number, number_of_pages):
+        request_args = dict(request.query_params.items())# Make a copy to avoid modifying the original
+        previous_page_url = None
+        next_page_url = None
+
+        if page_number > 1:
+            previous_page_number = page_number - 1
+            request_args['page_number'] = previous_page_number
+            previous_page_url = request.url_for(
+                'get_paginated_sensor_records'
+            )
+            request_args = '&'.join([f'{k}={v}' for k, v in request_args.items()])
+            previous_page_url = f'{previous_page_url}?{request_args}'
+
+        if page_number < number_of_pages:
+            next_page_number = page_number + 1
+            request_args['page_number'] = next_page_number
+            next_page_url = request.url_for(
+                'get_paginated_sensor_records',
+            )
+            request_args = '&'.join([f'{k}={v}' for k, v in request_args.items()])
+            next_page_url = f'{next_page_url}?{request_args}'
+
+        return previous_page_url, next_page_url
         
 

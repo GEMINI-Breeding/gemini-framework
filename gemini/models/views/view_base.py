@@ -36,6 +36,10 @@ class ViewBaseModel(_BaseModel):
     return super().stream(**kwargs)
   
   @classmethod
+  def paginate(cls, order_by: str, page_number: int, page_limit: int, **kwargs):
+    return super().paginate(order_by, page_number, page_limit, **kwargs)
+  
+  @classmethod
   def get_by_parameters(cls, **kwargs):
     cls.refresh()
     return super().get_by_parameters(**kwargs)

@@ -13,13 +13,14 @@ export default function ExperimentSelector() {
         queryFn: async () => {
             return await Experiments.getExperiments()
         },
-        retry: 3
+        retry: true,
+        retryOnMount: true,
+        retryDelay: 1000,
     })
 
     const experiment = useStore((state) => state.experiment)
     const setExperiment = useStore((state) => state.setExperiment)
 
-    // Select Handler
     function onExperimentSelect(experiment_name: any) {
         setExperiment(experiment_name)
         combobox.closeDropdown()

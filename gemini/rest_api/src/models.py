@@ -31,12 +31,17 @@ class RESTAPIBase(BaseModel):
         arbitrary_types_allowed=True,
     )
 
-    
+class PaginatedResponseBase(RESTAPIBase):
+    total_records: int
+    total_pages: int
+    current_page: int
+    next_page: Optional[int] = None
+    previous_page: Optional[int] = None
 
 # --------------------------------
 # Experiment Classes
 # --------------------------------
-class ExperimentBase(BaseModel):
+class ExperimentBase(RESTAPIBase):
     experiment_name: str
     experiment_info: Optional[JSONB] = None
     experiment_start_date: Optional[date] = None
@@ -379,6 +384,8 @@ class SensorRecordSearch(RecordSearch):
 class SensorRecordOutput(SensorRecordBase):
     id: Optional[ID] = None
 
+class SensorRecordsPaginatedOutput(PaginatedResponseBase):
+    records: List[dict]
 # --------------------------------
 # Trait Record Classes
 # --------------------------------
@@ -401,6 +408,8 @@ class TraitRecordSearch(RecordSearch):
 class TraitRecordOutput(TraitRecordBase):
     id: Optional[ID] = None
 
+class TraitRecordsPaginatedOutput(PaginatedResponseBase):
+    records: List[TraitRecordOutput]
 
 
 # --------------------------------
