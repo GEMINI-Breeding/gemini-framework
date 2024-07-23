@@ -4,8 +4,7 @@ import { useDisclosure } from "@mantine/hooks";
 import Logo from "@/components/logo/logo";
 import classes from './shell.module.css';
 import { Link } from "react-router-dom";
-import ExperimentSelector from "@/components/experimentselector/experimentselector";
-
+import ExperimentSelector from "../experimentselector/experimentselector";
 // Icons
 import {
     IconHome,

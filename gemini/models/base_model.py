@@ -170,6 +170,7 @@ class _BaseModel(DeclarativeBase, SerializeMixin):
             instance = cls.get_or_create(**kwargs)
             return instance
 
+
     @classmethod
     def search(cls, **kwargs):
         """
@@ -197,6 +198,25 @@ class _BaseModel(DeclarativeBase, SerializeMixin):
         except Exception as e:
             session.rollback()
             raise e
+        
+    @classmethod
+    def paginate(cls, order_by: str, page_number: int, page_limit: int, **kwargs):
+        """
+        Paginate instances of the class in the database by multiple parameters.
+        """
+        try:
+            query = session.query(cls)
+            number_of_records = query.count()
+            number_of_pages = number_of_records // page_limit
+            if page_number > 0:
+                query = query.offset((page_number - 1) * page_limit)
+            query = query.limit(page_limit)
+            query_result = query.all()
+            return number_of_pages, query_result
+        except Exception as e:
+            session.rollback()
+            raise e
+            
 
     @classmethod
     def stream(cls, **kwargs):

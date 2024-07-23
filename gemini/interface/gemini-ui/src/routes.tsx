@@ -7,8 +7,8 @@ export default function AppRoutes() {
     return (
         <Routes>
             <Route path="/" element={<Outlet />}>
-                <Route index element={<Home />} />  
-                <Route path="sensors" element={<SensorsView />} />
+                <Route index element={<Home />} />
+                <Route path="sensors" element={<SensorsView />} /> 
             </Route>
         </Routes>
     );

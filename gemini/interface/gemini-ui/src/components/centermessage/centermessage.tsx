@@ -7,7 +7,7 @@ interface CenterMessageProps {
 export default function CenterMessage({message}: CenterMessageProps) {
     return (
         <Container fluid>
-            <Stack justify="center" align="center" style={{height: "100vh"}}>
+            <Stack justify="center" align="center">
                 <Text ta="center" fw={600} size="xl" style={{fontSize:30}}>
                     {message}
                 </Text>
