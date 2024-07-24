@@ -35,8 +35,8 @@ class PaginatedResponseBase(RESTAPIBase):
     total_records: int
     total_pages: int
     current_page: int
-    next_page: Optional[int] = None
-    previous_page: Optional[int] = None
+    next_page: Optional[str] = None
+    previous_page: Optional[str] = None
 
 # --------------------------------
 # Experiment Classes

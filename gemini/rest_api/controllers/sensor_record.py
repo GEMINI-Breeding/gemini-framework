@@ -150,6 +150,7 @@ class SensorRecordController(Controller):
 
             records = [records.to_dict() for records in records]
 
+
             paginated_response = SensorRecordsPaginatedOutput(
                 total_records=number_of_records,
                 total_pages=number_of_pages,
@@ -159,8 +160,9 @@ class SensorRecordController(Controller):
                 next_page=None if page_number == number_of_pages else next_page_url,
                 records = records,
             )
-            return paginated_response
-
+            
+            return SensorRecordsPaginatedOutput.model_validate(paginated_response)
+            
         except Exception as e:
             return Response(content=str(e), status_code=500)
 
