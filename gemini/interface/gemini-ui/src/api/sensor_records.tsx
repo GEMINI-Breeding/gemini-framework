@@ -1,22 +1,20 @@
 import { apiConfig} from "@/api/config";
 import ndjsonStream from "can-ndjson-stream";
-import { SensorRecord } from "@/api/types";
+import { Sensor, SensorRecord } from "@/api/types";
 
 
-
-
-async function getSensorRecords(params?: object): Promise<ReadableStream<Object>> {
+async function getSensorRecords(params?: object): Promise<ReadableStream<SensorRecord>> {
     try {
         const queryString = new URLSearchParams(params as Record<string, string>).toString();
         const response = await fetch(`${apiConfig.baseURL}/sensor_records?${queryString}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const reader = ndjsonStream(response.body);
+        const reader = ndjsonStream(response.body) as ReadableStream<SensorRecord>;
         return reader;
     } catch (error) {
         console.log("Error in getSensorRecords: ", error);
-        return new ReadableStream();
+        return new ReadableStream<SensorRecord>();
     }
 }
 
@@ -48,7 +46,7 @@ async function getPaginatedSensorRecords(page_number?: number, page_limit?: numb
 
 
 // Create a sensor record (can also include a file)
-async function createSensorRecord(params?: object, fileInput?: File): Promise<any> {
+async function createSensorRecord(params?: object, fileInput?: File): Promise<SensorRecord> {
     try{    
         const formData = new FormData();
         if (params) {
@@ -74,34 +72,43 @@ async function createSensorRecord(params?: object, fileInput?: File): Promise<an
         }
 
         let data = await response.json();
-        return data;
+        return data as SensorRecord;
     } catch (error) {
         console.log("Error in createSensorRecord: ", error);
-        return {};
+        return {} as SensorRecord;
     }
 }
 
-
-// Utility Function to Flatten Sensor Record
-function flattenSensorRecord(sensorRecord: any): object {
+function flattenSensorRecord(sensorRecord: SensorRecord): object {
     let flatRecord: { [key: string]: any } = {
         timestamp : sensorRecord.timestamp,
         collection_date : sensorRecord.collection_date,
         sensor_name : sensorRecord.sensor_name
     };
 
+    // Add sensor_data to flatRecord
     if (sensorRecord.sensor_data) {
         for (const [key, value] of Object.entries(sensorRecord.sensor_data)) {
             flatRecord[key] = value;
         }
     }
 
+    // Add record_info to flatRecord
+    if (sensorRecord.record_info) {
+        for (const [key, value] of Object.entries(sensorRecord.record_info)) {
+            flatRecord[key] = value;
+        }
+    }
+
     return flatRecord;
+
 }
+
+
 
 export default {
     getSensorRecords,
-    createSensorRecord,
     getPaginatedSensorRecords,
+    createSensorRecord,
     flattenSensorRecord
 }
