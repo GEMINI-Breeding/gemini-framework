@@ -14,13 +14,10 @@ from asyncio import sleep
 from gemini.api.sensor import Sensor
 from gemini.api.sensor_record import SensorRecord
 from gemini.rest_api.src.models import (
-    SensorRecordBase,
     SensorRecordInput,
     SensorRecordOutput,
     SensorRecordsPaginatedOutput,
-    SensorRecordSearch,
-    SensorOutput,
-    JobInfo
+    SensorRecordSearch
 )
 
 from gemini.models import SensorRecordsIMMVModel
@@ -46,8 +43,8 @@ async def sensor_record_search_generator(search_parameters: SensorRecordSearch) 
     search_parameters = search_parameters.model_dump(exclude_none=True)
 
     for record in SensorRecordsIMMVModel.stream_raw(**search_parameters):
-        record = SensorRecord.get_by_id(id=record)
-        record = record.model_dump_json(exclude_none=True, exclude_unset=True)
+        record = SensorRecord.get_by_id(record_id=record)
+        record = record.model_dump_json(exclude_none=True)
         record = record + '\n'
         yield record
 
@@ -137,7 +134,9 @@ class SensorRecordController(Controller):
                 plot_column_number=plot_column_number,
                 record_info=record_info
             )
+            
             search_parameters = search_parameters.model_dump(exclude_none=True)
+            
             number_of_records, number_of_pages, records = SensorRecordsIMMVModel.paginate(
                 order_by=order_by,
                 page_number=page_number,
@@ -148,7 +147,11 @@ class SensorRecordController(Controller):
             # Generate URLs for next and previous pages
             previous_page_url, next_page_url = self.generate_pagination_urls(request, page_number, number_of_pages)
 
-            records = [records.to_dict() for records in records]
+            # Convert records to SensorRecordOutput
+            records = [SensorRecordOutput.model_validate(record) for record in records]
+
+            # Dump records to dict
+            records = [record.model_dump(exclude_none=True) for record in records]
 
 
             paginated_response = SensorRecordsPaginatedOutput(
@@ -289,26 +292,6 @@ class SensorRecordController(Controller):
             return Response(content=str(e), status_code=500)
         
 
-
-
-    # Process a records file 
-    # This function takes in a file, and processes is based on file_name
-    # Itll determine if the file is coming from Drone, Rover, AMIGA etc.
-    # It'll then process the file and add the records to the database
-    @post('/process_files')
-    async def process_files(
-        self,
-        data: Annotated[list[UploadFile], Body(media_type=RequestEncodingType.MULTI_PART)]
-    ) -> JobInfo:
-        try:
-            for file in data:
-                print(file.filename)
-                print(file.content_type)
-            return JobInfo()
-        except Exception as e:
-            return Response(content=str(e), status_code=500)
-        
-
     # Utility function for generating pagination URLs
     def generate_pagination_urls(self, request, page_number, number_of_pages):
         request_args = dict(request.query_params.items())# Make a copy to avoid modifying the original
@@ -321,8 +304,8 @@ class SensorRecordController(Controller):
             previous_page_url = request.url_for(
                 'get_paginated_sensor_records'
             )
-            request_args = '&'.join([f'{k}={v}' for k, v in request_args.items()])
-            previous_page_url = f'{previous_page_url}?{request_args}'
+            query_string = '&'.join([f'{k}={v}' for k, v in request_args.items()])
+            previous_page_url = f'{previous_page_url}?{query_string}'
 
         if page_number < number_of_pages:
             next_page_number = page_number + 1
@@ -330,8 +313,8 @@ class SensorRecordController(Controller):
             next_page_url = request.url_for(
                 'get_paginated_sensor_records',
             )
-            request_args = '&'.join([f'{k}={v}' for k, v in request_args.items()])
-            next_page_url = f'{next_page_url}?{request_args}'
+            query_string = '&'.join([f'{k}={v}' for k, v in request_args.items()])
+            next_page_url = f'{next_page_url}?{query_string}'
 
         return previous_page_url, next_page_url
         

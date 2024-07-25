@@ -82,6 +82,17 @@ class SensorRecord(APIBase):
         record = cls.db_model.get_by_id(record_id)
         return cls.model_validate(record)
     
+    @classmethod
+    def get_by_id(cls, record_id: ID) -> 'SensorRecord':
+        record = cls.db_model.get_by_id(record_id)
+        record = record.to_dict()
+        record = cls.postprocess_record(record)
+        record = cls.model_construct(
+            _fields_set=cls.model_fields_set,
+            **record
+        )
+        return record
+    
     def get_info(self) -> dict:
         self.refresh()
         logger_service.info(
@@ -119,10 +130,10 @@ class SensorRecord(APIBase):
         return self
     
     @classmethod
-    def search(cls, **kwargs) -> Generator['SensorRecord', None, None]:
+    def search(cls, local: bool = False, **kwargs) -> Generator['SensorRecord', None, None]:
         for record in SensorRecordsIMMVModel.stream(**kwargs):
             record = record.to_dict()
-            record = cls.postprocess_record(record)
+            record = cls.postprocess_record(record, local=local)
             record = cls.model_construct(
                 _fields_set=cls.model_fields_set,
                 **record
@@ -148,15 +159,18 @@ class SensorRecord(APIBase):
         return record
             
     @classmethod
-    def postprocess_record(cls, record: dict) -> dict:
+    def postprocess_record(cls, record: dict, local: bool = False) -> dict:
         record_copy = record.copy()
         sensor_data = record_copy.get("sensor_data")
         if not sensor_data:
             return
         file_uri = sensor_data.get("file_uri")
-        if file_uri:
+        if file_uri and local:
             downloaded_local_file_path = cls._download_file(record_copy)
             record_copy["sensor_data"]["local_file_path"] = downloaded_local_file_path
+        elif file_uri:
+            image_url = storage_service.get_presigned_download_url(file_uri)
+            record_copy["sensor_data"]["file_url"] = image_url
         logger_service.info(
             "API",
             f"Post-processed sensor record with id {record_copy.get('id')}",

@@ -1,21 +1,50 @@
 import { apiConfig} from "@/api/config";
-// import ndjsonStream from "can-ndjson-stream";
+import ndjsonStream from "can-ndjson-stream";
+import { SensorRecord } from "@/api/types";
 
-// Get Sensor Records
-// async function getSensorRecords(params?: object): Promise<ReadableStream<Object>> {
-//     try {
-//         const queryString = new URLSearchParams(params as Record<string, string>).toString();
-//         const response = await fetch(`${apiConfig.baseURL}/sensor_records?${queryString}`);
-//         if (!response.ok) {
-//             throw new Error(`HTTP error! status: ${response.status}`);
-//         }
-//         const reader = ndjsonStream(response.body);
-//         return reader;
-//     } catch (error) {
-//         console.log("Error in getSensorRecords: ", error);
-//         return new ReadableStream();
-//     }
-// }
+
+
+
+async function getSensorRecords(params?: object): Promise<ReadableStream<Object>> {
+    try {
+        const queryString = new URLSearchParams(params as Record<string, string>).toString();
+        const response = await fetch(`${apiConfig.baseURL}/sensor_records?${queryString}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const reader = ndjsonStream(response.body);
+        return reader;
+    } catch (error) {
+        console.log("Error in getSensorRecords: ", error);
+        return new ReadableStream();
+    }
+}
+
+// Get Sensor Records Paginated
+async function getPaginatedSensorRecords(page_number?: number, page_limit?: number, params?: object): Promise<any> {
+
+    try {
+
+        // If page_number exists, add it to params
+        if (page_number) { params = { ...params, page_number: page_number }; }
+        // If page_limit exists, add it to params
+        if (page_limit) { params = { ...params, page_limit: page_limit }; }
+        
+        const queryString = new URLSearchParams(params as Record<string, string>).toString();
+        const response = await fetch(`${apiConfig.baseURL}/sensor_records/paginate?${queryString}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+    }
+    catch (error) {
+        console.log("Error in getPaginatedSensorRecords: ", error);
+        return {};
+    }
+}
 
 
 // Create a sensor record (can also include a file)
@@ -53,53 +82,26 @@ async function createSensorRecord(params?: object, fileInput?: File): Promise<an
 }
 
 
-// async function processSensorRecordFiles(files?: File[]): Promise<JobInfo> {
-//     try {
-//         const formData = new FormData();
-//         if (files) {
-//             files.forEach(file => {
-//                 formData.append('files', file);
-//             });
-//         }
-
-//         const response = await fetch(`${apiConfig.baseURL}/process_files`, {
-//             method: 'POST',
-//             body: formData
-//         });
-
-//         if (!response.ok) {
-//             throw new Error(`HTTP error! status: ${response.status}`);
-//         }
-
-//         let data = await response.json();
-//         return data as JobInfo;
-//     }
-//     catch (error) {
-//         console.log("Error in processSensorRecordFiles: ", error);
-//         return {} as JobInfo;
-//     }
-// }
-
-
 // Utility Function to Flatten Sensor Record
-// function flattenSensorRecord(sensorRecord: SensorRecord): object {
-//     let flatRecord: { [key: string]: any } = {
-//         timestamp: sensorRecord.timestamp,
-//         collection_date: sensorRecord.collection_date,
-//         sensor_name: sensorRecord.sensor_name,
-//     };
+function flattenSensorRecord(sensorRecord: any): object {
+    let flatRecord: { [key: string]: any } = {
+        timestamp : sensorRecord.timestamp,
+        collection_date : sensorRecord.collection_date,
+        sensor_name : sensorRecord.sensor_name
+    };
 
-//     Object.entries(sensorRecord.sensor_data).forEach(([key, value]) => {
-//         flatRecord[key] = value;
-//     });
+    if (sensorRecord.sensor_data) {
+        for (const [key, value] of Object.entries(sensorRecord.sensor_data)) {
+            flatRecord[key] = value;
+        }
+    }
 
-//     // Attach Record Info
-//     return flatRecord;
-// }
+    return flatRecord;
+}
 
 export default {
-    // getSensorRecords,
+    getSensorRecords,
     createSensorRecord,
-    // processSensorRecordFiles,
-    // flattenSensorRecord
+    getPaginatedSensorRecords,
+    flattenSensorRecord
 }

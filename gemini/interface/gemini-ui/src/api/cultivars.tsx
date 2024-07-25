@@ -1,7 +1,10 @@
 import { apiConfig } from '@/api/config';
+import { Cultivar } from '@/api/types';
+
+
 
 // Get Cultivars
-async function getCultivars(params?: object): Promise<any[]> {
+async function getCultivars(params?: object): Promise<Cultivar[]> {
     try {
         const queryString = new URLSearchParams(params as Record<string, string>).toString();
         const response = await fetch(`${apiConfig.baseURL}/cultivars?${queryString}`, {
@@ -12,20 +15,20 @@ async function getCultivars(params?: object): Promise<any[]> {
         });
         if (!response.ok) {
             console.log(response.statusText);
-            return [];
+            return [] as Cultivar[];
         }
         const data = await response.json();
-        return data;
+        return data as Cultivar[];
     }
     catch (error) {
         console.log("Error in getCultivars: ", error);
-        return [];
+        return [] as Cultivar[];
     }
 }
 
 
 // Create Cultivar
-async function createCultivar(params?: object): Promise<any> {
+async function createCultivar(params?: object): Promise<Cultivar> {
     try {
         const response = await fetch(`${apiConfig.baseURL}/cultivars`, {
             method: 'POST',
@@ -36,19 +39,19 @@ async function createCultivar(params?: object): Promise<any> {
         });
         if (!response.ok) {
             console.log(response.statusText);
-            return {};
+            return {} as Cultivar;
         }
         const data = await response.json();
-        return data;
+        return data as Cultivar;
     }
     catch (error) {
         console.log("Error in createCultivar: ", error);
-        return {};
+        return {} as Cultivar;
     }
 }
 
 // Get Accessions for a given population
-async function getPopulationAccessions(cultivar_population: string): Promise<any> {
+async function getPopulationAccessions(cultivar_population: string): Promise<Cultivar[]> {
     try {
         const response = await fetch(`${apiConfig.baseURL}/cultivars/${cultivar_population}/accessions`, {
             method: 'GET',
@@ -58,20 +61,20 @@ async function getPopulationAccessions(cultivar_population: string): Promise<any
         });
         if (!response.ok) {
             console.log(response.statusText);
-            return [];
+            return [] as Cultivar[];
         }
         const data = await response.json();
-        return data;
+        return data as Cultivar[];
     }
     catch (error) {
         console.log("Error in getPopulationAccessions: ", error);
-        return [];
+        return [] as Cultivar[];
     }
 }
 
 
 // Get Cultivar Info from accession and population
-async function getCultivarInfo(cultivar_population: string, cultivar_accession: string): Promise<any> {
+async function getCultivarInfo(cultivar_population: string, cultivar_accession: string): Promise<object> {
     try {
         const response = await fetch(`${apiConfig.baseURL}/cultivars/${cultivar_population}/${cultivar_accession}/info`, {
             method: 'GET',
@@ -81,20 +84,20 @@ async function getCultivarInfo(cultivar_population: string, cultivar_accession: 
         });
         if (!response.ok) {
             console.log(response.statusText);
-            return {};
+            return {} as object;
         }
         const data = await response.json();
-        return data;
+        return data as object;
     }
     catch (error) {
         console.log("Error in getCultivarInfo: ", error);
-        return {};
+        return {} as object;
     }
 }
 
 
 // Set Cultivar Info from accession and population
-async function setCultivarInfo(cultivar_population: string, cultivar_accession: string, params: object): Promise<any> {
+async function setCultivarInfo(cultivar_population: string, cultivar_accession: string, params: object): Promise<object> {
     try {
         const response = await fetch(`${apiConfig.baseURL}/cultivars/${cultivar_population}/${cultivar_accession}/info`, {
             method: 'PATCH',
@@ -105,14 +108,14 @@ async function setCultivarInfo(cultivar_population: string, cultivar_accession: 
         });
         if (!response.ok) {
             console.log(response.statusText);
-            return {};
+            return {} as object;
         }
         const data = await response.json();
-        return data;
+        return data as object;
     }
     catch (error) {
         console.log("Error in setCultivarInfo: ", error);
-        return {};
+        return {} as object;
     }
 }
 

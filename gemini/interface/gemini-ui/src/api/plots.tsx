@@ -1,50 +1,8 @@
 import {apiConfig} from "@/api/config";
-
-// Get Plots
-// async function getPlots(params?: object): Promise<any> {
-//     try{
-//         const queryString = new URLSearchParams(params as Record<string, string>).toString();
-//         const response = await fetch(`${apiConfig.baseURL}/plots?${queryString}`, {
-//             method: 'GET',
-//             headers: {
-//                 'Content-Type': 'application/x-ndjson'
-//             }
-//         });
-
-//         if (!response.ok) {
-//             throw new Error(`HTTP error! status: ${response.status}`);
-//         }
-        
-//         const reader = response.body!.getReader();
-//         const decoder = new TextDecoder();
-//         let plots: Plot[] = [];
-
-//         while (true) {
-//             const {done, value} = await reader.read();
-//             if (done) { break; }
-//             const chunk = decoder.decode(value, {stream: true});
-//             const lines = chunk.split('\n').filter(line => line.trim());
-//             lines.forEach(line => {
-//                 try {
-//                     const plot = JSON.parse(line);
-//                     plots.push(plot);
-//                 } catch (error) {
-//                     console.error("Error parsing NDJSON: ", error);
-//                 }
-//             });
-//         }
-
-//         return plots;
-
-//     } catch (error) {
-//         console.log("Error in getPlots: ", error);
-//         return [];
-//     }
-// }
-
+import { Plot, Season, Site, Cultivar, Experiment } from "@/api/types";
 
 // Create a plot
-async function createPlot(params?: object): Promise<any> {
+async function createPlot(params?: object): Promise<Plot[]> {
     try {
         const response = await fetch(`${apiConfig.baseURL}/plots`, {
             method: 'POST',
@@ -58,16 +16,16 @@ async function createPlot(params?: object): Promise<any> {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        return await response.json();
+        return await response.json() as Plot[];
 
     } catch (error) {
         console.log("Error in createPlot: ", error);
-        return {};
+        return {} as Plot[];
     }
 }
 
 // Get Plots given experiment, season and site
-async function getPlotsByExperimentSeasonSite(experimentName: string, seasonName: string, siteName: string): Promise<any[]> {
+async function getPlotsByExperimentSeasonSite(experimentName: string, seasonName: string, siteName: string): Promise<Plot[]> {
     try {
         const response = await fetch(`${apiConfig.baseURL}/plots/experiment/${experimentName}/season/${seasonName}/site/${siteName}`, {
             method: 'GET',
@@ -80,17 +38,17 @@ async function getPlotsByExperimentSeasonSite(experimentName: string, seasonName
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        return await response.json();
+        return await response.json() as Plot[];
 
     } catch (error) {
         console.log("Error in getPlotsByExperimentSeasonSite: ", error);
-        return [];
+        return [] as Plot[];
     }
 }
 
 
 // Get Plots given cultivar population and accession
-async function getPlotsByCultivar(cultivarPopulation: string, cultivarAccession: string): Promise<any[]> {
+async function getPlotsByCultivar(cultivarPopulation: string, cultivarAccession: string): Promise<Plot[]> {
     try {
         const response = await fetch(`${apiConfig.baseURL}/plots/cultivar/${cultivarPopulation}/${cultivarAccession}`, {
             method: 'GET',
@@ -103,17 +61,17 @@ async function getPlotsByCultivar(cultivarPopulation: string, cultivarAccession:
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        return await response.json();
+        return await response.json() as Plot[];
 
     } catch (error) {
         console.log("Error in getPlotsByCultivar: ", error);
-        return [];
+        return [] as Plot[];
     }
 }
 
 
 // Get Plot Info by plot ID
-async function getPlotInfo(plotId: string): Promise<any> {
+async function getPlotInfo(plotId: string): Promise<object> {
     try {
         const response = await fetch(`${apiConfig.baseURL}/plots/${plotId}/info`, {
             method: 'GET',
@@ -126,17 +84,17 @@ async function getPlotInfo(plotId: string): Promise<any> {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        return await response.json();
+        return await response.json() as object;
 
     } catch (error) {
         console.log("Error in getPlotInfo: ", error);
-        return {};
+        return {} as object;
     }
 }
 
 
 // Set Plot Info by plot ID
-async function setPlotInfo(plotId: string, data: object): Promise<any> {
+async function setPlotInfo(plotId: string, data: object): Promise<object> {
     try {
         const response = await fetch(`${apiConfig.baseURL}/plots/${plotId}/info`, {
             method: 'PATCH',
@@ -150,17 +108,17 @@ async function setPlotInfo(plotId: string, data: object): Promise<any> {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        return await response.json();
+        return await response.json() as object;
 
     } catch (error) {
         console.log("Error in setPlotInfo: ", error);
-        return {};
+        return {} as object;
     }
 }
 
 
 // Get Plot Geometry Info by plot ID
-async function getPlotGeometryInfo(plotId: string): Promise<any> {
+async function getPlotGeometryInfo(plotId: string): Promise<object> {
     try {
         const response = await fetch(`${apiConfig.baseURL}/plots/${plotId}/geometry`, {
             method: 'GET',
@@ -173,17 +131,17 @@ async function getPlotGeometryInfo(plotId: string): Promise<any> {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        return await response.json();
+        return await response.json() as object;
 
     } catch (error) {
         console.log("Error in getPlotGeometryInfo: ", error);
-        return {};
+        return {} as object;
     }
 }
 
 
 // Set Plot Geometry Info by plot ID
-async function setPlotGeometryInfo(plotId: string, data: object): Promise<any> {
+async function setPlotGeometryInfo(plotId: string, data: object): Promise<object> {
     try {
         const response = await fetch(`${apiConfig.baseURL}/plots/${plotId}/geometry`, {
             method: 'PATCH',
@@ -197,11 +155,11 @@ async function setPlotGeometryInfo(plotId: string, data: object): Promise<any> {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        return await response.json();
+        return await response.json() as object;
 
     } catch (error) {
         console.log("Error in setPlotGeometryInfo: ", error);
-        return {};
+        return {} as object;
     }
 }
 
@@ -227,7 +185,7 @@ async function deletePlot(plotId: string): Promise<void> {
 
 
 // Get Plot Experiment by plot ID
-async function getPlotExperiment(plotId: string): Promise<any> {
+async function getPlotExperiment(plotId: string): Promise<Experiment> {
     try {
         const response = await fetch(`${apiConfig.baseURL}/plots/${plotId}/experiment`, {
             method: 'GET',
@@ -240,17 +198,17 @@ async function getPlotExperiment(plotId: string): Promise<any> {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        return await response.json();
+        return await response.json() as Experiment;
 
     } catch (error) {
         console.log("Error in getPlotExperiment: ", error);
-        return {};
+        return {} as Experiment;
     }
 }
 
 
 // Get Plot Season by plot ID
-async function getPlotSeason(plotId: string): Promise<any> {
+async function getPlotSeason(plotId: string): Promise<Season> {
     try {
         const response = await fetch(`${apiConfig.baseURL}/plots/${plotId}/season`, {
             method: 'GET',
@@ -263,17 +221,17 @@ async function getPlotSeason(plotId: string): Promise<any> {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        return await response.json();
+        return await response.json() as Season;
 
     } catch (error) {
         console.log("Error in getPlotSeason: ", error);
-        return {};
+        return {} as Season;
     }
 }
 
 
 // Get Plot Site by plot ID
-async function getPlotSite(plotId: string): Promise<any> {
+async function getPlotSite(plotId: string): Promise<Site> {
     try {
         const response = await fetch(`${apiConfig.baseURL}/plots/${plotId}/site`, {
             method: 'GET',
@@ -286,17 +244,17 @@ async function getPlotSite(plotId: string): Promise<any> {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        return await response.json();
+        return await response.json() as Site;
 
     } catch (error) {
         console.log("Error in getPlotSite: ", error);
-        return {};
+        return {} as Site;
     }
 }
 
 
 // Get Plot Cultivars by plot ID
-async function getPlotCultivars(plotId: string): Promise<any> {
+async function getPlotCultivars(plotId: string): Promise<Cultivar[]> {
     try {
         const response = await fetch(`${apiConfig.baseURL}/plots/${plotId}/cultivars`, {
             method: 'GET',
@@ -309,11 +267,11 @@ async function getPlotCultivars(plotId: string): Promise<any> {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        return await response.json();
+        return await response.json() as Cultivar[];
 
     } catch (error) {
         console.log("Error in getPlotCultivars: ", error);
-        return [];
+        return [] as Cultivar[];
     }
 }
 

@@ -349,11 +349,13 @@ BEGIN
     WHILE i < 1000 LOOP
         INSERT INTO gemini.sensor_records (
             timestamp,
+            sensor_id,
             sensor_name,
             sensor_data,
             record_info
         ) VALUES (
             NOW() + (i || ' seconds')::INTERVAL,
+            (SELECT id FROM gemini.sensors WHERE sensor_name = 'Default'),
             'Default',
             json_build_object('value', random()),
             '{"experiment": "Default", "site": "Default", "season": "Default"}'

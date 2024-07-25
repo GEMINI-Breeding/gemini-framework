@@ -1,7 +1,8 @@
 import { apiConfig } from "@/api/config";
+import { Season } from "@/api/types";
 
 // Get Seasons
-async function getSeasons(params?: object): Promise<any[]> {
+async function getSeasons(params?: object): Promise<Season[]> {
     try {
         const queryString = new URLSearchParams(params as Record<string, string>).toString();
         const response = await fetch(`${apiConfig.baseURL}/seasons?${queryString}`, {
@@ -16,16 +17,16 @@ async function getSeasons(params?: object): Promise<any[]> {
         }
         
         let data = await response.json();
-        return data;
+        return data as Season[];
 
     } catch (error) {
         console.log("Error in getSeasons: ", error);
-        return [];
+        return [] as Season[];
     }
 }
 
 // Get Season Info by Season and Experiment
-async function getSeasonInfo(experimentName: string, seasonName: string): Promise<any> {
+async function getSeasonInfo(experimentName: string, seasonName: string): Promise<object> {
     try {
         const response = await fetch(`${apiConfig.baseURL}/seasons/${seasonName}/experiment/${experimentName}/info`, {
             method: 'GET',
@@ -38,16 +39,16 @@ async function getSeasonInfo(experimentName: string, seasonName: string): Promis
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        return await response.json();
+        return await response.json() as object;
 
     } catch (error) {
         console.log("Error in getSeasonInfo: ", error);
-        return {};
+        return {} as object;
     }
 }
 
 // Set Season Info by Season and Experiment
-async function setSeasonInfo(experimentName: string, seasonName: string, data: object): Promise<any> {
+async function setSeasonInfo(experimentName: string, seasonName: string, data: object): Promise<object> {
     try {
         const response = await fetch(`${apiConfig.baseURL}/seasons/${seasonName}/experiment/${experimentName}/info`, {
             method: 'PATCH',
@@ -61,11 +62,11 @@ async function setSeasonInfo(experimentName: string, seasonName: string, data: o
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        return await response.json();
+        return await response.json() as object;
 
     } catch (error) {
         console.log("Error in setSeasonInfo: ", error);
-        return {};
+        return {} as object;
     }
 }
 
