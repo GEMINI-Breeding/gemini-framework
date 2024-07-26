@@ -75,7 +75,7 @@ services:
       dockerfile: ./gemini/rest_api/Dockerfile
     ports:
       - "${REST_API_PORT}:8080"
-      - "${TASK_SCHEDULER_PORT}:7000"
+      # - "${TASK_SCHEDULER_PORT}:7000"
     environment:
       - "REST_API_ROOT_USER=${REST_API_ROOT_USER}"
       - "REST_API_ROOT_PASSWORD=${REST_API_ROOT_PASSWORD}"
