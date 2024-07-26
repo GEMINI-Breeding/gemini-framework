@@ -1,6 +1,6 @@
 from typing import List, Optional, Any
-from pydantic import Field
-from gemini.api.base import APIBase
+from pydantic import Field, AliasChoices
+from gemini.api.base import APIBase, ID
 from gemini.api.dataset import Dataset
 from gemini.api.procedure_run import ProcedureRun
 from gemini.api.procedure_record import ProcedureRecord
@@ -17,6 +17,7 @@ class Procedure(APIBase):
     
     db_model = ProcedureModel
 
+    id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "procedure_id"))
     procedure_name: str
     procedure_info: Optional[dict] = None
 

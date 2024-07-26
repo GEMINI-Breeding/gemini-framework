@@ -1,14 +1,17 @@
 from typing import Optional, List, Any
-from gemini.api.base import APIBase
+from gemini.api.base import APIBase, ID
 from gemini.api.enums import GEMINITraitLevel
 from gemini.models import TraitLevelModel, TraitModel
 from gemini.logger import logger_service
+
+from pydantic import Field, AliasChoices
 
 
 class TraitLevel(APIBase):
 
     db_model = TraitLevelModel
 
+    id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "trait_level_id"))
     trait_level_name: str
     trait_level_info: Optional[dict] = None
 

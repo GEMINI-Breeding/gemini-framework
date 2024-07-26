@@ -1,13 +1,16 @@
 from typing import Optional, List, Any
-from gemini.api.base import APIBase
+from gemini.api.base import APIBase, ID
 from gemini.models import SiteModel, ExperimentModel, ExperimentSitesViewModel
 from gemini.logger import logger_service
+
+from pydantic import Field, AliasChoices
 
 
 class Site(APIBase):
 
     db_model = SiteModel
 
+    id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "site_id"))
     site_name: str
     site_city: Optional[str] = None
     site_state: Optional[str] = None

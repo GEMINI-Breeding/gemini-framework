@@ -1,5 +1,5 @@
 from typing import Optional, List, Any, Union
-from pydantic import Field, BaseModel
+from pydantic import Field, BaseModel, AliasChoices
 from typing import Generator
 from gemini.api.base import APIBase
 from gemini.api.experiment import Experiment
@@ -10,6 +10,7 @@ from gemini.api.plant import Plant
 from gemini.models import PlotModel, PlotViewModel, PlotCultivarViewModel
 from gemini.models import ExperimentModel, SiteModel, SeasonModel, CultivarModel
 from gemini.logger import logger_service
+
 
 from uuid import UUID
 

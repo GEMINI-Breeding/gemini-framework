@@ -10,12 +10,14 @@ from gemini.logger import logger_service
 
 from datetime import datetime, date
 from rich.progress import track
+from pydantic import Field, AliasChoices
 
 
 class Trait(APIBase):
 
     db_model = TraitModel
 
+    id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "trait_id"))
     trait_name: str
     trait_units: Optional[str] = None
     trait_level_id: Optional[int] = None

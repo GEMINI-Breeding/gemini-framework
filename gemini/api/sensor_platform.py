@@ -1,13 +1,16 @@
 from typing import Optional, List, Any
-from gemini.api.base import APIBase
+from gemini.api.base import APIBase, ID
 from gemini.models import SensorPlatformModel, SensorModel
 from gemini.logger import logger_service
+
+from pydantic import Field, AliasChoices
 
 
 class SensorPlatform(APIBase):
 
     db_model = SensorPlatformModel
 
+    id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "sensor_platform_id"))
     sensor_platform_name: str
     sensor_platform_info: Optional[dict] = None
 

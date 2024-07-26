@@ -1,15 +1,17 @@
 from typing import Optional, List, Any, Union
-from gemini.api.base import APIBase
+from gemini.api.base import APIBase, ID
 from gemini.models import SeasonModel, ExperimentModel
 from gemini.logger import logger_service
 from datetime import datetime, date
 from uuid import UUID
+from pydantic import Field, AliasChoices
 
 
 class Season(APIBase):
 
     db_model = SeasonModel
 
+    id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "season_id"))
     season_name: str
     season_info: Optional[dict] = None
     season_start_date: Optional[date] = None

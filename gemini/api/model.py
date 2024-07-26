@@ -1,5 +1,5 @@
 from typing import List, Optional, Any
-from gemini.api.base import APIBase
+from gemini.api.base import APIBase, ID
 from gemini.api.dataset import Dataset
 from gemini.api.model_run import ModelRun
 from gemini.api.model_record import ModelRecord
@@ -11,11 +11,13 @@ from typing import List, Optional, Any
 from uuid import UUID
 from datetime import datetime, date
 from rich.progress import track
+from pydantic import Field, AliasChoices
 
 class Model(APIBase):
 
     db_model = ModelModel
 
+    id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "model_id"))
     model_name: str
     model_url: Optional[str] = None
     model_info: Optional[dict] = None

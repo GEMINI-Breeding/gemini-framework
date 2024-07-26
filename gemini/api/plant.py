@@ -1,13 +1,15 @@
 from typing import Any, Optional, List
-from gemini.api.base import APIBase
+from gemini.api.base import APIBase, ID
 from gemini.api.cultivar import Cultivar
 from gemini.models import PlantModel
 from gemini.logger import logger_service
+from pydantic import Field, AliasChoices
 
 class Plant(APIBase):
 
     db_model = PlantModel
 
+    id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "plant_id"))
     plot_id: Optional[str] = None
     plant_number: int
     plant_info: Optional[dict] = None

@@ -1,9 +1,10 @@
 from typing import Optional, List, Any, Union
-from gemini.api.base import APIBase
+from gemini.api.base import APIBase, ID
 from gemini.api.data_format import DataFormat
 from gemini.models import ResourceModel, ExperimentModel
 from gemini.logger import logger_service
 from gemini.object_store import storage_service
+from pydantic import Field, AliasChoices
 
 import os
 import io
@@ -13,6 +14,7 @@ class Resource(APIBase):
 
     db_model = ResourceModel
 
+    id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "resource_id"))
     resource_uri: Optional[str] = None
     resource_file_name: Optional[str] = None
     is_external: Optional[bool] = None

@@ -4,11 +4,12 @@ import { Input, InputBase, Combobox, useCombobox } from '@mantine/core';
 import { Group, Text } from '@mantine/core';
 import classes from './experimentselector.module.css';
 import Experiments from "@/api/experiments";
+import { useEffect } from "react";
 
 export default function ExperimentSelector() {
 
     // Fetch Experiments
-    const { data, isError, isLoading } = useQuery({
+    const { data, isError, isLoading, isSuccess } = useQuery({
         queryKey: ["experiments"],
         queryFn: async () => {
             return await Experiments.getExperiments();
@@ -23,13 +24,25 @@ export default function ExperimentSelector() {
 
     // Function to set the experiment
     function onExperimentSelect(experiment_name: string) {
-        setExperiment(experiment_name);
+
+        // Get Experiment from API data
+        const selected_experiment = data?.find((experiment) => experiment.experiment_name === experiment_name);
+        
+        // Set the experiment in the global store
+        setExperiment(selected_experiment!);
+
+        // Close the combobox
         combobox.closeDropdown();
     }
 
     // Combobox Store
     const combobox = useCombobox({});
 
+    useEffect(() => {
+        if (isSuccess && data?.length > 0) {
+            setExperiment(data[0]);
+        }
+    }, [isSuccess, data, setExperiment]);
     
     if (isLoading) {
         return <Text>Loading...</Text>;
@@ -42,6 +55,7 @@ export default function ExperimentSelector() {
     if (data?.length === 0) {
         return <Text>No Experiments Found</Text>;
     }
+
 
     return (
         <Group gap={10}>
@@ -60,7 +74,7 @@ export default function ExperimentSelector() {
                         onClick={() => combobox.toggleDropdown()}
                         rightSectionPointerEvents="none"
                     >
-                        {experiment ?? <Input.Placeholder>Select Experiment</Input.Placeholder>}
+                        {experiment.experiment_name ?? <Input.Placeholder>Select Experiment</Input.Placeholder>}
                     </InputBase>
                 </Combobox.Target>
                 <Combobox.Dropdown>

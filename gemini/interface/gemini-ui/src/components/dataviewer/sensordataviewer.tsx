@@ -1,13 +1,21 @@
 import { DataTable, DataTableColumn } from "mantine-datatable";
 import { useEffect, useState } from "react";
+import { Sensor, SensorRecord } from "@/api/types";
 
 const PAGE_SIZE = 10;
 
 interface SensorDataViewerProps {
-    data: any[];
+    sensor: Sensor;
+    data: SensorRecord[];
 }
 
-function getColumnsFromData(data: any) : string[] {
+/**
+ * Retrieves the columns from the given data.
+ * 
+ * @param data - The data from which to retrieve the columns.
+ * @returns An array of strings representing the columns.
+ */
+function getColumnsFromData(data: any): string[] {
     if (data.length === 0) {
         return [];
     }
@@ -17,6 +25,11 @@ function getColumnsFromData(data: any) : string[] {
     return columns;
 }
 
+/**
+ * Converts an array of column names into an array of DataTableColumn objects.
+ * @param columns - The array of column names.
+ * @returns An array of DataTableColumn objects.
+ */
 function toDataTableColumns(columns: string[]): DataTableColumn[] {
     return columns.map((column) => {
         const title = column.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
@@ -27,9 +40,10 @@ function toDataTableColumns(columns: string[]): DataTableColumn[] {
     });
 }
 
-export default function SensorDataViewer({data}: SensorDataViewerProps) {
-    const columns = getColumnsFromData(data);
 
+export default function SensorDataViewer({data}: SensorDataViewerProps) {
+    
+    const columns = getColumnsFromData(data);
     const [page, setPage] = useState(1);
     const [records, setRecords] = useState(data.slice(0, PAGE_SIZE));
 

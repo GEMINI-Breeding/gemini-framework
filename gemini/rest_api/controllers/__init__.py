@@ -8,7 +8,7 @@ from gemini.rest_api.controllers.sensor import SensorController
 from gemini.rest_api.controllers.sensor_platform import SensorPlatformController
 from gemini.rest_api.controllers.sensor_record import SensorRecordController
 from gemini.rest_api.controllers.trait_record import TraitRecordController
-from gemini.rest_api.controllers.system import SystemController
+# from gemini.rest_api.controllers.system import SystemController
 
 controllers = {
     "experiments": ExperimentController,
@@ -21,5 +21,5 @@ controllers = {
     "sensor_platforms": SensorPlatformController,
     "sensor_records": SensorRecordController,
     "trait_records": TraitRecordController,
-    "system": SystemController
+    # "system": SystemController
 }

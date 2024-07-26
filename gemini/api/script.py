@@ -1,5 +1,5 @@
 from typing import Optional, List, Any
-from gemini.api.base import APIBase
+from gemini.api.base import APIBase, ID
 from gemini.api.script_run import ScriptRun
 from gemini.api.script_record import ScriptRecord
 from gemini.api.dataset import Dataset
@@ -11,12 +11,14 @@ from gemini.logger import logger_service
 from uuid import UUID
 from datetime import date, datetime
 from rich.progress import track
+from pydantic import Field, AliasChoices
 
 
 class Script(APIBase):
 
     db_model = ScriptModel
 
+    id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "script_id"))
     script_name: str
     script_url: Optional[str] = None
     script_extension: Optional[str] = None

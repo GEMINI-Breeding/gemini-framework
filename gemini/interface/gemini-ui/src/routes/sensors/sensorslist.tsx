@@ -8,16 +8,16 @@ import SensorCard from "@/components/datacards/sensorcard";
 import CenterMessage from "@/components/centermessage/centermessage";
 
 
-export default function SensorsView() {
+export default function SensorsList() {
 
     // Get the current experiment from the global store
     const experiment = useStore((state) => state.experiment);
     
     // Fetch the sensors for the current experiment
     const { data, refetch } = useQuery({
-        queryKey: ["sensors"],
+        queryKey: ["sensors", experiment],
         queryFn: async () => {
-            return await Experiments.getExperimentSensors(experiment);
+            return await Experiments.getExperimentSensors(experiment.experiment_name);
         },
         enabled: !!experiment, // This ensures the query only runs when `experiment` is truthy
     });
@@ -30,7 +30,7 @@ export default function SensorsView() {
     }, [experiment, refetch]);
 
     // If no experiment is selected, show a message
-    if (!experiment) {
+    if (!experiment || !experiment.experiment_name) {
         return <CenterMessage message="Please Select an Experiment" />;
     }
 
@@ -47,7 +47,7 @@ export default function SensorsView() {
                             <SensorCard key={sensor.id} sensor={sensor} />
                         ))
                     ) : (
-                        <CenterMessage message={"No Sensors Found for experiment " + experiment} />
+                        <CenterMessage message={"No Sensors Found for experiment " + experiment.experiment_name} />
                     )}
                 </Stack>
             </ul>

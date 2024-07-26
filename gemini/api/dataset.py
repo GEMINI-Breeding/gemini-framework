@@ -1,5 +1,5 @@
 from typing import Optional, List, Any
-from gemini.api.base import APIBase
+from gemini.api.base import APIBase, ID
 from gemini.api.enums import GEMINIDatasetType
 from gemini.api.dataset_type import DatasetType
 from gemini.api.dataset_record import DatasetRecord
@@ -10,12 +10,14 @@ from gemini.object_store import storage_service
 
 from datetime import datetime, date
 from rich.progress import track
+from pydantic import Field, AliasChoices
 
 
 class Dataset(APIBase):
 
     db_model = DatasetModel
 
+    id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "dataset_id"))
     dataset_name: str
     dataset_info: Optional[dict] = None
     is_derived: Optional[bool] = False

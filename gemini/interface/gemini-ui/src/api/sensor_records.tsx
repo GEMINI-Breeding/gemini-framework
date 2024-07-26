@@ -1,6 +1,6 @@
 import { apiConfig} from "@/api/config";
 import ndjsonStream from "can-ndjson-stream";
-import { Sensor, SensorRecord } from "@/api/types";
+import { SensorRecord } from "@/api/types";
 
 
 async function getSensorRecords(params?: object): Promise<ReadableStream<SensorRecord>> {

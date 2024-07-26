@@ -1,14 +1,15 @@
 from typing import Any, Optional, List
-from gemini.api.base import APIBase
+from gemini.api.base import APIBase, ID
 from gemini.models import CultivarModel, ExperimentModel, PlotViewModel, ExperimentCultivarsViewModel
 from gemini.logger import logger_service
-from pydantic import computed_field
+from pydantic import Field, AliasChoices
 
 
 class Cultivar(APIBase):
 
     db_model = CultivarModel
 
+    id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "cultivar_id"))
     cultivar_population: str
     cultivar_accession: Optional[str] = None
     cultivar_info: Optional[dict] = None
