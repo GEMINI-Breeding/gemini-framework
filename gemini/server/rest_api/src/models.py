@@ -12,7 +12,6 @@ from uuid import UUID
 
 import json
 from datetime import datetime, date
-from saq import Job
 
 def str_to_dict(value: Any) -> dict:
     if isinstance(value, str):

@@ -16,6 +16,8 @@ sqlalchemy_mixins
 cachetools==5.3.3
 openpyxl==3.1.2
 litestar==2.8.3
-prefect==2.19.9
+dagster-webserver==1.7.15
+dagster-postgres==0.23.15
+dagster-aws==0.23.15
 
 

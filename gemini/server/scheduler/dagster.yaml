@@ -1,0 +1,70 @@
+storage:
+  postgres:
+    postgres_db:
+      username:
+        env: SCHEDULER_DB_USERNAME
+      password:
+        env: SCHEDULER_DB_PASSWORD
+      hostname:
+        env: SCHEDULER_DB_HOSTNAME
+      db_name:
+        env: SCHEDULER_DB_NAME
+      port: 5432
+
+
+# storage:
+#   postgres:
+
+
+
+# "db_password" : { "env" : "DAGSTER_DB_PASSWORD" }
+# "db_username" : { "env" : "DAGSTER_DB_USERNAME" }
+# "db_hostname" : { "env" : "DAGSTER_DB_HOSTNAME" }
+# "db_port" : { "env" : "DAGSTER_DB_PORT" }
+# "db_name" : { "env" : "DAGSTER_DB_NAME" }
+
+# run-storage:
+#   module: dagster_postgres.run_storage
+#   class: PostgresRunStorage
+#   config:
+#     postgres_db:
+#       username: { "ref" : "db_username" }
+#       password: { "ref" : "db_password" }
+#       hostname: { "ref" : "db_hostname" }
+#       db_name: { "ref" : "db_name" }
+#       port: { "ref" : "db_port" }
+
+# event-log-storage:
+#   module: dagster_postgres.event_log
+#   class: PostgresEventLogStorage
+#   config:
+#     postgres_db:
+#       username: { "ref" : "db_username" }
+#       password: { "ref" : "db_password" }
+#       hostname: { "ref" : "db_hostname" }
+#       db_name: { "ref" : "db_name" }
+#       port: { "ref" : "db_port" }
+
+# schedule-storage:
+#   module: dagster_postgres.schedule_storage
+#   class: PostgresScheduleStorage
+#   config:
+#     postgres_db:
+#       username: { "ref" : "db_username" }
+#       password: { "ref" : "db_password" }
+#       hostname: { "ref" : "db_hostname" }
+#       db_name: { "ref" : "db_name" }
+#       port: { "ref" : "db_port" }
+
+# run-coordinator:
+#   module: dagster.core.run_coordinator
+#   class: QueuedRunCoordinator
+#   config:
+#     max_concurrent_runs: 5
+
+# telemetry:
+#   enabled: false
+
+nux:
+  enabled: false
+

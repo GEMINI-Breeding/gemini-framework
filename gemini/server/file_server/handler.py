@@ -13,7 +13,7 @@ class MinioFileHandler:
         minio_port = os.getenv("MINIO_PORT", 9000)
         minio_access_key = os.getenv("MINIO_ACCESS_KEY")
         minio_secret_key = os.getenv("MINIO_SECRET_KEY") 
-        minio_secure = not is_local
+        minio_secure = False
 
         self.minio_client = Minio(
             f"{minio_hostname}:{minio_port}",
