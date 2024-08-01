@@ -1,22 +1,34 @@
-from typing import Optional, List, Any
+from typing import Optional, List
 from gemini.api.base import APIBase
 from gemini.api.season import Season
 from gemini.api.sensor import Sensor
 from gemini.api.trait import Trait
-from gemini.api.resource import Resource
 from gemini.api.site import Site
 from gemini.api.cultivar import Cultivar
-from gemini.api.model import Model
-from gemini.api.procedure import Procedure
-from gemini.api.script import Script
 from gemini.api.dataset import Dataset
-from gemini.models import ExperimentModel, SeasonModel
-from gemini.logger import logger_service
+from gemini.server.database.models import ExperimentModel
 
-from datetime import datetime, date
+from datetime import date
 
 
 class Experiment(APIBase):
+    """
+    Represents an experiment in the Gemini framework.
+
+    Attributes:
+        db_model (ExperimentModel): The database model associated with the experiment.
+        experiment_name (str): The name of the experiment.
+        experiment_info (Optional[dict]): Additional information about the experiment.
+        experiment_start_date (Optional[date]): The start date of the experiment.
+        experiment_end_date (Optional[date]): The end date of the experiment.
+        seasons (Optional[List[Season]]): The seasons associated with the experiment.
+        sites (Optional[List[Site]]): The sites associated with the experiment.
+        sensors (Optional[List[Sensor]]): The sensors associated with the experiment.
+        traits (Optional[List[Trait]]): The traits associated with the experiment.
+        resources (Optional[List[Resource]]): The resources associated with the experiment.
+        cultivars (Optional[List[Cultivar]]): The cultivars associated with the experiment.
+        datasets (Optional[List[Dataset]]): The datasets associated with the experiment.
+    """
 
     db_model = ExperimentModel
 
@@ -29,12 +41,8 @@ class Experiment(APIBase):
     sites: Optional[List[Site]] = None
     sensors: Optional[List[Sensor]] = None
     traits: Optional[List[Trait]] = None
-    resources: Optional[List[Resource]] = None
     cultivars: Optional[List[Cultivar]] = None
     datasets: Optional[List[Dataset]] = None
-    scripts: Optional[List[Script]] = None
-    procedures: Optional[List[Procedure]] = None
-    models: Optional[List[Model]] = None
 
 
     @classmethod
@@ -45,7 +53,18 @@ class Experiment(APIBase):
         experiment_start_date: date = None,
         experiment_end_date: date = None,
     ) -> "Experiment":
-        
+        """
+        Creates a new experiment.
+
+        Args:
+            experiment_name (str): The name of the experiment.
+            experiment_info (dict, optional): Additional information about the experiment.
+            experiment_start_date (date, optional): The start date of the experiment.
+            experiment_end_date (date, optional): The end date of the experiment.
+
+        Returns:
+            Experiment: The created experiment instance.
+        """
         db_instance = cls.db_model.get_or_create(
             experiment_name=experiment_name,
             experiment_info=experiment_info,
@@ -53,54 +72,75 @@ class Experiment(APIBase):
             experiment_end_date=experiment_end_date,
         )
 
-        logger_service.info(
-            "API",
-            f"Created a new experiment with name {db_instance.experiment_name} in the database",
-        )
-
         return cls.model_validate(db_instance)
     
 
     @classmethod
     def get(cls, experiment_name: str) -> "Experiment":
+        """
+        Retrieves an experiment by its name.
+
+        Args:
+            experiment_name (str): The name of the experiment.
+
+        Returns:
+            Experiment: The experiment instance if found, else None.
+        """
         db_instance = cls.db_model.get_by_parameters(experiment_name=experiment_name)
-        logger_service.info(
-            "API",
-            f"Retrieved experiment with name {experiment_name} from the database",
-        )
         return cls.model_validate(db_instance) if db_instance else None
     
 
     def get_info(self) -> dict:
+        """
+        Retrieves the additional information about the experiment.
+
+        Returns:
+            dict: The experiment information.
+        """
         self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved information about {self.experiment_name} from the database",
-        )
         return self.experiment_info
     
 
     def set_info(self, experiment_info: Optional[dict] = None) -> "Experiment":
+        """
+        Sets the additional information about the experiment.
+
+        Args:
+            experiment_info (dict, optional): The experiment information.
+
+        Returns:
+            Experiment: The updated experiment instance.
+        """
         self.update(experiment_info=experiment_info)
-        logger_service.info(
-            "API",
-            f"Updated information about {self.experiment_name} in the database",
-        )
         return self
     
 
     def add_info(self, experiment_info: Optional[dict] = None) -> "Experiment":
+        """
+        Adds additional information to the existing experiment information.
+
+        Args:
+            experiment_info (dict, optional): The experiment information to add.
+
+        Returns:
+            Experiment: The updated experiment instance.
+        """
         current_info = self.get_info()
         updated_info = {**current_info, **experiment_info}
         self.set_info(updated_info)
-        logger_service.info(
-            "API",
-            f"Added information to {self.experiment_name} in the database",
-        )
         return self
     
 
     def remove_info(self, keys_to_remove: List[str]) -> "Experiment":
+        """
+        Removes specific keys from the experiment information.
+
+        Args:
+            keys_to_remove (List[str]): The keys to remove from the experiment information.
+
+        Returns:
+            Experiment: The updated experiment instance.
+        """
         current_info = self.get_info()
         updated_info = {
             key: value
@@ -108,102 +148,75 @@ class Experiment(APIBase):
             if key not in keys_to_remove
         }
         self.set_info(updated_info)
-        logger_service.info(
-            "API",
-            f"Removed information from {self.experiment_name} in the database",
-        )
         return self
     
     
     def get_sensors(self) -> List[Sensor]:
+        """
+        Retrieves the sensors associated with the experiment.
+
+        Returns:
+            List[Sensor]: The list of sensors.
+        """
         self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved sensors for {self.experiment_name} from the database",
-        )
         return self.sensors
         
     
     def get_traits(self) -> List[Trait]:
+        """
+        Retrieves the traits associated with the experiment.
+
+        Returns:
+            List[Trait]: The list of traits.
+        """
         self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved traits for {self.experiment_name} from the database",
-        )
         return self.traits
     
     
-    def get_resources(self) -> List[Resource]:
-        self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved resources for {self.experiment_name} from the database",
-        )
-        return self.resources
-    
-    
     def get_sites(self) -> List[Site]:
+        """
+        Retrieves the sites associated with the experiment.
+
+        Returns:
+            List[Site]: The list of sites.
+        """
         self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved sites for {self.experiment_name} from the database",
-        )
         return self.sites
     
     
     def get_seasons(self) -> List[Season]:
+        """
+        Retrieves the seasons associated with the experiment.
+
+        Returns:
+            List[Season]: The list of seasons.
+        """
         self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved seasons for {self.experiment_name} from the database",
-        )
         return self.seasons
     
     
     def get_cultivars(self) -> List[Cultivar]:
+        """
+        Retrieves the cultivars associated with the experiment.
+
+        Returns:
+            List[Cultivar]: The list of cultivars.
+        """
         self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved cultivars for {self.experiment_name} from the database",
-        )
         return self.cultivars
     
     
     def get_datasets(self) -> List[Dataset]:
+        """
+        Retrieves the datasets associated with the experiment.
+
+        Returns:
+            List[Dataset]: The list of datasets.
+        """
         self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved datasets for {self.experiment_name} from the database",
-        )
         return self.datasets
     
-    
-    def get_scripts(self) -> List[Script]:
-        self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved scripts for {self.experiment_name} from the database",
-        )
-        return self.scripts
-    
-    
-    def get_procedures(self) -> List[Procedure]:
-        self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved procedures for {self.experiment_name} from the database",
-        )
-        return self.procedures
-    
-    
-    def get_models(self) -> List[Model]:
-        self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved models for {self.experiment_name} from the database",
-        )
-        return self.models
-    
+
     
     
 

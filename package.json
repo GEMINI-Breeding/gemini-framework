@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "clsx": "^2.1.1",
-    "mantine-datatable": "^7.11.2"
-  }
-}

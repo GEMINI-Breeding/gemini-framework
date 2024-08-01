@@ -1,8 +1,6 @@
-from typing import Optional, List, Any
+from typing import Optional, List
 from gemini.api.base import APIBase, ID
-from gemini.api.enums import GEMINISensorType
-from gemini.models import SensorTypeModel, SensorModel
-from gemini.logger import logger_service
+from gemini.server.database.models import SensorTypeModel
 
 from pydantic import Field, AliasChoices
 
@@ -35,10 +33,6 @@ class SensorType(APIBase):
             sensor_type_name=sensor_type_name,
             sensor_type_info=sensor_type_info,
         )
-        logger_service.info(
-            "API",
-            f"Created a new sensor type with name {new_instance.sensor_type_name} in the database",
-        )
         new_instance = cls.model_validate(new_instance)
         return new_instance
     
@@ -65,10 +59,6 @@ class SensorType(APIBase):
         dict: The information about the sensor type
         """
         self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved information about {self.sensor_type_name} from the database",
-        )
         return self.sensor_type_info
     
     def set_info(self, sensor_type_info: Optional[dict] = None) -> "SensorType":
@@ -82,10 +72,6 @@ class SensorType(APIBase):
         SensorType: The sensor type with the updated information
         """
         self.update(sensor_type_info=sensor_type_info)
-        logger_service.info(
-            "API",
-            f"Updated information about {self.sensor_type_name} in the database",
-        )
         return self
     
     def add_info(self, sensor_type_info: Optional[dict] = None) -> "SensorType":
@@ -101,10 +87,6 @@ class SensorType(APIBase):
         current_info = self.get_info()
         updated_info = {**current_info, **sensor_type_info}
         self.set_info(updated_info)
-        logger_service.info(
-            "API",
-            f"Added information to {self.sensor_type_name} in the database",
-        )
         return self
     
     @classmethod
@@ -125,10 +107,6 @@ class SensorType(APIBase):
             if key not in keys_to_remove
         }
         cls.set_info(updated_info)
-        logger_service.info(
-            "API",
-            f"Removed information from {cls.sensor_type_name} in the database",
-        )
         return cls
 
 

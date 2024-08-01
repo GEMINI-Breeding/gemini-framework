@@ -7,9 +7,8 @@ from gemini.api.data_format import DataFormat
 from gemini.api.dataset import Dataset
 from gemini.api.sensor_platform import SensorPlatform
 from gemini.api.sensor_record import SensorRecord
-from gemini.models import SensorModel, ExperimentModel, SensorPlatformModel, DatasetModel
-from gemini.models import ExperimentSensorsViewModel
-from gemini.logger import logger_service
+from gemini.server.database.models import SensorModel, ExperimentModel, SensorPlatformModel, DatasetModel
+from gemini.server.database.models import ExperimentSensorsViewModel
 from gemini.api.enums import GEMINIDataFormat, GEMINIDataType, GEMINISensorType
 
 from uuid import UUID
@@ -63,59 +62,47 @@ class Sensor(APIBase):
             db_experiment.save()
 
         instance = cls.model_validate(db_instance)
-        logger_service.info(
-            "API",
-            f"Created a new instance of {cls.__name__} with id {instance.id}",
-        )
         return instance
     
     @classmethod
     def get(cls, sensor_name: str) -> "Sensor":
         db_instance = cls.db_model.get_by_parameters(sensor_name=sensor_name)
-        logger_service.info("API", f"Retrieved sensor with name {sensor_name} from the database")
         return cls.model_validate(db_instance) if db_instance else None
     
     @classmethod
     def get_by_experiment(cls, experiment_name: str) -> List["Sensor"]:
         db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
         db_sensors = db_experiment.sensors
-        logger_service.info("API", f"Retrieved sensors for experiment {experiment_name} from the database")
         return [cls.model_validate(db_sensor) for db_sensor in db_sensors] if db_sensors else None
     
     @classmethod
     def get_by_type(cls, sensor_type: GEMINISensorType) -> List["Sensor"]:
         db_sensors = SensorModel.search(sensor_type_id=sensor_type.value)
-        logger_service.info("API", f"Retrieved sensors of type {sensor_type.name} from the database")
         return [cls.model_validate(db_sensor) for db_sensor in db_sensors] if db_sensors else None
     
     def get_by_platform(cls, sensor_platform_name: str) -> List["Sensor"]:
         db_sensor_platform = SensorPlatformModel.get_by_parameters(sensor_platform_name=sensor_platform_name)
         db_sensors = SensorModel.get_by_parameters(sensor_platform_id=db_sensor_platform.id)
-        logger_service.info("API", f"Retrieved sensors for platform {sensor_platform_name} from the database")
         return [cls.model_validate(db_sensor) for db_sensor in db_sensors] if db_sensors else None
     
     def get_info(self) -> dict:
         self.refresh()
-        logger_service.info("API", f"Retrieved information about {self.sensor_name} from the database")
         return self.sensor_info
     
     def set_info(self, sensor_info: Optional[dict] = None) -> "Sensor":
         self.update(sensor_info=sensor_info)
-        logger_service.info("API", f"Set information about {self.sensor_name} in the database")
         return self
     
     def add_info(self, sensor_info: Optional[dict] = None) -> "Sensor":
         current_info = self.get_info()
         updated_info = {**current_info, **sensor_info}
         self.set_info(updated_info)
-        logger_service.info("API", f"Added information to {self.sensor_name} in the database")
         return self
     
     def remove_info(self, keys_to_remove: List[str]) -> "Sensor":
         current_info = self.get_info()
         updated_info = {k: v for k, v in current_info.items() if k not in keys_to_remove}
         self.set_info(updated_info)
-        logger_service.info("API", f"Removed information from {self.sensor_name} in the database")
         return self
     
     @classmethod
@@ -138,24 +125,19 @@ class Sensor(APIBase):
             **search_parameters
         )
         db_sensors = [cls.model_validate(db_sensor) for db_sensor in db_sensors]
-        logger_service.info("API", f"Retrieved {len(db_sensors)} sensors from the database")
         return db_sensors if db_sensors else None    
-    
     
     def get_platform(self) -> SensorPlatform:
         self.refresh()
-        logger_service.info("API", f"Retrieved platform for {self.sensor_name} from the database")
         return self.sensor_platform
     
     def set_platform(self, sensor_platform_name: str) -> SensorPlatform:
         db_sensor_platform = SensorPlatformModel.get_by_parameters(sensor_platform_name=sensor_platform_name)
         self.update(sensor_platform_id=db_sensor_platform.id)
-        logger_service.info("API", f"Set platform for {self.sensor_name} to {sensor_platform_name}")
         return self.sensor_platform
     
     def get_datasets(self) -> List[Dataset]:
         self.refresh()
-        logger_service.info("API", f"Retrieved datasets for {self.sensor_name} from the database")
         return self.datasets
     
     # Todo: Data Handling
@@ -211,16 +193,10 @@ class Sensor(APIBase):
         records = SensorRecord.add([record])
         records = list(records)
         if len(records) == 0 or not records:
-            logger_service.error("API", f"Failed to add record to {self.sensor_name}")
             return None
         return records[0]
 
-        # record_id = list(SensorRecord.add([record]))
-        # if len(record_id) == 0 or not record_id:
-        #     logger_service.error("API", f"Failed to add record to {self.sensor_name}")
-        #     return None
-        # return SensorRecord.get(record_id[0])
-    
+
     def add_records(
         self,
         sensor_data: List[dict],
@@ -233,8 +209,7 @@ class Sensor(APIBase):
         plot_numbers: List[int] = None,
         plot_row_numbers: List[int] = None,
         plot_column_numbers: List[int] = None,
-        record_info: List[dict] = None,
-        stream_results: bool = False
+        record_info: List[dict] = None
     ) -> List[SensorRecord]:
         
         if timestamps is None:
@@ -269,6 +244,8 @@ class Sensor(APIBase):
                 "plot_column_number": plot_column_numbers[i] if plot_column_numbers else None,
             }
 
+            info = {k: v for k, v in info.items() if v is not None}
+
             if record_info and record_info[i]:
                 info.update(record_info[i])
         
@@ -283,10 +260,7 @@ class Sensor(APIBase):
 
             records.append(record)
 
-        logger_service.info("API", f"Adding records to {self.sensor_name}")
-        records = SensorRecord.add(records)
-        if stream_results:
-            return records
+        SensorRecord.add(records)
         return list(records)
 
 

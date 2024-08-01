@@ -6,10 +6,8 @@ from gemini.api.experiment import Experiment
 from gemini.api.season import Season
 from gemini.api.site import Site
 from gemini.api.cultivar import Cultivar
-from gemini.api.plant import Plant
-from gemini.models import PlotModel, PlotViewModel, PlotCultivarViewModel
-from gemini.models import ExperimentModel, SiteModel, SeasonModel, CultivarModel
-from gemini.logger import logger_service
+from gemini.server.database.models import PlotModel, PlotViewModel, PlotCultivarViewModel
+from gemini.server.database.models import ExperimentModel, SiteModel, SeasonModel, CultivarModel
 
 
 from uuid import UUID
@@ -37,7 +35,6 @@ class Plot(APIBase):
     season: Optional[Season] = None
     site: Optional[Site] = None
     cultivars: Optional[List[Cultivar]] = None
-    plants: Optional[List[Plant]] = None
 
     experiment_name: Optional[str] = None
     season_name: Optional[str] = None
@@ -57,6 +54,24 @@ class Plot(APIBase):
         cultivar_accession: str = 'Default',
         cultivar_population: str = 'Default',
     ):
+        """
+        Create a new plot instance.
+
+        Args:
+            experiment_name (str, optional): Name of the experiment. Defaults to 'Default'.
+            season_name (str, optional): Name of the season. Defaults to 'Default'.
+            site_name (str, optional): Name of the site. Defaults to 'Default'.
+            plot_number (int, optional): Plot number. Defaults to -1.
+            plot_row_number (int, optional): Plot row number. Defaults to -1.
+            plot_column_number (int, optional): Plot column number. Defaults to -1.
+            plot_geometry_info (dict, optional): Plot geometry information. Defaults to {}.
+            plot_info (dict, optional): Plot information. Defaults to {}.
+            cultivar_accession (str, optional): Cultivar accession. Defaults to 'Default'.
+            cultivar_population (str, optional): Cultivar population. Defaults to 'Default'.
+
+        Returns:
+            Plot: The newly created plot instance.
+        """
         experiment = ExperimentModel.get_or_create(experiment_name=experiment_name) 
         season = SeasonModel.get_or_create(experiment_id=experiment.id, season_name=season_name)
         site = SiteModel.get_or_create(site_name=site_name)
@@ -81,11 +96,6 @@ class Plot(APIBase):
             new_instance.cultivars.append(cultivar)
             new_instance.save()
 
-        logger_service.info(
-            "API",
-            f"Created a new plot with number {new_instance.plot_number} in the database",
-        )
-
         new_instance = cls.model_validate(new_instance)
         return new_instance
     
@@ -99,6 +109,20 @@ class Plot(APIBase):
         season_name: str = None,
         site_name: str = None
     ):
+        """
+        Get a plot instance by its parameters.
+
+        Args:
+            plot_number (int): Plot number.
+            plot_row_number (int, optional): Plot row number. Defaults to None.
+            plot_column_number (int, optional): Plot column number. Defaults to None.
+            experiment_name (str, optional): Name of the experiment. Defaults to None.
+            season_name (str, optional): Name of the season. Defaults to None.
+            site_name (str, optional): Name of the site. Defaults to None.
+
+        Returns:
+            Plot: The plot instance matching the given parameters.
+        """
         experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
         season = SeasonModel.get_by_parameters(experiment_id=experiment.id, season_name=season_name)
         site = SiteModel.get_by_parameters(site_name=site_name)
@@ -121,6 +145,17 @@ class Plot(APIBase):
         season_name: str = None,
         site_name: str = None
     ):
+        """
+        Get all plots for a specific experiment, season, and site.
+
+        Args:
+            experiment_name (str): Name of the experiment.
+            season_name (str, optional): Name of the season. Defaults to None.
+            site_name (str, optional): Name of the site. Defaults to None.
+
+        Returns:
+            List[Plot]: List of plot instances matching the given parameters.
+        """
         experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
         season = SeasonModel.get_by_parameters(experiment_id=experiment.id, season_name=season_name)
         site = SiteModel.get_by_parameters(site_name=site_name)
@@ -140,6 +175,16 @@ class Plot(APIBase):
         cultivar_population: str,
         cultivar_accession: str
     ):
+        """
+        Get all plots for a specific cultivar.
+
+        Args:
+            cultivar_population (str): Cultivar population.
+            cultivar_accession (str): Cultivar accession.
+
+        Returns:
+            List[Plot]: List of plot instances for the given cultivar.
+        """
         cultivar = CultivarModel.get_by_parameters(
             cultivar_population=cultivar_population,
             cultivar_accession=cultivar_accession
@@ -152,103 +197,136 @@ class Plot(APIBase):
     
     
     def get_info(self) -> dict:
+        """
+        Get the plot information.
+
+        Returns:
+            dict: The plot information.
+        """
         self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved information about plot {self.plot_number} from the database",
-        )
         return self.plot_info
     
     def set_info(self, plot_info: Optional[dict] = None) -> "Plot":
+        """
+        Set the plot information.
+
+        Args:
+            plot_info (dict, optional): The plot information. Defaults to None.
+
+        Returns:
+            Plot: The updated plot instance.
+        """
         self.update(plot_info=plot_info)
-        logger_service.info(
-            "API",
-            f"Set information about plot {self.plot_number} in the database",
-        )
         return self
     
     def add_info(self, plot_info: Optional[dict] = None) -> "Plot":
+        """
+        Add additional information to the plot.
+
+        Args:
+            plot_info (dict, optional): Additional plot information. Defaults to None.
+
+        Returns:
+            Plot: The updated plot instance.
+        """
         current_info = self.get_info()
         updated_info = {**current_info, **plot_info}
         self.set_info(updated_info)
-        logger_service.info(
-            "API",
-            f"Added information to plot {self.plot_number} in the database",
-        )
         return self
     
     def remove_info(self, keys_to_remove: List[str]) -> "Plot":
+        """
+        Remove specific keys from the plot information.
+
+        Args:
+            keys_to_remove (List[str]): List of keys to remove from the plot information.
+
+        Returns:
+            Plot: The updated plot instance.
+        """
         current_info = self.get_info()
         updated_info = {k: v for k, v in current_info.items() if k not in keys_to_remove}
         self.set_info(updated_info)
-        logger_service.info(
-            "API",
-            f"Removed information from plot {self.plot_number} in the database",
-        )
         return self
     
 
     def get_geometry_info(self) -> dict:
+        """
+        Get the plot geometry information.
+
+        Returns:
+            dict: The plot geometry information.
+        """
         self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved geometry information about plot {self.plot_number} from the database",
-        )
         return self.plot_geometry_info
     
     def set_geometry_info(self, plot_geometry_info: Optional[dict] = None) -> "Plot":
+        """
+        Set the plot geometry information.
+
+        Args:
+            plot_geometry_info (dict, optional): The plot geometry information. Defaults to None.
+
+        Returns:
+            Plot: The updated plot instance.
+        """
         self.update(plot_geometry_info=plot_geometry_info)
-        logger_service.info(
-            "API",
-            f"Set geometry information about plot {self.plot_number} in the database",
-        )
         return self
     
     def get_experiment(self) -> Experiment:
+        """
+        Get the experiment associated with the plot.
+
+        Returns:
+            Experiment: The experiment instance.
+        """
         self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved experiment of plot {self.plot_number} from the database",
-        )
         return self.experiment
     
     def get_season(self) -> Season:
+        """
+        Get the season associated with the plot.
+
+        Returns:
+            Season: The season instance.
+        """
         self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved season of plot {self.plot_number} from the database",
-        )
         return self.season
     
     def get_site(self) -> Site:
+        """
+        Get the site associated with the plot.
+
+        Returns:
+            Site: The site instance.
+        """
         self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved site of plot {self.plot_number} from the database",
-        )
         return self.site
     
     def get_cultivars(self) -> List[Cultivar]:
+        """
+        Get the cultivars associated with the plot.
+
+        Returns:
+            List[Cultivar]: List of cultivar instances.
+        """
         self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved cultivars of plot {self.plot_number} from the database",
-        )
         return self.cultivars
-    
-    def get_plants(self) -> List[Plant]:
-        self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved plants of plot {self.plot_number} from the database",
-        )
-        return self.plants
+
     
     @classmethod
     def search(cls, search_parameters: PlotSearchParameters) -> Generator["Plot", None, None]:
+        """
+        Search for plots based on the given search parameters.
+
+        Args:
+            search_parameters (PlotSearchParameters): The search parameters.
+
+        Yields:
+            Plot: The plot instances matching the search parameters.
+        """
         plots = PlotViewModel.stream(**search_parameters.model_dump())
         for plot in plots:
             plot = cls.model_validate(plot)
             yield plot
-
 

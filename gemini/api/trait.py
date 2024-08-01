@@ -4,9 +4,8 @@ from gemini.api.trait_level import TraitLevel
 from gemini.api.trait_record import TraitRecord
 from gemini.api.dataset import Dataset
 from gemini.api.enums import GEMINITraitLevel
-from gemini.models import TraitModel, ExperimentModel, TraitLevelModel, DatasetModel
-from gemini.models import ExperimentTraitsViewModel
-from gemini.logger import logger_service
+from gemini.server.database.models import TraitModel, ExperimentModel, TraitLevelModel, DatasetModel
+from gemini.server.database.models import ExperimentTraitsViewModel
 
 from datetime import datetime, date
 from rich.progress import track
@@ -52,10 +51,6 @@ class Trait(APIBase):
             db_experiment.save()
 
         instance = cls.model_validate(db_instance)
-        logger_service.info(
-            "API",
-            f"Created a new trait with name {instance.trait_name} in the database",
-        )
         return instance
     
     @classmethod
@@ -63,19 +58,11 @@ class Trait(APIBase):
         db_trait_level = TraitLevelModel.get_by_parameters(trait_level_name=trait_level.name)
         db_traits = cls.db_model.search(trait_level_id=db_trait_level.id)
         traits = [cls.model_validate(trait) for trait in db_traits]
-        logger_service.info(
-            "API",
-            f"Retrieved traits of level {trait_level.name} from the database",
-        )
         return traits
     
     @classmethod
     def get(cls, trait_name: str) -> "Trait":
         db_instance = cls.db_model.get_by_parameters(trait_name=trait_name)
-        logger_service.info(
-            "API",
-            f"Retrieved trait with name {trait_name} from the database",
-        )
         return cls.model_validate(db_instance) if db_instance else None
     
     @classmethod
@@ -83,10 +70,6 @@ class Trait(APIBase):
         db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
         db_traits = db_experiment.traits
         traits = [cls.model_validate(db_trait) for db_trait in db_traits]
-        logger_service.info(
-            "API",
-            f"Retrieved traits for experiment {experiment_name} from the database",
-        )
         return traits
     
     @classmethod
@@ -100,36 +83,20 @@ class Trait(APIBase):
             **search_parameters
         )
         traits = [cls.model_validate(trait) for trait in traits]
-        logger_service.info(
-            "API",
-            f"Retrieved traits for experiment {experiment_name} from the database",
-        )
         return traits
 
     
     def get_level(self) -> TraitLevel:
         self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved level of {self.trait_name} from the database",
-        )
         return self.trait_level
     
     def set_level(self, trait_level: GEMINITraitLevel) -> "Trait":
         db_trait_level = TraitLevelModel.get_by_parameters(trait_level_name=trait_level.name)
         self.update(trait_level_id=db_trait_level.id)
-        logger_service.info(
-            "API",
-            f"Set level of {self.trait_name} in the database",
-        )
         return self
     
     def get_datasets(self) -> List[Dataset]:
         self.refresh()
-        logger_service.info(
-            "API",
-            f"Retrieved datasets of {self.trait_name} from the database",
-        )
         return self.datasets
     
     # Todo: Data Handling
@@ -183,7 +150,6 @@ class Trait(APIBase):
 
         record_id = TraitRecord.add([record])
         if len(record_id) == 0 or not record_id:
-            logger_service.error("API", "Failed to add record to the database")
             return None
         
         return TraitRecord.get(record_id[0])
@@ -251,10 +217,7 @@ class Trait(APIBase):
             )
             records.append(record)
 
-        logger_service.info(
-            "API",
-            f"Adding records to {self.trait_name} in the database",
-        )
+
         records = TraitRecord.add(records)
         if stream_results:
             return records
@@ -289,11 +252,6 @@ class Trait(APIBase):
             trait_name=self.trait_name,
             collection_date=collection_date,
             record_info=record_info
-        )
-
-        logger_service.info(
-            "API",
-            f"Retrieved records of {self.trait_name} from the database",
         )
 
         return records

@@ -1,11 +1,8 @@
-from typing import Optional, List, Any, Generator
+from typing import Optional, List, Generator
 from gemini.api.base import APIBase, ID
-from gemini.models import TraitRecordModel, TraitModel, DatasetModel, TraitRecordsIMMVModel
-from gemini.logger import logger_service
+from gemini.server.database.models import TraitRecordModel, TraitModel, DatasetModel, TraitRecordsIMMVModel
 
 from datetime import datetime, date
-from uuid import UUID
-
 
 class TraitRecord(APIBase):
 
@@ -30,38 +27,28 @@ class TraitRecord(APIBase):
         return record
 
     @classmethod
-    def add(cls, records: List['TraitRecord']) -> Generator['TraitRecord', None, None]:
+    def add(cls, records: List['TraitRecord']) -> bool:
         try:
             records_to_insert = []
             dataset_id = DatasetModel.get_by_parameters(dataset_name=records[0].dataset_name).id
             trait_id = TraitModel.get_or_create(trait_name=records[0].trait_name).id
             for record in records:
-                record_to_add = {}
-                record_to_add['timestamp'] = record.timestamp
-                record_to_add['collection_date'] = record.collection_date
-                record_to_add['dataset_id'] = dataset_id
-                record_to_add['dataset_name'] = record.dataset_name
-                record_to_add['trait_id'] = trait_id
-                record_to_add['trait_name'] = record.trait_name
-                record_to_add['trait_value'] = record.trait_value
-                record_to_add['record_info'] = record.record_info
+                record_to_add = {
+                    'timestamp': record.timestamp,
+                    'collection_date': record.collection_date,
+                    'dataset_id': dataset_id,
+                    'dataset_name': record.dataset_name,
+                    'trait_id': trait_id,
+                    'trait_name': record.trait_name,
+                    'trait_value': record.trait_value,
+                    'record_info': record.record_info
+                }
                 records_to_insert.append(record_to_add)
-            
-            inserted_record_ids = cls.db_model.insert_bulk("trait_records_unique", records_to_insert)
-            if inserted_record_ids is None:
-                raise ValueError("Failed to insert records")
-            elif inserted_record_ids == []:
-                return []
-            
-            for record_id in inserted_record_ids:
-                record = cls.get(record_id)
-                yield record
 
+            cls.db_model.insert_bulk("trait_records_unique", records_to_insert)
+            return True
         except Exception as e:
-            logger_service.error(
-                "API",
-                f"Failed to add trait records to the database",
-            )
+            print("Failed to add trait records to the database")
             return False
         
     @classmethod 
@@ -71,38 +58,26 @@ class TraitRecord(APIBase):
     
     def get_info(self) -> dict:
         self.refresh()
-        logger_service.info(
-            "API",
-            f"Getting information of the record with id {self.id}",
-        )
+        print(f"Getting information of the record with id {self.id}")
         return self.record_info
 
     def set_info(self, record_info: dict) -> 'TraitRecord':
         self.update(record_info=record_info)
-        logger_service.info(
-            "API",
-            f"Set information of the record with id {self.id}",
-        )
+        print(f"Set information of the record with id {self.id}")
         return self
     
     def add_info(self, record_info: dict) -> 'TraitRecord':
         current_info = self.get_info()
         updated_info = {**current_info, **record_info}
         self.set_info(updated_info)
-        logger_service.info(
-            "API",
-            f"Added information to the record with id {self.id}",
-        )
+        print(f"Added information to the record with id {self.id}")
         return self
     
     def remove_info(self, keys_to_remove: List[str]) -> 'TraitRecord':
         current_info = self.get_info()
         updated_info = {key: value for key, value in current_info.items() if key not in keys_to_remove}
         self.set_info(updated_info)
-        logger_service.info(
-            "API",
-            f"Removed information from the record with id {self.id}",
-        )
+        print(f"Removed information from the record with id {self.id}")
         return self
     
     @classmethod
