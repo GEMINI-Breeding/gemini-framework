@@ -29,7 +29,7 @@ class MinioFileHandler:
             self.minio_client.make_bucket(self.bucket_name)
 
 
-    def file_exists(self, object_name: str, file_hash: str = None) -> bool:
+    def file_exists(self, object_name: str, bucket_name:str = None, file_hash: str = None) -> bool:
         """
         Checks if a file exists with the given name and optionally with the specified hash.
 
@@ -41,6 +41,8 @@ class MinioFileHandler:
             bool: True if the file exists (and hash matches if provided), False otherwise.
         """
         try:
+            if not bucket_name:
+                bucket_name = self.bucket_name
             obj = self.minio_client.stat_object(self.bucket_name, object_name)
             if file_hash:
                 return obj.etag == file_hash
@@ -50,7 +52,7 @@ class MinioFileHandler:
                 return False
             raise  # Re-raise other exceptions
 
-    def upload_file(self, object_name: str, data_stream: BinaryIO, metadata: dict = None) -> str:
+    def upload_file(self, object_name: str, data_stream: BinaryIO, bucket_name:str = None, metadata: dict = None) -> str:
         """
         Uploads a file from a stream and returns the object URL.
 
@@ -63,7 +65,8 @@ class MinioFileHandler:
             str: The presigned URL of the uploaded object.
         """
 
-
+        if not bucket_name:
+            bucket_name = self.bucket_name
 
         file_hash = self.calculate_hash(data_stream)
 
@@ -90,7 +93,7 @@ class MinioFileHandler:
 
         return self.minio_client.presigned_get_object(self.bucket_name, object_name)
 
-    def download_file(self, object_name: str, destination_file_path: str) -> str:
+    def download_file(self, object_name: str, destination_file_path: str, bucket_name:str = None) -> str:
         """
         Downloads a file to a stream and returns the stream object.
 
@@ -100,15 +103,17 @@ class MinioFileHandler:
         Returns:
             BytesIO: The BytesIO stream containing the downloaded file data.
         """
+        if not bucket_name:
+            bucket_name = self.bucket_name
         response = self.minio_client.get_object(self.bucket_name, object_name)
         with open(destination_file_path, "wb") as file:
             for chunk in response.stream(32 * 1024):
                 file.write(chunk)
         response.close()
         response.release_conn()
-        return file_path
+        return destination_file_path
     
-    def get_download_url(self, object_name: str) -> str:
+    def get_download_url(self, object_name: str, bucket_name: str = None) -> str:
         """
         Generates a presigned URL to download a file.
 
@@ -118,9 +123,26 @@ class MinioFileHandler:
         Returns:
             str: The presigned URL to download the object.
         """
-        return self.minio_client.presigned_get_object(self.bucket_name, object_name)
+        if not bucket_name:
+            bucket_name = self.bucket_name
+        return self.minio_client.presigned_get_object(bucket_name=bucket_name, object_name=object_name)
     
-    def stream_file(self, object_name: str, chunk_size: int = 1024 * 1024) -> Generator[bytes, None, None]:
+    def get_upload_url(self, object_name: str, bucket_name: str = None) -> str:
+        """
+        Generates a presigned URL to upload a file.
+
+        Args:
+            object_name (str): Name of the object in the bucket.
+
+        Returns:
+            str: The presigned URL to upload the object.
+        """
+        if not bucket_name:
+            bucket_name = self.bucket_name
+        return self.minio_client.presigned_put_object(bucket_name=bucket_name, object_name=object_name)
+
+
+    def stream_file(self, object_name: str, bucket_name: str = None, chunk_size: int = 1024 * 1024) -> Generator[bytes, None, None]:
         """
         Streams a file from MinIO in chunks, yielding bytes.
 
@@ -131,13 +153,18 @@ class MinioFileHandler:
         Yields:
             bytes: A chunk of the file data.
         """
-        response = self.minio_client.get_object(self.bucket_name, object_name)
+        if not bucket_name:
+            bucket_name = self.bucket_name
+        response = self.minio_client.get_object(
+            bucket_name=bucket_name,
+            object_name=object_name
+        )
         for chunk in response.stream(chunk_size):
             yield chunk
         response.close()
         response.release_conn()
 
-    def stream_lines(self, object_name: str, chunk_size: int = 1024 * 1024) -> Generator[str, None, None]:
+    def stream_lines(self, object_name: str, bucket_name:str = None, chunk_size: int = 1024 * 1024) -> Generator[str, None, None]:
         """
         Streams a file from MinIO line by line, yielding strings.
 
@@ -148,6 +175,8 @@ class MinioFileHandler:
         Yields:
             str: A line of the file data.
         """
+        if not bucket_name:
+            bucket_name = self.bucket_name
         response = self.minio_client.get_object(self.bucket_name, object_name)
         buffer = ""
         for chunk in response.stream(chunk_size):
@@ -160,16 +189,18 @@ class MinioFileHandler:
         response.close()
         response.release_conn()
 
-    def delete_file(self, object_name: str) -> None:
+    def delete_file(self, object_name: str, bucket_name: str = None) -> None:
         """
         Deletes a file from the bucket.
 
         Args:
             object_name (str): Name of the object to delete.
         """
+        if not bucket_name:
+            bucket_name = self.bucket_name
         self.minio_client.remove_object(self.bucket_name, object_name)
 
-    def list_files(self, prefix: str = None) -> list[str]:
+    def list_files(self, prefix: str = None, bucket_name: str = None) -> list[str]:
         """
         Lists files in the bucket, optionally filtered by a prefix.
 
@@ -179,6 +210,8 @@ class MinioFileHandler:
         Returns:
             list[str]: A list of object names.
         """
+        if not bucket_name:
+            bucket_name = self.bucket_name
         objects = self.minio_client.list_objects(self.bucket_name, prefix=prefix, recursive=True)
         return [obj.object_name for obj in objects]
     
@@ -240,18 +273,5 @@ class MinioFileHandler:
 
 
 
-if __name__ == "__main__":
-    file_handler = MinioFileHandler()
-    
-    file_to_upload = "sample.txt"
-    file_path = os.path.join(os.path.dirname(__file__), file_to_upload)
-    object_name = "sample.txt"
-
-    with open(file_path, "rb") as file:
-        file_handler.upload_file(object_name, file)
-
-    # Stream Lines
-    for line in file_handler.stream_lines(object_name):
-        print(line)
 
 

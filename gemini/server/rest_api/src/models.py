@@ -38,6 +38,13 @@ class PaginatedResponseBase(RESTAPIBase):
     previous_page: Optional[str] = None
 
 # --------------------------------
+# File Handling
+# --------------------------------
+
+class URLResponse(RESTAPIBase):
+    url: str
+
+# --------------------------------
 # Experiment Classes
 # --------------------------------
 class ExperimentBase(RESTAPIBase):

@@ -1,4 +1,4 @@
-const isLocal = process.env.GEMINI_IS_LOCAL === 'True';
+const isLocal = process.env.GEMINI_LOCAL == 'true';
 
 const apiConfig = {
     host: isLocal ? '127.0.0.1' : process.env.REST_API_HOSTNAME,

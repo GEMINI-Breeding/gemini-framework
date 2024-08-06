@@ -1,17 +1,17 @@
-import {Container, Text, Stack} from "@mantine/core";
+import { Container, Text, Stack, Center } from "@mantine/core";
 
 interface CenterMessageProps {
-    message: string;
-};
+  message: string;
+}
 
-export default function CenterMessage({message}: CenterMessageProps) {
-    return (
-        <Container fluid>
-            <Stack justify="center" align="center">
-                <Text ta="center" fw={600} size="xl" style={{fontSize:30}}>
-                    {message}
-                </Text>
-            </Stack>
-        </Container>
-    );
+export default function CenterMessage({ message }: CenterMessageProps) {
+  return (
+    <Container fluid>
+      <Stack justify="center" align="center">
+        <Text ta="center" fw={600} size="xl" style={{ fontSize: 30 }}>
+          <Center>{message}</Center>
+        </Text>
+      </Stack>
+    </Container>
+  );
 }

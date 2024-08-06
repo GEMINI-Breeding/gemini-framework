@@ -1,9 +1,10 @@
 import { Button, Badge, Paper, Group, Text} from "@mantine/core";
 import { GEMINIDataFormats, GEMINIDataTypes, GEMINISensorTypes } from "@/api/enums";
 import { Link } from "react-router-dom";
+import { Sensor } from "@/api/types";
 
 interface SensorCardProps {
-    sensor: any;
+    sensor: Sensor;
 }
 
 export default function SensorCard({ sensor }: SensorCardProps) {
