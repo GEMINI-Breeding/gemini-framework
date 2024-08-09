@@ -41,7 +41,6 @@ async function getExperiments(params?: object): Promise<Experiment[]> {
 // Create Experiment
 async function createExperiment(params?: object): Promise<Experiment> {
   try {
-    debugger;
     const response = await fetch(`${apiConfig.baseURL}/experiments`, {
       method: "POST",
       headers: {

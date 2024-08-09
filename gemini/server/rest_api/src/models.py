@@ -50,8 +50,8 @@ class URLResponse(RESTAPIBase):
 class ExperimentBase(RESTAPIBase):
     experiment_name: str
     experiment_info: Optional[JSONB] = None
-    experiment_start_date: Optional[date] = None
-    experiment_end_date: Optional[date] = None
+    experiment_start_date: Optional[datetime] = None
+    experiment_end_date: Optional[datetime] = None
 
 class ExperimentInput(ExperimentBase):
     pass
@@ -69,8 +69,8 @@ class ExperimentOutput(ExperimentBase):
 class SeasonBase(RESTAPIBase):
     season_name: str
     season_info: Optional[JSONB] = None
-    season_start_date: Optional[date] = None
-    season_end_date: Optional[date] = None
+    season_start_date: Optional[datetime] = None
+    season_end_date: Optional[datetime] = None
 
 class SeasonInput(SeasonBase):
     experiment_name: str = 'Default'
@@ -301,7 +301,7 @@ class ScriptOutput(ScriptBase):
 # --------------------------------
 class DatasetBase(RESTAPIBase):
     dataset_name: str
-    collection_date: Optional[date] = None
+    collection_date: Optional[datetime] = None
     dataset_info: Optional[JSONB] = None
     dataset_type_id: Optional[ID] = None
 
@@ -321,7 +321,7 @@ class DatasetOutput(DatasetBase):
 
 class RecordBase(RESTAPIBase):
     timestamp: datetime
-    collection_date: Optional[date] = None
+    collection_date: Optional[datetime] = None
     record_info: Optional[JSONB] = None
     
 class RecordInput(RecordBase):
@@ -334,7 +334,7 @@ class RecordInput(RecordBase):
     
 class RecordSearch(RecordBase):
     timestamp: Optional[datetime] = None
-    collection_date: Optional[date] = None
+    collection_date: Optional[datetime] = None
     experiment_name: Optional[str] = None
     season_name: Optional[str] = None
     site_name: Optional[str] = None
