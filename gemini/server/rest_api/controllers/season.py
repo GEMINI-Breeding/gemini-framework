@@ -1,13 +1,14 @@
 from litestar.controller import Controller
 from litestar import Response
-from litestar.handlers import get, patch
-
+from litestar.handlers import get, patch, post
+from litestar.params import Body
 from datetime import date
 
 from gemini.api.experiment import Experiment
 from gemini.api.season import Season
 from gemini.server.rest_api.src.models import (
     SeasonOutput,
+    SeasonInput
 )
 
 from typing import List, Annotated, Optional
@@ -41,7 +42,28 @@ class SeasonController(Controller):
             return seasons
         except Exception as e:
             return Response(content=str(e), status_code=500)
-        
+    
+    # Create Season
+    @post()
+    async def create_season(
+        self,
+        data: Annotated[SeasonInput, Body]
+    ) -> SeasonOutput:
+        try:
+            experiment = Experiment.get(experiment_name=data.experiment_name)
+            season = Season.create(
+                season_name=data.season_name,
+                season_info=data.season_info,
+                season_start_date=data.season_start_date,
+                season_end_date=data.season_end_date,
+                experiment_name=experiment.experiment_name
+            )
+            return SeasonOutput.model_validate(season.model_dump())
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+
+
+
     # Get Season by ID
     @get(path="/id/{season_id:str}")
     async def get_season_by_id(

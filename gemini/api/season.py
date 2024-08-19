@@ -43,6 +43,26 @@ class Season(APIBase):
     experiment_id: Optional[Union[str, UUID]] = None
 
     @classmethod
+    def create(
+        cls,
+        season_name: str = 'Default',
+        season_info: Optional[dict] = None,
+        season_start_date: Optional[date] = None,
+        season_end_date: Optional[date] = None,
+        experiment_name: str = 'Default'
+    ):
+        db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+        db_instance = SeasonModel.create(
+            season_name=season_name,
+            season_info=season_info,
+            season_start_date=season_start_date,
+            season_end_date=season_end_date,
+            experiment_id=db_experiment.id
+        )
+        return cls.model_validate(db_instance)
+    
+
+    @classmethod
     def get(cls, experiment_name: str, season_name: str) -> "Season":
         """
         Retrieves a season by its experiment name and season name.
