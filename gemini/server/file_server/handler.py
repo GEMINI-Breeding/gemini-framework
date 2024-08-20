@@ -1,6 +1,7 @@
 import hashlib, os
 import mimetypes
 from minio import Minio
+from minio.datatypes import Object
 from minio.error import S3Error
 from typing import Generator, BinaryIO
 
@@ -28,6 +29,26 @@ class MinioFileHandler:
         if not self.minio_client.bucket_exists(self.bucket_name):
             self.minio_client.make_bucket(self.bucket_name)
 
+
+
+    def get_file_info(self, object_name: str, bucket_name: str = None) -> Object:
+        """
+        Retrieves the metadata of a file.
+
+        Args:
+            object_name (str): Name of the object in the bucket.
+            bucket_name (str, optional): Name of the bucket.
+        Returns:
+            Object: The object metadata
+        """
+        if not bucket_name:
+            bucket_name = self.bucket_name
+        try:
+            return self.minio_client.stat_object(bucket_name, object_name)
+        except S3Error as e:
+            if e.code == "NoSuchKey":
+                return None
+            raise
 
     def file_exists(self, object_name: str, bucket_name:str = None, file_hash: str = None) -> bool:
         """

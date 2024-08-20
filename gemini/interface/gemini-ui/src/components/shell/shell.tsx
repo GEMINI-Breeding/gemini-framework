@@ -1,9 +1,11 @@
 import { AppShell } from "@mantine/core";
-import { Burger, Group, Text } from "@mantine/core";
+import { Burger, Group, Text, ActionIcon } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import Logo from "@/components/logo/logo";
 import classes from "./shell.module.css";
 import { Link } from "react-router-dom";
+
+import TaskProgressDrawer from "@/components/drawers/taskprogress";
 
 // Icons
 import {
@@ -11,6 +13,7 @@ import {
   IconUpload,
   IconDrone,
   IconPlant,
+  IconArticle,
 } from "@tabler/icons-react";
 
 const navbarLinks = [
@@ -25,6 +28,8 @@ export default function Shell({
 }: Readonly<{ children: React.ReactNode }>) {
   const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
+  const [taskProgressDrawerOpened, { toggle: toggleTaskProgressDrawer }] =
+    useDisclosure(false);
 
   const links = navbarLinks.map((link) => (
     <Link to={link.href} key={link.title} className={classes.link}>
@@ -65,10 +70,23 @@ export default function Shell({
             />
             <Logo />
           </Group>
+          <Group h="100%" px="md">
+            <ActionIcon
+              size="lg"
+              color="black"
+              onClick={toggleTaskProgressDrawer}
+            >
+              <IconArticle />
+            </ActionIcon>
+          </Group>
         </Group>
         <AppShell.Navbar>{links}</AppShell.Navbar>
       </AppShell.Header>
       <AppShell.Main>{children}</AppShell.Main>
+      <TaskProgressDrawer
+        opened={taskProgressDrawerOpened}
+        onClose={toggleTaskProgressDrawer}
+      />
     </AppShell>
   );
 }

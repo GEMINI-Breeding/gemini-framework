@@ -44,6 +44,15 @@ class PaginatedResponseBase(RESTAPIBase):
 class URLResponse(RESTAPIBase):
     url: str
 
+class FileInformation(RESTAPIBase):
+    bucket_name: str
+    object_name: str
+    last_modified: datetime
+    etag: str
+    size: int
+    content_type: str
+    version_id: Optional[str] = None
+
 # --------------------------------
 # Experiment Classes
 # --------------------------------
