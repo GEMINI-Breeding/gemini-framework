@@ -52,7 +52,7 @@ class Season(APIBase):
         experiment_name: str = 'Default'
     ):
         db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-        db_instance = SeasonModel.create(
+        db_instance = SeasonModel.get_or_create(
             season_name=season_name,
             season_info=season_info,
             season_start_date=season_start_date,

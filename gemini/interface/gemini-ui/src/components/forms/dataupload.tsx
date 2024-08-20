@@ -21,6 +21,9 @@ import {
   openFileSelectorModal,
   openExperimentCreateModal,
   openSeasonCreateModal,
+  openSensorCreateModal,
+  openTraitCreateModal,
+  openSiteCreateModal,
 } from "@/components/modals/modalhandler";
 
 const UPLOAD_TYPES = ["Sensor", "Trait", "Plot", "Other"];
@@ -89,7 +92,7 @@ export default function UploadForm() {
               variant="filled"
               color="blue"
               onClick={() => {
-                console.log("Add Site");
+                openSiteCreateModal();
               }}
             >
               <IconPlus />
@@ -106,7 +109,7 @@ export default function UploadForm() {
               variant="filled"
               color="blue"
               onClick={() => {
-                console.log("Add Sensor");
+                openSensorCreateModal();
               }}
             >
               <IconPlus />
@@ -128,7 +131,7 @@ export default function UploadForm() {
               variant="filled"
               color="blue"
               onClick={() => {
-                console.log("Add Trait");
+                openTraitCreateModal();
               }}
             >
               <IconPlus />
