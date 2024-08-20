@@ -20,6 +20,7 @@ import { IconPlus } from "@tabler/icons-react";
 import {
   openFileSelectorModal,
   openExperimentCreateModal,
+  openSeasonCreateModal,
 } from "@/components/modals/modalhandler";
 
 const UPLOAD_TYPES = ["Sensor", "Trait", "Plot", "Other"];
@@ -71,7 +72,7 @@ export default function UploadForm() {
               variant="filled"
               color="blue"
               onClick={() => {
-                console.log("Add Season");
+                openSeasonCreateModal();
               }}
             >
               <IconPlus />
