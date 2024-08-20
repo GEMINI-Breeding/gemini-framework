@@ -6,7 +6,9 @@ import Traits from "@/api/traits";
 import { GEMINITraitLevels } from "@/api/enums";
 
 // Create string options for Trait Level
-const traitLevelOptions = Object.keys(GEMINITraitLevels);
+const traitLevelOptions = Object.keys(GEMINITraitLevels).filter((key) =>
+  isNaN(Number(key))
+);
 
 export default function TraitCreateForm() {
   // Local state storing trait to be created
@@ -34,7 +36,7 @@ export default function TraitCreateForm() {
     createTrait.mutate({
       experiment_name: experimentName,
       trait_name: traitName,
-      trait_level: traitLevel,
+      trait_level_id: traitLevel,
       trait_units: traitUnits,
     });
   }
