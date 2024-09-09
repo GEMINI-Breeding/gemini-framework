@@ -6,6 +6,8 @@ import { ModalsProvider } from "@mantine/modals";
 import AppRoutes from "@/routes";
 import Shell from "./components/shell/shell";
 
+
+
 export default function App() {
   return (
     <div>

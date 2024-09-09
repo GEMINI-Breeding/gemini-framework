@@ -8,6 +8,8 @@ import {
   Site,
 } from "@/api/types";
 
+// GEMINI Store
+
 type GEMINIState = {
   experiments: string[];
   seasons: string[];
@@ -21,26 +23,6 @@ type GEMINIState = {
   currentSensor: Sensor;
   currentTrait: Trait;
   currentSite: Site;
-};
-
-type GEMINIUploadState = {
-  uploadType: string;
-  experiment: string;
-  sensor: string;
-  trait: string;
-  site: string;
-  platform: string;
-  files: File[];
-};
-
-type GEMINIUploadAction = {
-  setUploadType: (uploadType: string) => void;
-  setExperiment: (experiment: string) => void;
-  setSensor: (sensor: string) => void;
-  setTrait: (trait: string) => void;
-  setSite: (site: string) => void;
-  setPlatform: (platform: string) => void;
-  setFiles: (files: File[]) => void;
 };
 
 type GEMINIAction = {
@@ -59,8 +41,8 @@ type GEMINIAction = {
 };
 
 type GEMINIStore = GEMINIState & GEMINIAction;
-type GEMINIUploadStore = GEMINIUploadState & GEMINIUploadAction;
 
+// Exports with initial state
 export const useGEMINIStore = create<GEMINIStore>((set) => ({
   experiments: [],
   seasons: [],
@@ -89,23 +71,4 @@ export const useGEMINIStore = create<GEMINIStore>((set) => ({
   setCurrentSensor: (sensor: Sensor) => set(() => ({ currentSensor: sensor })),
   setCurrentTrait: (trait: Trait) => set(() => ({ currentTrait: trait })),
   setCurrentSite: (site: Site) => set(() => ({ currentSite: site })),
-}));
-
-export const useGEMINIUploadStore = create<GEMINIUploadStore>((set) => ({
-  uploadType: "",
-  experiment: "",
-  sensor: "",
-  trait: "",
-  site: "",
-  platform: "",
-  files: [],
-  setUploadType: (uploadType: string) =>
-    set(() => ({ uploadType: uploadType })),
-  setExperiment: (experiment: string) =>
-    set(() => ({ experiment: experiment })),
-  setSensor: (sensor: string) => set(() => ({ sensor: sensor })),
-  setTrait: (trait: string) => set(() => ({ trait: trait })),
-  setSite: (site: string) => set(() => ({ site: site })),
-  setPlatform: (platform: string) => set(() => ({ platform: platform })),
-  setFiles: (files: File[]) => set(() => ({ files: files })),
 }));

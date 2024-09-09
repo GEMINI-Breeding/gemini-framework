@@ -74,7 +74,13 @@ export default function Shell({
             <ActionIcon
               size="lg"
               color="black"
+              variant="outline"
               onClick={toggleTaskProgressDrawer}
+              style={{
+                outline: "1px solid black",
+              }}
+              // Make the
+              // style={{ cursor: "pointer" }}
             >
               <IconArticle />
             </ActionIcon>

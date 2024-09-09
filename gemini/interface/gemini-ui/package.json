@@ -19,6 +19,8 @@
     "@mantine/modals": "^7.11.2",
     "@mantine/nprogress": "^7.11.2",
     "@reduxjs/toolkit": "^2.2.6",
+    "@rpldy/uploader": "^1.8.3",
+    "@rpldy/uploady": "^1.8.3",
     "@tabler/icons-react": "^3.11.0",
     "@tanstack/react-query": "^5.51.11",
     "can-ndjson-stream": "^1.0.2",

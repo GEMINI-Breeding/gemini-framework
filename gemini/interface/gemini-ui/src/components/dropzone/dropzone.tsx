@@ -2,14 +2,19 @@ import { Group, Text, rem } from "@mantine/core";
 import { IconUpload, IconFile } from "@tabler/icons-react";
 import { Dropzone, DropzoneProps } from "@mantine/dropzone";
 import { openDataUploadModal } from "@/components/modals/modalhandler";
-import { useGEMINIUploadStore } from "@/store";
+import useFileUpload from "@/hooks/useFileUpload";
+import { useState } from "react";
 
 export function FileDropzone(props: Partial<DropzoneProps>) {
-  const setFiles = useGEMINIUploadStore((state) => state.setFiles);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const { uploadFiles, uploads } = useFileUpload({
+    onUploadComplete: (file, status) => {},
+    uploadPrefix: "delta",
+  });
 
   function onDrop(files: File[]) {
-    setFiles(files);
-    openDataUploadModal();
+    setSelectedFiles(files);
+    uploadFiles(files);
   }
 
   return (
