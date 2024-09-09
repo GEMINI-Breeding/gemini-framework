@@ -7,9 +7,9 @@ import { useState } from "react";
 
 export function FileDropzone(props: Partial<DropzoneProps>) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
   const { uploadFiles, uploads } = useFileUpload({
-    onUploadComplete: (file, status) => {},
-    uploadPrefix: "delta",
+    uploadPrefix: "web-uploaded-files",
   });
 
   function onDrop(files: File[]) {

@@ -5,7 +5,7 @@ import Logo from "@/components/logo/logo";
 import classes from "./shell.module.css";
 import { Link } from "react-router-dom";
 
-import TaskProgressDrawer from "@/components/drawers/taskprogress";
+import TaskProgressDrawer from "@/components/tasks/taskprogress";
 
 // Icons
 import {
