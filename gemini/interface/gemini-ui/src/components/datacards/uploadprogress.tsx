@@ -30,10 +30,10 @@ export default function UploadProgress({
     <Paper shadow="xs" radius="md" p="sm" withBorder>
       <Stack gap="xs">
         <Group>
-          <Text size="md" fw={500} span>
+          <Text size="md" fw={500} span w="30%">
             File Upload
           </Text>
-          <Text size="sm" span>
+          <Text size="sm" c="dimmed" truncate="end" w="30%">
             {file.name}
           </Text>
         </Group>
