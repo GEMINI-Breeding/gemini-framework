@@ -1,12 +1,11 @@
-version: '3'
+version: "3"
 
 vars:
   ENV_FILE: .env
 
-dotenv: ['.env']
+dotenv: [".env"]
 
 tasks:
-
   default:
     deps: [start]
 
@@ -37,6 +36,7 @@ tasks:
   install:
     cmds:
       - pip install -e .
+      - sh install-dependencies.sh
 
   start:
     cmds:
@@ -44,7 +44,7 @@ tasks:
       - task install
 
   reset:
-    cmds: 
+    cmds:
       - task docker-reset
 
   clean:
@@ -54,4 +54,3 @@ tasks:
     cmds:
       - pip install pipreqs
       - python -m pipreqs.pipreqs --force .
-  

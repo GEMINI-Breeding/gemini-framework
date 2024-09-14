@@ -15,6 +15,7 @@ export function FileDropzone(props: Partial<DropzoneProps>) {
   function onDrop(files: File[]) {
     setSelectedFiles(files);
     uploadFiles(files);
+    openDataUploadModal();
   }
 
   return (

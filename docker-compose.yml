@@ -123,10 +123,6 @@ services:
       - gemini-rest-api
       - gemini-file-store
     
-
-  
-
-
 networks:
   gemini_network:
     driver: bridge

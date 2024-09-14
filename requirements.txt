@@ -5,7 +5,7 @@ pydantic==2.6.4
 python-dotenv==1.0.1
 tqdm==4.66.4
 rich==13.7.1
-setuptools==68.2.2
+setuptools==74.1.2
 SQLAlchemy==2.0.26
 psycopg2-binary==2.9.3
 waitress==2.1.0
@@ -16,8 +16,12 @@ sqlalchemy_mixins
 cachetools==5.3.3
 openpyxl==3.1.2
 litestar==2.8.3
-dagster-webserver==1.7.15
-dagster-postgres==0.23.15
-dagster-aws==0.23.15
+dagster-webserver==1.8.5
+dagster-postgres==0.24.5
+dagster-aws==0.24.5
+
+
+
+
 
 

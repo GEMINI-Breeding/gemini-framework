@@ -1,3 +1,5 @@
+
+# Basic 
 .env
 .vscode
 .conda
@@ -10,10 +12,16 @@
 ./gemini/api/examples/data
 cprofile.out
 
+# Farm NG specific
+/farm-ng-core
+/farm-ng-amiga
+/deps
+
+# AMIGA Test Data
+/gemini/api/examples/amiga_data/
 
 .DS_Store
 log*.txt
-
 
  Byte-compiled / optimized / DLL files
 __pycache__/

@@ -7,19 +7,11 @@ import SeasonCreateForm from "@/components/forms/seasoncreate";
 import SensorCreateForm from "@/components/forms/sensorcreate";
 import SiteCreateForm from "@/components/forms/sitecreate";
 import TraitCreateForm from "@/components/forms/traitcreate";
-import UploadedFilesSelector from "@/components/selectors/uploadedfiles";
 
 export function openDataUploadModal() {
   modals.open({
     title: "Upload Data",
     children: <DataUploadForm />,
-  });
-}
-
-export function openFileSelectorModal() {
-  modals.open({
-    title: "Select Files",
-    children: <UploadedFilesSelector />,
   });
 }
 

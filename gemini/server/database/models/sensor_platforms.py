@@ -5,7 +5,7 @@ from sqlalchemy import (
     UniqueConstraint,
     Index,
     Integer,
-    ForeignKey
+    ForeignKey,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
@@ -19,16 +19,19 @@ import uuid
 
 
 class SensorPlatformModel(BaseModel):
-  __tablename__ = 'sensor_platforms'
+    __tablename__ = "sensor_platforms"
 
-  id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
-  sensor_platform_name: Mapped[str] = mapped_column(String(255), nullable=False)
-  sensor_platform_info: Mapped[dict] = mapped_column(JSON, default={})
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=False), primary_key=True, default=uuid.uuid4
+    )
+    sensor_platform_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    sensor_platform_info: Mapped[dict] = mapped_column(JSON, default={})
 
-  __table_args__ = (
-    UniqueConstraint('sensor_platform_name'),
-    Index('idx_sensor_platforms_info', 'sensor_platform_info', postgresql_using='GIN')
-  )
+    sensors = relationship("SensorModel", back_populates="sensor_platform")
 
-
-
+    __table_args__ = (
+        UniqueConstraint("sensor_platform_name"),
+        Index(
+            "idx_sensor_platforms_info", "sensor_platform_info", postgresql_using="GIN"
+        ),
+    )

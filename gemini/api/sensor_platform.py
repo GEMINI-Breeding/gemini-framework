@@ -1,7 +1,6 @@
 from typing import Optional, List, Any
 from gemini.api.base import APIBase, ID
 from gemini.server.database.models import SensorPlatformModel, SensorModel
-
 from pydantic import Field, AliasChoices
 
 
@@ -12,16 +11,15 @@ class SensorPlatform(APIBase):
 
     db_model = SensorPlatformModel
 
-    id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "sensor_platform_id"))
+    id: Optional[ID] = Field(
+        None, validation_alias=AliasChoices("id", "sensor_platform_id")
+    )
     sensor_platform_name: str
     sensor_platform_info: Optional[dict] = None
 
-
     @classmethod
     def create(
-        cls,
-        sensor_platform_name: str = 'Default',
-        sensor_platform_info: dict = {}
+        cls, sensor_platform_name: str = "Default", sensor_platform_info: dict = {}
     ) -> "SensorPlatform":
         """
         Creates a new sensor platform with the given name and information.
@@ -35,11 +33,11 @@ class SensorPlatform(APIBase):
         """
         db_instance = cls.db_model.get_or_create(
             sensor_platform_name=sensor_platform_name,
-            sensor_platform_info=sensor_platform_info
+            sensor_platform_info=sensor_platform_info,
         )
         instance = cls.model_validate(db_instance)
         return instance
-    
+
     @classmethod
     def get(cls, sensor_platform_name: str) -> "SensorPlatform":
         """
@@ -51,9 +49,11 @@ class SensorPlatform(APIBase):
         Returns:
             SensorPlatform: The retrieved sensor platform instance.
         """
-        db_instance = SensorPlatformModel.get_by_parameters(sensor_platform_name=sensor_platform_name)
+        db_instance = SensorPlatformModel.get_by_parameters(
+            sensor_platform_name=sensor_platform_name
+        )
         return cls.model_validate(db_instance)
-    
+
     def get_info(self) -> dict:
         """
         Retrieves the information associated with the sensor platform.
@@ -63,7 +63,7 @@ class SensorPlatform(APIBase):
         """
         self.refresh()
         return self.sensor_platform_info
-    
+
     def set_info(self, sensor_platform_info: Optional[dict] = None) -> "SensorPlatform":
         """
         Sets the information associated with the sensor platform.
@@ -76,7 +76,7 @@ class SensorPlatform(APIBase):
         """
         self.update(sensor_platform_info=sensor_platform_info)
         return self
-    
+
     def add_info(self, sensor_platform_info: Optional[dict] = None) -> "SensorPlatform":
         """
         Adds additional information to the sensor platform.
@@ -91,7 +91,7 @@ class SensorPlatform(APIBase):
         updated_info = {**current_info, **sensor_platform_info}
         self.set_info(updated_info)
         return self
-    
+
     def remove_info(self, keys_to_remove: List[str]) -> "SensorPlatform":
         """
         Removes specific keys from the information associated with the sensor platform.
@@ -103,9 +103,18 @@ class SensorPlatform(APIBase):
             SensorPlatform: The updated sensor platform instance.
         """
         current_info = self.get_info()
-        updated_info = {k: v for k, v in current_info.items() if k not in keys_to_remove}
+        updated_info = {
+            k: v for k, v in current_info.items() if k not in keys_to_remove
+        }
         self.set_info(updated_info)
         return self
-    
+
     # Todo: Get all sensors on a sensor platform, add a sensor to a sensor platform, remove a sensor from a sensor platform
-   
+    def get_sensors():
+        pass
+
+    def add_sensor():
+        pass
+
+    def remove_sensor():
+        pass

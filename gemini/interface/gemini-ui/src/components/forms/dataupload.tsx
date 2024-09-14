@@ -8,7 +8,6 @@ import {
   Divider,
 } from "@mantine/core";
 
-import { useGEMINIUploadStore } from "@/store";
 import ExperimentSelector from "@/components/selectors/experiment";
 import SeasonSelector from "@/components/selectors/season";
 import SensorSelector from "@/components/selectors/sensor";
@@ -18,7 +17,6 @@ import { IconPlus } from "@tabler/icons-react";
 
 // Modals
 import {
-  openFileSelectorModal,
   openExperimentCreateModal,
   openSeasonCreateModal,
   openSensorCreateModal,
@@ -26,12 +24,13 @@ import {
   openSiteCreateModal,
 } from "@/components/modals/modalhandler";
 
+import { useState } from "react";
+
 const UPLOAD_TYPES = ["Sensor", "Trait", "Plot", "Other"];
 
 export default function UploadForm() {
   // Get the upload store state and actions
-  const uploadType = useGEMINIUploadStore((state) => state.uploadType);
-  const setUploadType = useGEMINIUploadStore((state) => state.setUploadType);
+  const [uploadType, setUploadType] = useState("Sensor");
 
   return (
     <div>
@@ -142,7 +141,7 @@ export default function UploadForm() {
           <Button
             color="blue"
             onClick={() => {
-              openFileSelectorModal();
+              // openFileSelectorModal();
             }}
           >
             Select Files

@@ -43,6 +43,7 @@ VALUES
 -- Create Datatype Formats associations
 INSERT INTO gemini.data_type_formats (data_type_id, data_format_id)
 VALUES
+    (0, 0), -- Default
     (1, 1), -- Text
     (1, 2), -- JSON
     (1, 3), -- CSV
@@ -212,6 +213,10 @@ VALUES
 INSERT INTO gemini.sensor_platforms (sensor_platform_name, sensor_platform_info)
 VALUES
     ('Default', '{"description": "Default Sensor Platform"}');
+
+INSERT INTO gemini.experiment_sensor_platforms (experiment_id, sensor_platform_id)
+VALUES
+    ((SELECT id FROM gemini.experiments WHERE experiment_name = 'Default'), (SELECT id FROM gemini.sensor_platforms WHERE sensor_platform_name = 'Default'));
 
 -- Insert Default Sensor
 INSERT INTO gemini.sensors (sensor_name, sensor_info, sensor_type_id, sensor_platform_id)

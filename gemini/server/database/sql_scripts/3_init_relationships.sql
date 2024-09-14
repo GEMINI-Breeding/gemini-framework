@@ -40,6 +40,19 @@ CREATE TABLE IF NOT EXISTS gemini.experiment_sensors (
 );
 
 -------------------------------------------------------------------------------
+-- Experiment Sensor Platforms Table
+
+CREATE TABLE IF NOT EXISTS gemini.experiment_sensor_platforms (
+    experiment_id UUID REFERENCES gemini.experiments(id) ON DELETE CASCADE,
+    sensor_platform_id UUID REFERENCES gemini.sensor_platforms(id) ON DELETE CASCADE,
+    info JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (experiment_id, sensor_platform_id)
+);
+
+
+-------------------------------------------------------------------------------
 -- Experiment Traits Table
 
 CREATE TABLE IF NOT EXISTS gemini.experiment_traits (
