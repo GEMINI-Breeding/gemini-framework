@@ -219,13 +219,17 @@ VALUES
     ((SELECT id FROM gemini.experiments WHERE experiment_name = 'Default'), (SELECT id FROM gemini.sensor_platforms WHERE sensor_platform_name = 'Default'));
 
 -- Insert Default Sensor
-INSERT INTO gemini.sensors (sensor_name, sensor_info, sensor_type_id, sensor_platform_id)
+INSERT INTO gemini.sensors (sensor_name, sensor_info, sensor_type_id)
 VALUES
-    ('Default', '{"description": "Default Sensor"}', (SELECT id FROM gemini.sensor_types WHERE sensor_type_name = 'Default'), (SELECT id FROM gemini.sensor_platforms WHERE sensor_platform_name = 'Default'));
+    ('Default', '{"description": "Default Sensor"}', (SELECT id FROM gemini.sensor_types WHERE sensor_type_name = 'Default'));
 
 INSERT INTO gemini.experiment_sensors (experiment_id, sensor_id)
 VALUES
     ((SELECT id FROM gemini.experiments WHERE experiment_name = 'Default'), (SELECT id FROM gemini.sensors WHERE sensor_name = 'Default'));
+
+INSERT INTO gemini.sensor_platform_sensors (sensor_platform_id, sensor_id)
+VALUES
+    ((SELECT id FROM gemini.sensor_platforms WHERE sensor_platform_name = 'Default'), (SELECT id FROM gemini.sensors WHERE sensor_name = 'Default'));
 
 -- Insert Default Resources
 INSERT INTO gemini.resources (resource_uri, resource_file_name, is_external, resource_experiment_id, resource_data_format_id, resource_info)

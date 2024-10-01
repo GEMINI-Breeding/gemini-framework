@@ -95,7 +95,6 @@ SELECT
     s.id AS sensor_id,
     s.sensor_name AS sensor_name,
     s.sensor_type_id AS sensor_type_id,
-    s.sensor_platform_id AS sensor_platform_id,
     s.sensor_data_type_id AS sensor_data_type_id,
     s.sensor_data_format_id AS sensor_data_format_id,
     s.sensor_info AS sensor_info

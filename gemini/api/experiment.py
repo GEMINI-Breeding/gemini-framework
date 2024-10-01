@@ -6,6 +6,7 @@ from gemini.api.trait import Trait
 from gemini.api.site import Site
 from gemini.api.cultivar import Cultivar
 from gemini.api.dataset import Dataset
+from gemini.api.sensor_platform import SensorPlatform
 from gemini.server.database.models import ExperimentModel
 
 from datetime import date
@@ -43,7 +44,7 @@ class Experiment(APIBase):
     traits: Optional[List[Trait]] = None
     cultivars: Optional[List[Cultivar]] = None
     datasets: Optional[List[Dataset]] = None
-
+    platforms: Optional[List[SensorPlatform]] = None
 
     @classmethod
     def create(
@@ -73,7 +74,6 @@ class Experiment(APIBase):
         )
 
         return cls.model_validate(db_instance)
-    
 
     @classmethod
     def get(cls, experiment_name: str) -> "Experiment":
@@ -88,7 +88,6 @@ class Experiment(APIBase):
         """
         db_instance = cls.db_model.get_by_parameters(experiment_name=experiment_name)
         return cls.model_validate(db_instance) if db_instance else None
-    
 
     def get_info(self) -> dict:
         """
@@ -99,7 +98,6 @@ class Experiment(APIBase):
         """
         self.refresh()
         return self.experiment_info
-    
 
     def set_info(self, experiment_info: Optional[dict] = None) -> "Experiment":
         """
@@ -113,7 +111,6 @@ class Experiment(APIBase):
         """
         self.update(experiment_info=experiment_info)
         return self
-    
 
     def add_info(self, experiment_info: Optional[dict] = None) -> "Experiment":
         """
@@ -129,7 +126,6 @@ class Experiment(APIBase):
         updated_info = {**current_info, **experiment_info}
         self.set_info(updated_info)
         return self
-    
 
     def remove_info(self, keys_to_remove: List[str]) -> "Experiment":
         """
@@ -149,8 +145,7 @@ class Experiment(APIBase):
         }
         self.set_info(updated_info)
         return self
-    
-    
+
     def get_sensors(self) -> List[Sensor]:
         """
         Retrieves the sensors associated with the experiment.
@@ -160,8 +155,17 @@ class Experiment(APIBase):
         """
         self.refresh()
         return self.sensors
-        
-    
+
+    def get_sensor_platforms(self) -> List[SensorPlatform]:
+        """
+        Retrieves the sensor platforms associated with the experiment.
+
+        Returns:
+            List[SensorPlatform]: The list of sensor platforms.
+        """
+        self.refresh()
+        return self.platforms
+
     def get_traits(self) -> List[Trait]:
         """
         Retrieves the traits associated with the experiment.
@@ -171,8 +175,7 @@ class Experiment(APIBase):
         """
         self.refresh()
         return self.traits
-    
-    
+
     def get_sites(self) -> List[Site]:
         """
         Retrieves the sites associated with the experiment.
@@ -182,8 +185,7 @@ class Experiment(APIBase):
         """
         self.refresh()
         return self.sites
-    
-    
+
     def get_seasons(self) -> List[Season]:
         """
         Retrieves the seasons associated with the experiment.
@@ -193,8 +195,7 @@ class Experiment(APIBase):
         """
         self.refresh()
         return self.seasons
-    
-    
+
     def get_cultivars(self) -> List[Cultivar]:
         """
         Retrieves the cultivars associated with the experiment.
@@ -204,8 +205,7 @@ class Experiment(APIBase):
         """
         self.refresh()
         return self.cultivars
-    
-    
+
     def get_datasets(self) -> List[Dataset]:
         """
         Retrieves the datasets associated with the experiment.
@@ -215,9 +215,3 @@ class Experiment(APIBase):
         """
         self.refresh()
         return self.datasets
-    
-
-    
-    
-
-

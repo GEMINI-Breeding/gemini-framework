@@ -1,42 +1,36 @@
-from litestar.controller import Controller             
+from litestar.controller import Controller
 from litestar.handlers import get, post, patch
 from litestar.params import Body
 from litestar import Response
 
 from gemini.api.sensor import Sensor
 from gemini.api.enums import GEMINISensorType, GEMINIDataType, GEMINIDataFormat
-from gemini.server.rest_api.src.models import (
-    SensorInput,
-    SensorOutput,
-    DatasetOutput
-)
+from gemini.server.rest_api.src.models import SensorInput, SensorOutput, DatasetOutput
 
 from typing import List, Optional, Annotated
 
 
 class SensorController(Controller):
-    
+
     # Get Sensors
     @get()
     async def get_sensors(
         self,
         sensor_name: Optional[str] = None,
-        sensor_platform_name: Optional[str] = None,
         sensor_type_id: Optional[GEMINISensorType] = None,
         sensor_data_type_id: Optional[GEMINIDataType] = None,
         sensor_data_format_id: Optional[GEMINIDataFormat] = None,
         sensor_info: Optional[dict] = None,
-        experiment_name: Optional[str] = 'Default'
+        experiment_name: Optional[str] = "Default",
     ) -> List[SensorOutput]:
         try:
             sensors = Sensor.search(
                 sensor_name=sensor_name,
                 experiment_name=experiment_name,
-                sensor_platform_name=sensor_platform_name,
                 sensor_type=sensor_type_id,
                 sensor_data_type=sensor_data_type_id,
                 sensor_data_format=sensor_data_format_id,
-                sensor_info=sensor_info
+                sensor_info=sensor_info,
             )
             if not sensors:
                 return Response(content="No sensors found", status_code=404)
@@ -45,13 +39,10 @@ class SensorController(Controller):
             return sensors
         except Exception as e:
             return Response(content=str(e), status_code=500)
-        
+
     # Create A New Sensor
     @post()
-    async def create_sensor(
-        self,
-        data: Annotated[SensorInput, Body]
-    ) -> SensorOutput:
+    async def create_sensor(self, data: Annotated[SensorInput, Body]) -> SensorOutput:
         try:
             sensor = Sensor.create(
                 sensor_name=data.sensor_name,
@@ -60,7 +51,7 @@ class SensorController(Controller):
                 sensor_data_type=GEMINIDataType(data.sensor_data_type_id),
                 sensor_data_format=GEMINIDataFormat(data.sensor_data_format_id),
                 sensor_info=data.sensor_info,
-                experiment_name=data.experiment_name
+                experiment_name=data.experiment_name,
             )
             if not sensor:
                 return Response(content="Sensor already exists", status_code=400)
@@ -68,12 +59,10 @@ class SensorController(Controller):
             return SensorOutput.model_validate(sensor)
         except Exception as e:
             return Response(content=str(e), status_code=500)
-            
+
     # Get Sensor by ID
-    @get('/id/{sensor_id:str}')
-    async def get_sensor_by_id(
-        self, sensor_id: str
-    ) -> SensorOutput:
+    @get("/id/{sensor_id:str}")
+    async def get_sensor_by_id(self, sensor_id: str) -> SensorOutput:
         try:
             sensor = Sensor.get_by_id(sensor_id)
             if not sensor:
@@ -81,13 +70,10 @@ class SensorController(Controller):
             return SensorOutput.model_validate(sensor.model_dump(exclude_none=True))
         except Exception as e:
             return Response(content=str(e), status_code=500)
-    
-    
+
     # Get Sensor by Sensor Type ID
-    @get('/type/{sensor_type_id:int}')
-    async def get_sensors_by_type(
-        self, sensor_type_id: int
-    ) -> List[SensorOutput]:
+    @get("/type/{sensor_type_id:int}")
+    async def get_sensors_by_type(self, sensor_type_id: int) -> List[SensorOutput]:
         try:
             sensors = Sensor.get_by_type(GEMINISensorType(sensor_type_id))
             if not sensors:
@@ -97,12 +83,10 @@ class SensorController(Controller):
             return sensors
         except Exception as e:
             return Response(content=str(e), status_code=500)
-        
+
     # Get Sensor by Sensor Name
-    @get('/{sensor_name:str}')
-    async def get_sensor(
-        self, sensor_name: str
-    ) -> SensorOutput:
+    @get("/{sensor_name:str}")
+    async def get_sensor(self, sensor_name: str) -> SensorOutput:
         try:
             sensor = Sensor.get(sensor_name)
             if not sensor:
@@ -110,15 +94,12 @@ class SensorController(Controller):
             return SensorOutput.model_validate(sensor.model_dump(exclude_none=True))
         except Exception as e:
             return Response(content=str(e), status_code=500)
-        
+
     # Get Sensor Data By Sensor Name
-        
-        
+
     # Get Sensor by Sensor ID
-    @get('/id/{sensor_id:str}')
-    async def get_sensor_by_id(
-        self, sensor_id: str
-    ) -> SensorOutput:
+    @get("/id/{sensor_id:str}")
+    async def get_sensor_by_id(self, sensor_id: str) -> SensorOutput:
         try:
             sensor = Sensor.get_by_id(sensor_id)
             if not sensor:
@@ -126,12 +107,10 @@ class SensorController(Controller):
             return SensorOutput.model_validate(sensor.model_dump(exclude_none=True))
         except Exception as e:
             return Response(content=str(e), status_code=500)
-        
+
     # Get Sensor Info by Sensor Name
-    @get('/{sensor_name:str}/info')
-    async def get_sensor_info(
-        self, sensor_name: str
-    ) -> dict:
+    @get("/{sensor_name:str}/info")
+    async def get_sensor_info(self, sensor_name: str) -> dict:
         try:
             sensor = Sensor.get(sensor_name)
             if not sensor:
@@ -139,14 +118,10 @@ class SensorController(Controller):
             return sensor.get_info()
         except Exception as e:
             return Response(content=str(e), status_code=500)
-        
+
     # Set Sensor Info by Sensor Name
-    @patch('/{sensor_name:str}/info')
-    async def set_sensor_info(
-        self,
-        sensor_name: str,
-        data: dict
-    ) -> dict:
+    @patch("/{sensor_name:str}/info")
+    async def set_sensor_info(self, sensor_name: str, data: dict) -> dict:
         try:
             sensor = Sensor.get(sensor_name)
             if not sensor:
@@ -156,12 +131,9 @@ class SensorController(Controller):
         except Exception as e:
             return Response(content=str(e), status_code=500)
 
-        
     # Get Sensor Datasets
-    @get('/{sensor_name:str}/datasets')
-    async def get_sensor_datasets(
-        self, sensor_name: str
-    ) -> List[DatasetOutput]:
+    @get("/{sensor_name:str}/datasets")
+    async def get_sensor_datasets(self, sensor_name: str) -> List[DatasetOutput]:
         try:
             sensor = Sensor.get(sensor_name)
             if not sensor:
@@ -174,7 +146,3 @@ class SensorController(Controller):
             return datasets
         except Exception as e:
             return Response(content=str(e), status_code=500)
-        
-    
-
-    

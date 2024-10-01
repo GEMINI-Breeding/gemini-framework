@@ -221,7 +221,6 @@ ALTER TABLE gemini.sensor_platforms ADD CONSTRAINT sensor_platform_unique UNIQUE
 CREATE TABLE IF NOT EXISTS gemini.sensors (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     sensor_name VARCHAR(255) NOT NULL,
-    sensor_platform_id uuid REFERENCES gemini.sensor_platforms(id),
     sensor_type_id INTEGER REFERENCES gemini.sensor_types(id) DEFAULT 0,
     sensor_data_type_id INTEGER REFERENCES gemini.data_types(id) DEFAULT 0,
     sensor_data_format_id INTEGER REFERENCES gemini.data_formats(id) DEFAULT 0,

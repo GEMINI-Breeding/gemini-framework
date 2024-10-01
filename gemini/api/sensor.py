@@ -5,7 +5,6 @@ from gemini.api.sensor_type import SensorType
 from gemini.api.data_type import DataType
 from gemini.api.data_format import DataFormat
 from gemini.api.dataset import Dataset
-from gemini.api.sensor_platform import SensorPlatform
 from gemini.api.sensor_record import SensorRecord
 from gemini.server.database.models import (
     SensorModel,
@@ -28,7 +27,6 @@ class Sensor(APIBase):
     id: Optional[ID] = Field(None, validation_alias=AliasChoices("sensor_id", "id"))
     sensor_name: str
     sensor_info: Optional[dict] = None
-    sensor_platform_id: Optional[Union[int, str, UUID]] = None
     sensor_type_id: Optional[int] = None
     sensor_data_type_id: Optional[int] = None
     sensor_data_format_id: Optional[int] = None
@@ -36,7 +34,6 @@ class Sensor(APIBase):
     sensor_type: Optional[SensorType] = None
     data_type: Optional[DataType] = None
     data_format: Optional[DataFormat] = None
-    sensor_platform: Optional[SensorPlatform] = None
     datasets: Optional[List[Dataset]] = None
 
     @classmethod
@@ -61,7 +58,6 @@ class Sensor(APIBase):
         db_instance = cls.db_model.get_or_create(
             sensor_name=sensor_name,
             sensor_info=sensor_info,
-            sensor_platform_id=db_sensor_platform.id if db_sensor_platform else None,
             sensor_type_id=sensor_type.value,
             sensor_data_type_id=sensor_data_type.value,
             sensor_data_format_id=sensor_data_format.value,
@@ -70,6 +66,10 @@ class Sensor(APIBase):
         if db_experiment and db_instance not in db_experiment.sensors:
             db_experiment.sensors.append(db_instance)
             db_experiment.save()
+
+        if db_sensor_platform and db_instance not in db_sensor_platform.sensors:
+            db_sensor_platform.sensors.append(db_instance)
+            db_sensor_platform.save()
 
         instance = cls.model_validate(db_instance)
         return instance
@@ -104,9 +104,7 @@ class Sensor(APIBase):
         db_sensor_platform = SensorPlatformModel.get_by_parameters(
             sensor_platform_name=sensor_platform_name
         )
-        db_sensors = SensorModel.get_by_parameters(
-            sensor_platform_id=db_sensor_platform.id
-        )
+        db_sensors = db_sensor_platform.sensors
         return (
             [cls.model_validate(db_sensor) for db_sensor in db_sensors]
             if db_sensors
@@ -139,18 +137,14 @@ class Sensor(APIBase):
     def search(
         cls,
         experiment_name: str = None,
-        sensor_platform_name: str = None,
         sensor_type: GEMINISensorType = None,
         sensor_data_type: GEMINIDataType = None,
         sensor_data_format: GEMINIDataFormat = None,
         **search_parameters: Any,
     ) -> List["Sensor"]:
-        db_sensor_platform = SensorPlatformModel.get_by_parameters(
-            sensor_platform_name=sensor_platform_name
-        )
+
         db_sensors = ExperimentSensorsViewModel.search(
             experiment_name=experiment_name,
-            sensor_platform_id=db_sensor_platform.id if db_sensor_platform else None,
             sensor_type_id=sensor_type.value if sensor_type else None,
             sensor_data_type_id=sensor_data_type.value if sensor_data_type else None,
             sensor_data_format_id=(
@@ -160,17 +154,6 @@ class Sensor(APIBase):
         )
         db_sensors = [cls.model_validate(db_sensor) for db_sensor in db_sensors]
         return db_sensors if db_sensors else None
-
-    def get_platform(self) -> SensorPlatform:
-        self.refresh()
-        return self.sensor_platform
-
-    def set_platform(self, sensor_platform_name: str) -> SensorPlatform:
-        db_sensor_platform = SensorPlatformModel.get_by_parameters(
-            sensor_platform_name=sensor_platform_name
-        )
-        self.update(sensor_platform_id=db_sensor_platform.id)
-        return self.sensor_platform
 
     def get_datasets(self) -> List[Dataset]:
         self.refresh()

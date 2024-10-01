@@ -1,5 +1,6 @@
 from typing import Optional, List, Any
 from gemini.api.base import APIBase, ID
+from gemini.api.sensor import Sensor
 from gemini.server.database.models import SensorPlatformModel, SensorModel
 from pydantic import Field, AliasChoices
 
@@ -16,6 +17,8 @@ class SensorPlatform(APIBase):
     )
     sensor_platform_name: str
     sensor_platform_info: Optional[dict] = None
+
+    sensors: Optional[List[Sensor]] = None
 
     @classmethod
     def create(
@@ -110,11 +113,30 @@ class SensorPlatform(APIBase):
         return self
 
     # Todo: Get all sensors on a sensor platform, add a sensor to a sensor platform, remove a sensor from a sensor platform
-    def get_sensors():
-        pass
+    def get_sensors(self) -> List[Sensor]:
+        self.refresh()
+        return self.sensors
 
-    def add_sensor():
-        pass
+    def add_sensor(self, sensor_name: str) -> "SensorPlatform":
+        self.refresh()
+        db_sensor = SensorModel.get_by_parameters(sensor_name=sensor_name)
+        if not db_sensor:
+            raise ValueError(f"Sensor {sensor_name} not found")
+        db_instance = SensorPlatformModel.get_by_parameters(
+            sensor_platform_name=self.sensor_platform_name
+        )
+        if db_sensor not in db_instance.sensors:
+            db_instance.sensors.append(db_sensor)
+            db_instance.save()
+        return self
 
-    def remove_sensor():
-        pass
+    def remove_sensor(self, sensor_name: str) -> "SensorPlatform":
+        self.refresh()
+        db_sensor = SensorModel.get_by_parameters(sensor_name=sensor_name)
+        if not db_sensor:
+            raise ValueError(f"Sensor {sensor_name} not found")
+        db_instance = SensorPlatformModel.get_by_parameters(
+            sensor_platform_name=self.sensor_platform_name
+        )
+        if db_sensor in db_instance:
+            db_instance.sensors

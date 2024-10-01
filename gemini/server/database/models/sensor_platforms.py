@@ -27,7 +27,7 @@ class SensorPlatformModel(BaseModel):
     sensor_platform_name: Mapped[str] = mapped_column(String(255), nullable=False)
     sensor_platform_info: Mapped[dict] = mapped_column(JSON, default={})
 
-    sensors = relationship("SensorModel", back_populates="sensor_platform")
+    sensors = relationship("SensorModel", secondary="gemini.sensor_platform_sensors")
 
     __table_args__ = (
         UniqueConstraint("sensor_platform_name"),
