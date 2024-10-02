@@ -52,7 +52,7 @@ class SensorPlatformController(Controller):
     ) -> SensorPlatformOutput:
         try:
             sensor_platform = SensorPlatform.get_by_id(
-                sensor_platform_id=sensor_platform_id
+                id=sensor_platform_id
             )
             if sensor_platform is None:
                 return Response(content="Sensor platform not found", status_code=404)
@@ -124,7 +124,56 @@ class SensorPlatformController(Controller):
 
     # Get All Sensors for a Sensor Platform
     # @get('/{sensor_platform_name:str}/sensors')
+    @get("/{sensor_platform_name:str}/sensors")
+    async def get_sensor_platform_sensors(
+        self, sensor_platform_name: str = "Default"
+    ) -> List[SensorOutput]:
+        try:
+            sensor_platform = SensorPlatform.get(
+                sensor_platform_name=sensor_platform_name
+            )
+            if sensor_platform is None:
+                return Response(content="Sensor platform not found", status_code=404)
+            sensors = sensor_platform.get_sensors()
+            if sensors is None:
+                return Response(content="No sensors found", status_code=404)
+            sensors = [sensor.model_dump() for sensor in sensors]
+            sensors = [
+                SensorOutput.model_validate(sensor) for sensor in sensors
+            ]
+            return sensors
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
 
-    # Add Sensor to Sensor Platform
+    # Add Existing Sensor to Sensor Platform
+    @patch("/{sensor_platform_name:str}/sensors/add")
+    async def add_sensor_to_platform(
+        self, sensor_platform_name: str, sensor_name: str
+    ) -> SensorPlatformOutput:
+        try:
+            sensor_platform = SensorPlatform.get(
+                sensor_platform_name=sensor_platform_name
+            )
+            if sensor_platform is None:
+                return Response(content="Sensor platform not found", status_code=404)
+            sensor_platform.add_sensor(sensor_name=sensor_name)
+            return SensorPlatformOutput.model_validate(sensor_platform.model_dump())
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
 
-    # Remove Sensor from Sensor Platform
+    # Remove Existing Sensor from Sensor Platform
+    @patch("/{sensor_platform_name:str}/sensors/remove")
+    async def remove_sensor_from_platform(
+        self, sensor_platform_name: str, sensor_name: str
+    ) -> SensorPlatformOutput:
+        try:
+            sensor_platform = SensorPlatform.get(
+                sensor_platform_name=sensor_platform_name
+            )
+            if sensor_platform is None:
+                return Response(content="Sensor platform not found", status_code=404)
+            sensor_platform.remove_sensor(sensor_name=sensor_name)
+            return SensorPlatformOutput.model_validate(sensor_platform.model_dump())
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
+    

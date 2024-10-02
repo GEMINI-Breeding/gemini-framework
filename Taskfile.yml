@@ -36,7 +36,7 @@ tasks:
   install:
     cmds:
       - pip install -e .
-      - sh install-dependencies.sh
+      # - sh install-dependencies.sh
 
   start:
     cmds:

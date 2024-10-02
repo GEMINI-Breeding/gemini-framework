@@ -2,8 +2,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 import os
 
-islocal = os.getenv('GEMINI_LOCAL')
-islocal = True if islocal.lower() == 'true' else False
+islocal = os.getenv('GEMINI_LOCAL')\
+
+if not islocal:
+    islocal = False
+else:
+    islocal = True if islocal.lower() == 'true' else False
 
 db_username = os.getenv('DATABASE_USER')
 db_password = os.getenv('DATABASE_PASSWORD')

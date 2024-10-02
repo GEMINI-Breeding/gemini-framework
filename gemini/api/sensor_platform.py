@@ -139,4 +139,6 @@ class SensorPlatform(APIBase):
             sensor_platform_name=self.sensor_platform_name
         )
         if db_sensor in db_instance:
-            db_instance.sensors
+            db_instance.sensors.remove(db_sensor)
+            db_instance.save()
+        return self

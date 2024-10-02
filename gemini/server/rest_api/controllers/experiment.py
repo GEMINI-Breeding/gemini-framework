@@ -14,6 +14,7 @@ from gemini.server.rest_api.src.models import (
     SeasonOutput,
     SiteOutput,
     SensorOutput,
+    SensorPlatformOutput,
     TraitOutput,
     ResourceOutput,
     CultivarOutput,
@@ -163,6 +164,20 @@ class ExperimentController(Controller):
             return Response(content=str(e), status_code=500)
         
     # Todo: Create a new Sensor for an Experiment
+    
+    # Get Experiment Sensor Platforms by Experiment Name
+    @get(path="/{experiment_name:str}/sensor_platforms")
+    async def get_experiment_sensor_platforms(self, experiment_name: str) -> List[SensorPlatformOutput]:
+        try:
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                return Response(content="Experiment not found", status_code=404)
+            sensor_platforms = experiment.get_sensor_platforms()
+            sensor_platforms = [sensor_platform.model_dump() for sensor_platform in sensor_platforms]
+            sensor_platforms = [SensorPlatformOutput.model_validate(sensor_platform) for sensor_platform in sensor_platforms]
+            return sensor_platforms
+        except Exception as e:
+            return Response(content=str(e), status_code=500)
         
     # Get Experiment Traits by Experiment Name
     @get(path="/{experiment_name:str}/traits")

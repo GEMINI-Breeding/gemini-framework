@@ -21,4 +21,6 @@ EXPOSE 8080
 
 # Start the GEMINI REST API Flask application using waitress
 # Use the shell form to execute a shell command that runs both processes
-CMD ["./gemini/server/rest_api/start.sh"]
+# litestar --app gemini.server.rest_api.src.app:app run --host 0.0.0.0 --port 8080 &
+
+CMD ["litestar", "--app", "gemini.server.rest_api.src.app:app", "run", "--host", "0.0.0.0", "--port", "8080"]
