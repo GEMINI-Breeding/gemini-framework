@@ -84,7 +84,9 @@ VALUES
     (5, 'Weather', '{"description": "Weather Sensor"}'),
     (6, 'GPS', '{"description": "GPS Sensor"}'),
     (7, 'Calibration', '{"description": "Calibration Sensor"}'),
-    (8, 'Depth', '{"description": "Depth Sensor"}');
+    (8, 'Depth', '{"description": "Depth Sensor"}'),
+    (9, 'IMU', '{"description": "IMU Sensor"}'),
+    (10, 'Disparity', '{"description": "Disparity Maps Source"}');
 
 
 -- Insert Dataset Types
@@ -481,34 +483,34 @@ END $$;
 
 
 
-------------------------------------------------------------
--- Insert the initial data for the database
-------------------------------------------------------------
+-- ------------------------------------------------------------
+-- -- Insert the initial data for the database
+-- ------------------------------------------------------------
 
--- Insert GEMINI Experiment
-INSERT INTO gemini.experiments (experiment_name, experiment_info, experiment_start_date, experiment_end_date)
-VALUES
-    ('GEMINI', '{"description": "GEMINI Experiment"}', '2020-01-01', '2025-12-31');
+-- -- Insert GEMINI Experiment
+-- INSERT INTO gemini.experiments (experiment_name, experiment_info, experiment_start_date, experiment_end_date)
+-- VALUES
+--     ('GEMINI', '{"description": "GEMINI Experiment"}', '2020-01-01', '2025-12-31');
 
 
--- Insert Seasons for each year of the GEMINI Experiment
-INSERT INTO gemini.seasons (season_name, season_start_date, season_end_date, experiment_id)
-VALUES
-    ('2020', '2020-01-01', '2020-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
-    ('2021', '2021-01-01', '2021-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
-    ('2022', '2022-01-01', '2022-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
-    ('2023', '2023-01-01', '2023-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
-    ('2024', '2024-01-01', '2024-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
-    ('2025', '2025-01-01', '2025-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI'));
+-- -- Insert Seasons for each year of the GEMINI Experiment
+-- INSERT INTO gemini.seasons (season_name, season_start_date, season_end_date, experiment_id)
+-- VALUES
+--     ('2020', '2020-01-01', '2020-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
+--     ('2021', '2021-01-01', '2021-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
+--     ('2022', '2022-01-01', '2022-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
+--     ('2023', '2023-01-01', '2023-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
+--     ('2024', '2024-01-01', '2024-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
+--     ('2025', '2025-01-01', '2025-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI'));
 
--- Insert GEMINI Sites
-INSERT INTO gemini.sites (site_name, site_city, site_state, site_country, site_info)
-VALUES
-    ('Davis', 'Davis', 'CA', 'USA', '{"description": "Davis Site"}'),
-    ('Kearney', 'Kearney', 'CA', 'USA', '{"description": "Kearney Site"}');
+-- -- Insert GEMINI Sites
+-- INSERT INTO gemini.sites (site_name, site_city, site_state, site_country, site_info)
+-- VALUES
+--     ('Davis', 'Davis', 'CA', 'USA', '{"description": "Davis Site"}'),
+--     ('Kearney', 'Kearney', 'CA', 'USA', '{"description": "Kearney Site"}');
 
-INSERT INTO gemini.experiment_sites (experiment_id, site_id)
-VALUES
-    ((SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI'), (SELECT id FROM gemini.sites WHERE site_name = 'Davis')),
-    ((SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI'), (SELECT id FROM gemini.sites WHERE site_name = 'Kearney'));
+-- INSERT INTO gemini.experiment_sites (experiment_id, site_id)
+-- VALUES
+--     ((SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI'), (SELECT id FROM gemini.sites WHERE site_name = 'Davis')),
+--     ((SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI'), (SELECT id FROM gemini.sites WHERE site_name = 'Kearney'));
 
