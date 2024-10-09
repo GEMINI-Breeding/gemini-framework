@@ -7,7 +7,7 @@ tqdm==4.66.4
 rich==13.7.1
 setuptools==74.1.2
 SQLAlchemy==2.0.26
-psycopg2-binary==2.9.3
+psycopg2-binary==2.9.9
 waitress==2.1.0
 requests==2.31.0
 pandas==2.2.2
@@ -19,8 +19,9 @@ litestar==2.8.3
 dagster-webserver==1.8.5
 dagster-postgres==0.24.5
 dagster-aws==0.24.5
-
-
+farm-ng-core==2.3.1
+farm-ng-amiga==2.3.2
+kornia==0.7.3
 
 
 

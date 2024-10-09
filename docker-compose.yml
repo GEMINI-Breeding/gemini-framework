@@ -83,7 +83,6 @@ services:
       - "GEMINI_LOCAL=False"
     networks:
       - gemini_network
-    
     depends_on:
       - gemini-logger
       - gemini-db
@@ -109,6 +108,8 @@ services:
     container_name: ${SCHEDULER_UI_HOSTNAME}
     hostname: ${SCHEDULER_UI_HOSTNAME}
     restart: unless-stopped
+    environment:
+      - "GEMINI_LOCAL=False"
     build:
       context: .
       dockerfile: ./gemini/server/scheduler/Dockerfile

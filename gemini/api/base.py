@@ -232,6 +232,9 @@ class FileHandlerMixin(BaseModel):
             raise ValueError(f"Source name not found for record {record}")
         
         file_path = record_data.get("file_path")
+        if not file_path:
+            return record
+        
         file_key = cls._get_file_uri(file_path, record.get("collection_date"), record_type, source_name)
         if file_path:
             cls._upload_file(file_key=file_key, absolute_file_path=file_path)

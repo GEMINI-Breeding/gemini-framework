@@ -165,7 +165,7 @@ class Sensor(APIBase):
         sensor_data: dict,
         timestamp: datetime = None,
         collection_date: date = None,
-        dataset_name: str = "Default",
+        dataset_name: str = None,
         experiment_name: str = "Default",
         season_name: str = "2023",
         site_name: str = "Default",
@@ -211,11 +211,11 @@ class Sensor(APIBase):
             record_info=info,
             dataset_name=dataset_name,
         )
-        records = SensorRecord.add([record])
-        records = list(records)
-        if len(records) == 0 or not records:
-            return None
-        return records[0]
+        SensorRecord.add([record])
+        return record
+        # if len(records) == 0 or not records:
+        #     return None
+        # return records[0]
 
     def add_records(
         self,

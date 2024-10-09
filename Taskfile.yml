@@ -32,11 +32,15 @@ tasks:
       - task docker-clean
       - task docker-start
 
+  # Individual Pipeline Components
+  restart-component:
+    cmds:
+      - docker compose --env-file {{.ENV_FILE}} up -d --build {{.CLI_ARGS}}
+
   # Main Pipeline Tasks
   install:
     cmds:
       - pip install -e .
-      # - sh install-dependencies.sh
 
   start:
     cmds:
