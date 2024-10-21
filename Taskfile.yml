@@ -9,6 +9,34 @@ tasks:
   default:
     deps: [start]
 
+  # Kubernetes tasks
+  kube-start:
+    cmds:
+      - task kube-create-secrets
+      - sleep 5
+
+  kube-stop:
+    cmds:
+      - sleep 5
+
+  kube-reset:
+    cmds:
+      - task kube-clean
+      - task kube-start
+
+  kube-clean:
+    cmds:
+      - kubectl delete all --all --all-namespaces
+      - kubectl delete secret gemini-secrets
+
+  kube-create-secrets:
+    cmds:
+      - kubectl create secret generic gemini-secrets --from-env-file=.env
+
+  kube-delete-secrets:
+    cmds:
+      - kubectl delete secret gemini-secrets
+
   # Docker tasks
 
   docker-start:
@@ -46,6 +74,10 @@ tasks:
     cmds:
       - task docker-reset
       - task install
+
+  start-pipeline:
+    cmds:
+      - task kube-start
 
   reset:
     cmds:

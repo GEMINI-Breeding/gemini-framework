@@ -9,8 +9,11 @@ from typing import Generator, BinaryIO
 class MinioFileHandler:
     def __init__(self):
         
-        is_local = os.getenv("GEMINI_LOCAL") == "true"
-        minio_hostname = os.getenv("MINIO_HOSTNAME") if not is_local else "localhost"
+        
+        is_remote = os.getenv("IS_REMOTE", "False")
+        is_remote = True if is_remote.lower() == "true" else False
+
+        minio_hostname = os.getenv("MINIO_HOSTNAME") if is_remote else "localhost"
         minio_port = os.getenv("MINIO_PORT", 9000)
         minio_access_key = os.getenv("MINIO_ACCESS_KEY")
         minio_secret_key = os.getenv("MINIO_SECRET_KEY") 

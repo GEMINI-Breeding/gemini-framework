@@ -3,7 +3,7 @@ services:
   gemini-db:
     container_name: ${DATABASE_HOSTNAME}
     hostname: ${DATABASE_HOSTNAME}
-    restart: unless-stopped
+    restart: always
     image: ghcr.io/hydradatabase/hydra:15
     ports:
         - "${DATABASE_PORT}:5432"
@@ -11,6 +11,7 @@ services:
         - "POSTGRES_USER=${DATABASE_USER}"
         - "POSTGRES_PASSWORD=${DATABASE_PASSWORD}"
         - "POSTGRES_DB=${DATABASE_NAME}"
+        - "IS_REMOTE=True"
     volumes:
         - ./gemini/server/database/sql_scripts:/docker-entrypoint-initdb.d
     networks:
@@ -31,7 +32,7 @@ services:
   gemini-file-store:
     container_name: ${MINIO_HOSTNAME}
     hostname: ${MINIO_HOSTNAME}
-    restart: unless-stopped
+    restart: always 
     image: bitnami/minio:latest
     ports:
       - "${MINIO_PORT}:9000"
@@ -42,6 +43,7 @@ services:
       - "MINIO_SERVER_ACCESS_KEY=${MINIO_ACCESS_KEY}"
       - "MINIO_SERVER_SECRET_KEY=${MINIO_SECRET_KEY}"
       - "MINIO_DEFAULT_BUCKETS=${MINIO_BUCKET}"
+      - "IS_REMOTE=True"
     volumes:
       - gemini-object-storage-data:/data
     networks:
@@ -52,7 +54,7 @@ services:
   gemini-logger:
     container_name: ${LOGGER_HOSTNAME}
     hostname: ${LOGGER_HOSTNAME}
-    restart: unless-stopped
+    restart: always
     image: redis:latest
     ports:
       - "${LOGGER_PORT}:6379"
@@ -61,13 +63,14 @@ services:
     environment:
       - "REDIS_PASSWORD=${LOGGER_PASSWORD}"
       - "REDIS_PORT=${LOGGER_PORT}"
+      - "IS_REMOTE=True"
     networks:
       - gemini_network
 
   gemini-rest-api:
     container_name: ${REST_API_HOSTNAME}
     hostname: ${REST_API_HOSTNAME}
-    restart: unless-stopped
+    restart: always
     env_file:
       - .env
     build:
@@ -80,7 +83,7 @@ services:
       - "REST_API_ROOT_USER=${REST_API_ROOT_USER}"
       - "REST_API_ROOT_PASSWORD=${REST_API_ROOT_PASSWORD}"
       - "REST_API_DEBUG=${REST_API_DEBUG}"
-      - "GEMINI_LOCAL=False"
+      - "IS_REMOTE=True"
     networks:
       - gemini_network
     depends_on:
@@ -91,7 +94,7 @@ services:
   gemini-scheduler-db:
     container_name: ${SCHEDULER_DB_HOSTNAME}
     hostname: ${SCHEDULER_DB_HOSTNAME}
-    restart: unless-stopped
+    restart: always
     image: postgres:14
     ports:
       - "${SCHEDULER_DB_PORT}:5432"
@@ -99,6 +102,7 @@ services:
       - "POSTGRES_USER=${SCHEDULER_DB_USERNAME}"
       - "POSTGRES_PASSWORD=${SCHEDULER_DB_PASSWORD}"
       - "POSTGRES_DB=${SCHEDULER_DB_NAME}"
+      - "IS_REMOTE=True"
     networks:
       - gemini_network
     depends_on:
@@ -107,9 +111,9 @@ services:
   gemini-scheduler-ui:
     container_name: ${SCHEDULER_UI_HOSTNAME}
     hostname: ${SCHEDULER_UI_HOSTNAME}
-    restart: unless-stopped
+    restart: always
     environment:
-      - "GEMINI_LOCAL=False"
+      - "IS_REMOTE=True"
     build:
       context: .
       dockerfile: ./gemini/server/scheduler/Dockerfile
