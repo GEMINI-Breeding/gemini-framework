@@ -158,10 +158,13 @@ INSERT INTO  gemini.sensors (
 VALUES
     ('Oak0 Calibration', 7, 1, 2, '{"description": "Calibration for Oak-D Camera on the AMIGA"}'),
     ('Oak1 Calibration', 7, 1, 2, '{"description": "Calibration for Oak-D Camera on the AMIGA"}'),
+    ('Oak2 Calibration', 7, 1, 2, '{"description": "Calibration for Oak-D Camera on the AMIGA"}'),
     ('Oak0 RGB', 1, 4, 8, '{"description": "RGB source of Oak-D Camera on the AMIGA"}'),
     ('Oak1 RGB', 1, 4, 8, '{"description": "RGB source of Oak-D Camera on the AMIGA"}'),
+    ('Oak2 RGB', 1, 4, 8, '{"description": "RGB source of Oak-D Camera on the AMIGA"}'),
     ('Oak0 Disparity', 10, 0, 0, '{"description": "Disparity Map source for the Oak-D Camera"}'),
     ('Oak1 Disparity', 10, 0, 0, '{"description": "Disparity Map source for the Oak-D Camera"}'),
+    ('Oak2 Disparity', 10, 0, 0, '{"description": "Disparity Map source for the Oak-D Camera"}'),
     ('GPS Relative', 6, 1, 1, '{"description": "GPS Relative to the AMIGA"}'),
     ('GPS PVT', 6, 1, 1, '{"description": "Absolute GPS for the AMIGA"}');
 
@@ -173,10 +176,13 @@ INSERT INTO gemini.sensor_platform_sensors (
 VALUES
     ((SELECT id FROM gemini.sensor_platforms WHERE sensor_platform_name = 'AMIGA'), (SELECT id FROM gemini.sensors WHERE sensor_name = 'Oak0 Calibration')),
     ((SELECT id FROM gemini.sensor_platforms WHERE sensor_platform_name = 'AMIGA'), (SELECT id FROM gemini.sensors WHERE sensor_name = 'Oak1 Calibration')),
+    ((SELECT id FROM gemini.sensor_platforms WHERE sensor_platform_name = 'AMIGA'), (SELECT id FROM gemini.sensors WHERE sensor_name = 'Oak2 Calibration')),
     ((SELECT id FROM gemini.sensor_platforms WHERE sensor_platform_name = 'AMIGA'), (SELECT id FROM gemini.sensors WHERE sensor_name = 'Oak0 RGB')),
     ((SELECT id FROM gemini.sensor_platforms WHERE sensor_platform_name = 'AMIGA'), (SELECT id FROM gemini.sensors WHERE sensor_name = 'Oak1 RGB')),
+    ((SELECT id FROM gemini.sensor_platforms WHERE sensor_platform_name = 'AMIGA'), (SELECT id FROM gemini.sensors WHERE sensor_name = 'Oak2 RGB')),
     ((SELECT id FROM gemini.sensor_platforms WHERE sensor_platform_name = 'AMIGA'), (SELECT id FROM gemini.sensors WHERE sensor_name = 'Oak0 Disparity')),
     ((SELECT id FROM gemini.sensor_platforms WHERE sensor_platform_name = 'AMIGA'), (SELECT id FROM gemini.sensors WHERE sensor_name = 'Oak1 Disparity')),
+    ((SELECT id FROM gemini.sensor_platforms WHERE sensor_platform_name = 'AMIGA'), (SELECT id FROM gemini.sensors WHERE sensor_name = 'Oak2 Disparity')),
     ((SELECT id FROM gemini.sensor_platforms WHERE sensor_platform_name = 'AMIGA'), (SELECT id FROM gemini.sensors WHERE sensor_name = 'GPS Relative')),
     ((SELECT id FROM gemini.sensor_platforms WHERE sensor_platform_name = 'AMIGA'), (SELECT id FROM gemini.sensors WHERE sensor_name = 'GPS PVT'));
 
