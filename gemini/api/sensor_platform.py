@@ -2,6 +2,7 @@ from typing import Optional, List, Any
 from gemini.api.base import APIBase, ID
 from gemini.api.sensor import Sensor
 from gemini.server.database.models import SensorPlatformModel, SensorModel
+from gemini.api.enums import GEMINISensorType
 from pydantic import Field, AliasChoices
 
 
@@ -116,6 +117,10 @@ class SensorPlatform(APIBase):
     def get_sensors(self) -> List[Sensor]:
         self.refresh()
         return self.sensors
+    
+    def get_sensors_of_type(self, sensor_type: GEMINISensorType) -> List[Sensor]:
+        self.refresh()
+        return [sensor for sensor in self.sensors if sensor.sensor_type_id == sensor_type.value]
 
     def add_sensor(self, sensor_name: str) -> "SensorPlatform":
         self.refresh()

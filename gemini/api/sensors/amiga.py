@@ -30,11 +30,28 @@ from gemini.api.season import Season
 from gemini.api.sensor_platform import SensorPlatform
 from gemini.api.sensor import Sensor
 from gemini.api.sensor_record import SensorRecord
+from gemini.api.enums import GEMINISensorType
 
 from gemini.api.sensors.base_parser import BaseParser
 
 import warnings
 warnings.filterwarnings("ignore")
+
+
+def extract_time(bin_file_name: str) -> float:
+    try:
+        if len(os.path.basename(bin_file_name).split('_')) < 7:
+            raise RuntimeError(f"File name is not compatible with this script.")
+        date_contents = os.path.basename(bin_file_name).split('_')[:-1]
+        date_string = '_'.join(date_contents)
+        date_format = '%Y_%m_%d_%H_%M_%S_%f'
+        date_object = datetime.strptime(date_string, date_format)
+        current_ts = int(date_object.timestamp() * 1e6) # in microseconds
+        return current_ts
+    except Exception as e:
+        print(f"Error extracting time: {e}")
+        return False
+
 
 class AmigaParser(BaseParser):
 
@@ -78,6 +95,7 @@ class AmigaParser(BaseParser):
 
     def __init__(self, output_path: str):
         # Make Output Directory
+        self.current_ts = None
         self.output_path = Path(output_path)
         self.output_path = self.output_path / 'RGB'
         if not self.output_path.exists():
@@ -85,15 +103,16 @@ class AmigaParser(BaseParser):
 
         self.calibrations = {}
 
-        return super().__init__()
+        # GEMINI Related Setup
+        self.experiment = Experiment.get(experiment_name='GEMINI')
+        self.sensor_platform = SensorPlatform.get(sensor_platform_name='AMIGA')
+
 
     
     def setup(self, **kwargs):
         # GEMINI Setup
         self.experiment = Experiment.get(experiment_name='GEMINI')
-        self.seasons = self.experiment.get_seasons()
         self.sensor_platform = SensorPlatform.get(sensor_platform_name='AMIGA')
-        self.sensors = self.sensor_platform.get_sensors()
         
         pass
 
@@ -114,7 +133,7 @@ class AmigaParser(BaseParser):
                 events_index = self.get_events_index(file)
 
                 # Extract Time
-                self.current_ts = self.extract_time(file)
+                self.current_ts = extract_time(file)
 
                 # Extract Calibrations
                 self.extract_calibrations(events_index)
@@ -129,23 +148,9 @@ class AmigaParser(BaseParser):
         except Exception as e:
             print(f"Error parsing data: {e}")
             return False
-        
 
-    def extract_time(self, bin_file_name: str) -> float:
-        try:
-            if len(os.path.basename(bin_file_name).split('_')) < 7:
-                raise RuntimeError(f"File name is not compatible with this script.")
-            date_contents = os.path.basename(bin_file_name).split('_')[:-1]
-            date_string = '_'.join(date_contents)
-            date_format = '%Y_%m_%d_%H_%M_%S_%f'
-            date_object = datetime.strptime(date_string, date_format)
-            current_ts = int(date_object.timestamp() * 1e6) # in microseconds
-            return current_ts
-        except Exception as e:
-            print(f"Error extracting time: {e}")
-            return False
-        
-    def get_events_index(self, bin_file_path: str) -> dict[str, list[EventLogPosition]]:
+    @staticmethod
+    def get_events_index(bin_file_path: str) -> dict[str, list[EventLogPosition]]:
         try:
             reader = EventsFileReader(bin_file_path)
             success: bool = reader.open()
@@ -162,9 +167,9 @@ class AmigaParser(BaseParser):
     def extract_calibrations(self, events_dict: dict[str, list[EventLogPosition]]) -> bool:
         try:
 
-            # Get Reference to Calibration Sensors in GEMINI
-            calibration_sensors = 
-
+            # Get Reference to Calibration Sensors in AMIGA Platform
+            calibration_sensors = self.sensor_platform.get_sensors_of_type(GEMINISensorType.Calibration)
+            
             # Initialize Calibration Topics
             calibration_topics = [
                 topic
@@ -190,6 +195,9 @@ class AmigaParser(BaseParser):
                     calibration_message = event_log.read_message()
                     json_data = json_format.MessageToDict(calibration_message)
 
+                    # Get Calibration Sensor
+                    calibration_sensor : Sensor = [sensor for sensor in calibration_sensors if camera_name in sensor.sensor_name.lower()]
+
                     # Store as PBTXT File
                     camera_name = self.CAMERA_POSITIONS[camera_name]
                     json_name = f"{camera_name}_calibration.json"
@@ -206,7 +214,24 @@ class AmigaParser(BaseParser):
                     print(f"Added Calibration Data for {camera_name}")
 
                     # Upload Calibrations to GEMINI
-                    # Get GEMINI Calibration Sensor
+                    if calibration_sensor:
+
+                        calibration_sensor = calibration_sensor[0]
+
+                        # Get timestamp
+                        timestamp = datetime.fromtimestamp(self.current_ts/1e6)
+                        # Get season name
+                        year = timestamp.strftime('%Y')
+                        seasons = self.experiment.get_seasons()
+                        season = [s for s in seasons if s.season_name == year]
+
+                        calibration_sensor.add_record(
+                            sensor_data=json_data,
+                            timestamp=datetime.fromtimestamp(self.current_ts/1e6),
+                            experiment_name=self.experiment.experiment_name,
+                            season_name=season[0].season_name,
+                            site_name='Davis'
+                        )
 
 
             return True
@@ -222,6 +247,9 @@ class AmigaParser(BaseParser):
         try:
             df = {}
             gps_cols_list = {}
+
+            # Get Reference to GPS Sensors in AMIGA Platform
+            gps_sensors = self.sensor_platform.get_sensors_of_type(GEMINISensorType.GPS)
 
             # Initialize GPS Topics
             gps_topics = [
@@ -290,9 +318,24 @@ class AmigaParser(BaseParser):
                 df[gps_name] = gps_df.to_numpy(dtype='float64')
                 gps_cols_list[gps_name] = gps_df.columns.tolist()
 
-                # Add to Self
-                self.gps_dfs = df
-                self.gps_cols_list = gps_cols_list
+                # Upload GPS Data to GEMINI
+                if gps_name == 'pvt':
+                    gps_sensor = [sensor for sensor in gps_sensors if 'pvt' in sensor.sensor_name.lower()]
+                elif gps_name == 'relposned':
+                    gps_sensor = [sensor for sensor in gps_sensors if 'relative' in sensor.sensor_name.lower()]
+                else:
+                    print('Unknown topic name.')
+                    return False
+                
+                if gps_sensor:
+                    gps_sensor = gps_sensor[0]
+                    # Gather Timestamps
+                    timestamps = df[gps_name][:, 0]
+
+
+            # Add to Self
+            self.gps_dfs = df
+            self.gps_cols_list = gps_cols_list
 
             return True
         except Exception as e:
@@ -301,9 +344,9 @@ class AmigaParser(BaseParser):
 
 
         
+    @staticmethod
     def process_disparity(
-        self,
-        img: torch.Tensor,
+            img: torch.Tensor,
         calibration: dict,
     ) -> np.ndarray:
         """Process the disparity image.

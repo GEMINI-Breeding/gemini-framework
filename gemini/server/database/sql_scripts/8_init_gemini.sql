@@ -25,11 +25,11 @@ INSERT INTO gemini.seasons (
     experiment_id
 )
 VALUES
-    ('Season 1', '{"description": "Season 1"}', '2020-01-01', '2020-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
-    ('Season 2', '{"description": "Season 2"}', '2021-01-01', '2021-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
-    ('Season 3', '{"description": "Season 3"}', '2022-01-01', '2022-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
-    ('Season 4', '{"description": "Season 4"}', '2023-01-01', '2023-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
-    ('Season 5', '{"description": "Season 5"}', '2024-01-01', '2024-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI'));
+    ('2020', '{"description": "Season 1"}', '2020-01-01', '2020-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
+    ('2021', '{"description": "Season 2"}', '2021-01-01', '2021-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
+    ('2022', '{"description": "Season 3"}', '2022-01-01', '2022-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
+    ('2023', '{"description": "Season 4"}', '2023-01-01', '2023-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
+    ('2024', '{"description": "Season 5"}', '2024-01-01', '2024-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI'));
 
 INSERT INTO gemini.sites (
     site_name,

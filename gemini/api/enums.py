@@ -77,6 +77,8 @@ class GEMINISensorType(Enum):
   GPS = 6
   Calibration = 7
   Depth = 8
+  IMU = 9
+  Disparity = 10
 
 from enum import Enum
 
