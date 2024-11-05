@@ -1,5 +1,4 @@
 from pydantic import BaseModel, ValidationError, ConfigDict
-from pydantic import validator
 from pydantic.types import UUID4
 from pydantic.functional_validators import AfterValidator, BeforeValidator
 

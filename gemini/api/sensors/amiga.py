@@ -113,11 +113,6 @@ class AmigaParser(BaseParser):
         # GEMINI Setup
         self.experiment = Experiment.get(experiment_name='GEMINI')
         self.sensor_platform = SensorPlatform.get(sensor_platform_name='AMIGA')
-        
-        pass
-
-
-        # return super().setup(**kwargs)
 
     def parse(self, data: Path | List[Path]) -> bool:
         try:
@@ -315,7 +310,8 @@ class AmigaParser(BaseParser):
                 gps_df.replace({'True': 1, 'False': 0}, inplace=True)
                 gps_df = gps_df.apply(pd.to_numeric, errors='coerce')
                 gps_df.to_csv(f"{save_path}/gps_{gps_name}.csv", index=False)
-                df[gps_name] = gps_df.to_numpy(dtype='float64')
+                df[gps_name] = gps_df
+                # df[gps_name] = gps_df.to_numpy(dtype='float64')
                 gps_cols_list[gps_name] = gps_df.columns.tolist()
 
                 # Upload GPS Data to GEMINI
@@ -327,11 +323,38 @@ class AmigaParser(BaseParser):
                     print('Unknown topic name.')
                     return False
                 
-                if gps_sensor:
-                    gps_sensor = gps_sensor[0]
-                    # Gather Timestamps
-                    timestamps = df[gps_name][:, 0]
+                if not gps_sensor:
+                    print(f"No GPS Sensor found for {gps_name}.")
+                    continue
 
+                gps_sensor = gps_sensor[0]
+                timestamps = df[gps_name]['stamp'].to_list()
+
+                # Convert from Unix Timestamp to Datetime
+                timestamps = [datetime.fromtimestamp(ts/1e6) for ts in timestamps]
+
+                record_data = df[gps_name].replace({np.nan: None}).to_dict(orient='records')
+
+                # Get Season Name
+                timestamp = datetime.fromtimestamp(self.current_ts/1e6)
+                year = timestamp.strftime('%Y')
+                seasons = self.experiment.get_seasons()
+                season = [s for s in seasons if s.season_name == year]
+
+
+                gps_sensor.add_records(
+                    sensor_data=record_data,
+                    timestamps=timestamps,
+                    collection_date=datetime.fromtimestamp(self.current_ts/1e6),
+                    experiment_name=self.experiment.experiment_name,
+                    season_name=season[0].season_name,
+                    site_name='Davis'
+                )
+
+
+            # Convert to Numpy Array
+            for gps_df in df.values():
+                gps_df = gps_df.to_numpy(dtype='float64')
 
             # Add to Self
             self.gps_dfs = df
@@ -390,6 +413,7 @@ class AmigaParser(BaseParser):
         events_dict: Dict[str, List[EventLogPosition]]
     ) -> bool:
         try:
+
             # Image Topics
             image_topics = [topic for topic in events_dict.keys() if any(type_.lower() in topic.lower() for type_ in self.IMAGE_TYPES)]
 
@@ -397,6 +421,10 @@ class AmigaParser(BaseParser):
             save_path = self.output_path / 'Metadata'
             if not save_path.exists():
                 save_path.mkdir(parents=True, exist_ok=True)
+
+            # Get Reference to Image Sensors in AMIGA Platform
+            rgb_sensors = self.sensor_platform.get_sensors_of_type(GEMINISensorType.RGB)
+            disparity_sensors = self.sensor_platform.get_sensors_of_type(GEMINISensorType.Disparity)
 
             # Convert Image Topics to Camera Locations
             image_topics_location = [f"/{self.CAMERA_POSITIONS[topic.split('/')[1]]}/{topic.split('/')[2]}" for topic in image_topics]
@@ -414,18 +442,48 @@ class AmigaParser(BaseParser):
                 camera_events: list[EventLogPosition] = events_dict[topic_name]
                 event_log: EventLogPosition
 
+
+
                 # Prepare Save Path
                 camera_name = topic_name.split('/')[1]
-                camera_name = self.CAMERA_POSITIONS[camera_name]
+                camera_position_name = self.CAMERA_POSITIONS[camera_name]
                 camera_type = topic_name.split('/')[2]
-                topic_name_location = f'/{camera_name}/{camera_type}'
+                topic_name_location = f'/{camera_position_name}/{camera_type}'
                 camera_type = 'Disparity' if camera_type == 'disparity' else 'Images'
-                camera_path = self.output_path / camera_type / camera_name
+                camera_path = self.output_path / camera_type / camera_position_name
                 if not camera_path.exists():
                     camera_path.mkdir(parents=True, exist_ok=True)
 
+                # Ignore if RGB Camera for now
+                if camera_type == 'Images':
+                    continue
+
+                # Get the sensor
+                camera_sensor = rgb_sensors if camera_type == 'Images' else disparity_sensors
+                camera_sensor = [sensor for sensor in camera_sensor if camera_name in sensor.sensor_name.lower()]
+                if camera_sensor:
+                    camera_sensor = camera_sensor[0]
+
+                # Get Season Name
+                timestamp = datetime.fromtimestamp(self.current_ts/1e6)
+                year = timestamp.strftime('%Y')
+                seasons = self.experiment.get_seasons()
+                season = [s for s in seasons if s.season_name == year]
+                if season:
+                    season = season[0]
+
+                # Initialize Saved Image Paths
+                saved_image_paths = []
+                batch_size = 64  # Set your desired batch size here
+
+                # Record Data and Info
+                timestamps = []
+                record_data = []
+                record_info = []
+
                 # Loop through events write to jpg/npy
                 for event_log in tqdm(camera_events):
+
                     # Parse the Image
                     sample: oak_pb2.OakFrame = event_log.read_message()
 
@@ -435,7 +493,7 @@ class AmigaParser(BaseParser):
                     # Extract Image Metadata
                     sequence_num: int = sample.meta.sequence_num
                     timestamp: float = sample.meta.timestamp
-                    updated_ts: int = int((timestamp*1e6) + self.current_ts)
+                    updated_ts: int = int((timestamp * 1e6) + self.current_ts)
                     if not sequence_num in ts_df['sequence_num'].values:
                         new_row = {col: sequence_num if col == 'sequence_num' else np.nan for col in ts_df.columns}
                         ts_df = pd.concat([ts_df, pd.DataFrame([new_row])], ignore_index=True)
@@ -446,16 +504,70 @@ class AmigaParser(BaseParser):
                         img = image_decoder.decode(sample.image_data)
 
                         # Check if Calibrations Exist for this Camera
-                        if not camera_name in self.calibrations:
+                        if not camera_position_name in self.calibrations:
                             continue
 
-                        points_xyz = self.process_disparity(img, self.calibrations[camera_name])
+                        points_xyz = self.process_disparity(img, self.calibrations[camera_position_name])
                         img_name: str = f"disparity-{updated_ts}.npy"
                         np.save(str(camera_path / img_name), points_xyz)
 
                     else:
                         img_name: str = f"rgb-{updated_ts}.jpg"
                         cv2.imwrite(str(camera_path / img_name), img)
+
+                    image_path = str(camera_path / img_name)
+                    saved_image_paths.append(image_path)
+
+                    # Data and Info for GEMINI
+                    record_data.append({
+                        'file_path': image_path,
+                    })
+                    record_info.append({
+                        'timestamp': updated_ts,
+                        'sequence_num': sequence_num,
+                    })
+                    timestamps.append(datetime.fromtimestamp(updated_ts / 1e6))
+
+                    
+                    # Process Batch
+                    if len(saved_image_paths) >= batch_size:
+                        if camera_sensor:
+                            camera_sensor.add_records(
+                                sensor_data=record_data,
+                                timestamps=timestamps,
+                                collection_date=datetime.fromtimestamp(self.current_ts / 1e6),
+                                experiment_name=self.experiment.experiment_name,
+                                season_name=season.season_name,
+                                site_name='Davis',
+                                record_info=record_info
+                            )
+                        # Delete the images after processing
+                        for image_path in saved_image_paths:
+                            os.remove(image_path)
+
+                        # Clear the batch lists
+                        saved_image_paths = []
+                        record_data = []
+                        record_info = []
+                        timestamps = []
+
+
+                # Process Remaining Batch
+                if saved_image_paths:
+                    if camera_sensor:
+                        camera_sensor.add_records(
+                            sensor_data=record_data,
+                            timestamps=timestamps,
+                            collection_date=datetime.fromtimestamp(self.current_ts / 1e6),
+                            experiment_name=self.experiment.experiment_name,
+                            season_name=season.season_name,
+                            site_name='Davis',
+                            record_info=record_info
+                        )
+                    # Delete the images after processing
+                    for image_path in saved_image_paths:
+                        os.remove(image_path)
+
 
             # Split DataFrame Based on Columns
             dfs = []
@@ -486,7 +598,7 @@ class AmigaParser(BaseParser):
             print(f"Error extracting images: {e}")
             return False
             
-    
+
     def _filter_bin_files(self, path):
         path = Path(path)
         if path.is_dir():
@@ -497,8 +609,16 @@ class AmigaParser(BaseParser):
         
         
 if __name__ == "__main__":
+
+
     bin_folder = Path("/home/pghate/Work/AMIGA")
     output_folder = bin_folder / 'output'
+
+    # Delete output folder if it exists
+    import shutil
+    if output_folder.exists():
+        shutil.rmtree(output_folder)
+
 
     parser = AmigaParser(output_folder)
     parser.parse(

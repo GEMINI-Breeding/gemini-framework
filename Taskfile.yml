@@ -1,69 +1,39 @@
 version: "3"
 
 vars:
-  ENV_FILE: .env
+  ENV_FILE: .env.example
 
-dotenv: [".env"]
+# Load environment variables from .env file
+dotenv: ["{{.ENV_FILE}}"]
 
 tasks:
-  default:
-    deps: [start]
-
-  # Kubernetes tasks
-  kube-start:
-    cmds:
-      - task kube-create-secrets
-      - sleep 5
-
-  kube-stop:
-    cmds:
-      - sleep 5
-
-  kube-reset:
-    cmds:
-      - task kube-clean
-      - task kube-start
-
-  kube-clean:
-    cmds:
-      - kubectl delete all --all --all-namespaces
-      - kubectl delete secret gemini-secrets
-
-  kube-create-secrets:
-    cmds:
-      - kubectl create secret generic gemini-secrets --from-env-file=.env
-
-  kube-delete-secrets:
-    cmds:
-      - kubectl delete secret gemini-secrets
 
   # Docker tasks
-
-  docker-start:
+  start-containers:
     cmds:
-      - docker compose --env-file {{.ENV_FILE}} up -d --build
+      - docker-compose --env-file {{.ENV_FILE}} up -d --build
 
-  docker-build:
+  stop-containers:
     cmds:
-      - docker compose --env-file {{.ENV_FILE}} build
+      - docker-compose --env-file {{.ENV_FILE}} down
 
-  docker-stop:
+  clean-containers:
     cmds:
-      - docker compose --env-file {{.ENV_FILE}} down
+      - docker-compose --env-file {{.ENV_FILE}} down --volumes --remove-orphans
 
-  docker-clean:
+  reset-containers:
     cmds:
-      - docker compose --env-file {{.ENV_FILE}} down --volumes --remove-orphans
+      - task clean-containers
+      - task start-containers
 
-  docker-reset:
+  prune-containers:
     cmds:
-      - task docker-clean
-      - task docker-start
+      - docker system prune -f
 
-  # Individual Pipeline Components
-  restart-component:
+  purge-containers:
     cmds:
-      - docker compose --env-file {{.ENV_FILE}} up -d --build {{.CLI_ARGS}}
+      - task clean-containers
+      - docker system prune -fa
 
   # Main Pipeline Tasks
   install:
@@ -72,21 +42,11 @@ tasks:
 
   start:
     cmds:
-      - task docker-reset
+      - task reset-containers
       - task install
 
-  start-pipeline:
-    cmds:
-      - task kube-start
-
-  reset:
-    cmds:
-      - task docker-reset
-
   clean:
-    deps: [docker-clean]
+    deps: [clean-containers]
 
-  create-requirements:
-    cmds:
-      - pip install pipreqs
-      - python -m pipreqs.pipreqs --force .
+
+ 

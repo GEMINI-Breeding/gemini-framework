@@ -235,7 +235,12 @@ class FileHandlerMixin(BaseModel):
         if not file_path:
             return record
         
-        file_key = cls._get_file_uri(file_path, record.get("collection_date"), record_type, source_name)
+        # Collection Date
+        collection_date = record.get("collection_date")
+        collection_date = collection_date.strftime("%Y-%m-%d") 
+
+        
+        file_key = cls._get_file_uri(file_path, collection_date, record_type, source_name)
         if file_path:
             cls._upload_file(file_key=file_key, absolute_file_path=file_path)
             record_data = {
@@ -372,7 +377,6 @@ class FileHandlerMixin(BaseModel):
             raise FileNotFoundError(f"File not found at path {absolute_file_path}")
         
         file_name = os.path.basename(absolute_file_path)
-        collection_date = collection_date
 
         record_type_case = {
             "sensor": f"sensor_data/{collection_date}/{source_name}/{file_name}",
