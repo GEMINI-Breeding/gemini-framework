@@ -10,6 +10,8 @@
 /downloads
 /data
 cprofile.out
+/api_old
+/rest_old
 
 # Farm NG specific
 /farm-ng-core
