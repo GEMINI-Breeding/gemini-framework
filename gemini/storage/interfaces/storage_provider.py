@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import BinaryIO, Optional, Union, Dict, Any
 from pathlib import Path
 from datetime import datetime
-from gemini.server.storage.exceptions import StorageError
+from gemini.storage.exceptions import StorageError
 
 class StorageProvider(ABC):
     """Base interface for all storage providers.

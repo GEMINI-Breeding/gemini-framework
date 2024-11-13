@@ -14,6 +14,10 @@ services:
       - "POSTGRES_USER=${GEMINI_DB_USER}"
       - "POSTGRES_PASSWORD=${GEMINI_DB_PASSWORD}"
       - "POSTGRES_DB=${GEMINI_DB_NAME}"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./gemini/db/init_sql:/docker-entrypoint-initdb.d
+      - ./
     networks:
       - gemini_network
     depends_on:
@@ -31,11 +35,12 @@ services:
       - "${GEMINI_FILE_STORE_PORT}:9000"
       - "${GEMINI_FILE_STORE_API_PORT}:9001"
     environment:
-      - "MINIO_ROOT_USER=${GEMINI_FILE_STORE_ACCESS_KEY}"
-      - "MINIO_ROOT_PASSWORD=${GEMINI_FILE_STORE_SECRET_KEY}"
+      - "MINIO_ROOT_USER=${GEMINI_FILE_STORE_ROOT_USER}"
+      - "MINIO_ROOT_PASSWORD=${GEMINI_FILE_STORE_ROOT_PASSWORD}"
       - "MINIO_STORE_ACCESS_KEY=${GEMINI_FILE_STORE_ACCESS_KEY}"
       - "MINIO_STORE_SECRET_KEY=${GEMINI_FILE_STORE_SECRET_KEY}"
       - "MINIO_DEFAULT_BUCKETS=${GEMINI_FILE_STORE_BUCKET_NAME}"
+      - "MC_HOST_local=http://${MINIO_ROOT_USER}:${MINIO_ROOT_PASSWORD}@localhost:9000"
     networks:
       - gemini_network
     depends_on:

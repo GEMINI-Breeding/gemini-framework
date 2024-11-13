@@ -1,25 +1,24 @@
 version: "3"
 
 vars:
-  ENV_FILE: .env.example
-
-# Load environment variables from .env file
-dotenv: ["{{.ENV_FILE}}"]
+  ENV_FILE: .env
 
 tasks:
+
+
 
   # Docker tasks
   start-containers:
     cmds:
-      - docker-compose --env-file {{.ENV_FILE}} up -d --build
+      - docker compose --env-file {{.ENV_FILE}} up -d --build
 
   stop-containers:
     cmds:
-      - docker-compose --env-file {{.ENV_FILE}} down
+      - docker compose --env-file {{.ENV_FILE}} down
 
   clean-containers:
     cmds:
-      - docker-compose --env-file {{.ENV_FILE}} down --volumes --remove-orphans
+      - docker compose --env-file {{.ENV_FILE}} down --volumes --remove-orphans
 
   reset-containers:
     cmds:
@@ -35,18 +34,21 @@ tasks:
       - task clean-containers
       - docker system prune -fa
 
-  # Main Pipeline Tasks
-  install:
-    cmds:
-      - pip install -e .
-
+  # Main tasks
   start:
     cmds:
+      - task start-containers
+   
+  stop:
+    cmds:
+      - task stop-containers
+
+  reset:
+    cmds:
       - task reset-containers
-      - task install
 
   clean:
-    deps: [clean-containers]
-
-
+    cmds:
+      - task clean-containers
+    
  

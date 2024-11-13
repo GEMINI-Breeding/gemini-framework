@@ -1,25 +1,31 @@
-# Postgres 16
-FROM ghcr.io/hydradatabase/hydra:15
+# Get Bitnami PostgreSQL image
+FROM bitnami/postgresql:16.0.0
 
-# Custom ENV Variables
-ARG GEMINI_DB_USER="gemini"
-ARG GEMINI_DB_PASSWORD="gemini"
-ARG GEMINI_DB_NAME="gemini"
-ARG GEMINI_DB_HOSTNAME="db"
+USER root
 
-# Copy the environment variables for PostgreSQL
-ENV POSTGRES_USER=${GEMINI_DB_USER}
-ENV POSTGRES_PASSWORD=${GEMINI_DB_PASSWORD}
-ENV POSTGRES_DB=${GEMINI_DB_NAME}
+# Install Dependencies
+RUN apt-get update && apt-get install -y \
+    lsb-release \
+    gcc \
+    make \
+    libssl-dev \
+    autoconf \
+    pkg-config \
+    libcurl4-gnutls-dev \
+    liblz4-dev \
+    libzstd-dev \
+    git
 
-# Expose the PostgreSQL port
-EXPOSE 5432
+# Copy setup script to PostgreSQL's pre-initialization directory
+COPY ./setup.sh /scripts/setup.sh
+RUN chmod +x /scripts/setup.sh && chown 1001:1001 /scripts/setup.sh
 
-# Copy the SQL scripts to initialize the database
+# Run the setup script
+RUN /scripts/setup.sh
+
+# Copy SQL scripts to initialize the database
 COPY ./init_sql /docker-entrypoint-initdb.d/
+RUN chown -R 1001:1001 /docker-entrypoint-initdb.d/
 
-# Configure the PostgreSQL server
-COPY ./postgresql.conf /etc/postgresql/postgresql.conf
-
-# Start the PostgreSQL server
-CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+# Switch back to PostgreSQL user
+USER 1001

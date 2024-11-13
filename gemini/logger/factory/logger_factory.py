@@ -6,8 +6,7 @@ from gemini.logger.providers.redis_logger import RedisLogger
 from gemini.logger.config.logger_config import (
     LoggerConfig,
     LocalLoggerConfig,
-    RedisLoggerConfig,
-    create_logger_config_from_env
+    RedisLoggerConfig
 )
 from gemini.logger.exceptions import LoggerError, LoggerInitializationError
 
@@ -97,6 +96,9 @@ class LoggerFactory:
         Raises:
             LoggerError: If provider creation fails
         """
+        if config is None:
+            raise NotImplementedError("Environment-based configuration not implemented yet")
+
         if cls._instance is None:
             # Import threading here to avoid circular imports
             import threading
@@ -106,10 +108,8 @@ class LoggerFactory:
             with cls._lock:
                 # Double-check pattern for thread safety
                 if cls._instance is None:
-                    if config is None:
-                        config = create_logger_config_from_env()
                     cls._instance = cls.create_provider(config)
-        
+    
         return cls._instance
 
     @classmethod

@@ -8,8 +8,7 @@ from gemini.storage.config.storage_config import (
     StorageConfig,
     LocalStorageConfig,
     MinioStorageConfig,
-    S3StorageConfig,
-    create_storage_config_from_env
+    S3StorageConfig
 )
 from gemini.storage.exceptions import StorageError, StorageInitializationError
 
@@ -87,6 +86,9 @@ class StorageFactory:
         Raises:
             StorageError: If provider creation fails
         """
+        if config is None:
+            raise NotImplementedError("Environment-based configuration not implemented yet")
+
         if cls._instance is None:
             if config is None:
                 config = create_storage_config_from_env()

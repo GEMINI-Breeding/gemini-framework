@@ -1,0 +1,1 @@
+FROM bitnami/minio:2024.10.29

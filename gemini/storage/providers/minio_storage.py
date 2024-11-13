@@ -8,9 +8,9 @@ from minio import Minio
 from minio.error import S3Error
 from urllib.parse import urlparse
 
-from gemini.server.storage.interfaces.storage_provider import StorageProvider
-from gemini.server.storage.config.storage_config import MinioStorageConfig
-from gemini.server.storage.exceptions import (
+from gemini.storage.interfaces.storage_provider import StorageProvider
+from gemini.storage.config.storage_config import MinioStorageConfig
+from gemini.storage.exceptions import (
     StorageError,
     StorageFileNotFoundError,
     StorageUploadError,
