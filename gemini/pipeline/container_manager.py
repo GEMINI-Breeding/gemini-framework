@@ -3,14 +3,7 @@ from python_on_whales import DockerClient
 from python_on_whales import Container, Network
 
 from pathlib import Path
-from enum import Enum
-
 from gemini.config.settings import GEMINISettings
-
-class GEMINIPipelineStatus(Enum):
-    BUILDING = "BUILDING"
-    RUNNING = "RUNNING"
-    STOPPED = "STOPPED"
 
 
 class GEMINIContainerManager(BaseModel):
@@ -22,7 +15,6 @@ class GEMINIContainerManager(BaseModel):
     pipeline_compose_file: str = Path(__file__).parent / "compose.yaml"
     pipeline_env_file: str = Path(__file__).parent / ".env.example"
     pipeline_settings: GEMINISettings = None
-    pipeline_status: GEMINIPipelineStatus = GEMINIPipelineStatus.STOPPED
 
     docker_client: DockerClient = None
 
@@ -35,7 +27,6 @@ class GEMINIContainerManager(BaseModel):
         try:
             # Build the images
             self.docker_client.compose.build()
-            self.pipeline_status = GEMINIPipelineStatus.BUILDING
             return True
         except Exception as e:
             print(e)
@@ -46,7 +37,6 @@ class GEMINIContainerManager(BaseModel):
         try:
             # Start the containers
             self.docker_client.compose.up(detach=True)
-            self.pipeline_status = GEMINIPipelineStatus.RUNNING
             return True
         except Exception as e:
             print(e)
@@ -56,7 +46,15 @@ class GEMINIContainerManager(BaseModel):
         try:
             # Stop the containers
             self.docker_client.compose.down()
-            self.pipeline_status = GEMINIPipelineStatus.STOPPED
+            return True
+        except Exception as e:
+            print(e)
+            return False
+        
+    def purge_containers(self) -> bool:
+        try:
+            # Purge the containers
+            self.docker_client.container.prune()
             return True
         except Exception as e:
             print(e)
@@ -120,7 +118,27 @@ class GEMINIContainerManager(BaseModel):
 
         except Exception as e:
             return False
+        
+    def teardown(self) -> bool:
+        try:
+            # Stop the containers
+            self.stop_containers()
+            # Purge the containers
+            self.purge_containers()
+            return True
+        except Exception as e:
+            print(e)
+            return False
+        
 
+    def stop(self) -> bool:
+        try:
+            # Stop the containers
+            self.stop_containers()
+            return True
+        except Exception as e:
+            print(e)
+            return False
 
 
 if __name__ == "__main__":
