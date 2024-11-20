@@ -1,0 +1,107 @@
+name: gemini
+services:
+  db:
+    container_name: ${GEMINI_DB_HOSTNAME}
+    hostname: ${GEMINI_DB_HOSTNAME}
+    restart: always
+    build:
+      context: ../db
+      dockerfile: Dockerfile
+    image: ${GEMINI_DB_IMAGE_NAME}:latest
+    ports:
+      - "${GEMINI_DB_PORT}:5432"
+    environment:
+      - "POSTGRESQL_USERNAME=${GEMINI_DB_USER}"
+      - "POSTGRESQL_PASSWORD=${GEMINI_DB_PASSWORD}"
+      - "POSTGRESQL_INITSCRIPTS_USERNAME=${GEMINI_DB_USER}"
+      - "POSTGRESQL_INITSCRIPTS_PASSWORD=${GEMINI_DB_PASSWORD}"
+      - "POSTGRESQL_POSTGRES_PASSWORD=${GEMINI_DB_PASSWORD}"
+      - "POSTGRESQL_DATABASE=${GEMINI_DB_NAME}"
+      - "POSTGRESQL_REPLICATION_USER=${GEMINI_DB_USER}"
+      - "POSTGRESQL_REPLICATION_PASSWORD=${GEMINI_DB_PASSWORD}"
+      - "POSTGRESQL_REPLICATION_USE_PASSFILE=false"
+    volumes:
+      - gemini_db_data:/bitnami/postgresql
+    networks:
+      - gemini_network
+
+  storage:
+    container_name: ${GEMINI_STORAGE_HOSTNAME}
+    hostname: ${GEMINI_STORAGE_HOSTNAME}
+    restart: always
+    build:
+      context: ../storage
+      dockerfile: Dockerfile
+    image: ${GEMINI_STORAGE_IMAGE_NAME}:latest
+    ports:
+      - "${GEMINI_STORAGE_PORT}:9000"
+      - "${GEMINI_STORAGE_API_PORT}:9001"
+    environment:
+      - "MINIO_ROOT_USER=${GEMINI_STORAGE_ROOT_USER}"
+      - "MINIO_ROOT_PASSWORD=${GEMINI_STORAGE_ROOT_PASSWORD}"
+      - "MINIO_SCHEME=http"
+      - "BITNAMI_DEBUG=true"
+    volumes:
+      - gemini_storage_data:/bitnami/minio/data
+      - ../storage/scripts/healthcheck.sh:/usr/local/bin/healthcheck.sh
+    networks:
+      - gemini_network
+    depends_on:
+      - db
+
+  storage-init:
+    image: bitnami/minio-client:2024
+    networks:
+      - gemini_network
+    depends_on:
+      - storage
+    environment:
+      - "MINIO_ACCESS_KEY=${GEMINI_STORAGE_ROOT_USER}"
+      - "MINIO_SECRET_KEY=${GEMINI_STORAGE_ROOT_PASSWORD}"
+      - "MINIO_SERVER_HOST=${GEMINI_STORAGE_HOSTNAME}"
+      - "GEMINI_STORAGE_ACCESS_KEY=${GEMINI_STORAGE_ACCESS_KEY}"
+      - "GEMINI_STORAGE_SECRET_KEY=${GEMINI_STORAGE_SECRET_KEY}"
+      - "GEMINI_STORAGE_BUCKET_NAME=${GEMINI_STORAGE_BUCKET_NAME}"
+    volumes:
+      - ../storage/scripts/init_minio.sh:/usr/local/bin/init_minio.sh
+    entrypoint: >
+      /bin/sh -c "sleep 10 && /usr/local/bin/init_minio.sh"
+
+  logger:
+    container_name: ${GEMINI_LOGGER_HOSTNAME}
+    hostname: ${GEMINI_LOGGER_HOSTNAME}
+    restart: always
+    build:
+      context: ../logger
+      dockerfile: Dockerfile
+    image: ${GEMINI_LOGGER_IMAGE_NAME}:latest
+    ports:
+      - "${GEMINI_LOGGER_PORT}:6379"
+    environment:
+      - "REDIS_PASSWORD=${GEMINI_LOGGER_PASSWORD}"
+      - "REDIS_PORT=${GEMINI_LOGGER_PORT}"
+      - "REDIS_MAX_MEMORY=${GEMINI_LOGGER_MAX_MEMORY:-256mb}"
+    volumes:
+      - gemini_logger_data:/data
+      - ../logger/redis.conf:/usr/local/etc/redis/redis.conf
+    command: >
+      redis-server /usr/local/etc/redis/redis.conf
+      --requirepass "${GEMINI_LOGGER_PASSWORD}"
+      --port ${GEMINI_LOGGER_PORT}
+      --maxmemory ${GEMINI_LOGGER_MAX_MEMORY:-256mb}
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - gemini_network
+  
+networks:
+  gemini_network:
+    driver: bridge
+
+volumes:
+  gemini_db_data:
+  gemini_logger_data:
+  gemini_storage_data:

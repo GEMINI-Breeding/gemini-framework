@@ -1,24 +1,35 @@
 version: "3"
 
 vars:
-  ENV_FILE: .env
+  ENV: ./gemini/pipeline/.env.example
+  ENV_TARGET: ./gemini/pipeline/.env
+  COMPOSE_FILE: ./gemini/pipeline/compose.yaml
 
 tasks:
 
-
+  load-env:
+    cmds:
+      - cp {{.ENV}} {{.ENV_TARGET}}
 
   # Docker tasks
-  start-containers:
-    cmds:
-      - docker compose --env-file {{.ENV_FILE}} up -d --build
 
-  stop-containers:
+  build-containers:
+    deps: [load-env]
     cmds:
-      - docker compose --env-file {{.ENV_FILE}} down
+      - docker compose -f {{.COMPOSE_FILE}} build
 
   clean-containers:
     cmds:
-      - docker compose --env-file {{.ENV_FILE}} down --volumes --remove-orphans
+      - docker compose -f {{.COMPOSE_FILE}} down --rmi all 
+
+  start-containers:
+    deps: [load-env]
+    cmds:
+      - docker compose -f {{.COMPOSE_FILE}} up -d --build
+
+  stop-containers:
+    cmds:
+      - docker compose -f {{.COMPOSE_FILE}} down
 
   reset-containers:
     cmds:
@@ -31,7 +42,7 @@ tasks:
 
   purge-containers:
     cmds:
-      - task clean-containers
+      - docker compose -f {{.COMPOSE_FILE}} down --volumes --remove-orphans
       - docker system prune -fa
 
   # Main tasks
