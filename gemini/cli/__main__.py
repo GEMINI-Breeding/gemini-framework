@@ -1,9 +1,9 @@
 import click
+from gemini.cli.pipeline import pipeline
 
 @click.group()
 def cli():
     pass
 
-@cli.command()
-def init():
-    click.echo('Initialized logger')
+cli.add_command(pipeline)
+

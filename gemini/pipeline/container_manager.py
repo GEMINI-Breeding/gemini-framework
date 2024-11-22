@@ -13,9 +13,7 @@ class GEMINIContainerManager(BaseModel):
     )
 
     pipeline_compose_file: str = Path(__file__).parent / "compose.yaml"
-    pipeline_env_file: str = Path(__file__).parent / ".env.example"
-    pipeline_settings: GEMINISettings = None
-
+    pipeline_example_env_file: str = Path(__file__).parent / ".env.example"
     docker_client: DockerClient = None
 
     # Containers
@@ -94,12 +92,14 @@ class GEMINIContainerManager(BaseModel):
             "networks": self.docker_client.network.list()
         }
 
-    def setup(self) -> bool:
+    def setup(self, pipeline_settings: GEMINISettings = None) -> bool:
         try:
 
             # Check Pipeline Settings
-            if not self.pipeline_settings:
-                self.pipeline_settings = GEMINISettings.from_env_file(self.pipeline_env_file)
+            if not pipeline_settings:
+                pipeline_settings = GEMINISettings.from_env_file(self.pipeline_example_env_file)
+
+
 
             # Get the docker client
             client = DockerClient(
@@ -141,7 +141,3 @@ class GEMINIContainerManager(BaseModel):
             return False
 
 
-if __name__ == "__main__":
-    manager = GEMINIContainerManager()
-    manager.setup()
-    print(manager.get_pipeline_info())
