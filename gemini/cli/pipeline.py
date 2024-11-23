@@ -28,15 +28,12 @@ def clean():
 
 @pipeline.command()
 def setup():
-    click.echo(click.style("Setting up the pipeline", fg="green"))
+    click.echo(click.style("Setting up the pipeline", fg="blue"))
     # Ask for the variables
     vars = environment_setup()
     # Write the variables to the .env file
     vars.create_env_file(f"{PIPELINE_DIR}/.env")
-    # 
-    
-
-
+    click.echo(click.style(f"Environment variables written to {PIPELINE_DIR}/.env", fg="blue"))
 
 
 def environment_setup() -> GEMINISettings:

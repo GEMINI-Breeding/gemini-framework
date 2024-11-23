@@ -13,13 +13,18 @@ class GEMINIContainerManager(BaseModel):
     )
 
     pipeline_compose_file: str = Path(__file__).parent / "compose.yaml"
-    pipeline_example_env_file: str = Path(__file__).parent / ".env.example"
+    pipeline_env_file: str = Path(__file__).parent / ".env.example"
     docker_client: DockerClient = None
 
     # Containers
     db_container: Container = None
     logger_container: Container = None
     storage_container: Container = None
+
+    def apply_settings(self, settings: GEMINISettings) -> None:
+        parent_folder = Path(__file__).parent
+        settings.create_env_file(f"{parent_folder}/.env")
+        
 
     def build_images(self) -> bool:
         try:
@@ -75,31 +80,8 @@ class GEMINIContainerManager(BaseModel):
             print(e)
             return False
 
-
-    def get_pipeline_info(self) -> dict:
-        return {
-            "pipeline_status": self.pipeline_status,
-            "containers": {
-                "db": self.db_container,
-                "logger": self.logger_container,
-                "storage": self.storage_container
-            },
-            "images": {
-                "db": self.pipeline_settings.GEMINI_DB_IMAGE_NAME,
-                "logger": self.pipeline_settings.GEMINI_LOGGER_IMAGE_NAME,
-                "storage": self.pipeline_settings.GEMINI_STORAGE_IMAGE_NAME
-            },
-            "networks": self.docker_client.network.list()
-        }
-
     def setup(self, pipeline_settings: GEMINISettings = None) -> bool:
         try:
-
-            # Check Pipeline Settings
-            if not pipeline_settings:
-                pipeline_settings = GEMINISettings.from_env_file(self.pipeline_example_env_file)
-
-
 
             # Get the docker client
             client = DockerClient(
