@@ -1,3 +1,4 @@
+from typing import Any
 from pydantic import BaseModel, ConfigDict
 from python_on_whales import DockerClient
 from python_on_whales import Container, Network
@@ -20,6 +21,14 @@ class GEMINIContainerManager(BaseModel):
     db_container: Container = None
     logger_container: Container = None
     storage_container: Container = None
+
+    def model_post_init(self, __context: Any) -> None:
+
+        self.docker_client = DockerClient(
+            compose_files=[self.pipeline_compose_file]
+        )
+
+        return super().model_post_init(__context)
 
     def apply_settings(self, settings: GEMINISettings) -> None:
         parent_folder = Path(__file__).parent
@@ -82,13 +91,7 @@ class GEMINIContainerManager(BaseModel):
 
     def setup(self, pipeline_settings: GEMINISettings = None) -> bool:
         try:
-
-            # Get the docker client
-            client = DockerClient(
-                compose_files=[self.pipeline_compose_file]
-            )
-            self.docker_client = client
-
+            
             # Build the images
             self.build_images()
 

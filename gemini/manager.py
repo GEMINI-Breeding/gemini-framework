@@ -13,15 +13,17 @@ class GEMINIManager(BaseModel):
 
     _shared_state: ClassVar[dict] = PrivateAttr(default={})
 
-    k: int = 0
-
-    container_manager: GEMINIContainerManager = GEMINIContainerManager()
-    settings: GEMINISettings = GEMINISettings()
+    container_manager: GEMINIContainerManager = None
+    settings: GEMINISettings = None
 
     def model_post_init(self, __context: Any) -> None:
         self.__dict__ = self._shared_state
         if not self._shared_state:
             self._shared_state.update(self.__dict__)
+
+        self.container_manager = GEMINIContainerManager()
+        self.settings = GEMINISettings()
+        return super().model_post_init(__context)
 
     def apply_settings(self, settings: GEMINISettings) -> None:
         self.container_manager.apply_settings(settings)
@@ -39,8 +41,3 @@ class GEMINIManager(BaseModel):
     def clean_pipeline(self) -> bool:
         return self.container_manager.purge_containers()
 
-
-
-if __name__ == "__main__":
-    manager = GEMINIManager()
-    manager.build_pipeline()

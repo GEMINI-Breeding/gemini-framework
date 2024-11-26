@@ -1,47 +1,90 @@
 import click
+import os, subprocess
 from pathlib import Path
-
 from gemini.config.settings import GEMINISettings
+from gemini.manager import GEMINIManager
 
-SCRIPT_DIR = Path(__file__).parent
-PIPELINE_DIR = SCRIPT_DIR.parent / "pipeline"
+# SCRIPT_DIR = Path(__file__).parent
+# PIPELINE_DIR = SCRIPT_DIR.parent / "pipeline"
+
+class PipelineCLIContact:
+    def __init__(self) -> None:
+        self.manager = GEMINIManager()
+        self.script_dir = Path(__file__).parent
+        self.pipeline_dir = self.script_dir.parent / "pipeline"
+        
+
 
 @click.group()
-def pipeline():
-    pass
+@click.pass_context
+def pipeline(ctx):
+    """Pipeline commands"""
+    # Initialize the GEMINIManager once and share it across commands
+    ctx.obj = PipelineCLIContact()
+    print("Pipeline CLI Contact")
 
 @pipeline.command()
-def build():
-    pass
+@click.pass_obj
+def build(pipeline : PipelineCLIContact):
+    manager = pipeline.manager
+    click.echo(click.style("Building the pipeline", fg="blue"))
+    manager.build_pipeline()
+    click.echo(click.style("Pipeline built", fg="blue"))
 
-@pipeline.command()
-def start():
-    pass
+# @pipeline.command()
+# @click.pass_obj
+# def start(ctx):
+#     manager = ctx.obj["manager"]
+#     click.echo(click.style("Starting the pipeline", fg="blue"))
+#     manager.start_pipeline()
+#     click.echo(click.style("Pipeline started", fg="blue"))
 
-@pipeline.command()
-def stop():
-    pass
+# @pipeline.command()
+# @click.pass_obj
+# def stop(ctx):
+#     manager = ctx.obj["manager"]
+#     click.echo(click.style("Stopping the pipeline", fg="blue"))
+#     manager.stop_pipeline()
+#     click.echo(click.style("Pipeline stopped", fg="blue"))
 
-@pipeline.command()
-def clean():
-    pass
+# @pipeline.command()
+# @click.pass_obj
+# def clean(ctx):
+#     manager = ctx.obj["manager"]
+#     click.echo(click.style("Cleaning the pipeline", fg="blue"))
+#     manager.clean_pipeline()
+#     click.echo(click.style("Pipeline cleaned", fg="blue"))
 
-@pipeline.command()
-def setup():
-    click.echo(click.style("Setting up the pipeline", fg="blue"))
-    # Ask for the variables
-    vars = environment_setup()
-    # Write the variables to the .env file
-    vars.create_env_file(f"{PIPELINE_DIR}/.env")
-    click.echo(click.style(f"Environment variables written to {PIPELINE_DIR}/.env", fg="blue"))
+# @pipeline.command()
+# @click.pass_obj
+# def setup(ctx):
+#     manager = ctx.obj["manager"]
+#     click.echo(click.style("Setting up the pipeline", fg="blue"))
 
+#     # Ask for the variables
+#     vars = environment_setup()
+
+#     # Write the variables to the .env file
+#     vars.create_env_file(f"{PIPELINE_DIR}/.env")
+#     click.echo(click.style(f"Environment variables written to {PIPELINE_DIR}/.env", fg="blue"))
+
+#     # Apply the settings
+#     manager.apply_settings(vars)
+#     click.echo(click.style("Settings applied", fg="blue"))
+
+#     # Build the pipeline
+#     manager.build_pipeline()
+
+#     # Start the pipeline
+#     manager.start_pipeline()
+
+#     click.echo(click.style("Pipeline setup complete", fg="blue"))
 
 def environment_setup() -> GEMINISettings:
-
+    """Collect environment settings interactively."""
     settings = GEMINISettings()
 
     # Asking user for database configuration
-    # GEMINI Database Configuration
     click.echo(click.style("GEMINI Database Configuration", fg="green"))
     settings.GEMINI_DB_USER = click.prompt("Enter the database user", default="gemini")
     settings.GEMINI_DB_PASSWORD = click.prompt("Enter the database password", default="gemini")
@@ -60,32 +103,6 @@ def environment_setup() -> GEMINISettings:
 
     return settings
 
-
-# # GEMINI Database Configuration
-# GEMINI_DB_CONTAINER_NAME=gemini-db
-# GEMINI_DB_IMAGE_NAME=gemini/db
-# GEMINI_DB_USER=gemini
-# GEMINI_DB_PASSWORD=gemini
-# GEMINI_DB_HOSTNAME=gemini-db
-# GEMINI_DB_NAME=gemini
-# GEMINI_DB_PORT=5432
-
-# # GEMINI Logger Configuration
-# GEMINI_LOGGER_CONTAINER_NAME=gemini-logger
-# GEMINI_LOGGER_IMAGE_NAME=gemini/logger
-# GEMINI_LOGGER_HOSTNAME=gemini-logger
-# GEMINI_LOGGER_PORT=6379
-# GEMINI_LOGGER_PASSWORD=gemini
-
-# # GEMINI File Store
-# GEMINI_STORAGE_CONTAINER_NAME=gemini-storage
-# GEMINI_STORAGE_IMAGE_NAME=gemini/storage
-# GEMINI_STORAGE_HOSTNAME=gemini-storage
-# GEMINI_STORAGE_PORT=9000
-# GEMINI_STORAGE_API_PORT=9001
-# GEMINI_STORAGE_ROOT_USER=gemini_root
-# GEMINI_STORAGE_ROOT_PASSWORD=gemini_root
-# GEMINI_STORAGE_ACCESS_KEY=gemini_storage_user
-# GEMINI_STORAGE_SECRET_KEY=gemini_secret
-# GEMINI_STORAGE_BUCKET_NAME=gemini
-
+if __name__ == "__main__":
+    # RUN THE CLI
+    build()
