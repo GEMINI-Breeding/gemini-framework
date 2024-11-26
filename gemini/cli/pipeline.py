@@ -55,8 +55,9 @@ def clean(pipeline : PipelineCLIContact):
 @click.pass_obj
 def status(pipeline : PipelineCLIContact):
     manager = pipeline.manager
-    click.echo(click.style("Pipeline Status", fg="blue"))
-    click.echo(click.style(f"Status: {manager.status}", fg="blue"))
+    status = manager.get_status()
+    click.echo(click.style(f"Pipeline status: {status}", fg="blue"))
+    
 
 @pipeline.command()
 @click.pass_obj

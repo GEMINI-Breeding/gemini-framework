@@ -90,6 +90,18 @@ class GEMINIContainerManager(BaseModel):
             return False
         
 
+    def get_status(self) -> str:
+        try:
+            # Get the status
+            running_containers = self.docker_client.compose.ps()
+            if running_containers:
+                return "Running"
+            else:
+                return "Stopped"
+        except Exception as e:
+            print(e)
+            return "Error"
+
     def setup(self, pipeline_settings: GEMINISettings = None) -> bool:
         try:
 
@@ -127,3 +139,9 @@ class GEMINIContainerManager(BaseModel):
             return False
 
 
+if __name__ == "__main__":
+    manager = GEMINIContainerManager()
+    manager.setup()
+    print(manager.get_status())
+    manager.teardown()
+    print(manager.get_status())
