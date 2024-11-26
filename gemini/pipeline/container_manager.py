@@ -1,4 +1,5 @@
 from typing import Any
+from enum import Enum
 from pydantic import BaseModel, ConfigDict
 from python_on_whales import DockerClient
 from python_on_whales import Container, Network
@@ -44,7 +45,6 @@ class GEMINIContainerManager(BaseModel):
             print(e)
             return False
         
-
     def start_containers(self) -> bool:
         try:
             # Start the containers
@@ -88,10 +88,11 @@ class GEMINIContainerManager(BaseModel):
         except Exception as e:
             print(e)
             return False
+        
 
     def setup(self, pipeline_settings: GEMINISettings = None) -> bool:
         try:
-            
+
             # Build the images
             self.build_images()
 
