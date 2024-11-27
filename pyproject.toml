@@ -19,6 +19,7 @@ pydantic-settings = "2.6.1"
 click = "8.1.7"
 psycopg2-binary = "2.9.10"
 asyncpg = "0.30.0"
+litestar = {version = "2.13.0", extras = ["standard"]}
 
 
 [build-system]

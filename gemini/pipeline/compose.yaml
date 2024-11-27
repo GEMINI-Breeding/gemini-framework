@@ -96,6 +96,27 @@ services:
       retries: 3
     networks:
       - gemini_network
+
+  rest-api:
+    container_name: ${GEMINI_REST_API_HOSTNAME}
+    hostname: ${GEMINI_REST_API_HOSTNAME}
+    restart: always
+    build:
+      context: ../../  # Adjust the context to the parent directory that contains 'gemini'
+      dockerfile: ./gemini/rest_api/Dockerfile  # Specify the path to the Dockerfile relative to the context
+    image: ${GEMINI_REST_API_IMAGE_NAME}:latest
+    ports:
+      - "${GEMINI_REST_API_PORT}:8080"
+    environment:
+      - "GEMINI_DB_URL=postgresql://${GEMINI_DB_USER}:${GEMINI_DB_PASSWORD}@${GEMINI_DB_HOSTNAME}:${GEMINI_DB_PORT}/${GEMINI_DB_NAME}"
+      - "GEMINI_STORAGE_ACCESS_KEY=${GEMINI_STORAGE_ACCESS_KEY}"
+      - "GEMINI_STORAGE_SECRET_KEY=${GEMINI_STORAGE_SECRET_KEY}"
+      - "GEMINI_STORAGE_BUCKET_NAME=${GEMINI_STORAGE_BUCKET_NAME}"
+      - "GEMINI_STORAGE_PORT=${GEMINI_STORAGE_PORT}"
+      - "GEMINI_STORAGE_API_PORT=${GEMINI_STORAGE_API_PORT}"
+    networks:
+      - gemini_network
+      
   
 networks:
   gemini_network:

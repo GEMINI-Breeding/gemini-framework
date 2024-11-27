@@ -35,8 +35,9 @@ class Cultivar(APIBase):
     @classmethod
     def get(cls, cultivar_population: str, cultivar_accession: str) -> "Cultivar":
         try:
-            db_instance = CultivarModel.get_by_population_accession(
-                cultivar_population, cultivar_accession
+            db_instance = CultivarModel.get_by_parameters(
+                cultivar_accession=cultivar_accession,
+                cultivar_population=cultivar_population,
             )
             cultivar = cls.model_validate(db_instance)
             return cultivar
@@ -120,6 +121,8 @@ class Cultivar(APIBase):
         cultivars = CultivarModel.search(cultivar_population=cultivar_population)
         cultivars = [cls.model_validate(cultivar) for cultivar in cultivars]
         return cultivars if cultivars else None
+    
+
 
 
     
