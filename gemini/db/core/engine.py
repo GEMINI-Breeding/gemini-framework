@@ -145,6 +145,7 @@ class DatabaseEngine:
         session = self._session_factory()
         try:
             yield session
+            session.flush()
             session.commit()
         except Exception as e:
             session.rollback()

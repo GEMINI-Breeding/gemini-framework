@@ -78,7 +78,6 @@ class Cultivar(APIBase):
             cultivar = CultivarModel.get(current_id)
             cultivar = CultivarModel.update(cultivar, **update_parameters)
             cultivar = self.model_validate(cultivar)
-            self.refresh()
             return cultivar
         except Exception as e:
             raise e
@@ -105,6 +104,16 @@ class Cultivar(APIBase):
         except Exception as e:
             raise e
         
+    def save(self) -> "Cultivar":
+        try:
+            current_id = self.id
+            cultivar = CultivarModel.get(current_id)
+            cultivar = CultivarModel.save(cultivar)
+            cultivar = self.model_validate(cultivar)
+            return cultivar
+        except Exception as e:
+            raise e
+        
 
     @classmethod
     def get_population_accessions(cls, cultivar_population: str):
@@ -116,3 +125,10 @@ class Cultivar(APIBase):
 if __name__ == "__main__":
     all_cultivars = Cultivar.get_all()
     print(all_cultivars)
+    sample_cultivar = all_cultivars[0]
+    # Test refresh
+    sample_cultivar.refresh()
+    print(sample_cultivar)
+    # Test update
+    sample_cultivar.update(cultivar_accession="new_accession")
+    print(sample_cultivar)
