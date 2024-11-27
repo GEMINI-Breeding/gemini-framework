@@ -120,15 +120,6 @@ class Cultivar(APIBase):
         cultivars = CultivarModel.search(cultivar_population=cultivar_population)
         cultivars = [cls.model_validate(cultivar) for cultivar in cultivars]
         return cultivars if cultivars else None
-    
 
-if __name__ == "__main__":
-    all_cultivars = Cultivar.get_all()
-    print(all_cultivars)
-    sample_cultivar = all_cultivars[0]
-    # Test refresh
-    sample_cultivar.refresh()
-    print(sample_cultivar)
-    # Test update
-    sample_cultivar.update(cultivar_accession="new_accession")
-    print(sample_cultivar)
+
+    
