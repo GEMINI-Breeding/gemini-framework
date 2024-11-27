@@ -23,6 +23,9 @@ class GEMINIManager(BaseModel):
         self.container_manager.apply_settings(settings)
         self.settings = settings
 
+    def get_settings(self) -> GEMINISettings:
+        return self.settings
+
     def build_pipeline(self) -> bool:
         return self.container_manager.build_images()
     
@@ -33,7 +36,10 @@ class GEMINIManager(BaseModel):
         return self.container_manager.stop_containers()
     
     def clean_pipeline(self) -> bool:
-        return self.container_manager.purge_containers()
+        return self.container_manager.teardown()
     
     def get_status(self) -> str:
         return self.container_manager.get_status()
+    
+
+

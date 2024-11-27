@@ -151,7 +151,6 @@ class DatabaseEngine:
             logger.exception("Database session error: %s", str(e))
             raise
         finally:
-            session.refresh()
             session.close()
 
     @asynccontextmanager

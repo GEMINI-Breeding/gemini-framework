@@ -1,3 +1,5 @@
+from typing import Any
+
 from sqlalchemy import select, insert, delete, update
 from sqlalchemy import TIMESTAMP, JSON, DATE, String
 from sqlalchemy import MetaData
@@ -5,17 +7,24 @@ from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy_mixins.serialize import SerializeMixin
 from sqlalchemy.dialects.postgresql import insert as pg_insert
-from gemini.db import DatabaseEngine
 
-db_engine = DatabaseEngine()
+from gemini import global_manager
+from gemini.db.core.engine import DatabaseEngine
+from gemini.config.settings import GEMINISettings
+
+db_config = global_manager.get_settings().get_database_config()
 metadata_obj = MetaData(schema="gemini")
+db_engine = DatabaseEngine(db_config)
+
 
 class BaseModel(DeclarativeBase, SerializeMixin):
     __abstract__ = True
     metadata = metadata_obj
 
+
     def __repr__(self) -> str:
         return str(self.to_dict())
+
 
     @classmethod
     def set_engine(cls, engine: DatabaseEngine):

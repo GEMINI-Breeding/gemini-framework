@@ -17,6 +17,8 @@ sqlalchemy = "2.0.26"
 sqlalchemy-mixins = "2.0.5"
 pydantic-settings = "2.6.1"
 click = "8.1.7"
+psycopg2-binary = "2.9.10"
+asyncpg = "0.30.0"
 
 
 [build-system]
