@@ -26,6 +26,20 @@ class RESTAPIBase(BaseModel):
         from_attributes=True,
     )
 
+# --------------------------------
+# Error Classes
+# --------------------------------
+class RESTAPIError(RESTAPIBase):
+    error: str
+    error_description: str
+
+    def to_html(self):
+        return f"<h1>{self.error}</h1><p>{self.error_description}</p>"
+
+# --------------------------------
+# Paginated Response
+# --------------------------------
+
 class PaginatedResponseBase(RESTAPIBase):
     total_records: int
     total_pages: int

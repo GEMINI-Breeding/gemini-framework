@@ -25,3 +25,5 @@ class CultivarModel(BaseModel):
         Index('idx_cultivars_info', 'cultivar_info', postgresql_using='GIN')
     )
 
+    experiments = relationship("ExperimentModel", secondary="gemini.experiment_cultivars")
+

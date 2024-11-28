@@ -20,6 +20,7 @@ class Cultivar(APIBase):
         cultivar_population: str,
         cultivar_accession: str,
         cultivar_info: dict = {},
+        experiment_name: str = "Default",
     ) -> "Cultivar":
         try:
             db_instance = CultivarModel.get_or_create(
@@ -28,6 +29,7 @@ class Cultivar(APIBase):
                 cultivar_info=cultivar_info,
             )
             cultivar = cls.model_validate(db_instance)
+
             return cultivar
         except Exception as e:
             raise e
