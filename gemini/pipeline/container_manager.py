@@ -39,7 +39,7 @@ class GEMINIContainerManager(BaseModel):
     def build_images(self) -> bool:
         try:
             # Build the images
-            self.docker_client.compose.build()
+            self.docker_client.compose.build(cache=False, pull=True)
             return True
         except Exception as e:
             print(e)
@@ -66,7 +66,7 @@ class GEMINIContainerManager(BaseModel):
     def purge_containers(self) -> bool:
         try:
             # Purge the containers
-            self.docker_client.container.prune()
+            self.docker_client.compose.down(volumes=True, remove_orphans=True, remove_images="all")
             return True
         except Exception as e:
             print(e)

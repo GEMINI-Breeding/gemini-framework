@@ -20,20 +20,13 @@ import uuid
 
 class SensorModel(BaseModel):
     __tablename__ = "sensors"
-
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=False), primary_key=True, default=uuid.uuid4
     )
     sensor_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    sensor_type_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("gemini.sensor_types.id"), default=0
-    )
-    sensor_data_type_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("gemini.data_types.id"), default=0
-    )
-    sensor_data_format_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("gemini.data_formats.id"), default=0
-    )
+    sensor_type_id: Mapped[int] = mapped_column(Integer, ForeignKey("gemini.sensor_types.id"), default=0)
+    sensor_data_type_id: Mapped[int] = mapped_column(Integer, ForeignKey("gemini.data_types.id"), default=0)
+    sensor_data_format_id: Mapped[int] = mapped_column(Integer, ForeignKey("gemini.data_formats.id"), default=0)
     sensor_info: Mapped[dict] = mapped_column(JSON, default={})
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
     updated_at: Mapped[datetime] = mapped_column(TIMESTAMP)
@@ -43,7 +36,7 @@ class SensorModel(BaseModel):
         Index("idx_sensors_info", "sensor_info", postgresql_using="GIN"),
     )
 
-    sensor_type = relationship("SensorTypeModel", uselist=False)
-    data_type = relationship("DataTypeModel", uselist=False)
-    data_format = relationship("DataFormatModel", uselist=False)
-    datasets = relationship("DatasetModel", secondary="gemini.sensor_datasets")
+    sensor_type = relationship("SensorTypeModel", lazy="subquery", viewonly=True)
+    sensor_data_type = relationship("DataTypeModel", lazy="subquery", viewonly=True)
+    sensor_data_format = relationship("DataFormatModel", lazy="subquery", viewonly=True)
+    datasets = relationship("DatasetModel", secondary="gemini.sensor_datasets", lazy="subquery", viewonly=True)

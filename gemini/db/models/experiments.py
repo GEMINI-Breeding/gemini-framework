@@ -26,12 +26,8 @@ class ExperimentModel(BaseModel):
     )
     experiment_name: Mapped[str] = mapped_column(String(255), nullable=False)
     experiment_info: Mapped[dict] = mapped_column(JSONB, nullable=True)
-    experiment_start_date: Mapped[date] = mapped_column(
-        DATE, nullable=False, default=datetime.now
-    )
-    experiment_end_date: Mapped[date] = mapped_column(
-        DATE, nullable=False, default=datetime.now
-    )
+    experiment_start_date: Mapped[date] = mapped_column(DATE, nullable=False, default=datetime.now)
+    experiment_end_date: Mapped[date] = mapped_column(DATE, nullable=False, default=datetime.now)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
     updated_at: Mapped[datetime] = mapped_column(TIMESTAMP)
 
@@ -42,18 +38,15 @@ class ExperimentModel(BaseModel):
         Index("idx_experiments_info", "experiment_info", postgresql_using="GIN"),
     )
 
-    seasons = relationship("SeasonModel")
-    resources = relationship("ResourceModel")
-    sites = relationship("SiteModel", secondary="gemini.experiment_sites")
-    sensors = relationship("SensorModel", secondary="gemini.experiment_sensors")
-    cultivars = relationship("CultivarModel", secondary="gemini.experiment_cultivars")
-    datasets = relationship("DatasetModel", secondary="gemini.experiment_datasets")
-    traits = relationship("TraitModel", secondary="gemini.experiment_traits")
-    models = relationship("ModelModel", secondary="gemini.experiment_models")
-    scripts = relationship("ScriptModel", secondary="gemini.experiment_scripts")
-    procedures = relationship(
-        "ProcedureModel", secondary="gemini.experiment_procedures"
-    )
-    platforms = relationship(
-        "SensorPlatformModel", secondary="gemini.experiment_sensor_platforms"
-    )
+    seasons = relationship("SeasonModel", lazy="subquery", viewonly=True)
+    resources = relationship("ResourceModel", lazy="subquery", viewonly=True)
+
+    sites = relationship("SiteModel", secondary="gemini.experiment_sites", lazy="subquery", viewonly=True)
+    sensors = relationship("SensorModel", secondary="gemini.experiment_sensors", lazy="subquery", viewonly=True)
+    cultivars = relationship("CultivarModel", secondary="gemini.experiment_cultivars", lazy="subquery", viewonly=True)
+    datasets = relationship("DatasetModel", secondary="gemini.experiment_datasets", lazy="subquery", viewonly=True)
+    traits = relationship("TraitModel", secondary="gemini.experiment_traits", lazy="subquery", viewonly=True)
+    models = relationship("ModelModel", secondary="gemini.experiment_models", lazy="subquery", viewonly=True)
+    scripts = relationship("ScriptModel", secondary="gemini.experiment_scripts", lazy="subquery", viewonly=True)
+    procedures = relationship("ProcedureModel", secondary="gemini.experiment_procedures", lazy="subquery", viewonly=True)
+    platforms = relationship("SensorPlatformModel", secondary="gemini.experiment_sensor_platforms", lazy="subquery", viewonly=True)

@@ -178,6 +178,12 @@ BEGIN
     END LOOP;
 END $$;
 
+-- Create 2 plants for each plot with the default cultivar
+INSERT INTO gemini.plants (plot_id, plant_number, plant_info, cultivar_id)
+SELECT p.id, 1, '{"description": "Default Plant 1"}', (SELECT id FROM gemini.cultivars WHERE cultivar_accession = 'Default' AND cultivar_population = 'Default')
+FROM gemini.plots p
+WHERE p.experiment_id = (SELECT id FROM gemini.experiments WHERE experiment_name = 'Default');
+
 -- For each of the above plots, create a plot_cultivars entry that associates the plot with the default cultivar
 INSERT INTO gemini.plot_cultivars (plot_id, cultivar_id)
 SELECT p.id, (SELECT id FROM gemini.cultivars WHERE cultivar_accession = 'Default' AND cultivar_population = 'Default')

@@ -31,4 +31,3 @@ class ProcedureRunModel(BaseModel):
         UniqueConstraint("procedure_id", "procedure_run_info"),
         Index("idx_procedure_runs_info", "procedure_run_info", postgresql_using="GIN"),
     )
-

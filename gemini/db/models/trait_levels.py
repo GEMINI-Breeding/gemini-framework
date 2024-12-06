@@ -23,4 +23,3 @@ class TraitLevelModel(BaseModel):
         UniqueConstraint("trait_level_name", name="trait_level_unique"),
         Index("idx_trait_levels_info", "trait_level_info", postgresql_using="GIN"),
     )
-

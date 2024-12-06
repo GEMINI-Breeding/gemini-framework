@@ -32,3 +32,4 @@ class ScriptRunModel(BaseModel):
         Index("idx_script_runs_info", "script_run_info", postgresql_using="GIN"),
     )
 
+

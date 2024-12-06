@@ -35,9 +35,9 @@ class PlotModel(BaseModel):
     Index('idx_plots_info', 'plot_info', postgresql_using='GIN')
   )
 
-  experiment = relationship('ExperimentModel', uselist=False)
-  season = relationship('SeasonModel', uselist=False)
-  site = relationship('SiteModel', uselist=False)
-  cultivars = relationship('CultivarModel', secondary='gemini.plot_cultivars')
-  plants = relationship('PlantModel')
+  cultivars = relationship('CultivarModel', secondary='gemini.plot_cultivars', lazy='subquery', viewonly=True)
+  plants = relationship('PlantModel', lazy='subquery', viewonly=True)
 
+  experiment = relationship('ExperimentModel', lazy='subquery', viewonly=True)
+  season = relationship('SeasonModel', lazy='subquery', viewonly=True)
+  site = relationship('SiteModel', lazy='subquery', viewonly=True)

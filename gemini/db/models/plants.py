@@ -33,5 +33,4 @@ class PlantModel(BaseModel):
         Index("idx_plants_info", "plant_info", postgresql_using="GIN"),
     )
 
-    cultivar = relationship("CultivarModel")
-
+    cultivar = relationship("CultivarModel", uselist=False, lazy="subquery", viewonly=True)

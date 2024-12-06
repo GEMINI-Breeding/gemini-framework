@@ -20,6 +20,7 @@ import uuid
 
 class DatasetModel(BaseModel):
 
+
     __tablename__ = "datasets"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
@@ -35,5 +36,4 @@ class DatasetModel(BaseModel):
         Index("idx_datasets_info", "dataset_info", postgresql_using="GIN"),
     )
 
-    dataset_type = relationship("DatasetTypeModel")
-
+    dataset_type = relationship("DatasetTypeModel", lazy="subquery", viewonly=True)

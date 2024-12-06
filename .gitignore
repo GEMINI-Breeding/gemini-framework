@@ -12,6 +12,7 @@
 cprofile.out
 /api_old
 /rest_old
+/scratchpad
 
 # Farm NG specific
 /farm-ng-core

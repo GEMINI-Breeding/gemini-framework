@@ -32,3 +32,4 @@ class SensorTypeModel(BaseModel):
     Index('idx_sensor_types_info', 'sensor_type_info', postgresql_using='GIN')
   )
 
+

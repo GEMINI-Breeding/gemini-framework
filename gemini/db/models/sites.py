@@ -29,6 +29,7 @@ class SiteModel(BaseModel):
   created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
   updated_at: Mapped[datetime] = mapped_column(TIMESTAMP)
 
+
   __table_args__ = (
     UniqueConstraint('site_name', 'site_city', 'site_state', 'site_country'),
     Index('idx_sites_info', 'site_info', postgresql_using='GIN')

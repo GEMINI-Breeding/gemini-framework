@@ -28,4 +28,3 @@ class SeasonModel(BaseModel):
         CheckConstraint('season_end_date >= season_start_date'),
         Index('idx_seasons_info', 'season_info', postgresql_using='GIN')
     )
-

@@ -32,6 +32,5 @@ class ProcedureModel(BaseModel):
         Index("idx_procedures_info", "procedure_info", postgresql_using="GIN"),
     )
 
-    procedure_runs = relationship("ProcedureRunModel")
-    datasets = relationship("DatasetModel", secondary="gemini.procedure_datasets")
-
+    procedure_runs = relationship("ProcedureRunModel", lazy="subquery", viewonly=True)
+    datasets = relationship("DatasetModel", secondary="gemini.procedure_datasets", lazy="subquery", viewonly=True)

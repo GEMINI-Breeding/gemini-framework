@@ -1,4 +1,5 @@
 from typing import Any
+import pprint
 
 from sqlalchemy import select, insert, delete, update
 from sqlalchemy import TIMESTAMP, JSON, DATE, String
@@ -21,10 +22,9 @@ class BaseModel(DeclarativeBase, SerializeMixin):
     __abstract__ = True
     metadata = metadata_obj
 
-
-    def __repr__(self) -> str:
-        return str(self.to_dict())
-
+    # def __repr__(self) -> str:
+    #     dict_repr = self.to_dict()
+    #     return pprint.pformat(dict_repr)
 
     @classmethod
     def set_engine(cls, engine: DatabaseEngine):
@@ -315,4 +315,5 @@ class ViewBaseModel(BaseModel):
 class ColumnarBaseModel(BaseModel):
 
     __abstract__ = True
+    
 

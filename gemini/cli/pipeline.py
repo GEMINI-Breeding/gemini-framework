@@ -53,6 +53,16 @@ def clean(pipeline : PipelineCLIContact):
 
 @pipeline.command()
 @click.pass_obj
+def reset(pipeline : PipelineCLIContact):
+    manager = pipeline.manager
+    click.echo(click.style("Resetting the pipeline", fg="blue"))
+    manager.stop_pipeline()
+    click.echo(click.style("Pipeline reset", fg="blue"))
+    manager.start_pipeline()
+    click.echo(click.style("Pipeline started", fg="blue"))
+
+@pipeline.command()
+@click.pass_obj
 def status(pipeline : PipelineCLIContact):
     manager = pipeline.manager
     status = manager.get_status()

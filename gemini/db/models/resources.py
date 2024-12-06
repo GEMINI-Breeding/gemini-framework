@@ -36,4 +36,3 @@ class ResourceModel(BaseModel):
         UniqueConstraint('resource_uri', 'resource_file_name'),
         Index('idx_resources_info', 'resource_info', postgresql_using='GIN')
     )
-

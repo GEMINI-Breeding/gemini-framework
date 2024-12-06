@@ -29,7 +29,6 @@ class SensorPlatformModel(BaseModel):
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
     updated_at: Mapped[datetime] = mapped_column(TIMESTAMP)
 
-    sensors = relationship("SensorModel", secondary="gemini.sensor_platform_sensors")
 
     __table_args__ = (
         UniqueConstraint("sensor_platform_name"),
@@ -37,3 +36,5 @@ class SensorPlatformModel(BaseModel):
             "idx_sensor_platforms_info", "sensor_platform_info", postgresql_using="GIN"
         ),
     )
+
+    sensors = relationship("SensorModel", secondary="gemini.sensor_platform_sensors", lazy="subquery", viewonly=True)
