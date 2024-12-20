@@ -3,11 +3,11 @@ import pprint
 
 from sqlalchemy import select, insert, delete, update
 from sqlalchemy import TIMESTAMP, JSON, DATE, String
-from sqlalchemy import MetaData
+from sqlalchemy import MetaData, text
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy_mixins.serialize import SerializeMixin
-from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.dialects.postgresql import insert as pg_insert, JSONB
 
 from gemini import global_manager
 from gemini.db.core.engine import DatabaseEngine
@@ -115,27 +115,28 @@ class BaseModel(DeclarativeBase, SerializeMixin):
         """
         Update an instance of the class.
         """
-        with db_engine.get_session():
+        with db_engine.get_session() as session:
             kwargs = cls.validate_fields(**kwargs)
             for key, value in kwargs.items():
                 setattr(instance, key, value)
+            session.add(instance)
         return instance
 
-    @classmethod
-    def update_or_get(cls, instance, **kwargs):
-        """
-        Update an existing instance or create a new one.
-        """
-        try:
-            unique_fields = cls.unique_fields()
-            kwargs = cls.validate_fields(**kwargs)
-            unique_kwargs = {key: value for key, value in kwargs.items() if key in unique_fields}
-            if unique_kwargs == {}:
-                return None
-            instance = cls.update(instance, **kwargs)
-            return instance
-        except Exception as e:
-            return None
+    # @classmethod
+    # def update_or_get(cls, instance, **kwargs):
+    #     """
+    #     Update an existing instance or create a new one.
+    #     """
+    #     try:
+    #         unique_fields = cls.unique_fields()
+    #         kwargs = cls.validate_fields(**kwargs)
+    #         unique_kwargs = {key: value for key, value in kwargs.items() if key in unique_fields}
+    #         if unique_kwargs == {}:
+    #             return None
+    #         instance = cls.update(instance, **kwargs)
+    #         return instance
+    #     except Exception as e:
+    #         return None
 
 
     @classmethod
@@ -164,6 +165,7 @@ class BaseModel(DeclarativeBase, SerializeMixin):
             session.delete(instance)
         return True
     
+
 
     @classmethod
     def get_model_from_table_name(cls, table_name):
@@ -224,7 +226,7 @@ class BaseModel(DeclarativeBase, SerializeMixin):
             kwargs = cls.validate_fields(**kwargs)
             for key, value in kwargs.items():
                 attribute = getattr(cls, key)
-                if isinstance(attribute.type, JSON):
+                if isinstance(attribute.type, JSONB):
                     query = query.where(attribute.contains(value))
                 elif isinstance(attribute.type, TIMESTAMP):
                     query = query.where(attribute >= value)
@@ -280,7 +282,8 @@ class ViewBaseModel(BaseModel):
     @classmethod
     def refresh(cls):
         with db_engine.get_session() as session:
-            session.execute(f"REFRESH MATERIALIZED VIEW {cls.__table__.name}")
+            query = text(f"REFRESH MATERIALIZED VIEW {cls.__table__.name}")
+            session.execute(query)
         
     @classmethod
     def get(cls):

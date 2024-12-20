@@ -1,8 +1,8 @@
-from sqlalchemy import JSON, String, TIMESTAMP, UniqueConstraint, Index, Integer
+from sqlalchemy import JSON, String, TIMESTAMP, UniqueConstraint, Index, Integer, Sequence
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from gemini.db.core.base import BaseModel
 
@@ -16,7 +16,7 @@ class DataFormatModel(BaseModel):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     data_format_name: Mapped[str] = mapped_column(String(255), nullable=False)
     data_format_mime_type: Mapped[str] = mapped_column(String(255), default='application/octet-stream')
-    data_format_info: Mapped[dict] = mapped_column(JSON, default={})
+    data_format_info: Mapped[dict] = mapped_column(JSONB, default={})
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
     updated_at: Mapped[datetime] = mapped_column(TIMESTAMP)
 

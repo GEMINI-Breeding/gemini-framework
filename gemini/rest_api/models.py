@@ -137,8 +137,66 @@ class CultivarSearch(CultivarBase):
     cultivar_population: Optional[str] = None
     experiment_name: Optional[str] = None
 
+class CultivarUpdate(CultivarBase):
+    cultivar_population: Optional[str] = None
+    cultivar_accession: Optional[str] = None
+    cultivar_info: Optional[JSONB] = None
+
 class CultivarOutput(CultivarBase):
     id: Optional[ID] = None
+
+
+# --------------------------------
+# Data Format Classes
+# --------------------------------
+class DataFormatBase(RESTAPIBase):
+    data_format_name: str
+    data_format_mime_type: Optional[str] = None
+    data_format_info: Optional[JSONB] = None
+    
+class DataFormatInput(DataFormatBase):
+    pass
+
+class DataFormatSearch(DataFormatBase):
+    data_format_name: Optional[str] = None
+
+class DataFormatOutput(DataFormatBase):
+    id: Optional[ID] = None
+
+
+# --------------------------------
+# Data Type Classes
+# --------------------------------
+class DataTypeBase(RESTAPIBase):
+    data_type_name: str
+    data_type_info: Optional[JSONB] = None
+
+class DataTypeInput(DataTypeBase):
+    pass
+
+class DataTypeSearch(DataTypeBase):
+    data_type_name: Optional[str] = None
+
+class DataTypeOutput(DataTypeBase):
+    id: Optional[ID] = None
+
+
+# --------------------------------
+# Dataset Type Classes
+# --------------------------------
+class DatasetTypeBase(RESTAPIBase):
+    dataset_type_name: str
+    dataset_type_info: Optional[JSONB] = None
+
+class DatasetTypeInput(DatasetTypeBase):
+    pass
+
+class DatasetTypeSearch(DatasetTypeBase):
+    dataset_type_name: Optional[str] = None
+
+class DatasetTypeOutput(DatasetTypeBase):
+    id: Optional[ID] = None
+
 
 # --------------------------------
 # Plot Classes

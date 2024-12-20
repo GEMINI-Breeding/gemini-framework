@@ -1,10 +1,14 @@
 from gemini.db.models.cultivars import CultivarModel
 
-
 # Get all cultivars
 cultivars = CultivarModel.all()
 
-# Print cultivars
-print("Cultivars:")
-for cultivar in cultivars:
-    print(f"{cultivar.id}: {cultivar.cultivar_accession} {cultivar.cultivar_population}")
+# Get cultivar by id
+cultivar = CultivarModel.get(1)
+
+# Get cultivar by parameters
+cultivar = CultivarModel.get_by_parameters(
+    cultivar_population="Default",
+    cultivar_accession="Default"
+)
+

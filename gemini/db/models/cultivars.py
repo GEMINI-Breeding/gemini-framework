@@ -17,8 +17,8 @@ class CultivarModel(BaseModel):
     cultivar_accession: Mapped[str] = mapped_column(String(255), nullable=False)
     cultivar_population: Mapped[str] = mapped_column(String(255), nullable=False)
     cultivar_info: Mapped[dict] = mapped_column(JSON, default={})
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
-    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
+    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 
     __table_args__ = (
         UniqueConstraint('cultivar_accession', 'cultivar_population'),

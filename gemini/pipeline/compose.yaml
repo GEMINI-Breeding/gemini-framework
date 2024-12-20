@@ -7,7 +7,7 @@ services:
     build:
       context: ../db
       dockerfile: Dockerfile
-    image: ${GEMINI_DB_IMAGE_NAME}:latest
+    # image: ${GEMINI_DB_IMAGE_NAME}:latest
     ports:
       - "${GEMINI_DB_PORT}:5432"
     environment:
@@ -32,7 +32,7 @@ services:
     build:
       context: ../storage
       dockerfile: Dockerfile
-    image: ${GEMINI_STORAGE_IMAGE_NAME}:latest
+    # image: ${GEMINI_STORAGE_IMAGE_NAME}:latest
     ports:
       - "${GEMINI_STORAGE_PORT}:9000"
       - "${GEMINI_STORAGE_API_PORT}:9001"
@@ -74,7 +74,7 @@ services:
     build:
       context: ../logger
       dockerfile: Dockerfile
-    image: ${GEMINI_LOGGER_IMAGE_NAME}:latest
+    # image: ${GEMINI_LOGGER_IMAGE_NAME}:latest
     ports:
       - "${GEMINI_LOGGER_PORT}:6379"
     environment:
@@ -104,7 +104,7 @@ services:
     build:
       context: ../../  # Adjust the context to the parent directory that contains 'gemini'
       dockerfile: ./gemini/rest_api/Dockerfile  # Specify the path to the Dockerfile relative to the context
-    image: ${GEMINI_REST_API_IMAGE_NAME}:latest
+    # image: ${GEMINI_REST_API_IMAGE_NAME}:latest
     ports:
       - "${GEMINI_REST_API_PORT}:8080"
     environment:

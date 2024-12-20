@@ -78,7 +78,7 @@ class DatabaseEngine:
         self._session_factory = sessionmaker(
             bind=self._engine,
             autocommit=False,
-            autoflush=True,
+            autoflush=False,
             expire_on_commit=False
         )
 
