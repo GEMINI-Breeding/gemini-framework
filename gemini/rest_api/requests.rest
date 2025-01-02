@@ -1,0 +1,13 @@
+#### Variables
+@API_URL = http://localhost:8000/api
+
+
+#### Cultivars
+
+# Get all cultivars
+GET {{API_URL}}/cultivars
+Accept: application/json
+
+# Get a cultivar by ID
+GET {{API_URL}}/cultivars/7b1f6b0d-7934-43fe-941f-7880c094ad32"
+

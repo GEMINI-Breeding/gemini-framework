@@ -26,8 +26,8 @@ class SiteModel(BaseModel):
   site_state: Mapped[str] = mapped_column(String(255), default='')
   site_country: Mapped[str] = mapped_column(String(255), default='')
   site_info: Mapped[dict] = mapped_column(JSON, default={})
-  created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
-  updated_at: Mapped[datetime] = mapped_column(TIMESTAMP)
+  created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
+  updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 
 
   __table_args__ = (

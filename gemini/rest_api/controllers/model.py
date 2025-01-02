@@ -1,0 +1,148 @@
+from litestar import Response
+from litestar.handlers import get, post, patch, delete
+from litestar.params import Body
+from litestar.controller import Controller
+
+from gemini.api.model import Model
+from gemini.rest_api.models import ModelInput, ModelOutput, ModelSearch, ModelUpdate, RESTAPIError, str_to_dict, JSONB
+
+from typing import List, Annotated, Optional
+
+class ModelController(Controller):
+
+    # Get Models
+    @get()
+    async def get_models(
+        self,
+        model_name: Optional[str] = None,
+        model_url: Optional[str] = None,
+        model_info: Optional[JSONB] = None,
+        experiment_name: Optional[str] = 'Default'
+    ) -> List[ModelOutput]:
+        try:
+
+            if model_info is not None:
+                model_info = str_to_dict(model_info)
+
+            models = Model.search(
+                model_name=model_name,
+                model_info=model_info,
+                model_url=model_url,
+                experiment_name=experiment_name
+            )
+            if models is None:
+                error_html = RESTAPIError(
+                    error="No models found",
+                    error_description="No models were found with the given search criteria"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return models
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving models"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+
+    # Get Model by ID
+    @get(path="/id/{model_id:str}")
+    async def get_model_by_id(
+        self, model_id: str
+    ) -> ModelOutput:
+        try:
+            model = Model.get_by_id(id=model_id)
+            if model is None:
+                error_html = RESTAPIError(
+                    error="Model not found",
+                    error_description="The model with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return model
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving the model"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+    
+    # Create a new Model
+    @post()
+    async def create_model(
+        self,
+        data: Annotated[ModelInput, Body]
+    ) -> ModelOutput:
+        try:
+            model = Model.create(
+                model_name=data.model_name,
+                model_url=data.model_url,
+                model_info=data.model_info,
+                experiment_name=data.experiment_name
+            )
+            if model is None:
+                error_html = RESTAPIError(
+                    error="Model not created",
+                    error_description="The model could not be created"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return model
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while creating the model"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+
+    # Update Model
+    @patch(path="/id/{model_id:str}")
+    async def update_model(
+        self,
+        model_id: str,
+        data: Annotated[ModelUpdate, Body]
+    ) -> ModelOutput:
+        try:
+            model = Model.get_by_id(id=model_id)
+            if model is None:
+                error_html = RESTAPIError(
+                    error="Model not found",
+                    error_description="The model with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            parameters = data.model_dump()
+            model = model.update(**parameters)
+            return model
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while updating the model"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+
+    # Delete Model
+    @delete(path="/id/{model_id:str}")
+    async def delete_model(
+        self, model_id: str
+    ) -> None:
+        try:
+            model = Model.get_by_id(id=model_id)
+            if model is None:
+                error_html = RESTAPIError(
+                    error="Model not found",
+                    error_description="The model with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            model.delete()
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while deleting the model"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)

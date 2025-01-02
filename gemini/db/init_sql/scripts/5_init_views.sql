@@ -47,6 +47,60 @@ FROM
     JOIN gemini.plot_cultivars pc ON p.id = pc.plot_id
     JOIN gemini.cultivars c ON pc.cultivar_id = c.id;
 
+
+-------------------------------------------------------------------------------
+-- Materialized view that shows plant information
+CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.plant_view
+USING columnar
+AS
+SELECT
+    p.id AS plant_id,
+    p.plot_id AS plot_id,
+    p.plant_number AS plant_number,
+    p.plant_info AS plant_info
+    p.cultivar_id AS cultivar_id,
+    c.cultivar_accession AS cultivar_accession,
+    c.cultivar_population AS cultivar_population,
+    pl.id AS plot_id,
+    pl.plot_number AS plot_number,
+    pl.plot_row_number AS plot_row_number,
+    pl.plot_column_number AS plot_column_number,
+    pl.plot_info AS plot_info,
+    pl.plot_geometry_info AS plot_geometry_info
+    pl.experiment_id AS experiment_id,
+    e.experiment_name AS experiment_name,
+    s.id AS season_id,
+    s.season_name AS season_name,
+    si.id AS site_id,
+    si.site_name AS site_name
+FROM
+    gemini.plants p
+    JOIN gemini.plot_cultivars pc ON p.plot_id = pc.plot_id
+    JOIN gemini.cultivars c ON pc.cultivar_id = c.id
+    JOIN gemini.plots pl ON p.plot_id = pl.id
+    JOIN gemini.experiments e ON pl.experiment_id = e.id
+    JOIN gemini.seasons s ON pl.season_id = s.id
+    JOIN gemini.sites si ON pl.site_id = si.id;
+    
+
+
+-------------------------------------------------------------------------------
+-- Materialized View to show Experiment Seasons
+CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.experiment_seasons_view
+USING columnar
+AS
+SELECT
+    e.id AS experiment_id,
+    e.experiment_name AS experiment_name,
+    s.id AS season_id,
+    s.season_name AS season_name,
+    s.season_start_date AS season_start_date,
+    s.season_end_date AS season_end_date,
+    s.season_info AS season_info
+FROM
+    gemini.experiments e
+    JOIN gemini.seasons s ON e.id = s.experiment_id;
+
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Sites
 CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.experiment_sites_view
@@ -291,6 +345,26 @@ SELECT create_immv('gemini.sensor_records_immv', 'select * from gemini.sensor_re
 -- Trait Records IMMV
 -------------------------------------------------------------------------------
 SELECT create_immv('gemini.trait_records_immv', 'select * from gemini.trait_records');
+
+-------------------------------------------------------------------------------
+-- Procedure Records IMMV
+-------------------------------------------------------------------------------
+SELECT create_immv('gemini.procedure_records_immv', 'select * from gemini.procedure_records');
+
+-------------------------------------------------------------------------------
+-- Script Records IMMV
+-------------------------------------------------------------------------------
+SELECT create_immv('gemini.script_records_immv', 'select * from gemini.script_records');
+
+-------------------------------------------------------------------------------
+-- Model Records IMMV
+-------------------------------------------------------------------------------
+SELECT create_immv('gemini.model_records_immv', 'select * from gemini.model_records');
+
+-------------------------------------------------------------------------------
+-- Dataset Records IMMV
+-------------------------------------------------------------------------------
+SELECT create_immv('gemini.dataset_records_immv', 'select * from gemini.datasets');
 
 
 SET max_parallel_workers = DEFAULT;

@@ -28,8 +28,8 @@ class SensorModel(BaseModel):
     sensor_data_type_id: Mapped[int] = mapped_column(Integer, ForeignKey("gemini.data_types.id"), default=0)
     sensor_data_format_id: Mapped[int] = mapped_column(Integer, ForeignKey("gemini.data_formats.id"), default=0)
     sensor_info: Mapped[dict] = mapped_column(JSON, default={})
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
-    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
+    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 
     __table_args__ = (
         UniqueConstraint("sensor_name"),

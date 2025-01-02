@@ -29,8 +29,8 @@ class ResourceModel(BaseModel):
     resource_experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.experiments.id"), default=None)
     resource_data_format_id: Mapped[int] = mapped_column(Integer, ForeignKey("gemini.data_formats.id"), default=0)
     resource_info: Mapped[dict] = mapped_column(JSON, default={})
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
-    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
+    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 
     __table_args__ = (
         UniqueConstraint('resource_uri', 'resource_file_name'),

@@ -52,7 +52,7 @@ class DatasetType(APIBase):
             raise e
         
     @classmethod
-    def get_all(cls) -> list["DatasetType"]:
+    def get_all(cls) -> List["DatasetType"]:
         try:
             instances = DatasetTypeModel.get_all()
             instances = [cls.model_validate(instance) for instance in instances]
@@ -73,13 +73,7 @@ class DatasetType(APIBase):
         return super().update(**update_parameters)
     
     def delete(self) -> bool:
-        try:
-            current_id = self.id
-            dataset_type = DatasetTypeModel.get(current_id)
-            dataset_type.delete()
-            return True
-        except Exception as e:
-            raise e
+        return super().delete()
         
     def refresh(self):
         return super().refresh()

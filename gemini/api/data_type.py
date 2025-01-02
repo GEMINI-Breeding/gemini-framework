@@ -51,7 +51,7 @@ class DataType(APIBase):
             raise e
         
     @classmethod
-    def get_all(cls) -> list["DataType"]:
+    def get_all(cls) -> List["DataType"]:
         try:
             instances = DataTypeModel.get_all()
             instances = [cls.model_validate(instance) for instance in instances]
@@ -61,16 +61,9 @@ class DataType(APIBase):
         
 
     @classmethod
-    def search(
-        cls,
-        data_type_name: Optional[str] = None,
-        data_type_info: Optional[dict] = None,
-    ) -> list["DataType"]:
+    def search(cls, **search_parameters) -> List["DataType"]:
         try:
-            instances = DataTypeModel.search(
-                data_type_name=data_type_name,
-                data_type_info=data_type_info,
-            )
+            instances = DataTypeModel.search(**search_parameters)
             instances = [cls.model_validate(instance) for instance in instances]
             return instances
         except Exception as e:
@@ -80,23 +73,16 @@ class DataType(APIBase):
         return super().update(**update_parameters)
     
     def delete(self) -> bool:
-        try:
-            current_id = self.id
-            data_type = DataTypeModel.get(current_id)
-            data_type.delete()
-            return True
-        except Exception as e:
-            raise e
+        return super().delete()
         
     def refresh(self):
         return super().refresh()
 
-    def get_formats(self) -> list["DataFormat"]:
+    def get_formats(self) -> List["DataFormat"]:
         try:
-            data_formats = DataFormat.search(data_format_info={"data_type_id": self.id})
+            data_formats = self.formats
             return data_formats
         except Exception as e:
             raise e
 
-        
 

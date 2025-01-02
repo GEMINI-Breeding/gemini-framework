@@ -1,4 +1,4 @@
-from sqlalchemy import JSON, String, TIMESTAMP, UniqueConstraint, Index, Integer, Sequence
+from sqlalchemy import JSON, String, TIMESTAMP, UniqueConstraint, Index, Integer, Identity
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
@@ -17,8 +17,8 @@ class DataFormatModel(BaseModel):
     data_format_name: Mapped[str] = mapped_column(String(255), nullable=False)
     data_format_mime_type: Mapped[str] = mapped_column(String(255), default='application/octet-stream')
     data_format_info: Mapped[dict] = mapped_column(JSONB, default={})
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
-    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
+    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 
     __table_args__ = (
         UniqueConstraint('data_format_name', name='data_format_unique'),

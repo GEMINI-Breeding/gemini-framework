@@ -28,8 +28,8 @@ class DatasetModel(BaseModel):
     dataset_name: Mapped[str] = mapped_column(String(255))
     dataset_info: Mapped[dict] = mapped_column(JSON, default={})
     dataset_type_id: Mapped[int] = mapped_column(Integer, ForeignKey("gemini.dataset_types.id"), default=0)
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
-    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
+    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 
     __table_args__ = (
         UniqueConstraint("dataset_name"),

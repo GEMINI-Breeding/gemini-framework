@@ -6,6 +6,7 @@ from typing import Any, List, Union, Optional
 from typing_extensions import Annotated
 from uuid import UUID
 
+
 from datetime import datetime
 import json
 
@@ -75,6 +76,12 @@ class ExperimentBase(RESTAPIBase):
 class ExperimentInput(ExperimentBase):
     pass
 
+class ExperimentUpdate(ExperimentBase):
+    experiment_name: Optional[str] = None
+    experiment_info: Optional[JSONB] = None
+    experiment_start_date: Optional[datetime] = None
+    experiment_end_date: Optional[datetime] = None
+
 class ExperimentSearch(ExperimentBase):
     experiment_name: Optional[str] = None
 
@@ -87,12 +94,18 @@ class ExperimentOutput(ExperimentBase):
 # --------------------------------
 class SeasonBase(RESTAPIBase):
     season_name: str
-    season_info: Optional[JSONB] = None
+    season_info: Optional[JSONB] = {}
     season_start_date: Optional[datetime] = None
     season_end_date: Optional[datetime] = None
 
 class SeasonInput(SeasonBase):
     experiment_name: str = 'Default'
+
+class SeasonUpdate(SeasonBase):
+    season_name: Optional[str] = None
+    season_info: Optional[JSONB] = None
+    season_start_date: Optional[datetime] = None
+    season_end_date: Optional[datetime] = None
 
 class SeasonSearch(SeasonBase):
     season_name: Optional[str] = None
@@ -113,6 +126,13 @@ class SiteBase(RESTAPIBase):
 
 class SiteInput(SiteBase):
     experiment_name: str = 'Default'
+
+class SiteUpdate(SiteBase):
+    site_name: Optional[str] = None
+    site_city: Optional[str] = None
+    site_state: Optional[str] = None
+    site_country: Optional[str] = None
+    site_info: Optional[JSONB] = None
     
     
 class SiteSearch(SiteBase):
@@ -214,6 +234,13 @@ class PlotInput(PlotBase):
     site_name: Optional[str] = None
     cultivar_accession: Optional[str] = None
     cultivar_population: Optional[str] = None
+
+class PlotUpdate(PlotBase):
+    plot_number: Optional[int] = None
+    plot_row_number: Optional[int] = None
+    plot_column_number: Optional[int] = None
+    plot_geometry_info: Optional[JSONB] = None
+    plot_info: Optional[JSONB] = None
     
 
 class PlotSearch(PlotBase):
@@ -237,6 +264,57 @@ class PlotOutput(PlotBase):
 
 
 # --------------------------------
+# Plant Classes
+# --------------------------------
+
+class PlantBase(RESTAPIBase):
+    plant_number: int
+    plant_info: Optional[JSONB] = None
+
+class PlantInput(PlantBase):
+    cultivar_accession: Optional[str] = 'Default'
+    cultivar_population: Optional[str] = 'Default'
+    plot_id: Optional[ID] = None
+ 
+
+class PlantUpdate(PlantBase):
+    plant_number: Optional[int] = None
+    plant_info: Optional[JSONB] = None
+
+class PlantSearch(PlantBase):
+    plant_number: Optional[int] = None
+    cultivar_accession: Optional[str] = None
+    cultivar_population: Optional[str] = None
+    plot_number: Optional[int] = None
+    plot_row_number: Optional[int] = None
+    plot_column_number: Optional[int] = None
+    experiment_name: Optional[str] = None
+    season_name: Optional[str] = None
+    site_name: Optional[str] = None
+
+class PlantOutput(PlantBase):
+    id: Optional[ID] = None
+    plot_id: Optional[ID] = None
+    cultivar_id: Optional[ID] = None
+
+
+# --------------------------------
+# Trait Level Classes
+# --------------------------------
+class TraitLevelBase(RESTAPIBase):
+    trait_level_name: str
+    trait_level_info: Optional[JSONB] = None
+
+class TraitLevelInput(TraitLevelBase):
+    pass
+
+class TraitLevelSearch(TraitLevelBase):
+    trait_level_name: Optional[str] = None
+
+class TraitLevelOutput(TraitLevelBase):
+    id : Optional[ID] = None
+
+# --------------------------------
 # Trait Classes
 # --------------------------------
 class TraitBase(RESTAPIBase):
@@ -249,11 +327,34 @@ class TraitBase(RESTAPIBase):
 class TraitInput(TraitBase):
     experiment_name: str = 'Default'
 
+class TraitUpdate(TraitBase):
+    trait_name: Optional[str] = None
+    trait_units: Optional[str] = None
+    trait_level_id: Optional[ID] = None
+    trait_metrics: Optional[JSONB] = None
+    trait_info: Optional[JSONB] = None
+
 class TraitSearch(TraitBase):
     trait_name: Optional[str] = None
     experiment_name: Optional[str] = None
 
 class TraitOutput(TraitBase):
+    id : Optional[ID] = None
+
+# --------------------------------
+# Sensor Type Classes
+# --------------------------------
+class SensorTypeBase(RESTAPIBase):
+    sensor_type_name: str
+    sensor_type_info: Optional[JSONB] = None
+
+class SensorTypeInput(SensorTypeBase):
+    pass
+
+class SensorTypeSearch(SensorTypeBase):
+    sensor_type_name: Optional[str] = None
+
+class SensorTypeOutput(SensorTypeBase):
     id : Optional[ID] = None
 
 # --------------------------------
@@ -270,6 +371,15 @@ class SensorBase(RESTAPIBase):
 class SensorInput(SensorBase):
     experiment_name: str = 'Default'
     sensor_platform_name: str = 'Default'
+
+
+class SensorUpdate(SensorBase):
+    sensor_name: Optional[str] = None
+    sensor_platform_id: Optional[ID] = None
+    sensor_type_id: Optional[ID] = None
+    sensor_data_type_id: Optional[ID] = None
+    sensor_data_format_id: Optional[ID] = None
+    sensor_info: Optional[JSONB] = None
 
 class SensorSearch(SensorBase):
     sensor_name: Optional[str] = None
@@ -288,6 +398,10 @@ class SensorPlatformBase(RESTAPIBase):
 
 class SensorPlatformInput(SensorPlatformBase):
     pass
+
+class SensorPlatformUpdate(SensorPlatformBase):
+    sensor_platform_name: Optional[str] = None
+    sensor_platform_info: Optional[JSONB] = None
 
 class SensorPlatformSearch(SensorPlatformBase):
     sensor_platform_name: Optional[str] = None
@@ -330,6 +444,11 @@ class ModelBase(RESTAPIBase):
 class ModelInput(ModelBase):
     experiment_name: str = 'Default'
 
+class ModelUpdate(ModelBase):
+    model_name: Optional[str] = None
+    model_url: Optional[str] = None
+    model_info: Optional[JSONB] = None
+
 class ModelSearch(ModelBase):
     model_name: Optional[str] = None
     experiment_name: Optional[str] = None
@@ -346,6 +465,10 @@ class ProcedureBase(RESTAPIBase):
 
 class ProcedureInput(ProcedureBase):
     experiment_name: str = 'Default'
+
+class ProcedureUpdate(ProcedureBase):
+    procedure_name: Optional[str] = None
+    procedure_info: Optional[JSONB] = None
 
 class ProcedureSearch(ProcedureBase):
     procedure_name: Optional[str] = None
@@ -366,6 +489,12 @@ class ScriptBase(RESTAPIBase):
 class ScriptInput(ScriptBase):
     experiment_name: str = 'Default'
 
+class ScriptUpdate(ScriptBase):
+    script_name: Optional[str] = None
+    script_url: Optional[str] = None
+    script_extension: Optional[str] = None
+    script_info: Optional[JSONB] = None
+
 class ScriptSearch(ScriptBase):
     script_name: Optional[str] = None
     experiment_name: Optional[str] = None
@@ -384,6 +513,13 @@ class DatasetBase(RESTAPIBase):
 
 class DatasetInput(DatasetBase):
     experiment_name: str = 'Default'
+
+
+class DatasetUpdate(DatasetBase):
+    dataset_name: Optional[str] = None
+    collection_date: Optional[datetime] = None
+    dataset_info: Optional[JSONB] = None
+    dataset_type_id: Optional[ID] = None
 
 class DatasetSearch(DatasetBase):
     dataset_name: Optional[str] = None

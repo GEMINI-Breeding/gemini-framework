@@ -25,8 +25,8 @@ class PlantModel(BaseModel):
     plant_number: Mapped[int] = mapped_column(Integer)
     plant_info: Mapped[dict] = mapped_column(JSONB, default={})
     cultivar_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("gemini.cultivars.id"))
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
-    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
+    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 
     __table_args__ = (
         UniqueConstraint("plot_id", "plant_number"),

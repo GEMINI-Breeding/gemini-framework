@@ -17,7 +17,7 @@ class ProcedureRecordModel(ColumnarBaseModel):
     dataset_name: Mapped[str] = mapped_column(String(255))
     procedure_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True))
     procedure_name: Mapped[str] = mapped_column(String(255))
-    procedure_data : Mapped[dict] = mapped_column(JSON)
+    procedure_data : Mapped[dict] = mapped_column(JSONB)
     record_info: Mapped[dict] = mapped_column(JSONB)
 
     __table_args__ = (

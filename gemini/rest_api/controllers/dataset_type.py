@@ -4,7 +4,7 @@ from litestar.params import Body
 from litestar.controller import Controller
 
 from gemini.api.dataset_type import DatasetType
-from gemini.rest_api.models import DatasetTypeInput, DatasetTypeOutput, RESTAPIError, str_to_dict
+from gemini.rest_api.models import DatasetTypeInput, DatasetTypeOutput, RESTAPIError, str_to_dict, JSONB
 
 from typing import List, Annotated, Optional
 
@@ -15,8 +15,8 @@ class DatasetTypeController(Controller):
     async def get_dataset_types(
         self,
         dataset_type_name: Optional[str] = None,
-        dataset_type_info: Optional[dict] = None
-    ) -> List[DatasetType]:
+        dataset_type_info: Optional[JSONB] = None
+    ) -> List[DatasetTypeOutput]:
         try:
 
             if dataset_type_info is not None:
@@ -32,8 +32,6 @@ class DatasetTypeController(Controller):
                     error_description="No dataset types were found with the given search criteria"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            dataset_types = [dataset_type.model_dump() for dataset_type in dataset_types]
-            dataset_types = [DatasetTypeOutput.model_validate(dataset_type) for dataset_type in dataset_types]
             return dataset_types
         except Exception as e:
             error_message = RESTAPIError(
@@ -57,7 +55,6 @@ class DatasetTypeController(Controller):
                     error_description="The dataset type with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            dataset_type = DatasetTypeOutput.model_validate(dataset_type)
             return dataset_type
         except Exception as e:
             error_message = RESTAPIError(
@@ -71,7 +68,7 @@ class DatasetTypeController(Controller):
     @post()
     async def create_dataset_type(
         self, data: Annotated[DatasetTypeInput, Body]
-    ) -> DatasetType:
+    ) -> DatasetTypeOutput:
         try:
             dataset_type = DatasetType.create(
                 dataset_type_name=data.dataset_type_name,

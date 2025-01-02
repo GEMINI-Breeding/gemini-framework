@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 
 from pydantic import Field, AliasChoices
@@ -54,7 +54,7 @@ class DataFormat(APIBase):
         
 
     @classmethod
-    def get_all(cls) -> list["DataFormat"]:
+    def get_all(cls) -> List["DataFormat"]:
         try:
             instances = DataFormatModel.get_all()
             instances = [cls.model_validate(instance) for instance in instances]
@@ -63,7 +63,7 @@ class DataFormat(APIBase):
             raise e
         
     @classmethod
-    def search(cls, **search_parameters) -> list["DataFormat"]:
+    def search(cls, **search_parameters) -> List["DataFormat"]:
         try:
             data_formats = DataFormatModel.search(**search_parameters)
             data_formats = [cls.model_validate(data_format) for data_format in data_formats]

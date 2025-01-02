@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 
 from pydantic import Field, AliasChoices
@@ -61,7 +61,7 @@ class Cultivar(APIBase):
             raise e
         
     @classmethod
-    def get_all(cls) -> list["Cultivar"]:
+    def get_all(cls) -> List["Cultivar"]:
         try:
             cultivars = CultivarModel.all()
             cultivars = [cls.model_validate(cultivar) for cultivar in cultivars]
@@ -70,7 +70,7 @@ class Cultivar(APIBase):
             raise e
         
     @classmethod
-    def search(cls, **search_parameters) -> list["Cultivar"]:
+    def search(cls, **search_parameters) -> List["Cultivar"]:
         try:
             cultivars = ExperimentCultivarsViewModel.search(**search_parameters)
             cultivars = [cls.model_validate(cultivar) for cultivar in cultivars]
@@ -99,7 +99,7 @@ class Cultivar(APIBase):
             return False
         
     
-    def refresh(self):
+    def refresh(self) -> "Cultivar":
         try:
             db_instance = CultivarModel.get(self.id)
             instance = self.model_validate(db_instance)
@@ -113,10 +113,13 @@ class Cultivar(APIBase):
     
         
     @classmethod
-    def get_population_accessions(cls, cultivar_population: str):
-        cultivars = CultivarModel.search(cultivar_population=cultivar_population)
-        cultivars = [cls.model_validate(cultivar) for cultivar in cultivars]
-        return cultivars if cultivars else None
-    
+    def get_population_accessions(cls, cultivar_population: str) -> List["Cultivar"]:
+        try:
+            cultivars = CultivarModel.search(cultivar_population=cultivar_population)
+            cultivars = [cls.model_validate(cultivar) for cultivar in cultivars]
+            return cultivars if cultivars else None
+        except Exception as e:
+            raise e
+        
 
  

@@ -27,8 +27,8 @@ class PlotModel(BaseModel):
   plot_column_number: Mapped[int] = mapped_column(Integer)
   plot_geometry_info: Mapped[dict] = mapped_column(JSONB, default={})
   plot_info: Mapped[dict] = mapped_column(JSONB, default={})
-  created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
-  updated_at: Mapped[datetime] = mapped_column(TIMESTAMP)
+  created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
+  updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 
   __table_args__ = (
     UniqueConstraint('experiment_id', 'season_id', 'site_id', 'plot_number', 'plot_row_number', 'plot_column_number'),

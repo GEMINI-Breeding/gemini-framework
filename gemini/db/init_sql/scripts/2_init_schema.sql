@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS gemini.plants (
     plot_id uuid REFERENCES gemini.plots(id),
     plant_number INTEGER,
     plant_info JSONB DEFAULT '{}',
-    cultivar_id uuid REFERENCES gemini.cultivars(id),
+    cultivar_id uuid REFERENCES gemini.cultivars(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -119,7 +119,7 @@ ALTER TABLE gemini.plants ADD CONSTRAINT plant_unique UNIQUE (plot_id, plant_num
 -- This is where we will store all possible Data Types that are compatible with GEMINI
 -- Acts like a global enumeration for data types
 CREATE TABLE IF NOT EXISTS gemini.data_types (
-    id SERIAL PRIMARY KEY, 
+    id INTEGER PRIMARY KEY, 
     data_type_name VARCHAR(255) NOT NULL,
     data_type_info JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -135,7 +135,7 @@ ALTER TABLE gemini.data_types ADD CONSTRAINT data_type_unique UNIQUE NULLS NOT D
 -- This is where we will store all possible Data Formats that are compatible with GEMINI
 -- Stores File Formats
 CREATE TABLE IF NOT EXISTS gemini.data_formats (
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     data_format_name VARCHAR(255) NOT NULL,
     data_format_mime_type VARCHAR(255) DEFAULT 'application/octet-stream',
     data_format_info JSONB DEFAULT '{}',
@@ -152,7 +152,7 @@ ALTER TABLE gemini.data_formats ADD CONSTRAINT data_format_unique UNIQUE NULLS N
 -- This is where we will store all possible Trait Levels that are compatible with GEMINI
 -- Acts like a global enumeration for trait levels
 CREATE TABLE IF NOT EXISTS gemini.trait_levels (
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     trait_level_name VARCHAR(255) NOT NULL,
     trait_level_info JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -187,7 +187,7 @@ ALTER TABLE gemini.traits ADD CONSTRAINT trait_unique UNIQUE NULLS NOT DISTINCT 
 -- This is where we will store all possible Sensor Types that are compatible with GEMINI
 -- Acts like a global enumeration for sensor types
 CREATE TABLE IF NOT EXISTS gemini.sensor_types (
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     sensor_type_name VARCHAR(255) NOT NULL,
     sensor_type_info JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -350,7 +350,7 @@ ALTER TABLE gemini.procedure_runs ADD CONSTRAINT procedure_run_unique UNIQUE NUL
 -- Dataset Types Table
 -- This is where all the dataset type information is stored
 CREATE TABLE IF NOT EXISTS gemini.dataset_types (
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     dataset_type_name VARCHAR(255) NOT NULL,
     dataset_type_info JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

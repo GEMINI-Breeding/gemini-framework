@@ -3,7 +3,17 @@ from sqlalchemy import UUID, JSON, String, Integer
 from sqlalchemy.dialects.postgresql import JSONB
 from gemini.db.core.base import ViewBaseModel
 
+class ExperimentSeasonsViewModel(ViewBaseModel):
 
+    __tablename__ = 'experiment_seasons_view'
+
+    experiment_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    experiment_name : Mapped[str] = mapped_column(String)
+    season_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    season_name : Mapped[str] = mapped_column(String)
+    season_start_date : Mapped[str] = mapped_column(String)
+    season_end_date : Mapped[str] = mapped_column(String)
+    season_info : Mapped[JSON] = mapped_column(JSONB)
 
 class ExperimentSitesViewModel(ViewBaseModel):
 

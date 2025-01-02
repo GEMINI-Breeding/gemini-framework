@@ -18,7 +18,7 @@ class DataFormatController(Controller):
         data_format_name: Optional[str] = None,
         data_format_mime_type: Optional[str] = None,
         data_format_info: Optional[JSONB] = None
-    ) -> List[DataFormat]:
+    ) -> List[DataFormatOutput]:
         try:
 
             if data_format_info is not None:
@@ -35,8 +35,6 @@ class DataFormatController(Controller):
                     error_description="No data formats were found with the given search criteria"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            data_formats = [data_format.model_dump() for data_format in data_formats]
-            data_formats = [DataFormatOutput.model_validate(data_format) for data_format in data_formats]
             return data_formats
         except Exception as e:
             error_message = RESTAPIError(
@@ -60,7 +58,6 @@ class DataFormatController(Controller):
                     error_description="The data format with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            data_format = DataFormatOutput.model_validate(data_format.model_dump())
             return data_format
         except Exception as e:
             error_message = RESTAPIError(
@@ -74,7 +71,7 @@ class DataFormatController(Controller):
     @post()
     async def create_data_format(
         self, data: Annotated[DataFormatInput, Body]
-    ) -> DataFormat:
+    ) -> DataFormatOutput:
         try:
             data_format = DataFormat.create(
                 data_format_name=data.data_format_name,
@@ -95,3 +92,4 @@ class DataFormatController(Controller):
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
+        

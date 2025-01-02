@@ -28,8 +28,8 @@ class TraitModel(BaseModel):
     trait_level_id: Mapped[int] = mapped_column(Integer, ForeignKey("gemini.trait_levels.id"), default=0)
     trait_metrics: Mapped[dict] = mapped_column(JSON, default={})
     trait_info: Mapped[dict] = mapped_column(JSON, default={})
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
-    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
+    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 
 
     __table_args__ = (

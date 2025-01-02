@@ -4,7 +4,7 @@ from litestar.params import Body
 from litestar.controller import Controller
 
 from gemini.api.data_type import DataType
-from gemini.rest_api.models import DataTypeInput, DataTypeOutput, RESTAPIError, str_to_dict
+from gemini.rest_api.models import DataTypeInput, DataTypeOutput, RESTAPIError, JSONB, str_to_dict
 
 from typing import List, Annotated, Optional
 
@@ -15,8 +15,8 @@ class DataTypeController(Controller):
     async def get_data_types(
         self,
         data_type_name: Optional[str] = None,
-        data_type_info: Optional[dict] = None
-    ) -> List[DataType]:
+        data_type_info: Optional[JSONB] = None
+    ) -> List[DataTypeOutput]:
         try:
 
             if data_type_info is not None:
@@ -32,8 +32,6 @@ class DataTypeController(Controller):
                     error_description="No data types were found with the given search criteria"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            data_types = [data_type.model_dump() for data_type in data_types]
-            data_types = [DataTypeOutput.model_validate(data_type) for data_type in data_types]
             return data_types
         except Exception as e:
             error_message = RESTAPIError(
@@ -57,7 +55,6 @@ class DataTypeController(Controller):
                     error_description="The data type with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            data_type = DataTypeOutput.model_validate(data_type)
             return data_type
         except Exception as e:
             error_message = RESTAPIError(
@@ -71,7 +68,7 @@ class DataTypeController(Controller):
     @post()
     async def create_data_type(
         self, data: Annotated[DataTypeInput, Body]
-    ) -> DataType:
+    ) -> DataTypeOutput:
         try:
             data_type = DataType.create(
                 data_type_name=data.data_type_name,

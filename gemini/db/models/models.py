@@ -24,8 +24,8 @@ class ModelModel(BaseModel):
     model_name: Mapped[str] = mapped_column(String(255))
     model_url: Mapped[str] = mapped_column(String(255))
     model_info: Mapped[dict] = mapped_column(JSON, default={})
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
-    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
+    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 
     __table_args__ = (
         UniqueConstraint("model_name", "model_url"),

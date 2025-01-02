@@ -19,8 +19,8 @@ class SeasonModel(BaseModel):
     season_info: Mapped[dict] = mapped_column(JSONB, default={})
     season_start_date: Mapped[date] = mapped_column(DATE, nullable=False, default=datetime.now)
     season_end_date: Mapped[date] = mapped_column(DATE)
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
-    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
+    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 
     __table_args__ = (
         UniqueConstraint('experiment_id', 'season_name'),

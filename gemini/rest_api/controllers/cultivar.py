@@ -4,7 +4,7 @@ from litestar.params import Body
 from litestar.controller import Controller
 
 from gemini.api.cultivar import Cultivar
-from gemini.rest_api.models import CultivarInput, CultivarOutput, RESTAPIError, CultivarUpdate, str_to_dict  
+from gemini.rest_api.models import CultivarInput, CultivarOutput, RESTAPIError, CultivarUpdate, str_to_dict, JSONB  
 
 from typing import List, Annotated, Optional
 
@@ -14,11 +14,11 @@ class CultivarController(Controller):
     @get()
     async def get_cultivars(
         self,
-        cultivar_population: Optional[str] = 'Default',
+        cultivar_population: Optional[str] = None,
         cultivar_accession: Optional[str] = None,
-        cultivar_info: Optional[dict] = None,
+        cultivar_info: Optional[JSONB] = None,
         experiment_name: Optional[str] = 'Default'
-    ) -> List[Cultivar]:
+    ) -> List[CultivarOutput]:
         try:
 
             if cultivar_info is not None:
@@ -36,8 +36,6 @@ class CultivarController(Controller):
                     error_description="No cultivars were found with the given search criteria"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            cultivars = [cultivar.model_dump() for cultivar in cultivars]
-            cultivars = [CultivarOutput.model_validate(cultivar) for cultivar in cultivars]
             return cultivars
         except Exception as e:
             error_message = RESTAPIError(
@@ -61,7 +59,6 @@ class CultivarController(Controller):
                     error_description="The cultivar with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            cultivar = CultivarOutput.model_validate(cultivar.model_dump())
             return cultivar
         except Exception as e:
             error_message = RESTAPIError(
@@ -76,7 +73,7 @@ class CultivarController(Controller):
     @post()
     async def create_cultivar(
         self, data: Annotated[CultivarInput, Body]
-    ) -> Cultivar:
+    ) -> CultivarOutput:
         try:
             cultivar = Cultivar.create(
                 cultivar_population=data.cultivar_population,
@@ -103,7 +100,7 @@ class CultivarController(Controller):
     @patch(path="/id/{cultivar_id:str}")
     async def update_cultivar(
         self, cultivar_id: str, data: Annotated[CultivarUpdate, Body]
-    ) -> Cultivar:
+    ) -> CultivarOutput:
         try:
             cultivar = Cultivar.get_by_id(id=cultivar_id)
             if cultivar is None:
@@ -123,11 +120,34 @@ class CultivarController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
+
+    # Delete Cultivar
+    @delete(path="/id/{cultivar_id:str}")
+    async def delete_cultivar(
+        self, cultivar_id: str
+    ) -> None:
+        try:
+            cultivar = Cultivar.get_by_id(id=cultivar_id)
+            if cultivar is None:
+                error_html = RESTAPIError(
+                    error="Cultivar not found",
+                    error_description="The cultivar with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            cultivar.delete()
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while deleting the cultivar"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
     # Get Population Accessions
     @get(path="/population/{cultivar_population:str}")
     async def get_population_accessions(
         self, cultivar_population: str
-    ) -> List[Cultivar]:
+    ) -> List[CultivarOutput]:
         try:
             cultivars = Cultivar.get_population_accessions(cultivar_population=cultivar_population)
             if cultivars is None:
@@ -136,8 +156,6 @@ class CultivarController(Controller):
                     error_description="No cultivars were found in the given population"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            cultivars = [cultivar.model_dump() for cultivar in cultivars]
-            cultivars = [CultivarOutput.model_validate(cultivar) for cultivar in cultivars]
             return cultivars
         except Exception as e:
             error_message = RESTAPIError(
