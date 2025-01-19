@@ -44,6 +44,13 @@ class GEMINISettings(BaseSettings):
     GEMINI_STORAGE_SECRET_KEY : Optional[str] = "gemini_secret"
     GEMINI_STORAGE_BUCKET_NAME : Optional[str] = "gemini"
 
+
+    # REST API Configuration
+    GEMINI_REST_API_CONTAINER_NAME : Optional[str] = "gemini-rest-api"
+    GEMINI_REST_API_IMAGE_NAME : Optional[str] = "gemini/rest-api"
+    GEMINI_REST_API_HOSTNAME : Optional[str] = "gemini-rest-api"
+    GEMINI_REST_API_PORT : Optional[str] = 7777
+
     def model_post_init(self, __context: Any) -> None:
         is_local = self.GEMINI_LOCAL
         if is_local:
