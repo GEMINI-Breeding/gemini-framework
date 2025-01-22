@@ -67,6 +67,11 @@ VALUES
 
 -- ALTER TABLE gemini.sites ADD CONSTRAINT site_unique UNIQUE (site_name, site_city, site_state, site_country);
 
+INSERT INTO gemini.sites (id, site_name, site_city, site_state, site_country, site_info, created_at, updated_at)
+VALUES
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'Test Site 1', 'Test City 1', 'Test State 1', 'Test Country 1', '{"description": "This is a test site"}', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'Test Site 2', 'Test City 2', 'Test State 2', 'Test Country 2', '{"description": "This is a test site"}', NOW(), NOW());
+
 -- -------------------------------------------------------------------------------
 -- -- Cultivars Table
 -- -- Each experiment can have multiple cultivars, and they are a combination of accession and population
@@ -82,6 +87,11 @@ VALUES
 -- CREATE INDEX IF NOT EXISTS idx_cultivars_info ON gemini.cultivars USING GIN (cultivar_info);
 
 -- ALTER TABLE gemini.cultivars ADD CONSTRAINT cultivar_unique UNIQUE (cultivar_accession, cultivar_population);
+
+INSERT INTO gemini.cultivars (id, cultivar_accession, cultivar_population, cultivar_info, created_at, updated_at)
+VALUES
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'Test Accession 1', 'Test Population 1', '{"description": "This is a test cultivar"}', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'Test Accession 2', 'Test Population 2', '{"description": "This is a test cultivar"}', NOW(), NOW());
 
 -- -------------------------------------------------------------------------------
 -- -- Plots Table
@@ -105,6 +115,15 @@ VALUES
 
 -- ALTER TABLE gemini.plots ADD CONSTRAINT plot_unique UNIQUE (experiment_id, season_id, site_id, plot_number, plot_row_number, plot_column_number);
 
+INSERT INTO gemini.plots (id, experiment_id, season_id, site_id, plot_number, plot_row_number, plot_column_number, plot_geometry_info, plot_info, created_at, updated_at)
+VALUES
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 1, 1, 1, '{"type": "Polygon", "coordinates": [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]}', '{"description": "This is a test plot"}', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 2, 2, 2, '{"type": "Polygon", "coordinates": [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]}', '{"description": "This is a test plot"}', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b5', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 3, 3, 3, '{"type": "Polygon", "coordinates": [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]}', '{"description": "This is a test plot"}', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b6', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 4, 4, 4, '{"type": "Polygon", "coordinates": [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]}', '{"description": "This is a test plot"}', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b7', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 5, 5, 5, '{"type": "Polygon", "coordinates": [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]}', '{"description": "This is a test plot"}', NOW(), NOW());
+
+
 -- -------------------------------------------------------------------------------
 -- -- Plants Table
 -- -- This is where all the plant information is stored
@@ -122,55 +141,16 @@ VALUES
 
 -- ALTER TABLE gemini.plants ADD CONSTRAINT plant_unique UNIQUE (plot_id, plant_number);
 
+INSERT INTO gemini.plants (id, plot_id, plant_number, plant_info, cultivar_id, created_at, updated_at)
+VALUES
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 1, '{"description": "This is a test plant"}', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 2, '{"description": "This is a test plant"}', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b5', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b5', 3, '{"description": "This is a test plant"}', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b5', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b6', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b6', 4, '{"description": "This is a test plant"}', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b6', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b7', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b7', 5, '{"description": "This is a test plant"}', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b7', NOW(), NOW());
 
--- -------------------------------------------------------------------------------
--- -- Data Types Table
--- -- This is where we will store all possible Data Types that are compatible with GEMINI
--- -- Acts like a global enumeration for data types
--- CREATE TABLE IF NOT EXISTS gemini.data_types (
---     id INTEGER PRIMARY KEY, 
---     data_type_name VARCHAR(255) NOT NULL,
---     data_type_info JSONB DEFAULT '{}',
---     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
---     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
--- );
 
--- CREATE INDEX IF NOT EXISTS idx_data_types_info ON gemini.data_types USING GIN (data_type_info);
 
--- ALTER TABLE gemini.data_types ADD CONSTRAINT data_type_unique UNIQUE NULLS NOT DISTINCT (data_type_name);
-
--- -------------------------------------------------------------------------------
--- -- Data Formats Table
--- -- This is where we will store all possible Data Formats that are compatible with GEMINI
--- -- Stores File Formats
--- CREATE TABLE IF NOT EXISTS gemini.data_formats (
---     id INTEGER PRIMARY KEY,
---     data_format_name VARCHAR(255) NOT NULL,
---     data_format_mime_type VARCHAR(255) DEFAULT 'application/octet-stream',
---     data_format_info JSONB DEFAULT '{}',
---     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
---     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
--- );
-
--- CREATE INDEX IF NOT EXISTS idx_data_formats_info ON gemini.data_formats USING GIN (data_format_info);
-
--- ALTER TABLE gemini.data_formats ADD CONSTRAINT data_format_unique UNIQUE NULLS NOT DISTINCT (data_format_name);
-
--- -------------------------------------------------------------------------------
--- -- Trait Levels Table
--- -- This is where we will store all possible Trait Levels that are compatible with GEMINI
--- -- Acts like a global enumeration for trait levels
--- CREATE TABLE IF NOT EXISTS gemini.trait_levels (
---     id INTEGER PRIMARY KEY,
---     trait_level_name VARCHAR(255) NOT NULL,
---     trait_level_info JSONB DEFAULT '{}',
---     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
---     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
--- );
-
--- CREATE INDEX IF NOT EXISTS idx_trait_levels_info ON gemini.trait_levels USING GIN (trait_level_info);
-
--- ALTER TABLE gemini.trait_levels ADD CONSTRAINT trait_level_unique UNIQUE NULLS NOT DISTINCT (trait_level_name);
 
 -- -------------------------------------------------------------------------------
 -- -- Traits Table
@@ -191,21 +171,12 @@ VALUES
 
 -- ALTER TABLE gemini.traits ADD CONSTRAINT trait_unique UNIQUE NULLS NOT DISTINCT (trait_name);
 
--- -------------------------------------------------------------------------------
--- -- Sensor Types Table
--- -- This is where we will store all possible Sensor Types that are compatible with GEMINI
--- -- Acts like a global enumeration for sensor types
--- CREATE TABLE IF NOT EXISTS gemini.sensor_types (
---     id INTEGER PRIMARY KEY,
---     sensor_type_name VARCHAR(255) NOT NULL,
---     sensor_type_info JSONB DEFAULT '{}',
---     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
---     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
--- );
+INSERT INTO gemini.traits (id, trait_name, trait_units, trait_level_id, trait_metrics, trait_info, created_at, updated_at)
+VALUES
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'Test Trait 1', 'Test Units 1', 1, '{"metric1": "value1", "metric2": "value2"}', '{"description": "This is a test trait"}', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'Test Trait 2', 'Test Units 2', 2, '{"metric1": "value1", "metric2": "value2"}', '{"description": "This is a test trait"}', NOW(), NOW());
 
--- CREATE INDEX IF NOT EXISTS idx_sensor_types_info ON gemini.sensor_types USING GIN (sensor_type_info);
 
--- ALTER TABLE gemini.sensor_types ADD CONSTRAINT sensor_type_unique UNIQUE NULLS NOT DISTINCT (sensor_type_name);
 
 -- -------------------------------------------------------------------------------
 -- -- Platforms Table
@@ -224,6 +195,11 @@ VALUES
 
 -- ALTER TABLE gemini.sensor_platforms ADD CONSTRAINT sensor_platform_unique UNIQUE NULLS NOT DISTINCT (sensor_platform_name);
 
+INSERT INTO gemini.sensor_platforms (id, sensor_platform_name, sensor_platform_info, created_at, updated_at)
+VALUES
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'Test Sensor Platform 1', '{"description": "This is a test sensor platform"}', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'Test Sensor Platform 2', '{"description": "This is a test sensor platform"}', NOW(), NOW());
+
 -- -------------------------------------------------------------------------------
 -- -- Sensors Table
 -- -- This is where all the sensor information is stored
@@ -241,6 +217,11 @@ VALUES
 -- CREATE INDEX IF NOT EXISTS idx_sensors_info ON gemini.sensors USING GIN (sensor_info);
 
 -- ALTER TABLE gemini.sensors ADD CONSTRAINT sensor_unique UNIQUE NULLS NOT DISTINCT (sensor_name);
+
+INSERT INTO gemini.sensors (id, sensor_name, sensor_type_id, sensor_data_type_id, sensor_data_format_id, sensor_info, created_at, updated_at)
+VALUES
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'Test Sensor 1', 1, 1, 1, '{"description": "This is a test sensor"}', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'Test Sensor 2', 2, 2, 2, '{"description": "This is a test sensor"}', NOW(), NOW());
 
 
 -- -------------------------------------------------------------------------------
