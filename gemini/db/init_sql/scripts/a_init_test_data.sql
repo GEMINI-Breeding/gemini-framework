@@ -144,11 +144,7 @@ VALUES
 INSERT INTO gemini.plants (id, plot_id, plant_number, plant_info, cultivar_id, created_at, updated_at)
 VALUES
 ('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 1, '{"description": "This is a test plant"}', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', NOW(), NOW()),
-('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 2, '{"description": "This is a test plant"}', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', NOW(), NOW()),
-('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b5', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b5', 3, '{"description": "This is a test plant"}', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b5', NOW(), NOW()),
-('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b6', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b6', 4, '{"description": "This is a test plant"}', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b6', NOW(), NOW()),
-('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b7', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b7', 5, '{"description": "This is a test plant"}', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b7', NOW(), NOW());
-
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 2, '{"description": "This is a test plant"}', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', NOW(), NOW());
 
 
 
@@ -243,6 +239,11 @@ VALUES
 
 -- ALTER TABLE gemini.resources ADD CONSTRAINT resource_unique UNIQUE NULLS NOT DISTINCT (resource_uri, resource_file_name);
 
+INSERT INTO gemini.resources (id, resource_uri, resource_file_name, is_external, resource_experiment_id, resource_data_format_id, resource_info, created_at, updated_at)
+VALUES
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'http://example.com/resource1', 'resource1', FALSE, 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 1, '{"description": "This is a test resource"}', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'http://example.com/resource2', 'resource2', FALSE, 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 2, '{"description": "This is a test resource"}', NOW(), NOW());
+
 -- -------------------------------------------------------------------------------
 -- -- Scripts Table
 -- -- This is where all the script information is stored, you can add a script
@@ -260,6 +261,11 @@ VALUES
 
 -- ALTER TABLE gemini.scripts ADD CONSTRAINT script_unique UNIQUE NULLS NOT DISTINCT (script_name, script_url);
 
+INSERT INTO gemini.scripts (id, script_name, script_url, script_extension, script_info, created_at, updated_at)
+VALUES
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'Test Script 1', 'http://example.com/script1', '.sh', '{"description": "This is a test script"}', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'Test Script 2', 'http://example.com/script2', '.py', '{"description": "This is a test script"}', NOW(), NOW());
+
 -- -------------------------------------------------------------------------------
 -- -- Script Runs Table
 -- -- This is where all the script run information is stored, you can add a script run
@@ -274,6 +280,11 @@ VALUES
 -- CREATE INDEX IF NOT EXISTS idx_script_runs_info ON gemini.script_runs USING GIN (script_run_info);
 
 -- ALTER TABLE gemini.script_runs ADD CONSTRAINT script_run_unique UNIQUE NULLS NOT DISTINCT (script_id, script_run_info);
+
+INSERT INTO gemini.script_runs (id, script_id, script_run_info, created_at, updated_at)
+VALUES
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', '{"description": "This is a test script run"}', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', '{"description": "This is a test script run"}', NOW(), NOW());
 
 -- -------------------------------------------------------------------------------
 -- -- Models Table
@@ -291,6 +302,11 @@ VALUES
 
 -- ALTER TABLE gemini.models ADD CONSTRAINT model_unique UNIQUE NULLS NOT DISTINCT (model_name, model_url);
 
+INSERT INTO gemini.models (id, model_name, model_url, model_info, created_at, updated_at)
+VALUES
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'Test Model 1', 'http://example.com/model1', '{"description": "This is a test model"}', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'Test Model 2', 'http://example.com/model2', '{"description": "This is a test model"}', NOW(), NOW());
+
 -- -------------------------------------------------------------------------------
 -- -- Model Runs Table
 -- -- This is where all the model run information is stored, you can add a model run
@@ -305,6 +321,11 @@ VALUES
 -- CREATE INDEX IF NOT EXISTS idx_model_runs_info ON gemini.model_runs USING GIN (model_run_info);
 
 -- ALTER TABLE gemini.model_runs ADD CONSTRAINT model_run_unique UNIQUE NULLS NOT DISTINCT (model_id, model_run_info);
+
+INSERT INTO gemini.model_runs (id, model_id, model_run_info, created_at, updated_at)
+VALUES
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', '{"description": "This is a test model run"}', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', '{"description": "This is a test model run"}', NOW(), NOW());
 
 -- -------------------------------------------------------------------------------
 -- -- Procedures Table
@@ -321,6 +342,11 @@ VALUES
 
 -- ALTER TABLE gemini.procedures ADD CONSTRAINT procedure_unique UNIQUE NULLS NOT DISTINCT (procedure_name);
 
+INSERT INTO gemini.procedures (id, procedure_name, procedure_info, created_at, updated_at)
+VALUES
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'Test Procedure 1', '{"description": "This is a test procedure"}', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'Test Procedure 2', '{"description": "This is a test procedure"}', NOW(), NOW());
+
 -- -------------------------------------------------------------------------------
 -- -- Procedure Runs Table
 -- -- This is where all the procedure run information is stored, you can add a procedure run
@@ -335,6 +361,11 @@ VALUES
 -- CREATE INDEX IF NOT EXISTS idx_procedure_runs_info ON gemini.procedure_runs USING GIN (procedure_run_info);
 
 -- ALTER TABLE gemini.procedure_runs ADD CONSTRAINT procedure_run_unique UNIQUE NULLS NOT DISTINCT (procedure_id, procedure_run_info);
+
+INSERT INTO gemini.procedure_runs (id, procedure_id, procedure_run_info, created_at, updated_at)
+VALUES
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', '{"description": "This is a test procedure run"}', NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', 'f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', '{"description": "This is a test procedure run"}', NOW(), NOW());
 
 -- -------------------------------------------------------------------------------
 -- -- Dataset Types Table
@@ -367,3 +398,9 @@ VALUES
 -- CREATE INDEX IF NOT EXISTS idx_datasets_info ON gemini.datasets USING GIN (dataset_info);
 
 -- ALTER TABLE gemini.datasets ADD CONSTRAINT dataset_name_unique UNIQUE NULLS NOT DISTINCT (dataset_name);
+
+INSERT INTO gemini.datasets (id, collection_date, dataset_name, dataset_info, dataset_type_id, created_at, updated_at)
+VALUES
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3', '2020-01-01', 'Test Dataset 1', '{"description": "This is a test dataset"}', 1, NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b4', '2020-01-01', 'Test Dataset 2', '{"description": "This is a test dataset"}', 2, NOW(), NOW()),
+('f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b5', '2020-01-01', 'Test Dataset 3', '{"description": "This is a test dataset"}', 1, NOW(), NOW());
