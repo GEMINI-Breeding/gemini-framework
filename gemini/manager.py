@@ -1,9 +1,22 @@
 from typing import Any, ClassVar
 from enum import Enum
+
+from gemini.logger.interfaces import logger_provider
+from gemini.storage.interfaces import storage_provider
+
+from gemini.storage.providers.minio_storage import MinioStorageProvider
+from gemini.logger.providers.redis_logger import RedisLogger
+
 from gemini.pipeline.container_manager import GEMINIContainerManager
 from gemini.config.settings import GEMINISettings
 
 from pydantic import BaseModel, ConfigDict, PrivateAttr, Field
+
+class GEMINIComponentType(str, Enum):
+    LOGGER = "logger"
+    STORAGE = "storage"
+    DB = "db"
+
 
 class GEMINIManager(BaseModel):
 
@@ -41,5 +54,26 @@ class GEMINIManager(BaseModel):
     def get_status(self) -> str:
         return self.container_manager.get_status()
     
+    def get_component_provider(self, component_type: GEMINIComponentType):
+        component_settings = self._get_component_settings(component_type)
+        if component_type == GEMINIComponentType.LOGGER:
+            return RedisLogger(config=component_settings)
+        elif component_type == GEMINIComponentType.STORAGE:
+            return MinioStorageProvider(config=component_settings)
+        else:
+            return None
+        
+    def _get_component_settings(self, component_type: GEMINIComponentType) -> object:
 
-
+        is_local = self.settings.GEMINI_LOCAL 
+        
+        if component_type == GEMINIComponentType.LOGGER:
+            return self.settings.get_logger_config(is_local)
+        elif component_type == GEMINIComponentType.STORAGE:
+            return self.settings.get_storage_config(is_local)
+        elif component_type == GEMINIComponentType.DB:
+            return None
+        else:
+            return None
+            
+    

@@ -8,8 +8,6 @@ from gemini.db.config import DatabaseConfig
 from gemini.storage.config import StorageConfig, MinioStorageConfig
 from gemini.logger.config import LoggerConfig, RedisLoggerConfig
 
-
-
 class GEMINISettings(BaseSettings):
 
     # Meta
@@ -76,19 +74,25 @@ class GEMINISettings(BaseSettings):
     
 
 
-    def get_database_config(self) -> DatabaseConfig:
+    def get_database_config(self, local: bool =False) -> DatabaseConfig:
 
-        database_url = f"postgresql://{self.GEMINI_DB_USER}:{self.GEMINI_DB_PASSWORD}@{self.GEMINI_DB_HOSTNAME}:{self.GEMINI_DB_PORT}/{self.GEMINI_DB_NAME}"
+    
+        db_hostname = self.GEMINI_DB_HOSTNAME if not local else "localhost"
+
+
+        database_url = f"postgresql://{self.GEMINI_DB_USER}:{self.GEMINI_DB_PASSWORD}@{db_hostname}:{self.GEMINI_DB_PORT}/{self.GEMINI_DB_NAME}"
         config = DatabaseConfig(
             database_url=database_url
         )
         return config
 
         
-    def get_logger_config(self) -> LoggerConfig:
+    def get_logger_config(self, local: bool = False) -> LoggerConfig:
+
+        logger_hostname = self.GEMINI_LOGGER_HOSTNAME if not local else "localhost"
 
         config = RedisLoggerConfig(
-            host=self.GEMINI_LOGGER_HOSTNAME,
+            host=logger_hostname,   
             port=self.GEMINI_LOGGER_PORT,
             db=0,
             password=self.GEMINI_LOGGER_PASSWORD
@@ -96,10 +100,12 @@ class GEMINISettings(BaseSettings):
 
         return config
     
-    def get_storage_config(self) -> StorageConfig:
+    def get_storage_config(self, local: bool = False) -> MinioStorageConfig:
+
+        storage_hostname = self.GEMINI_STORAGE_HOSTNAME if not local else "localhost"
 
         config = MinioStorageConfig(
-            endpoint=f"{self.GEMINI_STORAGE_HOSTNAME}:{self.GEMINI_STORAGE_PORT}",
+            endpoint=f"{storage_hostname}:{self.GEMINI_STORAGE_PORT}",
             access_key=self.GEMINI_STORAGE_ACCESS_KEY,
             secret_key=self.GEMINI_STORAGE_SECRET_KEY,
             bucket_name=self.GEMINI_STORAGE_BUCKET_NAME,
@@ -107,3 +113,4 @@ class GEMINISettings(BaseSettings):
         )
 
         return config
+    

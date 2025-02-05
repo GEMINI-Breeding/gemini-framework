@@ -30,6 +30,16 @@ class TraitRecordModel(ColumnarBaseModel):
     trait_name: Mapped[str] = mapped_column(String(255))
     trait_value: Mapped[float] = mapped_column(REAL)
     trait_data: Mapped[dict] = mapped_column(JSONB)
+    experiment_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True))
+    experiment_name: Mapped[str] = mapped_column(String(255))
+    season_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True))
+    season_name: Mapped[str] = mapped_column(String(255))
+    site_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True))
+    site_name: Mapped[str] = mapped_column(String(255))
+    plot_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True))
+    plot_number: Mapped[str] = mapped_column(String(255))
+    plot_row_number: Mapped[str] = mapped_column(String(255))
+    plot_column_number: Mapped[str] = mapped_column(String(255))
     record_info: Mapped[dict] = mapped_column(JSONB)
 
     __table_args__ = (

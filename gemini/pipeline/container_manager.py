@@ -23,6 +23,9 @@ class GEMINIContainerManager(BaseModel):
     logger_container: Container = None
     storage_container: Container = None
 
+    # Pipeline Settings
+    pipeline_settings: GEMINISettings = GEMINISettings()
+
     def model_post_init(self, __context: Any) -> None:
 
         self.docker_client = DockerClient(
@@ -138,10 +141,3 @@ class GEMINIContainerManager(BaseModel):
             print(e)
             return False
 
-
-if __name__ == "__main__":
-    manager = GEMINIContainerManager()
-    manager.setup()
-    print(manager.get_status())
-    manager.teardown()
-    print(manager.get_status())

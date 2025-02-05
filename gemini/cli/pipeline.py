@@ -100,9 +100,6 @@ def setup(pipeline : PipelineCLIContact):
     # Build the pipeline
     manager.build_pipeline()
 
-    # Start the pipeline
-    manager.start_pipeline()
-
     click.echo(click.style("Pipeline setup complete", fg="blue"))
 
 def environment_setup() -> GEMINISettings:

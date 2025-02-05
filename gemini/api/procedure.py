@@ -4,9 +4,12 @@ from uuid import UUID
 from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
+from gemini.api.procedure_record import ProcedureRecord
 from gemini.db.models.procedures import ProcedureModel
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.views.experiment_views import ExperimentProceduresViewModel
+
+from datetime import date, datetime
 
 class Procedure(APIBase):
 
@@ -108,3 +111,81 @@ class Procedure(APIBase):
             return self
         except Exception as e:
             raise e 
+        
+
+    def add_record(
+        self,
+        record: ProcedureRecord
+    ) -> bool:
+        try:
+            if record.timestamp is None:
+                record.timestamp = datetime.now()
+            if record.collection_date is None:
+                record.collection_date = record.timestamp.date()
+            if record.dataset_name is None:
+                record.dataset_name = f"{self.procedure_name} Dataset"
+            if record.procedure_name is None:
+                record.procedure_name = self.procedure_name
+            if record.record_info is None:
+                record.record_info = {}
+
+            record.procedure_id = self.id
+
+            success = ProcedureRecord.add([record])
+            return success
+        except Exception as e:
+            return False
+        
+
+    def add_records(
+        self,
+        records: List[ProcedureRecord]
+    ) -> bool:
+        try:
+            for record in records:
+                if record.timestamp is None:
+                    record.timestamp = datetime.now()
+                if record.collection_date is None:
+                    record.collection_date = record.timestamp.date()
+                if record.dataset_name is None:
+                    record.dataset_name = f"{self.procedure_name} Dataset"
+                if record.procedure_name is None:
+                    record.procedure_name = self.procedure_name
+                if record.record_info is None:
+                    record.record_info = {}
+
+                record.procedure_id = self.id
+            success = ProcedureRecord.add(records)
+            return success
+        except Exception as e:
+            return False
+        
+    def get_records(
+            self,
+            collection_date: date = None,
+            experiment_name: str = None,
+            season_name: str = None,
+            site_name: str = None,
+            plot_number: int = None,
+            plot_row_number: int = None,
+            plot_column_number: int = None,
+            record_info: dict = None
+    ) -> List[ProcedureRecord]:
+        try:
+            record_info = record_info if record_info else {}
+            record_info = {k: v for k, v in record_info.items() if v is not None}
+
+            records = ProcedureRecord.search(
+                procedure_id=self.id,
+                collection_date=collection_date,
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name,
+                plot_number=plot_number,
+                plot_row_number=plot_row_number,
+                plot_column_number=plot_column_number,
+                record_info=record_info
+            )
+            return records
+        except Exception as e:
+            raise e

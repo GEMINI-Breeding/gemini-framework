@@ -216,15 +216,12 @@ class MinioStorageProvider(StorageProvider):
             
             # Default expiration of 7 days if not specified
             if expires is None:
-                expires = datetime.now() + timedelta(days=7)
-                
-            # Calculate expiration in seconds
-            expiry = int((expires - datetime.now()).total_seconds())
+                expires = timedelta(days=7)
             
             url = self.client.presigned_get_object(
                 bucket_name=self.bucket_name,
                 object_name=object_name,
-                expires=expiry,
+                expires=expires,
                 response_headers=response_headers
             )
             

@@ -358,165 +358,168 @@ SELECT (SELECT id FROM gemini.experiments WHERE experiment_name = 'Default'), id
 FROM gemini.datasets;
 
 
--- Insert Test Sensor Records
-DO $$
-DECLARE
-    i INTEGER := 0;
-BEGIN
-    WHILE i < 1000 LOOP
-        INSERT INTO gemini.sensor_records (
-            timestamp,
-            sensor_id,
-            sensor_name,
-            sensor_data,
-            record_info
-        ) VALUES (
-            NOW() + (i || ' seconds')::INTERVAL,
-            (SELECT id FROM gemini.sensors WHERE sensor_name = 'Default'),
-            'Default',
-            json_build_object('value', random()),
-            '{"experiment": "Default", "site": "Default", "season": "Default"}'
-        );
-        i := i + 1;
-    END LOOP;
-END $$;
-
--- Insert Test Trait Records
-DO $$
-DECLARE
-    i INTEGER := 0;
-BEGIN
-    WHILE i < 1000 LOOP
-        INSERT INTO gemini.trait_records (
-            timestamp,
-            trait_name,
-            trait_value,
-            record_info
-        ) VALUES (
-            NOW() + (i || ' seconds')::INTERVAL,
-            'Default',
-            random(),
-            '{"experiment": "Default", "site": "Default", "season": "Default"}'
-        );
-        i := i + 1;
-    END LOOP;
-END $$;
-
--- Insert Test Dataset Records
-DO $$
-DECLARE
-    i INTEGER := 0;
-BEGIN
-    WHILE i < 1000 LOOP
-        INSERT INTO gemini.dataset_records (
-            timestamp,
-            dataset_name,
-            dataset_data,
-            record_info
-        ) VALUES (
-            NOW() + (i || ' seconds')::INTERVAL,
-            'Default',
-            json_build_object('value', random()),
-            '{"experiment": "Default", "site": "Default", "season": "Default"}'
-        );
-        i := i + 1;
-    END LOOP;
-END $$;
-
--- Insert Test Model Records
-DO $$
-DECLARE
-    i INTEGER := 0;
-BEGIN
-    WHILE i < 1000 LOOP
-        INSERT INTO gemini.model_records (
-            timestamp,
-            model_name,
-            model_data,
-            record_info
-        ) VALUES (
-            NOW() + (i || ' seconds')::INTERVAL,
-            'Default',
-            json_build_object('value', random()),
-            '{"experiment": "Default", "site": "Default", "season": "Default"}'
-        );
-        i := i + 1;
-    END LOOP;
-END $$;
-
--- Insert Test Procedure Records
-DO $$
-DECLARE
-    i INTEGER := 0;
-BEGIN
-    WHILE i < 1000 LOOP
-        INSERT INTO gemini.procedure_records (
-            timestamp,
-            procedure_name,
-            procedure_data,
-            record_info
-        ) VALUES (
-            NOW() + (i || ' seconds')::INTERVAL,
-            'Default',
-            json_build_object('value', random()),
-            '{"experiment": "Default", "site": "Default", "season": "Default"}'
-        );
-        i := i + 1;
-    END LOOP;
-END $$;
-
--- Insert Test Script Records
-DO $$
-DECLARE
-    i INTEGER := 0;
-BEGIN
-    WHILE i < 1000 LOOP
-        INSERT INTO gemini.script_records (
-            timestamp,
-            script_name,
-            script_data,
-            record_info
-        ) VALUES (
-            NOW() + (i || ' seconds')::INTERVAL,
-            'Default',
-            json_build_object('value', random()),
-            '{"experiment": "Default", "site": "Default", "season": "Default"}'
-        );
-        i := i + 1;
-    END LOOP;
-END $$;
 
 
 
+-- -- Insert Test Sensor Records
+-- DO $$
+-- DECLARE
+--     i INTEGER := 0;
+-- BEGIN
+--     WHILE i < 1000 LOOP
+--         INSERT INTO gemini.sensor_records (
+--             timestamp,
+--             sensor_id,
+--             sensor_name,
+--             sensor_data,
+--             record_info
+--         ) VALUES (
+--             NOW() + (i || ' seconds')::INTERVAL,
+--             (SELECT id FROM gemini.sensors WHERE sensor_name = 'Default'),
+--             'Default',
+--             json_build_object('value', random()),
+--             '{"experiment": "Default", "site": "Default", "season": "Default"}'
+--         );
+--         i := i + 1;
+--     END LOOP;
+-- END $$;
 
--- ------------------------------------------------------------
--- -- Insert the initial data for the database
--- ------------------------------------------------------------
+-- -- Insert Test Trait Records
+-- DO $$
+-- DECLARE
+--     i INTEGER := 0;
+-- BEGIN
+--     WHILE i < 1000 LOOP
+--         INSERT INTO gemini.trait_records (
+--             timestamp,
+--             trait_name,
+--             trait_value,
+--             record_info
+--         ) VALUES (
+--             NOW() + (i || ' seconds')::INTERVAL,
+--             'Default',
+--             random(),
+--             '{"experiment": "Default", "site": "Default", "season": "Default"}'
+--         );
+--         i := i + 1;
+--     END LOOP;
+-- END $$;
 
--- -- Insert GEMINI Experiment
--- INSERT INTO gemini.experiments (experiment_name, experiment_info, experiment_start_date, experiment_end_date)
--- VALUES
---     ('GEMINI', '{"description": "GEMINI Experiment"}', '2020-01-01', '2025-12-31');
+-- -- Insert Test Dataset Records
+-- DO $$
+-- DECLARE
+--     i INTEGER := 0;
+-- BEGIN
+--     WHILE i < 1000 LOOP
+--         INSERT INTO gemini.dataset_records (
+--             timestamp,
+--             dataset_name,
+--             dataset_data,
+--             record_info
+--         ) VALUES (
+--             NOW() + (i || ' seconds')::INTERVAL,
+--             'Default',
+--             json_build_object('value', random()),
+--             '{"experiment": "Default", "site": "Default", "season": "Default"}'
+--         );
+--         i := i + 1;
+--     END LOOP;
+-- END $$;
+
+-- -- Insert Test Model Records
+-- DO $$
+-- DECLARE
+--     i INTEGER := 0;
+-- BEGIN
+--     WHILE i < 1000 LOOP
+--         INSERT INTO gemini.model_records (
+--             timestamp,
+--             model_name,
+--             model_data,
+--             record_info
+--         ) VALUES (
+--             NOW() + (i || ' seconds')::INTERVAL,
+--             'Default',
+--             json_build_object('value', random()),
+--             '{"experiment": "Default", "site": "Default", "season": "Default"}'
+--         );
+--         i := i + 1;
+--     END LOOP;
+-- END $$;
+
+-- -- Insert Test Procedure Records
+-- DO $$
+-- DECLARE
+--     i INTEGER := 0;
+-- BEGIN
+--     WHILE i < 1000 LOOP
+--         INSERT INTO gemini.procedure_records (
+--             timestamp,
+--             procedure_name,
+--             procedure_data,
+--             record_info
+--         ) VALUES (
+--             NOW() + (i || ' seconds')::INTERVAL,
+--             'Default',
+--             json_build_object('value', random()),
+--             '{"experiment": "Default", "site": "Default", "season": "Default"}'
+--         );
+--         i := i + 1;
+--     END LOOP;
+-- END $$;
+
+-- -- Insert Test Script Records
+-- DO $$
+-- DECLARE
+--     i INTEGER := 0;
+-- BEGIN
+--     WHILE i < 1000 LOOP
+--         INSERT INTO gemini.script_records (
+--             timestamp,
+--             script_name,
+--             script_data,
+--             record_info
+--         ) VALUES (
+--             NOW() + (i || ' seconds')::INTERVAL,
+--             'Default',
+--             json_build_object('value', random()),
+--             '{"experiment": "Default", "site": "Default", "season": "Default"}'
+--         );
+--         i := i + 1;
+--     END LOOP;
+-- END $$;
 
 
--- -- Insert Seasons for each year of the GEMINI Experiment
--- INSERT INTO gemini.seasons (season_name, season_start_date, season_end_date, experiment_id)
--- VALUES
---     ('2020', '2020-01-01', '2020-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
---     ('2021', '2021-01-01', '2021-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
---     ('2022', '2022-01-01', '2022-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
---     ('2023', '2023-01-01', '2023-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
---     ('2024', '2024-01-01', '2024-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
---     ('2025', '2025-01-01', '2025-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI'));
 
--- -- Insert GEMINI Sites
--- INSERT INTO gemini.sites (site_name, site_city, site_state, site_country, site_info)
--- VALUES
---     ('Davis', 'Davis', 'CA', 'USA', '{"description": "Davis Site"}'),
---     ('Kearney', 'Kearney', 'CA', 'USA', '{"description": "Kearney Site"}');
 
--- INSERT INTO gemini.experiment_sites (experiment_id, site_id)
--- VALUES
---     ((SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI'), (SELECT id FROM gemini.sites WHERE site_name = 'Davis')),
---     ((SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI'), (SELECT id FROM gemini.sites WHERE site_name = 'Kearney'));
+-- -- ------------------------------------------------------------
+-- -- -- Insert the initial data for the database
+-- -- ------------------------------------------------------------
+
+-- -- -- Insert GEMINI Experiment
+-- -- INSERT INTO gemini.experiments (experiment_name, experiment_info, experiment_start_date, experiment_end_date)
+-- -- VALUES
+-- --     ('GEMINI', '{"description": "GEMINI Experiment"}', '2020-01-01', '2025-12-31');
+
+
+-- -- -- Insert Seasons for each year of the GEMINI Experiment
+-- -- INSERT INTO gemini.seasons (season_name, season_start_date, season_end_date, experiment_id)
+-- -- VALUES
+-- --     ('2020', '2020-01-01', '2020-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
+-- --     ('2021', '2021-01-01', '2021-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
+-- --     ('2022', '2022-01-01', '2022-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
+-- --     ('2023', '2023-01-01', '2023-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
+-- --     ('2024', '2024-01-01', '2024-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI')),
+-- --     ('2025', '2025-01-01', '2025-12-31', (SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI'));
+
+-- -- -- Insert GEMINI Sites
+-- -- INSERT INTO gemini.sites (site_name, site_city, site_state, site_country, site_info)
+-- -- VALUES
+-- --     ('Davis', 'Davis', 'CA', 'USA', '{"description": "Davis Site"}'),
+-- --     ('Kearney', 'Kearney', 'CA', 'USA', '{"description": "Kearney Site"}');
+
+-- -- INSERT INTO gemini.experiment_sites (experiment_id, site_id)
+-- -- VALUES
+-- --     ((SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI'), (SELECT id FROM gemini.sites WHERE site_name = 'Davis')),
+-- --     ((SELECT id FROM gemini.experiments WHERE experiment_name = 'GEMINI'), (SELECT id FROM gemini.sites WHERE site_name = 'Kearney'));
 

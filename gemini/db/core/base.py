@@ -175,19 +175,21 @@ class BaseModel(DeclarativeBase, SerializeMixin):
         return cls.metadata.tables[f"{cls.metadata.schema}.{table_name}"]
         
     @classmethod
-    def insert_bulk(cls, data):
+    def insert_bulk(cls, constraint, data):
         with db_engine.get_session() as session:
             table = cls.__table__
-            stmt = pg_insert(table).returning(table.c.id)
+            stmt = pg_insert(table).on_conflict_do_nothing(constraint=constraint).returning(table.c.id)
             inserted_records = session.execute(stmt, data, execution_options={"populate_existing": True})
             inserted_ids = [record.id for record in inserted_records]
             return inserted_ids
         
+        
+        
     @classmethod
-    def update_bulk(cls, data):
+    def update_bulk(cls, constraint, upsert_on, data):
         with db_engine.get_session() as session:
             table = cls.__table__
-            stmt = pg_insert(table).returning(table.c.id)
+            stmt = pg_insert(table).on_conflict_do_update(constraint=constraint, set_={upsert_on: stmt.excluded[upsert_on]}).returning(table.c.id)
             inserted_records = session.execute(stmt, data, execution_options={"populate_existing": True})
             inserted_ids = [record.id for record in inserted_records]
             return inserted_ids

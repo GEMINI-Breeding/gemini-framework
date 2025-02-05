@@ -2,6 +2,15 @@
 # !/bin/bash
 set -e
 
+# Print environment variables
+echo "Environment Variables:"
+echo "MINIO_SERVER_HOST: ${MINIO_SERVER_HOST}"
+echo "MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}"
+echo "MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}"
+echo "GEMINI_STORAGE_ACCESS_KEY: ${GEMINI_STORAGE_ACCESS_KEY}"
+echo "GEMINI_STORAGE_SECRET_KEY: ${GEMINI_STORAGE_SECRET_KEY}"
+echo "GEMINI_STORAGE_BUCKET_NAME: ${GEMINI_STORAGE_BUCKET_NAME}"
+
 # Get environment variables
 echo "Connect to MinIO server..."
 mc alias set local http://${MINIO_SERVER_HOST}:9000 "${MINIO_ACCESS_KEY}" "${MINIO_SECRET_KEY}"
@@ -23,7 +32,10 @@ cat << EOF > "${POLICY_FILE}"
             "s3:DeleteBucket",
             "s3:GetObject",
             "s3:DeleteObject",
-            "s3:PutObject"
+            "s3:PutObject",
+            "s3:ListBucket",
+            "s3:List*",
+            "s3:GetBucketLocation"
         ],
         "Resource": [
             "arn:aws:s3:::${GEMINI_STORAGE_BUCKET_NAME}",

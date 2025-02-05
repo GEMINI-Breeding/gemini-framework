@@ -13,6 +13,13 @@ CREATE TABLE IF NOT EXISTS gemini.dataset_records (
     dataset_id UUID,
     dataset_name TEXT,
     dataset_data JSONB NOT NULL DEFAULT '{}',
+    experiment_id UUID,
+    experiment_name TEXT,
+    season_id UUID,
+    season_name TEXT,
+    site_id UUID,
+    site_name TEXT,
+    record_file TEXT,
     record_info JSONB NOT NULL DEFAULT '{}'
 ) USING columnar;
 
@@ -33,6 +40,17 @@ CREATE TABLE IF NOT EXISTS gemini.sensor_records (
     sensor_id UUID,
     sensor_name TEXT,
     sensor_data JSONB NOT NULL DEFAULT '{}',
+    experiment_id UUID,
+    experiment_name TEXT,
+    season_id UUID,
+    season_name TEXT,
+    site_id UUID,
+    site_name TEXT,
+    plot_id UUID,
+    plot_number TEXT,
+    plot_row_number INTEGER,
+    plot_column_number INTEGER,
+    record_file TEXT,
     record_info JSONB NOT NULL DEFAULT '{}'
 );
 
@@ -53,6 +71,16 @@ CREATE TABLE IF NOT EXISTS gemini.trait_records (
     trait_id UUID,
     trait_name TEXT,
     trait_value REAL NOT NULL DEFAULT 0.0,
+    experiment_id UUID,
+    experiment_name TEXT,
+    season_id UUID,
+    season_name TEXT,
+    site_id UUID,
+    site_name TEXT,
+    plot_id UUID,
+    plot_number TEXT,
+    plot_row_number INTEGER,
+    plot_column_number INTEGER,
     record_info JSONB NOT NULL DEFAULT '{}'
 ) USING columnar;
 
@@ -73,6 +101,13 @@ CREATE TABLE IF NOT EXISTS gemini.procedure_records (
     procedure_id UUID,
     procedure_name TEXT,
     procedure_data JSONB NOT NULL DEFAULT '{}',
+    experiment_id UUID,
+    experiment_name TEXT,
+    season_id UUID,
+    season_name TEXT,
+    site_id UUID,
+    site_name TEXT,
+    record_file TEXT,
     record_info JSONB NOT NULL DEFAULT '{}'
 ) USING columnar;
 
@@ -93,6 +128,13 @@ CREATE TABLE IF NOT EXISTS gemini.script_records (
     script_id UUID,
     script_name TEXT,
     script_data JSONB NOT NULL DEFAULT '{}',
+    experiment_id UUID,
+    experiment_name TEXT,
+    season_id UUID,
+    season_name TEXT,
+    site_id UUID,
+    site_name TEXT,
+    record_file TEXT,
     record_info JSONB NOT NULL DEFAULT '{}'
 ) USING columnar;
 
@@ -112,6 +154,13 @@ CREATE TABLE IF NOT EXISTS gemini.model_records (
     model_id UUID,
     model_name TEXT,
     model_data JSONB NOT NULL DEFAULT '{}',
+    experiment_id UUID,
+    experiment_name TEXT,
+    season_id UUID,
+    season_name TEXT,
+    site_id UUID,
+    site_name TEXT,
+    record_file TEXT,
     record_info JSONB NOT NULL DEFAULT '{}'
 ) USING columnar;
 

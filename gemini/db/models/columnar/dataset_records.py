@@ -15,6 +15,13 @@ class DatasetRecordModel(ColumnarBaseModel):
     dataset_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True))
     dataset_name: Mapped[str] = mapped_column(String(255))
     dataset_data : Mapped[dict] = mapped_column(JSONB)
+    experiment_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True))
+    experiment_name: Mapped[str] = mapped_column(String(255))
+    season_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True))
+    season_name: Mapped[str] = mapped_column(String(255))
+    site_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True))
+    site_name: Mapped[str] = mapped_column(String(255))
+    record_file: Mapped[str] = mapped_column(String(255))
     record_info: Mapped[dict] = mapped_column(JSONB)
 
     __table_args__ = (
