@@ -1,11 +1,13 @@
 from typing import Optional, List, Generator
 import os
+
 from gemini.api.types import ID
 from pydantic import Field, AliasChoices
 from gemini.api.base import APIBase, FileHandlerMixin
 from gemini.db.models.scripts import ScriptModel
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.script_records import ScriptRecordModel
+from gemini.db.models.views.script_records_immv import ScriptRecordsIMMVModel
 
 from datetime import date, datetime
 
@@ -143,6 +145,9 @@ class ScriptRecord(APIBase, FileHandlerMixin):
                     _fields_set=cls.model_fields_set,
                     **record.to_dict()
                 )
+                record = record.model_dump()
+                record = cls._postprocess_record(record)
+                record = cls.model_validate(record)
                 yield record
         except Exception as e:
             raise e
@@ -189,13 +194,27 @@ class ScriptRecord(APIBase, FileHandlerMixin):
             raise e
         
 
-    @classmethod
-    def _get_file_download_url(cls, record_file_key: str) -> str:
+    def _download_file(self, output_folder: str) -> str:
+        try:
+            if not self.id:
+                raise ValueError("Record ID is required to download the file.")
+            record = ScriptRecordModel.get(self.id)
+            output_file_path = os.path.join(output_folder, record.record_file)
+            downloaded_file_path = self.minio_storage_provider.download_file(
+                object_name=record.record_file,
+                file_path=output_file_path
+            )
+            return downloaded_file_path
+        except Exception as e:
+            raise e
+
+
+    def _get_file_download_url(self, record_file_key: str) -> str:
         try:
             # Check if record_file is a file key or a file url
             if record_file_key.startswith("http"):
                 return record_file_key
-            file_url = cls.minio_storage_provider.get_download_url(object_name=record_file_key)
+            file_url = self.minio_storage_provider.get_download_url(object_name=record_file_key)
             return file_url
         except Exception as e:
             raise e
@@ -209,7 +228,7 @@ class ScriptRecord(APIBase, FileHandlerMixin):
             file_name = os.path.basename(file_path)
             collection_date = record.collection_date.strftime("%Y-%m-%d")
             script_name = record.script_name
-            file_key = f"{script_name}/{collection_date}/{file_name}"
+            file_key = f"script_data/{script_name}/{collection_date}/{file_name}"
             return file_key
         except Exception as e:
             raise e

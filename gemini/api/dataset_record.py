@@ -6,9 +6,7 @@ from pydantic import Field, AliasChoices
 from gemini.api.base import APIBase, FileHandlerMixin
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.dataset_records import DatasetRecordModel
-
-from gemini.config.settings import GEMINISettings
-from gemini.storage.providers.minio_storage import MinioStorageProvider
+from gemini.db.models.views.dataset_records_immv import DatasetRecordsIMMVModel
 
 from datetime import date, datetime
 
@@ -131,7 +129,7 @@ class DatasetRecord(APIBase, FileHandlerMixin):
     @classmethod
     def search(cls, **kwargs) -> Generator['DatasetRecord', None, None]:
         try:
-            records = DatasetRecordModel.stream(**kwargs)
+            records = DatasetRecordsIMMVModel.stream(**kwargs)
             for record in records:
                 record = cls.model_construct(
                     _fields_set=cls.model_fields_set,
@@ -199,7 +197,6 @@ class DatasetRecord(APIBase, FileHandlerMixin):
         except Exception as e:
             raise e
 
-    @classmethod
     def _get_file_download_url(self, record_file_key: str) -> str:
         try:
             # Check if record_file is a file key or a file url
@@ -221,7 +218,7 @@ class DatasetRecord(APIBase, FileHandlerMixin):
             file_name = os.path.basename(file_path)
             collection_date = record.collection_date.strftime("%Y-%m-%d")
             dataset_name = record.dataset_name
-            file_key = f"{dataset_name}/{collection_date}/{file_name}"
+            file_key = f"dataset_data/{dataset_name}/{collection_date}/{file_name}"
             return file_key
         except Exception as e:
             raise e

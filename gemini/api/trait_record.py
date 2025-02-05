@@ -6,6 +6,7 @@ from gemini.api.base import APIBase, FileHandlerMixin
 from gemini.db.models.traits import TraitModel
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.trait_records import TraitRecordModel
+from gemini.db.models.views.trait_records_immv import TraitRecordsIMMVModel
 
 from datetime import date, datetime
 
@@ -149,7 +150,7 @@ class TraitRecord(APIBase, FileHandlerMixin):
     @classmethod
     def search(cls, **kwargs) -> Generator['TraitRecord', None, None]:
         try:
-            records = TraitRecordModel.stream(**kwargs)
+            records = TraitRecordsIMMVModel.stream(**kwargs)
             for record in records:
                 record = cls.model_construct(
                     _fields_set=cls.model_fields_set,
@@ -181,7 +182,6 @@ class TraitRecord(APIBase, FileHandlerMixin):
     def _download_file(self, output_folder: str) -> str:
         pass
         
-    @classmethod
     def _get_file_download_url(self, record_file_key: str) -> str:
         pass
         

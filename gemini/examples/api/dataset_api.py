@@ -35,3 +35,14 @@ print(dataset_records)
 # Add Records to the Dataset
 success = test_dataset.add_records(records=dataset_records)
 
+# Search for the records
+search_results = DatasetRecord.search(
+    dataset_name="Test Dataset 1",
+    experiment_name="Test Experiment 1",
+    season_name="Test Season 1",
+    site_name="Test Site 1",
+    collection_date="2021-01-01"
+)
+
+for record in search_results:
+    print(record)

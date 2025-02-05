@@ -364,7 +364,7 @@ SELECT create_immv('gemini.model_records_immv', 'select * from gemini.model_reco
 -------------------------------------------------------------------------------
 -- Dataset Records IMMV
 -------------------------------------------------------------------------------
-SELECT create_immv('gemini.dataset_records_immv', 'select * from gemini.datasets');
+SELECT create_immv('gemini.dataset_records_immv', 'select * from gemini.dataset_records');
 
 
 SET max_parallel_workers = DEFAULT;

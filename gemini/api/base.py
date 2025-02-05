@@ -88,9 +88,8 @@ class FileHandlerMixin(BaseModel):
     def _download_file(self, output_folder: str) -> str:
         pass
 
-    @classmethod
     @abstractmethod
-    def _get_file_download_url(cls, record_file_key: str) -> str:
+    def _get_file_download_url(self, record_file_key: str) -> str:
         pass
 
     @classmethod

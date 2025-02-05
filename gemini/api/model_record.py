@@ -1,5 +1,6 @@
 from typing import Optional, List, Generator
 import os
+
 from gemini.api.types import ID
 from pydantic import Field, AliasChoices
 from gemini.api.base import APIBase, FileHandlerMixin
@@ -204,7 +205,6 @@ class ModelRecord(APIBase, FileHandlerMixin):
         except Exception as e:
             raise e
         
-    @classmethod
     def _get_file_download_url(self, record_file_key: str) -> str:
         try:
             # Check if record_file is a file key or a file url
@@ -224,7 +224,7 @@ class ModelRecord(APIBase, FileHandlerMixin):
             file_name = os.path.basename(file_path)
             collection_date = record.collection_date.strftime("%Y-%m-%d")
             model_name = record.model_name
-            file_key = f"{model_name}/{collection_date}/{file_name}"
+            file_key = f"model_data/{model_name}/{collection_date}/{file_name}"
             return file_key
         except Exception as e:
             raise e

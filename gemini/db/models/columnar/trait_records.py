@@ -29,7 +29,6 @@ class TraitRecordModel(ColumnarBaseModel):
     trait_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True))
     trait_name: Mapped[str] = mapped_column(String(255))
     trait_value: Mapped[float] = mapped_column(REAL)
-    trait_data: Mapped[dict] = mapped_column(JSONB)
     experiment_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True))
     experiment_name: Mapped[str] = mapped_column(String(255))
     season_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True))

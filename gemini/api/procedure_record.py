@@ -1,11 +1,13 @@
 from typing import Optional, List, Generator
 import os
+
 from gemini.api.types import ID
 from pydantic import Field, AliasChoices
 from gemini.api.base import APIBase, FileHandlerMixin
 from gemini.db.models.procedures import ProcedureModel
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.procedure_records import ProcedureRecordModel
+from gemini.db.models.views.procedure_records_immv import ProcedureRecordsIMMVModel
 
 from datetime import date, datetime
 
@@ -119,7 +121,7 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
                     'record_info': record.record_info
                 }
                 records_to_insert.append(record_to_insert)
-            ProcedureRecordModel.insert_bulk('model_records_unique', records_to_insert)
+            ProcedureRecordModel.insert_bulk('procedure_records_unique', records_to_insert)
             return True
         except Exception as e:
             return False
@@ -137,7 +139,7 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
     @classmethod
     def search(cls, **kwargs) -> Generator['ProcedureRecord', None, None]:
         try:
-            records = ProcedureRecordModel.stream(**kwargs)
+            records = ProcedureRecordsIMMVModel.stream(**kwargs)
             for record in records:
                 record = cls.model_construct(
                     _fields_set=cls.model_fields_set,
@@ -202,7 +204,6 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
         except Exception as e:
             raise e
         
-    @classmethod
     def _get_file_download_url(self, record_file_key: str) -> str:
         try:
             # Check if record_file is a file key or a file url
@@ -222,7 +223,7 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
             file_name = os.path.basename(file_path)
             collection_date = record.collection_date.strftime("%Y-%m-%d")
             procedure_name = record.procedure_name
-            file_key = f"{procedure_name}/{collection_date}/{file_name}"
+            file_key = f"procedure_data/{procedure_name}/{collection_date}/{file_name}"
             return file_key
         except Exception as e:
             raise e

@@ -1,11 +1,13 @@
 from typing import Optional, List, Generator
 import os
+
 from gemini.api.types import ID
 from pydantic import Field, AliasChoices
 from gemini.api.base import APIBase, FileHandlerMixin
 from gemini.db.models.sensors import SensorModel
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.sensor_records import SensorRecordModel
+from gemini.db.models.views.sensor_records_immv import SensorRecordsIMMVModel
 
 from datetime import date, datetime
 
@@ -152,12 +154,15 @@ class SensorRecord(APIBase, FileHandlerMixin):
     @classmethod
     def search(cls, **kwargs) -> Generator['SensorRecord', None, None]:
         try:
-            records = SensorRecordModel.stream(**kwargs)
+            records = SensorRecordsIMMVModel.stream(**kwargs)
             for record in records:
                 record = cls.model_construct(
                     _fields_set=cls.model_fields_set,
                     **record.to_dict()
                 )
+                record = record.model_dump()
+                record = cls._postprocess_record(record)
+                record = cls.model_validate(record)
                 yield record
         except Exception as e:
             raise e
@@ -217,7 +222,6 @@ class SensorRecord(APIBase, FileHandlerMixin):
         except Exception as e:
             raise e
         
-    @classmethod
     def _get_file_download_url(self, record_file_key: str) -> str:
         try:
             # Check if record_file is a file key or a file url
@@ -237,7 +241,7 @@ class SensorRecord(APIBase, FileHandlerMixin):
             file_name = os.path.basename(file_path)
             collection_date = record.collection_date.strftime("%Y-%m-%d")
             sensor_name = record.sensor_name
-            file_key = f"{sensor_name}/{collection_date}/{file_name}"
+            file_key = f"sensor_data/{sensor_name}/{collection_date}/{file_name}"
             return file_key
         except Exception as e:
             raise e
