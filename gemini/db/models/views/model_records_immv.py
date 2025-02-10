@@ -6,7 +6,7 @@ from gemini.db.core.base import BaseModel
 from datetime import datetime, date
 
 
-class ModelRecordIMMVModel(BaseModel):
+class ModelRecordsIMMVModel(BaseModel):
 
     __tablename__ = 'model_records_immv'
 

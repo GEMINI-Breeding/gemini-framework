@@ -139,7 +139,7 @@ class ScriptRecord(APIBase, FileHandlerMixin):
     @classmethod
     def search(cls, **kwargs) -> Generator['ScriptRecord', None, None]:
         try:
-            records = ScriptRecordModel.stream(**kwargs)
+            records = ScriptRecordsIMMVModel.stream(**kwargs)
             for record in records:
                 record = cls.model_construct(
                     _fields_set=cls.model_fields_set,

@@ -49,11 +49,10 @@ class Script(APIBase):
         
 
     @classmethod
-    def get(cls, script_name: str, script_url: str) -> "Script":
+    def get(cls, script_name: str) -> "Script":
         try:
             db_instance = ScriptModel.get_by_parameters(
-                script_name=script_name,
-                script_url=script_url,
+                script_name=script_name
             )
             script = cls.model_validate(db_instance)
             return script
@@ -135,7 +134,7 @@ class Script(APIBase):
             if record.collection_date is None:
                 record.collection_date = record.timestamp.date()
             if record.dataset_name is None:
-                record.dataset_name = self.dataset_name
+                record.dataset_name = f"{self.script_name} Dataset"
             if record.script_name is None:
                 record.script_name = self.script_name
             if record.record_info is None:
@@ -159,7 +158,7 @@ class Script(APIBase):
                 if record.collection_date is None:
                     record.collection_date = record.timestamp.date()
                 if record.dataset_name is None:
-                    record.dataset_name = self.dataset_name
+                    record.dataset_name = f"{self.script_name} Dataset"
                 if record.script_name is None:
                     record.script_name = self.script_name
                 if record.record_info is None:
@@ -178,9 +177,6 @@ class Script(APIBase):
             experiment_name: str = None,
             season_name: str = None,
             site_name: str = None,
-            plot_number: int = None,
-            plot_row_number: int = None,
-            plot_column_number: int = None,
             record_info: dict = None
     ) -> List[ScriptRecord]:
         try:
@@ -193,9 +189,6 @@ class Script(APIBase):
                 experiment_name=experiment_name,
                 season_name=season_name,
                 site_name=site_name,
-                plot_number=plot_number,
-                plot_row_number=plot_row_number,
-                plot_column_number=plot_column_number,
                 record_info=record_info
             )
             return records

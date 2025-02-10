@@ -7,6 +7,7 @@ from gemini.api.base import APIBase, FileHandlerMixin
 from gemini.db.models.models import ModelModel
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.model_records import ModelRecordModel
+from gemini.db.models.views.model_records_immv import ModelRecordsIMMVModel
 
 from datetime import date, datetime
 
@@ -137,7 +138,7 @@ class ModelRecord(APIBase, FileHandlerMixin):
     @classmethod
     def search(cls, **kwargs) -> Generator['ModelRecord', None, None]:
         try:
-            records = ModelRecordModel.stream(**kwargs)
+            records = ModelRecordsIMMVModel.stream(**kwargs)
             for record in records:
                 record = cls.model_construct(
                     _fields_set=cls.model_fields_set,

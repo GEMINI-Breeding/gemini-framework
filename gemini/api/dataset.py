@@ -172,9 +172,6 @@ class Dataset(APIBase):
             experiment_name: str = None,
             season_name: str = None,
             site_name: str = None,
-            plot_number: int = None,
-            plot_row_number: int = None,
-            plot_column_number: int = None,
             record_info: dict = None
     ) -> List[DatasetRecord]:
         try:
@@ -188,9 +185,6 @@ class Dataset(APIBase):
                 experiment_name=experiment_name,
                 season_name=season_name,
                 site_name=site_name,
-                plot_number=plot_number,
-                plot_row_number=plot_row_number,
-                plot_column_number=plot_column_number,
                 record_info=record_info
             )
             return records
