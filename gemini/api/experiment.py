@@ -29,6 +29,19 @@ class Experiment(APIBase):
     experiment_start_date: Optional[date] = None
     experiment_end_date: Optional[date] = None
 
+    seasons : Optional[List[Season]] = None
+    sites : Optional[List[Site]] = None
+    sensors : Optional[List[Sensor]] = None
+    cultivars : Optional[List[Cultivar]] = None
+    datasets : Optional[List[Dataset]] = None
+    traits : Optional[List[Trait]] = None
+    models : Optional[List[Model]] = None
+    procedures : Optional[List[Procedure]] = None
+    scripts : Optional[List[Script]] = None
+    platforms : Optional[List[SensorPlatform]] = None
+
+    
+
 
     @classmethod
     def create(
@@ -133,6 +146,26 @@ class Experiment(APIBase):
         except Exception as e:
             raise e
 
+    def create_season(
+        self,
+        season_name: str,
+        season_info: dict = {},
+        season_start_date: date = date.today(),
+        season_end_date: date = date.today()
+    ) -> Season:
+        try:
+            season = Season.create(
+                season_name=season_name,
+                season_info=season_info,
+                season_start_date=season_start_date,
+                season_end_date=season_end_date,
+                experiment_name=self.experiment_name
+            )
+            self.refresh()
+            return season
+        except Exception as e:
+            raise e
+
     def get_sites(self) -> List[Site]:
         try:
             sites = self.sites
@@ -203,7 +236,7 @@ class Experiment(APIBase):
 
     def get_platforms(self) -> List[SensorPlatform]:
         try:
-            sensor_platforms = self.sensor_platforms
+            sensor_platforms = self.platforms
             sensor_platforms = [SensorPlatform.model_validate(sensor_platform) for sensor_platform in sensor_platforms]
             return sensor_platforms
         except Exception as e:

@@ -27,4 +27,4 @@ class DataTypeModel(BaseModel):
         Index('idx_data_types_info', 'data_type_info', postgresql_using='GIN')
     )
 
-    formats = relationship('DataFormatModel', secondary='gemini.data_type_formats', lazy="subquery", viewonly=True)
+    formats = relationship('DataFormatModel', secondary='gemini.data_type_formats', lazy='subquery', viewonly=True)

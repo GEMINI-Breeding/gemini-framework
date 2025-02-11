@@ -4,11 +4,11 @@ from uuid import UUID
 from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
-# from gemini.api.plot import Plot
 from gemini.api.experiment import Experiment
 from gemini.api.site import Site
 from gemini.api.season import Season
 from gemini.api.cultivar import Cultivar
+from gemini.api.plant import Plant
 
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.sites import SiteModel
@@ -38,6 +38,7 @@ class Plot(APIBase):
     site: Site = None
 
     cultivars: List[Cultivar] = []
+    plants: List[Plant] = []
 
 
     @classmethod
@@ -47,11 +48,11 @@ class Plot(APIBase):
         plot_row_number: int,
         plot_column_number: int,
         plot_info: dict = {},
-        experiment_name: str = "Default",
-        season_name: str = "Default",
-        site_name: str = "Default",
-        cultivar_accession: str = "Default",
-        cultivar_population: str = "Default",
+        experiment_name: str = "Experiment A",
+        season_name: str = "Season 1",
+        site_name: str = "Site A",
+        cultivar_accession: str = "Population A",
+        cultivar_population: str = "Accession A1"
     ) -> "Plot":
         try:
             experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
@@ -85,13 +86,13 @@ class Plot(APIBase):
     @classmethod
     def get(
         cls,
-        plot_number: int,
-        plot_row_number: int,
-        plot_column_number: int,
-        experiment_name: str = "Default",
-        season_name: str = "Default",
-        site_name: str = "Default",
-    ) -> List["Plot"]:
+        plot_number: int = None,
+        plot_row_number: int = None,
+        plot_column_number: int = None,
+        experiment_name: str = None,
+        season_name: str = None,
+        site_name: str = None,
+    ) -> "Plot":
         try:
             plots = PlotViewModel.get_by_parameters(
                 plot_number=plot_number,
@@ -101,8 +102,8 @@ class Plot(APIBase):
                 season_name=season_name,
                 site_name=site_name
             )
-            plots = [cls.model_validate(plot) for plot in plots]
-            return plots
+            plot = cls.model_validate(plot)
+            return plot
         except Exception as e:
             raise e
         
@@ -128,9 +129,23 @@ class Plot(APIBase):
         
 
     @classmethod
-    def search(cls, **search_parameters) -> List["Plot"]:
+    def search(cls,
+        plot_number: int = None,
+        plot_row_number: int = None,
+        plot_column_number: int = None,
+        experiment_name: str = None,
+        season_name: str = None,
+        site_name: str = None,
+    ) -> List["Plot"]:
         try:
-            plots = PlotModel.search(**search_parameters)
+            plots = PlotViewModel.search(
+                plot_number=plot_number,
+                plot_row_number=plot_row_number,
+                plot_column_number=plot_column_number,
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name
+            )
             plots = [cls.model_validate(plot) for plot in plots]
             return plots if plots else None
         except Exception as e:
@@ -179,10 +194,24 @@ class Plot(APIBase):
         except Exception as e:
             raise e
         
+    def get_plants(self) -> List["Plant"]:
+        try:
+            plants = [Plant.model_validate(plant) for plant in self.plants]
+            return plants
+        except Exception as e:
+            raise e
+        
     def get_experiment(self) -> "Experiment":
         try:
             experiment = Experiment.model_validate(self.experiment)
             return experiment
+        except Exception as e:
+            raise e
+        
+    def get_season(self) -> "Season":
+        try:
+            season = Season.model_validate(self.season)
+            return season
         except Exception as e:
             raise e
         

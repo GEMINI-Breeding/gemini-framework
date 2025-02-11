@@ -57,16 +57,15 @@ SELECT
     p.id AS plant_id,
     p.plot_id AS plot_id,
     p.plant_number AS plant_number,
-    p.plant_info AS plant_info
+    p.plant_info AS plant_info,
     p.cultivar_id AS cultivar_id,
     c.cultivar_accession AS cultivar_accession,
     c.cultivar_population AS cultivar_population,
-    pl.id AS plot_id,
     pl.plot_number AS plot_number,
     pl.plot_row_number AS plot_row_number,
     pl.plot_column_number AS plot_column_number,
     pl.plot_info AS plot_info,
-    pl.plot_geometry_info AS plot_geometry_info
+    pl.plot_geometry_info AS plot_geometry_info,
     pl.experiment_id AS experiment_id,
     e.experiment_name AS experiment_name,
     s.id AS season_id,

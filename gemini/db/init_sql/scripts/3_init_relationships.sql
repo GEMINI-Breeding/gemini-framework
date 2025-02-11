@@ -12,8 +12,9 @@ CREATE TABLE IF NOT EXISTS gemini.data_type_formats (
     info JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (data_type_id, data_format_id)
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS data_type_format_index ON gemini.data_type_formats(data_type_id, data_format_id);
 
 -------------------------------------------------------------------------------
 -- Experiment Sites Table
@@ -24,8 +25,9 @@ CREATE TABLE IF NOT EXISTS gemini.experiment_sites (
     info JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (experiment_id, site_id)
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS experiment_site_index ON gemini.experiment_sites(experiment_id, site_id);
 
 -------------------------------------------------------------------------------
 -- Experiment Sensors Table
@@ -221,3 +223,27 @@ CREATE TABLE IF NOT EXISTS gemini.procedure_datasets (
     PRIMARY KEY (procedure_id, dataset_id)
 );
 
+-- Create Datatype Formats associations
+INSERT INTO gemini.data_type_formats (data_type_id, data_format_id)
+VALUES
+    (0, 0), -- Default
+    (1, 1), -- Text
+    (1, 2), -- JSON
+    (1, 3), -- CSV
+    (1, 4), -- TSV
+    (1, 5), -- XML
+    (2, 6), -- HTML
+    (3, 7), -- PDF
+    (4, 8), -- JPEG
+    (4, 9), -- PNG
+    (4, 10), -- GIF
+    (4, 11), -- BMP
+    (4, 12), -- TIFF
+    (5, 13), -- WAV
+    (5, 14), -- MP3
+    (6, 15), -- MPEG
+    (6, 16), -- AVI
+    (6, 17), -- MP4
+    (6, 18), -- OGG
+    (6, 19), -- WEBM
+    (8, 20); -- Other

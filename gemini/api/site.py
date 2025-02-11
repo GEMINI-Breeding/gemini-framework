@@ -6,6 +6,7 @@ from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.db.models.sites import SiteModel
 from gemini.db.models.experiments import ExperimentModel
+from gemini.db.models.associations import ExperimentSiteModel
 from gemini.db.models.views.experiment_views import ExperimentSitesViewModel
 
 class Site(APIBase):
@@ -26,7 +27,7 @@ class Site(APIBase):
         site_state: str,
         site_country: str,
         site_info: dict = {},
-        experiment_name: str = "Default",
+        experiment_name: str = None
     ) -> "Site":
         try:
             db_instance = SiteModel.get_or_create(
@@ -36,10 +37,13 @@ class Site(APIBase):
                 site_country=site_country,
                 site_info=site_info,
             )
+
+            if experiment_name:
+                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+                if db_experiment:
+                    ExperimentSiteModel.get_or_create(experiment_id=db_experiment.id, site_id=db_instance.id)
+
             site = cls.model_validate(db_instance)
-            experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-            if experiment:
-                experiment.sites.append(site)
             return site
         except Exception as e:
             raise e

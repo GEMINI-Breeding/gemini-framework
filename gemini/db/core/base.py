@@ -4,7 +4,7 @@ import pprint
 from sqlalchemy import select, insert, delete, update
 from sqlalchemy import TIMESTAMP, JSON, DATE, String
 from sqlalchemy import MetaData, text
-from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy.schema import UniqueConstraint, PrimaryKeyConstraint
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy_mixins.serialize import SerializeMixin
 from sqlalchemy.dialects.postgresql import insert as pg_insert, JSONB
@@ -41,6 +41,8 @@ class BaseModel(DeclarativeBase, SerializeMixin):
             if isinstance(constraint, UniqueConstraint):
                 for column in constraint.columns:
                     unique_fields.append(column.name)
+
+
         return unique_fields
     
     @classmethod
@@ -122,21 +124,6 @@ class BaseModel(DeclarativeBase, SerializeMixin):
             session.add(instance)
         return instance
 
-    # @classmethod
-    # def update_or_get(cls, instance, **kwargs):
-    #     """
-    #     Update an existing instance or create a new one.
-    #     """
-    #     try:
-    #         unique_fields = cls.unique_fields()
-    #         kwargs = cls.validate_fields(**kwargs)
-    #         unique_kwargs = {key: value for key, value in kwargs.items() if key in unique_fields}
-    #         if unique_kwargs == {}:
-    #             return None
-    #         instance = cls.update(instance, **kwargs)
-    #         return instance
-    #     except Exception as e:
-    #         return None
 
 
     @classmethod
@@ -275,6 +262,7 @@ class BaseModel(DeclarativeBase, SerializeMixin):
             for partition in session.execute(query).scalars().partitions():
                 for instance in partition:
                     yield instance
+
 
 
 class ViewBaseModel(BaseModel):

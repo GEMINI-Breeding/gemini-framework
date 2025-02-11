@@ -378,4 +378,82 @@ CREATE INDEX IF NOT EXISTS idx_datasets_info ON gemini.datasets USING GIN (datas
 
 ALTER TABLE gemini.datasets ADD CONSTRAINT dataset_name_unique UNIQUE NULLS NOT DISTINCT (dataset_name);
 
+------------------------------------------------------------
+-- Create the initial data for the database
+------------------------------------------------------------
+
+-- Insert Data Types
+INSERT INTO gemini.data_types (id, data_type_name, data_type_info)
+VALUES
+    (0, 'Default', '{"description": "Default Data Type"}'), -- just values
+    (1, 'Text', '{"description": "Text Data Type"}'),
+    (2, 'Web', '{"description": "HTML Data Type"}'),
+    (3, 'Document', '{"description": "Represents PDF, DOCX, DOC etc"}'),
+    (4, 'Image', '{"description": "Image Data Type"}'),
+    (5, 'Audio', '{"description": "Audio Data Type"}'),
+    (6, 'Video', '{"description": "Video Data Type"}'),
+    (7, 'Binary', '{"description": "Binary Data Type"}'),
+    (8, 'Other', '{"description": "Other Data Type"}');
+
+-- Insert Data Formats
+INSERT INTO gemini.data_formats (id, data_format_name, data_format_mime_type, data_format_info)
+VALUES
+    (0, 'Default', 'application/octet-stream', '{"description": "Default Data Format"}'),
+    (1, 'TXT', 'text/plain', '{"description": "Text Data Format"}'),
+    (2, 'JSON', 'application/json', '{"description": "JSON Data Format"}'),
+    (3, 'CSV', 'text/csv', '{"description": "CSV Data Format"}'),
+    (4, 'TSV', 'text/tab-separated-values', '{"description": "TSV Data Format"}'),
+    (5, 'XML', 'application/xml', '{"description": "XML Data Format"}'),
+    (6, 'HTML', 'text/html', '{"description": "HTML Data Format"}'),
+    (7, 'PDF', 'application/pdf', '{"description": "PDF Data Format"}'),
+    (8, 'JPEG', 'image/jpeg', '{"description": "JPEG Data Format"}'),
+    (9, 'PNG', 'image/png', '{"description": "PNG Data Format"}'),
+    (10, 'GIF', 'image/gif', '{"description": "GIF Data Format"}'),
+    (11, 'BMP', 'image/bmp', '{"description": "BMP Data Format"}'),
+    (12, 'TIFF', 'image/tiff', '{"description": "TIFF Data Format"}'),
+    (13, 'WAV', 'audio/wav', '{"description": "WAV Data Format"}'),
+    (14, 'MP3', 'audio/mpeg', '{"description": "MP3 Data Format"}'),
+    (15, 'MPEG', 'video/mpeg', '{"description": "MPEG Data Format"}'),
+    (16, 'AVI', 'video/x-msvideo', '{"description": "AVI Data Format"}'),
+    (17, 'MP4', 'video/mp4', '{"description": "MP4 Data Format"}'),
+    (18, 'OGG', 'video/ogg', '{"description": "OGG Data Format"}'),
+    (19, 'WEBM', 'video/webm', '{"description": "WEBM Data Format"}'),
+    (20, 'NPY', 'application/octet-stream', '{"description": "Numpy Data Format"}');
+
+
+-- Insert Trait Levels
+INSERT INTO gemini.trait_levels (id, trait_level_name, trait_level_info)
+VALUES
+    (0, 'Default', '{"description": "Default Trait Level"}'),
+    (1, 'Plot', '{"description": "Default Plot Level"}'),
+    (2, 'Plant', '{"description": "Default Plant Level"}');
+
+
+-- Insert Predefined Sensor Types
+INSERT INTO gemini.sensor_types (id, sensor_type_name, sensor_type_info)
+VALUES
+    (0, 'Default', '{"description": "Default Sensor Type"}'),
+    (1, 'RGB', '{"description": "RGB Sensor"}'),
+    (2, 'NIR', '{"description": "NIR Sensor"}'),
+    (3, 'Thermal', '{"description": "Thermal Sensor"}'),
+    (4, 'Multispectral', '{"description": "Multispectral Sensor"}'),
+    (5, 'Weather', '{"description": "Weather Sensor"}'),
+    (6, 'GPS', '{"description": "GPS Sensor"}'),
+    (7, 'Calibration', '{"description": "Calibration Sensor"}'),
+    (8, 'Depth', '{"description": "Depth Sensor"}'),
+    (9, 'IMU', '{"description": "IMU Sensor"}'),
+    (10, 'Disparity', '{"description": "Disparity Maps Source"}');
+
+
+-- Insert Dataset Types
+INSERT INTO gemini.dataset_types (id, dataset_type_name, dataset_type_info)
+VALUES
+    (0, 'Default', '{"description": "Default Dataset Type"}'),
+    (1, 'Sensor', '{"description": "Sensor Dataset Type"}'),
+    (2, 'Trait', '{"description": "Trait Dataset Type"}'),
+    (3, 'Procedure', '{"description": "Procedure Dataset Type"}'),
+    (4, 'Script', '{"description": "Script Dataset Type"}'),
+    (5, 'Model', '{"description": "Model Dataset Type"}'),
+    (6, 'Other', '{"description": "Other Dataset Type"}');
+
 

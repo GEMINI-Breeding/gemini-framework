@@ -13,11 +13,11 @@ class Season(APIBase):
 
     id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "season_id"))
 
-    experiment_id: UUID
     season_name: str
     season_start_date: date
     season_end_date: date
     season_info: Optional[dict] = None
+    experiment_id: Optional[ID] = None
 
     @classmethod
     def create(
@@ -26,7 +26,7 @@ class Season(APIBase):
         season_start_date: date,
         season_end_date: date,
         season_info: dict = {},
-        experiment_name: str = "Default",
+        experiment_name: str = None
     ) -> "Season":
         try:
             db_instance = SeasonModel.get_or_create(
@@ -35,12 +35,13 @@ class Season(APIBase):
                 season_end_date=season_end_date,
                 season_info=season_info,
             )
+
+            if experiment_name:
+                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+                if db_experiment:
+                    SeasonModel.update(db_instance, experiment_id=db_experiment.id)
+            
             season = cls.model_validate(db_instance)
-
-            experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-            if experiment:
-                experiment.seasons.append(season)
-
             return season
         except Exception as e:
             raise e
@@ -94,8 +95,18 @@ class Season(APIBase):
     def delete(self):
         return super().delete()
     
-    def refresh(self):
-        return super().refresh()
+    def refresh(self) -> "Season":
+        try:
+            db_instance = SeasonModel.get(self.id)
+            instance = self.model_validate(db_instance)
+            for key, value in instance.model_dump().items():
+                if hasattr(self, key) and key != "id":
+                    actual_value = getattr(self, key)
+                    setattr(self, key, actual_value)
+            return self
+        except Exception as e:
+            raise e
+        
     
 
     
