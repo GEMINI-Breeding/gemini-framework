@@ -6,6 +6,7 @@ from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.api.data_format import DataFormat
 from gemini.db.models.data_types import DataTypeModel
+from gemini.db.models.associations import DataTypeFormatModel
 
 class DataType(APIBase):
 
@@ -14,7 +15,7 @@ class DataType(APIBase):
     data_type_name: str
     data_type_info: Optional[dict] = None
 
-    formats: List[DataFormat] = []
+    formats: List[DataFormat] = None
     
     @classmethod
     def create(
@@ -117,21 +118,33 @@ class DataType(APIBase):
             return self
         except Exception as e:
             raise e
-
-    # def update(self, **update_parameters) -> "DataType":
-    #     return super().update(**update_parameters)
-    
-    # def delete(self) -> bool:
-    #     return super().delete()
         
-    # def refresh(self):
-    #     return super().refresh()
-
-    # def get_formats(self) -> List["DataFormat"]:
-    #     try:
-    #         data_formats = self.formats
-    #         return data_formats
-    #     except Exception as e:
-    #         raise e
+    def get_formats(self) -> List["DataFormat"]:
+        try:
+            data_formats = self.formats
+            data_formats = [DataFormat.model_validate(data_format) for data_format in data_formats]
+            return data_formats
+        except Exception as e:
+            raise e
+        
+    def create_format(
+        self,
+        data_format_name: str,
+        data_format_mime_type: str,
+        data_format_info: dict = {}
+    ) -> "DataFormat":
+        try:
+            data_format = DataFormat.create(
+                data_format_name=data_format_name,
+                data_format_mime_type=data_format_mime_type,
+                data_format_info=data_format_info
+            )
+            DataTypeFormatModel.get_or_create(
+                data_type_id=self.id,
+                data_format_id=data_format.id
+            )
+            return data_format
+        except Exception as e:
+            raise e
 
 
