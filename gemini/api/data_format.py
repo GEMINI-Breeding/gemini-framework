@@ -56,33 +56,75 @@ class DataFormat(APIBase):
     @classmethod
     def get_all(cls) -> List["DataFormat"]:
         try:
-            instances = DataFormatModel.get_all()
+            instances = DataFormatModel.all()
             instances = [cls.model_validate(instance) for instance in instances]
             return instances
         except Exception as e:
             raise e
         
     @classmethod
-    def search(cls, **search_parameters) -> List["DataFormat"]:
+    def search(
+        cls,
+        data_format_name: str = None,
+        data_format_mime_type: str = None,
+        data_format_info: dict = None 
+    ) -> List["DataFormat"]:
         try:
-            data_formats = DataFormatModel.search(**search_parameters)
+
+            if not data_format_name and not data_format_mime_type and not data_format_info:
+                raise ValueError("At least one parameter must be provided")
+
+            data_formats = DataFormatModel.search(
+                data_format_name=data_format_name,
+                data_format_mime_type=data_format_mime_type,
+                data_format_info=data_format_info,
+            )
             data_formats = [cls.model_validate(data_format) for data_format in data_formats]
             return data_formats
         except Exception as e:
             raise e
     
-    def update(self, **update_parameters) -> "DataFormat":
-        return super().update(**update_parameters)
+    def update(
+        self,
+        data_format_mime_type: str = None,
+        data_format_info: dict = None,       
+    ) -> "DataFormat":
+        try:
+
+            if not data_format_mime_type and not data_format_info:
+                raise ValueError("At least one parameter must be provided")
+
+            current_id = self.id
+            data_format = DataFormatModel.get(current_id)
+            data_format = DataFormatModel.update(
+                data_format,
+                data_format_mime_type=data_format_mime_type,
+                data_format_info=data_format_info,
+            )
+            data_format = self.model_validate(data_format)
+            data_format.refresh()
+            return data_format
+        except Exception as e:
+            raise e
     
     def delete(self) -> bool:
         try:
             current_id = self.id
             data_format = DataFormatModel.get(current_id)
-            data_format.delete()
+            DataFormatModel.delete(data_format)
             return True
         except Exception as e:
             raise e
         
     
     def refresh(self) -> "DataFormat":
-        return super().refresh()
+        try:
+            db_instance = DataFormatModel.get(self.id)
+            instance = self.model_validate(db_instance)
+            for key, value in instance.model_dump().items():
+                if hasattr(self, key) and key != "id":
+                    actual_value = getattr(self, key)
+                    setattr(self, key, actual_value)
+            return self
+        except Exception as e:
+            raise e

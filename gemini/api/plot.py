@@ -33,12 +33,12 @@ class Plot(APIBase):
     plot_geometry_info: Optional[dict] = {}
     plot_info: Optional[dict] = {}
     
-    experiment: Experiment = None
-    season: Season = None
-    site: Site = None
+    # experiment: Experiment = None
+    # season: Season = None
+    # site: Site = None
 
-    cultivars: List[Cultivar] = []
-    plants: List[Plant] = []
+    # cultivars: List[Cultivar] = []
+    # plants: List[Plant] = []
 
 
     @classmethod
@@ -187,40 +187,40 @@ class Plot(APIBase):
             return False
         
 
-    def get_cultivars(self) -> List["Cultivar"]:
-        try:
-            cultivars = [Cultivar.model_validate(cultivar) for cultivar in self.cultivars]
-            return cultivars
-        except Exception as e:
-            raise e
+    # def get_cultivars(self) -> List["Cultivar"]:
+    #     try:
+    #         cultivars = [Cultivar.model_validate(cultivar) for cultivar in self.cultivars]
+    #         return cultivars
+    #     except Exception as e:
+    #         raise e
         
-    def get_plants(self) -> List["Plant"]:
-        try:
-            plants = [Plant.model_validate(plant) for plant in self.plants]
-            return plants
-        except Exception as e:
-            raise e
+    # def get_plants(self) -> List["Plant"]:
+    #     try:
+    #         plants = [Plant.model_validate(plant) for plant in self.plants]
+    #         return plants
+    #     except Exception as e:
+    #         raise e
         
-    def get_experiment(self) -> "Experiment":
-        try:
-            experiment = Experiment.model_validate(self.experiment)
-            return experiment
-        except Exception as e:
-            raise e
+    # def get_experiment(self) -> "Experiment":
+    #     try:
+    #         experiment = Experiment.model_validate(self.experiment)
+    #         return experiment
+    #     except Exception as e:
+    #         raise e
         
-    def get_season(self) -> "Season":
-        try:
-            season = Season.model_validate(self.season)
-            return season
-        except Exception as e:
-            raise e
+    # def get_season(self) -> "Season":
+    #     try:
+    #         season = Season.model_validate(self.season)
+    #         return season
+    #     except Exception as e:
+    #         raise e
         
-    def get_site(self) -> "Site":
-        try:
-            site = Site.model_validate(self.site)
-            return site
-        except Exception as e:
-            raise e
+    # def get_site(self) -> "Site":
+    #     try:
+    #         site = Site.model_validate(self.site)
+    #         return site
+    #     except Exception as e:
+    #         raise e
                 
 
 

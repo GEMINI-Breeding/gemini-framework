@@ -12,9 +12,11 @@ CREATE TABLE IF NOT EXISTS gemini.data_type_formats (
     info JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (data_type_id, data_format_id)
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS data_type_format_index ON gemini.data_type_formats(data_type_id, data_format_id);
+ALTER TABLE gemini.data_type_formats ADD CONSTRAINT data_type_format_unique UNIQUE (data_type_id, data_format_id);
+
 
 -------------------------------------------------------------------------------
 -- Experiment Sites Table
@@ -25,9 +27,11 @@ CREATE TABLE IF NOT EXISTS gemini.experiment_sites (
     info JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (experiment_id, site_id)
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS experiment_site_index ON gemini.experiment_sites(experiment_id, site_id);
+ALTER TABLE gemini.experiment_sites ADD CONSTRAINT experiment_site_unique UNIQUE (experiment_id, site_id);
+
 
 -------------------------------------------------------------------------------
 -- Experiment Sensors Table
@@ -41,6 +45,8 @@ CREATE TABLE IF NOT EXISTS gemini.experiment_sensors (
     PRIMARY KEY (experiment_id, sensor_id)
 );
 
+ALTER TABLE gemini.experiment_sensors ADD CONSTRAINT experiment_sensor_unique UNIQUE (experiment_id, sensor_id);
+
 -------------------------------------------------------------------------------
 -- Experiment Sensor Platforms Table
 
@@ -53,6 +59,7 @@ CREATE TABLE IF NOT EXISTS gemini.experiment_sensor_platforms (
     PRIMARY KEY (experiment_id, sensor_platform_id)
 );
 
+ALTER TABLE gemini.experiment_sensor_platforms ADD CONSTRAINT experiment_sensor_platform_unique UNIQUE (experiment_id, sensor_platform_id);
 
 -------------------------------------------------------------------------------
 -- Experiment Traits Table
@@ -66,6 +73,8 @@ CREATE TABLE IF NOT EXISTS gemini.experiment_traits (
     PRIMARY KEY (experiment_id, trait_id)
 );
 
+ALTER TABLE gemini.experiment_traits ADD CONSTRAINT experiment_trait_unique UNIQUE (experiment_id, trait_id);
+
 -------------------------------------------------------------------------------
 -- Experiment Cultivars Table
 
@@ -78,6 +87,7 @@ CREATE TABLE IF NOT EXISTS gemini.experiment_cultivars (
     PRIMARY KEY (experiment_id, cultivar_id)
 );
 
+ALTER TABLE gemini.experiment_cultivars ADD CONSTRAINT experiment_cultivar_unique UNIQUE (experiment_id, cultivar_id);
 
 -------------------------------------------------------------------------------
 -- Experiment Datasets Table
@@ -91,6 +101,8 @@ CREATE TABLE IF NOT EXISTS gemini.experiment_datasets (
     PRIMARY KEY (experiment_id, dataset_id)
 );
 
+ALTER TABLE gemini.experiment_datasets ADD CONSTRAINT experiment_dataset_unique UNIQUE (experiment_id, dataset_id);
+
 -------------------------------------------------------------------------------
 -- Experiment Models Table
 
@@ -102,6 +114,8 @@ CREATE TABLE IF NOT EXISTS gemini.experiment_models (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (experiment_id, model_id)
 );
+
+ALTER TABLE gemini.experiment_models ADD CONSTRAINT experiment_model_unique UNIQUE (experiment_id, model_id);
 
 -------------------------------------------------------------------------------
 -- Experiment Procedures Table
@@ -115,6 +129,8 @@ CREATE TABLE IF NOT EXISTS gemini.experiment_procedures (
     PRIMARY KEY (experiment_id, procedure_id)
 );
 
+ALTER TABLE gemini.experiment_procedures ADD CONSTRAINT experiment_procedure_unique UNIQUE (experiment_id, procedure_id);
+
 -------------------------------------------------------------------------------
 -- Experiment Scripts Table
 
@@ -126,6 +142,8 @@ CREATE TABLE IF NOT EXISTS gemini.experiment_scripts (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (experiment_id, script_id)
 );
+
+ALTER TABLE gemini.experiment_scripts ADD CONSTRAINT experiment_script_unique UNIQUE (experiment_id, script_id);
 
 -------------------------------------------------------------------------------
 -- Plot Cultivars Table
@@ -139,6 +157,8 @@ CREATE TABLE IF NOT EXISTS gemini.plot_cultivars (
     PRIMARY KEY (plot_id, cultivar_id)
 );
 
+ALTER TABLE gemini.plot_cultivars ADD CONSTRAINT plot_cultivar_unique UNIQUE (plot_id, cultivar_id);
+
 -------------------------------------------------------------------------------
 -- Trait Sensors Table
 
@@ -150,6 +170,8 @@ CREATE TABLE IF NOT EXISTS gemini.trait_sensors (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     PRIMARY KEY (trait_id, sensor_id)
 );
+
+ALTER TABLE gemini.trait_sensors ADD CONSTRAINT trait_sensor_unique UNIQUE (trait_id, sensor_id);
 
 -------------------------------------------------------------------------------
 -- Sensor Platforms Sensors Table
@@ -163,6 +185,7 @@ CREATE TABLE IF NOT EXISTS gemini.sensor_platform_sensors (
     PRIMARY KEY (sensor_platform_id, sensor_id)
 );
 
+ALTER TABLE gemini.sensor_platform_sensors ADD CONSTRAINT sensor_platform_sensor_unique UNIQUE (sensor_platform_id, sensor_id);
 -------------------------------------------------------------------------------
 -- Sensor Datasets Table
 
@@ -174,6 +197,8 @@ CREATE TABLE IF NOT EXISTS gemini.sensor_datasets (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     PRIMARY KEY (sensor_id, dataset_id)
 );
+
+ALTER TABLE gemini.sensor_datasets ADD CONSTRAINT sensor_dataset_unique UNIQUE (sensor_id, dataset_id);
 
 -------------------------------------------------------------------------------
 -- Trait Datasets Table
@@ -187,6 +212,7 @@ CREATE TABLE IF NOT EXISTS gemini.trait_datasets (
     PRIMARY KEY (trait_id, dataset_id)
 );
 
+ALTER TABLE gemini.trait_datasets ADD CONSTRAINT trait_dataset_unique UNIQUE (trait_id, dataset_id);
 -------------------------------------------------------------------------------
 -- Model Datasets Table
 
@@ -198,6 +224,8 @@ CREATE TABLE IF NOT EXISTS gemini.model_datasets (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     PRIMARY KEY (model_id, dataset_id)
 );
+
+ALTER TABLE gemini.model_datasets ADD CONSTRAINT model_dataset_unique UNIQUE (model_id, dataset_id);
 
 -------------------------------------------------------------------------------
 -- Script Datasets Table
@@ -211,6 +239,9 @@ CREATE TABLE IF NOT EXISTS gemini.script_datasets (
     PRIMARY KEY (script_id, dataset_id)
 );
 
+ALTER TABLE gemini.script_datasets ADD CONSTRAINT script_dataset_unique UNIQUE (script_id, dataset_id);
+
+
 -------------------------------------------------------------------------------
 -- Procedure Datasets Table
 
@@ -222,6 +253,8 @@ CREATE TABLE IF NOT EXISTS gemini.procedure_datasets (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     PRIMARY KEY (procedure_id, dataset_id)
 );
+
+ALTER TABLE gemini.procedure_datasets ADD CONSTRAINT procedure_dataset_unique UNIQUE (procedure_id, dataset_id);
 
 -- Create Datatype Formats associations
 INSERT INTO gemini.data_type_formats (data_type_id, data_format_id)

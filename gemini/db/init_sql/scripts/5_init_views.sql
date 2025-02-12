@@ -138,8 +138,25 @@ FROM
     JOIN gemini.traits t ON et.trait_id = t.id;
 
 -------------------------------------------------------------------------------
+-- Materialized View to show Experiment Sensor Platforms
+CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.experiment_sensor_platforms_view
+USING columnar
+AS
+SELECT
+    e.id AS experiment_id,
+    e.experiment_name AS experiment_name,
+    sp.id AS sensor_platform_id,
+    sp.sensor_platform_name AS sensor_platform_name,
+    sp.sensor_platform_info AS sensor_platform_info
+FROM
+    gemini.experiments e
+    JOIN gemini.experiment_sensor_platforms esp ON e.id = esp.experiment_id
+    JOIN gemini.sensor_platforms sp ON esp.sensor_platform_id = sp.id;
+
+
+-------------------------------------------------------------------------------
 -- Materialized View to show Experiment Sensors
-CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.experiment_sensors_view
+CREATE MATERIALIZED VIEW gemini.experiment_sensors_view
 USING columnar
 AS
 SELECT
@@ -150,11 +167,16 @@ SELECT
     s.sensor_type_id AS sensor_type_id,
     s.sensor_data_type_id AS sensor_data_type_id,
     s.sensor_data_format_id AS sensor_data_format_id,
-    s.sensor_info AS sensor_info
+    s.sensor_info AS sensor_info,
+    sp.id AS sensor_platform_id,
+    sp.sensor_platform_name AS sensor_platform_name,
+    sp.sensor_platform_info AS sensor_platform_info
 FROM
     gemini.experiments e
     JOIN gemini.experiment_sensors es ON e.id = es.experiment_id
-    JOIN gemini.sensors s ON es.sensor_id = s.id;
+    JOIN gemini.sensors s ON es.sensor_id = s.id
+    LEFT JOIN gemini.sensor_platform_sensors sps ON s.id = sps.sensor_id
+    LEFT JOIN gemini.sensor_platforms sp ON sps.sensor_platform_id = sp.id;
 
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Cultivars

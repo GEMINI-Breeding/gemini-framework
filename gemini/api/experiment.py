@@ -5,15 +5,16 @@ from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.api.site import Site
-from gemini.api.sensor import Sensor
+from gemini.api.sensor import Sensor, GEMINISensorType, GEMINIDataType, GEMINIDataFormat
 from gemini.api.season import Season
 from gemini.api.cultivar import Cultivar
 from gemini.api.dataset import Dataset
-from gemini.api.trait import Trait
+from gemini.api.trait import Trait, GEMINITraitLevel
 from gemini.api.model import Model
 from gemini.api.procedure import Procedure
 from gemini.api.script import Script
 from gemini.api.sensor_platform import SensorPlatform
+from gemini.api.enums import GEMINIDatasetType
 
 from gemini.db.models.experiments import ExperimentModel
 
@@ -174,11 +175,58 @@ class Experiment(APIBase):
         except Exception as e:
             raise e
         
+
+    def create_site(
+        self,
+        site_name: str,
+        site_city: str,
+        site_state: str,
+        site_country: str,
+        site_info: dict = {}
+    ) -> Site:
+        try:
+            site = Site.create(
+                site_name=site_name,
+                site_city=site_city,
+                site_state=site_state,
+                site_country=site_country,
+                site_info=site_info,
+                experiment_name=self.experiment_name
+            )
+            self.refresh()
+            return site
+        except Exception as e:
+            raise e
+        
     def get_sensors(self) -> List[Sensor]:
         try:
             sensors = self.sensors
             sensors = [Sensor.model_validate(sensor) for sensor in sensors]
             return sensors
+        except Exception as e:
+            raise e
+        
+    def create_sensor(
+        self,
+        sensor_name: str,
+        sensor_type: GEMINISensorType = GEMINISensorType.Default,
+        sensor_data_type: GEMINIDataType = GEMINIDataType.Default,
+        sensor_data_format: GEMINIDataFormat = GEMINIDataFormat.Default,
+        sensor_info: dict = {},
+        sensor_platform_name: str = None
+    ) -> Sensor:
+        try:
+            sensor = Sensor.create(
+                sensor_name=sensor_name,
+                sensor_type=sensor_type,
+                sensor_data_type=sensor_data_type,
+                sensor_data_format=sensor_data_format,
+                sensor_info=sensor_info,
+                experiment_name=self.experiment_name,
+                sensor_platform_name=sensor_platform_name
+            )
+            self.refresh()
+            return sensor
         except Exception as e:
             raise e
         
@@ -190,6 +238,24 @@ class Experiment(APIBase):
         except Exception as e:
             raise e
         
+    def create_cultivar(
+        self,
+        cultivar_population: str,
+        cultivar_accession: str,
+        cultivar_info: dict = {}
+    ) -> Cultivar:
+        try:
+            cultivar = Cultivar.create(
+                cultivar_population=cultivar_population,
+                cultivar_accession=cultivar_accession,
+                cultivar_info=cultivar_info,
+                experiment_name=self.experiment_name
+            )
+            self.refresh()
+            return cultivar
+        except Exception as e:
+            raise e
+        
     def get_datasets(self) -> List[Dataset]:
         try:
             datasets = self.datasets
@@ -198,11 +264,54 @@ class Experiment(APIBase):
         except Exception as e:
             raise e
         
+
+    def create_dataset(
+        self,
+        dataset_name: str,
+        dataset_info: dict = {},
+        dataset_type: GEMINIDatasetType = GEMINIDatasetType.Default,
+        collection_date: date = date.today()
+    ) -> Dataset:
+        try:
+            dataset = Dataset.create(
+                collection_date=collection_date,
+                dataset_name=dataset_name,
+                dataset_info=dataset_info,
+                dataset_type=dataset_type,
+                experiment_name=self.experiment_name
+            )
+            self.refresh()
+            return dataset
+        except Exception as e:
+            raise e
+        
     def get_traits(self) -> List[Trait]:
         try:
             traits = self.traits
             traits = [Trait.model_validate(trait) for trait in traits]
             return traits
+        except Exception as e:
+            raise e
+        
+    def create_trait(
+        self,
+        trait_name: str,
+        trait_units: str = None,
+        trait_level: GEMINITraitLevel = GEMINITraitLevel.Default,
+        trait_info: dict = {},
+        trait_metrics: dict = {}
+    ) -> Trait:
+        try:
+            trait = Trait.create(
+                trait_name=trait_name,
+                trait_units=trait_units,
+                trait_level=trait_level,
+                trait_info=trait_info,
+                trait_metrics=trait_metrics,
+                experiment_name=self.experiment_name
+            )
+            self.refresh()
+            return trait
         except Exception as e:
             raise e
         
@@ -215,12 +324,44 @@ class Experiment(APIBase):
         except Exception as e:
             raise e
         
+    def create_model(
+        self,
+        model_name: str,
+        model_info: dict = {}
+    ) -> Model:
+        try:
+            model = Model.create(
+                model_name=model_name,
+                model_info=model_info,
+                experiment_name=self.experiment_name
+            )
+            self.refresh()
+            return model
+        except Exception as e:
+            raise e
+        
 
     def get_procedures(self) -> List[Procedure]:
         try:
             procedures = self.procedures
             procedures = [Procedure.model_validate(procedure) for procedure in procedures]
             return procedures
+        except Exception as e:
+            raise e
+        
+    def create_procedure(
+        self,
+        procedure_name: str,
+        procedure_info: dict = {}
+    ) -> Procedure:
+        try:
+            procedure = Procedure.create(
+                procedure_name=procedure_name,
+                procedure_info=procedure_info,
+                experiment_name=self.experiment_name
+            )
+            self.refresh()
+            return procedure
         except Exception as e:
             raise e
         
@@ -233,11 +374,47 @@ class Experiment(APIBase):
         except Exception as e:
             raise e
         
+    def create_script(
+        self,
+        script_name: str,
+        script_url: str = None,
+        script_extension: str = None,
+        script_info: dict = {}
+    ) -> Script:
+        try:
+            script = Script.create(
+                script_name=script_name,
+                script_info=script_info,
+                script_url=script_url,
+                script_extension=script_extension,
+                experiment_name=self.experiment_name
+            )
+            self.refresh()
+            return script
+        except Exception as e:
+            raise e
+        
 
     def get_platforms(self) -> List[SensorPlatform]:
         try:
             sensor_platforms = self.platforms
             sensor_platforms = [SensorPlatform.model_validate(sensor_platform) for sensor_platform in sensor_platforms]
             return sensor_platforms
+        except Exception as e:
+            raise e
+        
+    def create_platform(
+        self,
+        platform_name: str,
+        platform_info: dict = {}
+    ) -> SensorPlatform:
+        try:
+            sensor_platform = SensorPlatform.create(
+                sensor_platform_name=platform_name,
+                sensor_platform_info=platform_info,
+                experiment_name=self.experiment_name
+            )
+            self.refresh()
+            return sensor_platform
         except Exception as e:
             raise e

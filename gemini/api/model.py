@@ -8,6 +8,7 @@ from gemini.api.dataset import Dataset
 from gemini.api.model_record import ModelRecord
 from gemini.db.models.models import ModelModel
 from gemini.db.models.experiments import ExperimentModel
+from gemini.db.models.associations import ExperimentModelModel
 from gemini.db.models.views.experiment_views import ExperimentModelsViewModel
 
 from datetime import date, datetime
@@ -20,16 +21,13 @@ class Model(APIBase):
     model_url: Optional[str] = None
     model_info: Optional[dict] = None
 
-    datasets: List[Dataset]
-
-
     @classmethod
     def create(
         cls,
         model_name: str,
-        model_url: str,
+        model_url: str = None,
         model_info: dict = {},
-        experiment_name: str = "Default",
+        experiment_name: str = None,
     ):
         try:
             db_instance = ModelModel.get_or_create(
@@ -37,19 +35,23 @@ class Model(APIBase):
                 model_url=model_url,
                 model_info=model_info,
             )
+
+            if experiment_name:
+                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+                if db_experiment:
+                    ExperimentModelModel.get_or_create(experiment_id=db_experiment.id, model_id=db_instance.id)
+
             model = cls.model_validate(db_instance)
-            experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-            if experiment:
-                experiment.models.append(model)
             return model
         except Exception as e:
             raise e
         
     @classmethod
-    def get(cls, model_name: str) -> "Model":
+    def get(cls, model_name: str, experiment_name: str = None) -> "Model":
         try:
             db_instance = ModelModel.get_by_parameters(
                 model_name=model_name,
+                experiment_name=experiment_name
             )
             model = cls.model_validate(db_instance)
             return model
@@ -75,9 +77,20 @@ class Model(APIBase):
             raise e
         
     @classmethod
-    def search(cls, **search_parameters) -> List["Model"]:
+    def search(
+        cls, 
+        experiment_name: str = None,
+        model_name: str = None,
+        model_info: dict = None,
+        model_url: str = None
+    ) -> List["Model"]:
         try:
-            models = ExperimentModelsViewModel.search(**search_parameters)
+            models = ExperimentModelsViewModel.search(
+                experiment_name=experiment_name,
+                model_name=model_name,
+                model_info=model_info,
+                model_url=model_url
+            )
             return [cls.model_validate(model) for model in models]
         except Exception as e:
             raise e

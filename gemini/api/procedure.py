@@ -7,6 +7,7 @@ from gemini.api.base import APIBase
 from gemini.api.procedure_record import ProcedureRecord
 from gemini.db.models.procedures import ProcedureModel
 from gemini.db.models.experiments import ExperimentModel
+from gemini.db.models.associations import ExperimentProcedureModel
 from gemini.db.models.views.experiment_views import ExperimentProceduresViewModel
 
 from datetime import date, datetime
@@ -23,26 +24,31 @@ class Procedure(APIBase):
         cls,
         procedure_name: str,
         procedure_info: dict = {},
-        experiment_name: str = "Default",
+        experiment_name: str = None,
     ) -> "Procedure":
         try:
             db_instance = ProcedureModel.get_or_create(
                 procedure_name=procedure_name,
                 procedure_info=procedure_info,
             )
+
+            if experiment_name:
+                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+                if db_experiment:
+                    ExperimentProcedureModel.get_or_create(experiment_id=db_experiment.id, procedure_id=db_instance.id)
+
             procedure = cls.model_validate(db_instance)
-            experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-            if experiment:
-                experiment.procedures.append(procedure)
             return procedure
+
         except Exception as e:
             raise e
     
     @classmethod
-    def get(cls, procedure_name: str) -> "Procedure":
+    def get(cls, procedure_name: str, experiment_name: str = None) -> "Procedure":
         try:
             db_instance = ProcedureModel.get_by_parameters(
                 procedure_name=procedure_name,
+                experiment_name=experiment_name
             )
             procedure = cls.model_validate(db_instance)
             return procedure
@@ -69,9 +75,18 @@ class Procedure(APIBase):
         
 
     @classmethod
-    def search(cls, **search_parameters) -> List["Procedure"]:
+    def search(
+        cls, 
+        experiment_name: str = None,
+        procedure_name: str = None,
+        procedure_info: dict = None
+    ) -> List["Procedure"]:
         try:
-            procedures = ExperimentProceduresViewModel.search(**search_parameters)
+            procedures = ExperimentProceduresViewModel.search(
+                experiment_name=experiment_name,
+                procedure_name=procedure_name,
+                procedure_info=procedure_info
+            )
             procedures = [cls.model_validate(procedure) for procedure in procedures]
             return procedures if procedures else None
         except Exception as e:

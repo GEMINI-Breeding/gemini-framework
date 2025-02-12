@@ -81,9 +81,22 @@ class Season(APIBase):
             raise e
         
     @classmethod
-    def search(cls, **search_parameters) -> List["Season"]:
+    def search(
+        cls, 
+        experiment_name: str = None,
+        season_name: str = None,
+        season_start_date: datetime = None,
+        season_end_date: datetime = None,
+        season_info: dict = None
+    ) -> List["Season"]:
         try:
-            seasons = ExperimentSeasonsViewModel.search(**search_parameters)
+            seasons = ExperimentSeasonsViewModel.search(
+                experiment_name=experiment_name,
+                season_name=season_name,
+                season_start_date=season_start_date,
+                season_end_date=season_end_date,
+                season_info=season_info
+            )
             seasons = [cls.model_validate(season) for season in seasons]
             return seasons if seasons else None
         except Exception as e:

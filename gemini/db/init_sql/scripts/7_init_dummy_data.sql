@@ -324,38 +324,46 @@ VALUES
 -- For each sensor create 2 datasets of appropriate dataset type
 DO $$
 DECLARE
-    s_name TEXT;
-    dataset_name TEXT;
-    dataset_info JSONB;
+    sen_name TEXT;
+    dat_name TEXT;
+    dat_info JSONB;
 BEGIN
-    FOR s_name IN SELECT sensor_name FROM gemini.sensors LOOP
-        dataset_info := jsonb_build_object('description', 'Test dataset A for sensor ' || s_name);
-        dataset_name := 'Dataset A for Sensor ' || s_name;
+    FOR sen_name IN SELECT sensor_name FROM gemini.sensors LOOP
+        dat_info := jsonb_build_object('description', 'Test dataset A for sensor ' || sen_name);
+        dat_name := 'Dataset A for Sensor ' || sen_name;
         INSERT INTO gemini.datasets (dataset_name, dataset_type_id, dataset_info, created_at, updated_at)
-        VALUES (dataset_name, 1, dataset_info, NOW(), NOW());
-        dataset_info := jsonb_build_object('description', 'Test dataset B for sensor ' || s_name);
-        dataset_name := 'Dataset B for Sensor ' || s_name;
+        VALUES (dat_name, 1, dat_info, NOW(), NOW());
+        INSERT INTO gemini.sensor_datasets (sensor_id, dataset_id, info, created_at, updated_at)
+        VALUES ((SELECT id FROM gemini.sensors WHERE sensor_name = sen_name LIMIT 1), (SELECT id FROM gemini.datasets WHERE dataset_name = dat_name LIMIT 1), '{"description": "Test association"}', NOW(), NOW());
+        dat_info := jsonb_build_object('description', 'Test dataset B for sensor ' || sen_name);
+        dat_name := 'Dataset B for Sensor ' || sen_name;
         INSERT INTO gemini.datasets (dataset_name, dataset_type_id, dataset_info, created_at, updated_at)
-        VALUES (dataset_name, 1, dataset_info, NOW(), NOW());
+        VALUES (dat_name, 1, dat_info, NOW(), NOW());
+        INSERT INTO gemini.sensor_datasets (sensor_id, dataset_id, info, created_at, updated_at)
+        VALUES ((SELECT id FROM gemini.sensors WHERE sensor_name = sen_name LIMIT 1), (SELECT id FROM gemini.datasets WHERE dataset_name = dat_name LIMIT 1), '{"description": "Test association"}', NOW(), NOW());
     END LOOP;
 END $$;
 
 -- For each trait create 2 datasets of appropriate dataset type
 DO $$
 DECLARE
-    t_name TEXT;
-    dataset_name TEXT;
-    dataset_info JSONB;
+    tr_name TEXT;
+    dat_name TEXT;
+    dat_info JSONB;
 BEGIN
-    FOR t_name IN SELECT trait_name FROM gemini.traits LOOP
-        dataset_info := jsonb_build_object('description', 'Test dataset A for trait ' || t_name);
-        dataset_name := 'Dataset A for Trait ' || t_name;
+    FOR tr_name IN SELECT trait_name FROM gemini.traits LOOP
+        dat_info := jsonb_build_object('description', 'Test dataset A for trait ' || tr_name);
+        dat_name := 'Dataset A for Trait ' || tr_name;
         INSERT INTO gemini.datasets (dataset_name, dataset_type_id, dataset_info, created_at, updated_at)
-        VALUES (dataset_name, 2, dataset_info, NOW(), NOW());
-        dataset_info := jsonb_build_object('description', 'Test dataset B for trait ' || t_name);
-        dataset_name := 'Dataset B for Trait ' || t_name;
+        VALUES (dat_name, 2, dat_info, NOW(), NOW());
+        INSERT INTO gemini.trait_datasets (trait_id, dataset_id, info, created_at, updated_at)
+        VALUES ((SELECT id FROM gemini.traits WHERE trait_name = tr_name LIMIT 1), (SELECT id FROM gemini.datasets WHERE dataset_name = dat_name LIMIT 1), '{"description": "Test association"}', NOW(), NOW());
+        dat_info := jsonb_build_object('description', 'Test dataset B for trait ' || tr_name);
+        dat_name := 'Dataset B for Trait ' || tr_name;
         INSERT INTO gemini.datasets (dataset_name, dataset_type_id, dataset_info, created_at, updated_at)
-        VALUES (dataset_name, 2, dataset_info, NOW(), NOW());
+        VALUES (dat_name, 2, dat_info, NOW(), NOW());
+        INSERT INTO gemini.trait_datasets (trait_id, dataset_id, info, created_at, updated_at)
+        VALUES ((SELECT id FROM gemini.traits WHERE trait_name = tr_name LIMIT 1), (SELECT id FROM gemini.datasets WHERE dataset_name = dat_name LIMIT 1), '{"description": "Test association"}', NOW(), NOW());
     END LOOP;
 END $$;
 
@@ -363,37 +371,22 @@ END $$;
 DO $$
 DECLARE
     m_name TEXT;
-    dataset_name TEXT;
-    dataset_info JSONB;
+    dat_name TEXT;
+    dat_info JSONB;
 BEGIN
     FOR m_name IN SELECT model_name FROM gemini.models LOOP
-        dataset_info := jsonb_build_object('description', 'Test dataset A for model ' || m_name);
-        dataset_name := 'Dataset A for Model ' || m_name;
+        dat_info := jsonb_build_object('description', 'Test dataset A for model ' || m_name);
+        dat_name := 'Dataset A for Model ' || m_name;
         INSERT INTO gemini.datasets (dataset_name, dataset_type_id, dataset_info, created_at, updated_at)
-        VALUES (dataset_name, 5, dataset_info, NOW(), NOW());
-        dataset_info := jsonb_build_object('description', 'Test dataset B for model ' || m_name);
-        dataset_name := 'Dataset B for Model ' || m_name;
+        VALUES (dat_name, 5, dat_info, NOW(), NOW());
+        INSERT INTO gemini.model_datasets (model_id, dataset_id, info, created_at, updated_at)
+        VALUES ((SELECT id FROM gemini.models WHERE model_name = m_name LIMIT 1), (SELECT id FROM gemini.datasets WHERE dataset_name = dat_name LIMIT 1), '{"description": "Test association"}', NOW(), NOW());
+        dat_info := jsonb_build_object('description', 'Test dataset B for model ' || m_name);
+        dat_name := 'Dataset B for Model ' || m_name;
         INSERT INTO gemini.datasets (dataset_name, dataset_type_id, dataset_info, created_at, updated_at)
-        VALUES (dataset_name, 5, dataset_info, NOW(), NOW());
-    END LOOP;
-END $$;
-
--- For each procedure create 2 datasets of appropriate dataset type
-DO $$
-DECLARE
-    p_name TEXT;
-    dataset_name TEXT;
-    dataset_info JSONB;
-BEGIN
-    FOR p_name IN SELECT procedure_name FROM gemini.procedures LOOP
-        dataset_info := jsonb_build_object('description', 'Test dataset A for procedure ' || p_name);
-        dataset_name := 'Dataset A for Procedure ' || p_name;
-        INSERT INTO gemini.datasets (dataset_name, dataset_type_id, dataset_info, created_at, updated_at)
-        VALUES (dataset_name, 3, dataset_info, NOW(), NOW());
-        dataset_info := jsonb_build_object('description', 'Test dataset B for procedure ' || p_name);
-        dataset_name := 'Dataset B for Procedure ' || p_name;
-        INSERT INTO gemini.datasets (dataset_name, dataset_type_id, dataset_info, created_at, updated_at)
-        VALUES (dataset_name, 3, dataset_info, NOW(), NOW());
+        VALUES (dat_name, 5, dat_info, NOW(), NOW());
+        INSERT INTO gemini.model_datasets (model_id, dataset_id, info, created_at, updated_at)
+        VALUES ((SELECT id FROM gemini.models WHERE model_name = m_name LIMIT 1), (SELECT id FROM gemini.datasets WHERE dataset_name = dat_name LIMIT 1), '{"description": "Test association"}', NOW(), NOW());
     END LOOP;
 END $$;
 
@@ -401,19 +394,50 @@ END $$;
 DO $$
 DECLARE
     s_name TEXT;
-    dataset_name TEXT;
-    dataset_info JSONB;
+    dat_name TEXT;
+    dat_info JSONB;
 BEGIN
     FOR s_name IN SELECT script_name FROM gemini.scripts LOOP
-        dataset_info := jsonb_build_object('description', 'Test dataset A for script ' || s_name);
-        dataset_name := 'Dataset A for Script ' || s_name;
+        dat_info := jsonb_build_object('description', 'Test dataset A for script ' || s_name);
+        dat_name := 'Dataset A for Script ' || s_name;
         INSERT INTO gemini.datasets (dataset_name, dataset_type_id, dataset_info, created_at, updated_at)
-        VALUES (dataset_name, 4, dataset_info, NOW(), NOW());
-        dataset_info := jsonb_build_object('description', 'Test dataset B for script ' || s_name);
-        dataset_name := 'Dataset B for Script ' || s_name;
+        VALUES (dat_name, 4, dat_info, NOW(), NOW());
+        INSERT INTO gemini.script_datasets (script_id, dataset_id, info, created_at, updated_at)
+        VALUES ((SELECT id FROM gemini.scripts WHERE script_name = s_name LIMIT 1), (SELECT id FROM gemini.datasets WHERE dataset_name = dat_name LIMIT 1), '{"description": "Test association"}', NOW(), NOW());
+        dat_info := jsonb_build_object('description', 'Test dataset B for script ' || s_name);
+        dat_name := 'Dataset B for Script ' || s_name;
         INSERT INTO gemini.datasets (dataset_name, dataset_type_id, dataset_info, created_at, updated_at)
-        VALUES (dataset_name, 4, dataset_info, NOW(), NOW());
+        VALUES (dat_name, 4, dat_info, NOW(), NOW());
+        INSERT INTO gemini.script_datasets (script_id, dataset_id, info, created_at, updated_at)
+        VALUES ((SELECT id FROM gemini.scripts WHERE script_name = s_name LIMIT 1), (SELECT id FROM gemini.datasets WHERE dataset_name = dat_name LIMIT 1), '{"description": "Test association"}', NOW(), NOW());
     END LOOP;
 END $$;
 
+-- For each procedure create 2 datasets of appropriate dataset type
+DO $$
+DECLARE
+    p_name TEXT;
+    dat_name TEXT;
+    dat_info JSONB;
+BEGIN
+    FOR p_name IN SELECT procedure_name FROM gemini.procedures LOOP
+        dat_info := jsonb_build_object('description', 'Test dataset A for procedure ' || p_name);
+        dat_name := 'Dataset A for Procedure ' || p_name;
+        INSERT INTO gemini.datasets (dataset_name, dataset_type_id, dataset_info, created_at, updated_at)
+        VALUES (dat_name, 3, dat_info, NOW(), NOW());
+        INSERT INTO gemini.procedure_datasets (procedure_id, dataset_id, info, created_at, updated_at)
+        VALUES ((SELECT id FROM gemini.procedures WHERE procedure_name = p_name LIMIT 1), (SELECT id FROM gemini.datasets WHERE dataset_name = dat_name LIMIT 1), '{"description": "Test association"}', NOW(), NOW());
+        dat_info := jsonb_build_object('description', 'Test dataset B for procedure ' || p_name);
+        dat_name := 'Dataset B for Procedure ' || p_name;
+        INSERT INTO gemini.datasets (dataset_name, dataset_type_id, dataset_info, created_at, updated_at)
+        VALUES (dat_name, 3, dat_info, NOW(), NOW());
+        INSERT INTO gemini.procedure_datasets (procedure_id, dataset_id, info, created_at, updated_at)
+        VALUES ((SELECT id FROM gemini.procedures WHERE procedure_name = p_name LIMIT 1), (SELECT id FROM gemini.datasets WHERE dataset_name = dat_name LIMIT 1), '{"description": "Test association"}', NOW(), NOW());
+    END LOOP;
+END $$;
+
+-- Assign every dataset to every experiment
+INSERT INTO gemini.experiment_datasets (experiment_id, dataset_id, info, created_at, updated_at)
+SELECT e.id, d.id, '{"description": "Test association"}', NOW(), NOW()
+FROM gemini.experiments e, gemini.datasets d;
 

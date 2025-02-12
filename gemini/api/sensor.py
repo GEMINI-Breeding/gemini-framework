@@ -11,7 +11,7 @@ from gemini.db.models.sensors import SensorModel
 from gemini.db.models.sensor_types import SensorTypeModel
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.views.experiment_views import ExperimentSensorsViewModel
-
+from gemini.db.models.associations import ExperimentSensorModel, SensorPlatformSensorModel
 from datetime import date, datetime
 
 class Sensor(APIBase):
@@ -24,8 +24,6 @@ class Sensor(APIBase):
     sensor_data_format_id: int
     sensor_info: Optional[dict] = None
 
-    datasets: List[Dataset]
-
     @classmethod
     def create(
         cls,
@@ -33,7 +31,9 @@ class Sensor(APIBase):
         sensor_type: GEMINISensorType = GEMINISensorType.Default,
         sensor_data_type: GEMINIDataType = GEMINIDataType.Default,
         sensor_data_format: GEMINIDataFormat = GEMINIDataFormat.Default,
-        sensor_info: dict = {}
+        sensor_info: dict = {},
+        experiment_name: str = None,
+        sensor_platform_name: str = None
     ) -> "Sensor":
         try:
             sensor_type_id = sensor_type.value
@@ -48,21 +48,28 @@ class Sensor(APIBase):
                 sensor_info=sensor_info,
             )
 
-            sensor = cls.model_validate(db_instance)
-            experiment = ExperimentModel.get_by_parameters(experiment_name="Default")
-            if experiment:
-                experiment.sensors.append(sensor)
+            if experiment_name:
+                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+                if db_experiment:
+                    ExperimentSensorModel.get_or_create(experiment_id=db_experiment.id, sensor_id=db_instance.id)
 
+            if sensor_platform_name:
+                db_sensor_platform = SensorTypeModel.get_by_parameters(sensor_platform_name=sensor_platform_name)
+                if db_sensor_platform:
+                    SensorPlatformSensorModel.get_or_create(sensor_id=db_instance.id, sensor_platform_id=db_sensor_platform.id)
+
+            sensor = cls.model_validate(db_instance)
             return sensor
         except Exception as e:
             raise e
         
 
     @classmethod
-    def get(cls, sensor_name: str) -> "Sensor":
+    def get(cls, sensor_name: str, experiment_name: str = None) -> "Sensor":
         try:
             db_instance = SensorModel.get_by_parameters(
                 sensor_name=sensor_name,
+                experiment_name=experiment_name
             )
             sensor = cls.model_validate(db_instance)
             return sensor
@@ -91,9 +98,26 @@ class Sensor(APIBase):
         
 
     @classmethod
-    def search(cls, **search_parameters) -> List["Sensor"]:
+    def search(
+        cls,
+        experiment_name: str = None,
+        sensor_name: str = None,
+        sensor_type: GEMINISensorType = None,
+        sensor_data_type: GEMINIDataType = None,
+        sensor_data_format: GEMINIDataFormat = None,
+        sensor_info: dict = None,
+        sensor_platform_name: str = None
+    ) -> List["Sensor"]:
         try:
-            sensors = ExperimentSensorsViewModel.search(**search_parameters)
+            sensors = ExperimentSensorsViewModel.search(
+                experiment_name=experiment_name,
+                sensor_name=sensor_name,
+                sensor_type=sensor_type.value if sensor_type else None,
+                sensor_data_type=sensor_data_type.value if sensor_data_type else None,
+                sensor_data_format=sensor_data_format.value if sensor_data_format else None,
+                sensor_info=sensor_info,
+                sensor_platform_name=sensor_platform_name
+            )
             sensors = [cls.model_validate(sensor) for sensor in sensors]
             return sensors if sensors else None
         except Exception as e:

@@ -6,6 +6,7 @@ from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.db.models.cultivars import CultivarModel
 from gemini.db.models.experiments import ExperimentModel
+from gemini.db.models.associations import ExperimentCultivarModel
 from gemini.db.models.views.experiment_views import ExperimentCultivarsViewModel
 
 class Cultivar(APIBase):
@@ -22,7 +23,7 @@ class Cultivar(APIBase):
         cultivar_population: str,
         cultivar_accession: str,
         cultivar_info: dict = {},
-        experiment_name: str = "Default", 
+        experiment_name: str = None
     ) -> "Cultivar":
         try:
             db_instance = CultivarModel.get_or_create(
@@ -30,21 +31,24 @@ class Cultivar(APIBase):
                 cultivar_accession=cultivar_accession,
                 cultivar_info=cultivar_info,
             )
+            if experiment_name:
+                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+                if db_experiment:
+                    ExperimentCultivarModel.get_or_create(experiment_id=db_experiment.id, cultivar_id=db_instance.id)
             cultivar = cls.model_validate(db_instance)
-            experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-            if experiment:
-                experiment.cultivars.append(cultivar)
             return cultivar
+
         except Exception as e:
             raise e
         
 
     @classmethod
-    def get(cls, cultivar_population: str, cultivar_accession: str) -> "Cultivar":
+    def get(cls, cultivar_population: str, cultivar_accession: str, experiment_name: str = None) -> "Cultivar":
         try:
             db_instance = CultivarModel.get_by_parameters(
                 cultivar_accession=cultivar_accession,
                 cultivar_population=cultivar_population,
+                experiment_name=experiment_name,
             )
             cultivar = cls.model_validate(db_instance)
             return cultivar
@@ -70,9 +74,20 @@ class Cultivar(APIBase):
             raise e
         
     @classmethod
-    def search(cls, **search_parameters) -> List["Cultivar"]:
+    def search(
+        cls, 
+        experiment_name: str = None,
+        cultivar_population: str = None,
+        cultivar_accession: str = None,
+        cultivar_info: dict = None
+    ) -> List["Cultivar"]:
         try:
-            cultivars = ExperimentCultivarsViewModel.search(**search_parameters)
+            cultivars = ExperimentCultivarsViewModel.search(
+                experiment_name=experiment_name,
+                cultivar_population=cultivar_population,
+                cultivar_accession=cultivar_accession,
+                cultivar_info=cultivar_info,
+            )
             cultivars = [cls.model_validate(cultivar) for cultivar in cultivars]
             return cultivars if cultivars else None
         except Exception as e:

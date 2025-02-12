@@ -50,10 +50,11 @@ class Site(APIBase):
         
 
     @classmethod
-    def get(cls, site_name: str) -> "Site":
+    def get(cls, site_name: str, experiment_name: str = None) -> "Site":
         try:
             db_instance = SiteModel.get_by_parameters(
                 site_name=site_name,
+                experiment_name=experiment_name
             )
             site = cls.model_validate(db_instance)
             return site
@@ -81,9 +82,24 @@ class Site(APIBase):
         
 
     @classmethod
-    def search(cls, **search_parameters) -> List["Site"]:
+    def search(
+        cls, 
+        experiment_name: str = None,
+        site_name: str = None,
+        site_city: str = None,
+        site_state: str = None,
+        site_country: str = None,
+        site_info: dict = {}
+    ) -> List["Site"]:
         try:
-            sites = ExperimentSitesViewModel.search(**search_parameters)
+            sites = ExperimentSitesViewModel.search(
+                experiment_name=experiment_name,
+                site_name=site_name,
+                site_city=site_city,
+                site_state=site_state,
+                site_country=site_country,
+                site_info=site_info
+            )
             sites = [cls.model_validate(site) for site in sites]
             return sites if sites else None
         except Exception as e:

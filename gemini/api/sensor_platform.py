@@ -5,10 +5,11 @@ from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.api.sensor import Sensor
-
+from gemini.db.models.experiments import ExperimentModel
+from gemini.db.models.associations import ExperimentSensorPlatformModel
 from gemini.db.models.sensor_platforms import SensorPlatformModel
 from gemini.db.models.sensors import SensorModel
-
+from gemini.db.models.views.experiment_views import ExperimentSensorPlatformsViewModel
 
 class SensorPlatform(APIBase):
 
@@ -17,29 +18,39 @@ class SensorPlatform(APIBase):
     sensor_platform_name: str
     sensor_platform_info: Optional[dict] = None
 
-    sensors : List[Sensor] = []
-
 
     @classmethod
     def create(
         cls,
         sensor_platform_name: str,
         sensor_platform_info: dict = {},
+        experiment_name: str = None
     ) -> "SensorPlatform":
         try:
-            instance = SensorPlatformModel.get_or_create(
+            db_instance = SensorPlatformModel.get_or_create(
                 sensor_platform_name=sensor_platform_name,
                 sensor_platform_info=sensor_platform_info,
             )
-            instance = cls.model_validate(instance)
+
+            if experiment_name:
+                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+                if db_experiment:
+                    ExperimentSensorPlatformModel.get_or_create(experiment_id=db_experiment.id, sensor_platform_id=db_instance.id)
+
+            instance = cls.model_validate(db_instance)
             return instance
+
+
         except Exception as e:
             raise e
     
     @classmethod
-    def get(cls, sensor_platform_name: str) -> "SensorPlatform":
+    def get(cls, sensor_platform_name: str, experiment_name: str = None) -> "SensorPlatform":
         try:
-            instance = SensorPlatformModel.get_by_parameters(sensor_platform_name=sensor_platform_name)
+            instance = SensorPlatformModel.get_by_parameters(
+                sensor_platform_name=sensor_platform_name,
+                experiment_name=experiment_name
+            )
             instance = cls.model_validate(instance)
             return instance
         except Exception as e:
@@ -58,7 +69,7 @@ class SensorPlatform(APIBase):
     @classmethod
     def get_all(cls) -> List["SensorPlatform"]:
         try:
-            instances = SensorPlatformModel.get_all()
+            instances = SensorPlatformModel.all()
             instances = [cls.model_validate(instance) for instance in instances]
             return instances
         except Exception as e:
@@ -66,9 +77,18 @@ class SensorPlatform(APIBase):
         
 
     @classmethod
-    def search(cls, **search_parameters) -> List["SensorPlatform"]:
+    def search(
+        cls, 
+        experiment_name: str = None,
+        sensor_platform_name: str = None,
+        sensor_platform_info: dict = None
+    ) -> List["SensorPlatform"]:
         try:
-            instances = SensorPlatformModel.search(**search_parameters)
+            instances = SensorPlatformModel.search(
+                experiment_name=experiment_name,
+                sensor_platform_name=sensor_platform_name,
+                sensor_platform_info=sensor_platform_info
+            )
             instances = [cls.model_validate(instance) for instance in instances]
             return instances
         except Exception as e:
@@ -110,10 +130,10 @@ class SensorPlatform(APIBase):
             raise e
         
 
-    def get_sensors(self) -> List[Sensor]:
-        try:
-            sensors = self.sensors
-            return sensors
-        except Exception as e:
-            raise e
+    # def get_sensors(self) -> List[Sensor]:
+    #     try:
+    #         sensors = self.sensors
+    #         return sensors
+    #     except Exception as e:
+    #         raise e
 

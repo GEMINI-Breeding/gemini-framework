@@ -13,7 +13,7 @@ import uuid
 class DataFormatModel(BaseModel):
     __tablename__ = "data_formats"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     data_format_name: Mapped[str] = mapped_column(String(255), nullable=False)
     data_format_mime_type: Mapped[str] = mapped_column(String(255), default='application/octet-stream')
     data_format_info: Mapped[dict] = mapped_column(JSONB, default={})

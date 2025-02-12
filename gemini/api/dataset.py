@@ -8,6 +8,7 @@ from gemini.api.enums import GEMINIDatasetType
 from gemini.api.dataset_record import DatasetRecord
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.experiments import ExperimentModel
+from gemini.db.models.associations import ExperimentDatasetModel
 from gemini.db.models.views.experiment_views import ExperimentDatasetsViewModel
 
 from datetime import date, datetime
@@ -24,11 +25,11 @@ class Dataset(APIBase):
     @classmethod
     def create(
         cls,
-        collection_date: date,
         dataset_name: str,
         dataset_info: dict = {},
         dataset_type: GEMINIDatasetType = GEMINIDatasetType.Default,
-        experiment_name: str = "Default",
+        collection_date: date = date.today(),
+        experiment_name: str = None
     ) -> "Dataset":
         try:
 
@@ -39,21 +40,22 @@ class Dataset(APIBase):
                 dataset_info=dataset_info,
                 dataset_type_id=dataset_type_id,
             )
+            if experiment_name:
+                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+                if db_experiment:
+                    ExperimentDatasetModel.get_or_create(experiment_id=db_experiment.id, dataset_id=db_instance.id)
+
             dataset = cls.model_validate(db_instance)
-
-            experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-            if experiment:
-                experiment.datasets.append(dataset)
-
             return dataset
         except Exception as e:
             raise e
         
     @classmethod
-    def get(cls, dataset_name: str) -> "Dataset":
+    def get(cls, dataset_name: str, experiment_name: str = None) -> "Dataset":
         try:
             db_instance = DatasetModel.get_by_parameters(
                 dataset_name=dataset_name,
+                experiment_name=experiment_name
             )
             dataset = cls.model_validate(db_instance)
             return dataset
@@ -82,9 +84,22 @@ class Dataset(APIBase):
         
 
     @classmethod
-    def search(cls, **search_parameters) -> List["Dataset"]:
+    def search(
+        cls, 
+        experiment_name: str = None,
+        dataset_name: str = None,
+        dataset_info: dict = None,
+        dataset_type: GEMINIDatasetType = None,
+        collection_date: date = None,
+    ) -> List["Dataset"]:
         try:
-            datasets = ExperimentDatasetsViewModel.search(**search_parameters)
+            datasets = ExperimentDatasetsViewModel.search(
+                experiment_name=experiment_name,
+                dataset_name=dataset_name,
+                dataset_info=dataset_info,
+                dataset_type=dataset_type,
+                collection_date=collection_date,
+            )
             datasets = [cls.model_validate(dataset) for dataset in datasets]
             return datasets if datasets else None
         except Exception as e:

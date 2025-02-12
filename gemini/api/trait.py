@@ -10,7 +10,7 @@ from gemini.db.models.traits import TraitModel
 from gemini.db.models.trait_levels import TraitLevelModel
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.views.experiment_views import ExperimentTraitsViewModel
-
+from gemini.db.models.associations import ExperimentTraitModel
 from datetime import date, datetime
 
 class Trait(APIBase):
@@ -27,10 +27,11 @@ class Trait(APIBase):
     def create(
         cls,
         trait_name: str,
-        trait_units: str,
+        trait_units: str = None,
         trait_level: GEMINITraitLevel = GEMINITraitLevel.Plot,
         trait_info: dict = {},
-        experiment_name: str = "Default",
+        trait_metrics: dict = {},
+        experiment_name: str = None
     ) -> "Trait":
         try:
             trait_level_id = trait_level.value
@@ -38,21 +39,28 @@ class Trait(APIBase):
                 trait_name=trait_name,
                 trait_units=trait_units,
                 trait_level_id=trait_level_id,
+                trait_metrics=trait_metrics,
                 trait_info=trait_info,
             )
+
+            if experiment_name:
+                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+                if db_experiment:
+                    ExperimentTraitModel.get_or_create(experiment_id=db_experiment.id, trait_id=trait.id)
+
             trait = cls.model_validate(trait)
-            experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-            if experiment:
-                experiment.traits.append(trait)
             return trait
         except Exception as e:
             raise e
         
 
     @classmethod
-    def get(cls, trait_name: str) -> "Trait":
+    def get(cls, trait_name: str, experiment_name: str = None) -> "Trait":
         try:
-            trait = TraitModel.get_by_parameters(trait_name=trait_name)
+            trait = TraitModel.get_by_parameters(
+                trait_name=trait_name,
+                experiment_name=experiment_name   
+            )
             trait = cls.model_validate(trait)
             return trait
         except Exception as e:
@@ -80,9 +88,24 @@ class Trait(APIBase):
         
 
     @classmethod
-    def search(cls, **search_parameters) -> List["Trait"]:
+    def search(
+        cls, 
+        experiment_name: str = None,
+        trait_name: str = None,
+        trait_units: str = None,
+        trait_level: GEMINITraitLevel = None,
+        trait_info: dict = None,
+        trait_metrics: dict = None
+    ) -> List["Trait"]:
         try:
-            traits = ExperimentTraitsViewModel.search(**search_parameters)
+            traits = ExperimentTraitsViewModel.search(
+                experiment_name=experiment_name,
+                trait_name=trait_name,
+                trait_units=trait_units,
+                trait_level_id=trait_level.value if trait_level else None,
+                trait_info=trait_info,
+                trait_metrics=trait_metrics
+            )
             traits = [cls.model_validate(trait) for trait in traits]
             return traits if traits else None
         except Exception as e:

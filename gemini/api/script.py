@@ -9,7 +9,7 @@ from gemini.api.script_record import ScriptRecord
 from gemini.db.models.scripts import ScriptModel
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.views.experiment_views import ExperimentScriptsViewModel
-
+from gemini.db.models.associations import ExperimentScriptModel
 from datetime import date, datetime
 
 
@@ -27,10 +27,10 @@ class Script(APIBase):
     def create(
         cls,
         script_name: str,
-        script_url: str,
-        script_extension: str,
+        script_url: str = None,
+        script_extension: str = None,
         script_info: dict = {},
-        experiment_name: str = "Default"
+        experiment_name: str = None
     ):
         try:
             db_instance = ScriptModel.get_or_create(
@@ -39,20 +39,23 @@ class Script(APIBase):
                 script_extension=script_extension,
                 script_info=script_info,
             )
+            if experiment_name:
+                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+                if db_experiment:
+                    ExperimentScriptModel.get_or_create(experiment_id=db_experiment.id, script_id=db_instance.id)
+
             script = cls.model_validate(db_instance)
-            experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-            if experiment:
-                experiment.scripts.append(script)
             return script
         except Exception as e:
             raise e
         
 
     @classmethod
-    def get(cls, script_name: str) -> "Script":
+    def get(cls, script_name: str, experiment_name: str = None) -> "Script":
         try:
             db_instance = ScriptModel.get_by_parameters(
-                script_name=script_name
+                script_name=script_name,
+                experiment_name=experiment_name
             )
             script = cls.model_validate(db_instance)
             return script
@@ -80,9 +83,22 @@ class Script(APIBase):
         
 
     @classmethod
-    def search(cls, **search_parameters) -> List["Script"]:
+    def search(
+        cls,
+        experiment_name: str = None,
+        script_name: str = None,
+        script_info: dict = None,
+        script_url: str = None,
+        script_extension: str = None
+    ) -> List["Script"]:
         try:
-            scripts = ExperimentScriptsViewModel.search(**search_parameters)
+            scripts = ExperimentScriptsViewModel.search(
+                experiment_name=experiment_name,
+                script_name=script_name,
+                script_info=script_info,
+                script_url=script_url,
+                script_extension=script_extension
+            )
             scripts = [cls.model_validate(script) for script in scripts]
             return scripts if scripts else None
         except Exception as e:

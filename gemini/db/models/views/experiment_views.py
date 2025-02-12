@@ -52,10 +52,24 @@ class ExperimentSensorsViewModel(ViewBaseModel):
     sensor_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     sensor_name : Mapped[str] = mapped_column(String)
     sensor_type_id : Mapped[int] = mapped_column(Integer)
-    sensor_platform_id : Mapped[int] = mapped_column(Integer)
     sensor_data_type_id : Mapped[int] = mapped_column(Integer)
     sensor_data_format_id : Mapped[int] = mapped_column(Integer)
     sensor_info : Mapped[JSON] = mapped_column(JSONB)
+    sensor_platform_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    sensor_platform_name : Mapped[str] = mapped_column(String)
+    sensor_platform_info : Mapped[JSON] = mapped_column(JSONB)
+
+
+class ExperimentSensorPlatformsViewModel(ViewBaseModel):
+
+    __tablename__ = 'experiment_sensor_platforms_view'
+
+    experiment_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    experiment_name : Mapped[str] = mapped_column(String)
+    sensor_platform_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    sensor_platform_name : Mapped[str] = mapped_column(String)
+    sensor_platform_info : Mapped[JSON] = mapped_column(JSONB)
+    
 
 
 class ExperimentCultivarsViewModel(ViewBaseModel):
