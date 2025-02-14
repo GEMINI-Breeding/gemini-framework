@@ -1,4 +1,4 @@
-from typing import Optional, List, Generator
+from typing import Optional, List, Generator, Set
 import os
 
 from gemini.api.types import ID
@@ -7,6 +7,10 @@ from gemini.api.base import APIBase, FileHandlerMixin
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.dataset_records import DatasetRecordModel
 from gemini.db.models.views.dataset_records_immv import DatasetRecordsIMMVModel
+
+from gemini.db.models.experiments import ExperimentModel
+from gemini.db.models.seasons import SeasonModel
+from gemini.db.models.sites import SiteModel
 
 from datetime import date, datetime
 
@@ -33,31 +37,36 @@ class DatasetRecord(APIBase, FileHandlerMixin):
         cls,
         timestamp: datetime = datetime.now(),
         collection_date: date = date.today(),
-        dataset_id: ID = None,
         dataset_name: str = None,
         dataset_data: dict = {},
-        experiment_id: ID = None,
-        experiment_name: str = 'Default',
-        site_id: ID = None,
-        site_name: str = 'Default',
-        season_id: ID = None,
-        season_name: str = 'Default',
+        experiment_name: str = None,
+        site_name: str = None,
+        season_name: str = None,
         record_file: str = None,
         record_info: dict = {},
     ) -> 'DatasetRecord':
         try:
+
+            if not dataset_name:
+                raise ValueError("dataset_name is required.")
+            
+            if not experiment_name:
+                raise ValueError("experiment_name is required.")
+            
+            if not site_name:
+                raise ValueError("site_name is required.")
+            
+            if not season_name:
+                raise ValueError("season_name is required.")
+
             record = DatasetRecord.model_construct(
                 _fields_set=DatasetRecord.model_fields_set,
                 timestamp=timestamp,
                 collection_date=collection_date,
-                dataset_id=dataset_id,
                 dataset_name=dataset_name,
                 dataset_data=dataset_data,
-                experiment_id=experiment_id,
                 experiment_name=experiment_name,
-                site_id=site_id,
                 site_name=site_name,
-                season_id=season_id,
                 season_name=season_name,
                 record_file=record_file,
                 record_info=record_info
@@ -67,30 +76,78 @@ class DatasetRecord(APIBase, FileHandlerMixin):
             raise e
         
     def delete(self):
-        # Implement the delete method
-        pass
+        try:
+            current_id = self.id
+            data_type = DatasetRecordModel.get(current_id)
+            DatasetRecordModel.delete(current_id)
+            return data_type
+        except Exception as e:
+            raise e
 
     @classmethod
-    def get_all(cls):
-        # Implement the get_all method
-        pass
+    def get_all(cls, limit: int = 100) -> List['DatasetRecord']:
+        try:
+            records = DatasetRecordModel.all(limit=limit)
+            records = [cls.model_validate(record) for record in records]
+            return records
+        except Exception as e:
+            raise e
 
     @classmethod
-    def get_by_id(cls, id):
-        # Implement the get_by_id method
-        pass
+    def get_by_id(cls, id) -> 'DatasetRecord':
+        try:
+            record = DatasetRecordsIMMVModel.get(id)
+            record = cls.model_construct(
+                _fields_set=cls.model_fields_set,
+                **record.to_dict()
+            )
+            record = record.model_dump()
+            record = cls._postprocess_record(record)
+            record = cls.model_validate(record)
+            return record
+        except Exception as e:
+            raise e
 
-    def refresh(self):
-        # Implement the refresh method
-        pass
+    def refresh(self) -> 'DatasetRecord':
+        try:
+            db_instance = DatasetRecordModel.get(self.id)
+            instance = self.model_construct(
+                _fields_set=self.model_fields_set,
+                **db_instance.to_dict()
+            )
+            for key, value in instance.model_dump().items():
+                if hasattr(self, key):
+                    actual_value = getattr(instance, key)
+                    setattr(self, key, actual_value)
+            return self
+        except Exception as e:
+            raise e
 
-    def update(self, **kwargs):
-        # Implement the update method
-        pass
+    def update(
+        self,
+        experiment_name: str = None,
+        season_name: str = None,
+        site_name: str = None,
+    ) -> 'DatasetRecord':
+        try:
+            current_id = self.id
+            record = DatasetRecordModel.get(current_id)
+            record.update(
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name
+            )
+            record = self.model_validate(record)
+            record.refresh()
+            return record
+        except Exception as e:
+            raise
     
     @classmethod
     def add(cls, records: List['DatasetRecord']):
         try:
+
+
             records_to_insert = []
             dataset_id = DatasetModel.get_or_create(dataset_name=records[0].dataset_name).id
             records = [cls._preprocess_record(record) for record in records]
@@ -142,6 +199,37 @@ class DatasetRecord(APIBase, FileHandlerMixin):
         except Exception as e:
             raise e
         
+    # @classmethod
+    # def _verify_records(cls, records: List['DatasetRecord']) -> List['DatasetRecord']:
+    #     try:
+    #         experiment_names : Set[str] = set()
+    #         site_names : Set[str] = set()
+    #         season_names : Set[str] = set()
+    #         dataset_names : Set[str] = set()
+
+    #         for record in records:
+    #             experiment_names.add(record.experiment_name)
+    #             site_names.add(record.site_name)
+    #             season_names.add(record.season_name)
+    #             dataset_names.add(record.dataset_name)
+
+    #             # You can only add for one dataset at a time
+    #             if len(dataset_names) > 1:
+    #                 raise ValueError("You can only add records for one dataset at a time.")
+                
+    #         # Verify that the experiments exist
+    #         for experiment_name in experiment_names:
+    #             if not ExperimentModel.exists(experiment_name=experiment_name):
+    #                 raise ValueError(f"Experiment {experiment_name} does not exist.")
+                
+    #         # Verify that the sites exist
+    #         for site_name in site_names:
+    #             if not SiteModel.exists(site_name=site_name):
+    #                 raise ValueError(f"Site {site_name} does not exist.")
+
+
+
+
     @classmethod
     def _preprocess_record(cls, record: 'DatasetRecord') -> 'DatasetRecord':
         try:

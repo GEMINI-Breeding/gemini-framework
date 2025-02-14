@@ -71,6 +71,19 @@ class BaseModel(DeclarativeBase, SerializeMixin):
         return instance
     
     @classmethod
+    def exists(cls, **kwargs):
+        """
+        Check if an instance of the class exists.
+        """
+        kwargs = cls.validate_fields(**kwargs)
+        if kwargs == {}:
+            return False
+        instance = cls.get_by_parameters(**kwargs)
+        if instance:
+            return True
+        return False
+
+    @classmethod
     def all(cls):
         """
         Get all instances of the class.
@@ -309,4 +322,10 @@ class ColumnarBaseModel(BaseModel):
 
     __abstract__ = True
     
-
+    @classmethod
+    def all(cls, limit=100):
+        query = select(cls).limit(limit)
+        with db_engine.get_session() as session:
+            result = session.execute(query).scalars().all()
+        return result
+        

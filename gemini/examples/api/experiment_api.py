@@ -1,6 +1,15 @@
 from gemini.api.experiment import Experiment
 from gemini.api.season import Season
 
+
+gemini_experiment = Experiment.get(experiment_name="GEMINI")
+
+# List all sensors in GEMINI Experiment
+gemini_sensors = gemini_experiment.get_sensors()
+for sensor in gemini_sensors:
+    print(sensor)
+
+
 all_experiments = Experiment.get_all()
 for experiment in all_experiments:
     print(experiment)
