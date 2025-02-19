@@ -3,6 +3,180 @@
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
+-- View for storing valid combinations of datasets, experiments, seasons, and sites
+CREATE OR REPLACE VIEW gemini.valid_dataset_combinations_view AS
+SELECT
+    d.dataset_name,
+    e.experiment_name,
+    s.season_name,
+    si.site_name
+FROM gemini.datasets AS d
+JOIN gemini.experiment_datasets AS ed
+    ON d.id = ed.dataset_id
+JOIN gemini.experiments AS e
+    ON ed.experiment_id = e.id
+JOIN gemini.seasons AS s
+    ON e.id = s.experiment_id
+JOIN gemini.experiment_sites AS es
+    ON e.id = es.experiment_id
+JOIN gemini.sites AS si
+    ON es.site_id = si.id;
+;
+
+CREATE OR REPLACE VIEW gemini.valid_sensor_dataset_combinations_view AS
+SELECT
+    d.dataset_name,
+    se.sensor_name,
+    e.experiment_name,
+    s.season_name,
+    si.site_name
+FROM gemini.datasets AS d
+JOIN gemini.sensor_datasets AS sd
+    ON d.id = sd.dataset_id
+JOIN gemini.sensors AS se
+    ON sd.sensor_id = se.id
+JOIN gemini.experiment_datasets AS ed
+    ON d.id = ed.dataset_id
+JOIN gemini.experiments AS e
+    ON ed.experiment_id = e.id
+JOIN gemini.seasons AS s
+    ON e.id = s.experiment_id
+JOIN gemini.experiment_sites AS es
+    ON e.id = es.experiment_id
+JOIN gemini.sites AS si
+    ON es.site_id = si.id;
+
+
+CREATE OR REPLACE VIEW gemini.valid_trait_dataset_combinations_view AS
+SELECT
+    d.dataset_name,
+    t.trait_name,
+    e.experiment_name,
+    s.season_name,
+    si.site_name
+FROM gemini.datasets AS d
+JOIN gemini.trait_datasets AS td
+    ON d.id = td.dataset_id
+JOIN gemini.traits AS t
+    ON td.trait_id = t.id
+JOIN gemini.experiment_datasets AS ed
+    ON d.id = ed.dataset_id
+JOIN gemini.experiments AS e
+    ON ed.experiment_id = e.id
+JOIN gemini.seasons AS s
+    ON e.id = s.experiment_id
+JOIN gemini.experiment_sites AS es
+    ON e.id = es.experiment_id
+JOIN gemini.sites AS si
+    ON es.site_id = si.id;
+
+
+CREATE OR REPLACE VIEW gemini.valid_procedure_dataset_combinations_view AS
+SELECT
+    d.dataset_name,
+    p.procedure_name,
+    e.experiment_name,
+    s.season_name,
+    si.site_name
+FROM gemini.datasets AS d
+JOIN gemini.procedure_datasets AS pd
+    ON d.id = pd.dataset_id
+JOIN gemini.procedures AS p
+    ON pd.procedure_id = p.id
+JOIN gemini.experiment_datasets AS ed
+    ON d.id = ed.dataset_id
+JOIN gemini.experiments AS e
+    ON ed.experiment_id = e.id
+JOIN gemini.seasons AS s
+    ON e.id = s.experiment_id
+JOIN gemini.experiment_sites AS es
+    ON e.id = es.experiment_id
+JOIN gemini.sites AS si
+    ON es.site_id = si.id;
+
+
+CREATE OR REPLACE VIEW gemini.valid_script_dataset_combinations_view AS
+SELECT
+    d.dataset_name,
+    sc.script_name,
+    e.experiment_name,
+    s.season_name,
+    si.site_name
+FROM gemini.datasets AS d
+JOIN gemini.script_datasets AS sd
+    ON d.id = sd.dataset_id
+JOIN gemini.scripts AS sc
+    ON sd.script_id = sc.id
+JOIN gemini.experiment_datasets AS ed
+    ON d.id = ed.dataset_id
+JOIN gemini.experiments AS e
+    ON ed.experiment_id = e.id
+JOIN gemini.seasons AS s
+    ON e.id = s.experiment_id
+JOIN gemini.experiment_sites AS es
+    ON e.id = es.experiment_id
+JOIN gemini.sites AS si
+    ON es.site_id = si.id;
+
+
+CREATE OR REPLACE VIEW gemini.valid_model_dataset_combinations_view AS
+SELECT
+    d.dataset_name,
+    m.model_name,
+    e.experiment_name,
+    s.season_name,
+    si.site_name
+FROM gemini.datasets AS d
+JOIN gemini.model_datasets AS md
+    ON d.id = md.dataset_id
+JOIN gemini.models AS m
+    ON md.model_id = m.id
+JOIN gemini.experiment_datasets AS ed
+    ON d.id = ed.dataset_id
+JOIN gemini.experiments AS e
+    ON ed.experiment_id = e.id
+JOIN gemini.seasons AS s
+    ON e.id = s.experiment_id
+JOIN gemini.experiment_sites AS es
+    ON e.id = es.experiment_id
+JOIN gemini.sites AS si
+    ON es.site_id = si.id;
+
+
+-------------------------------------------------------------------------------
+-- View for sites and their associated plots
+CREATE OR REPLACE VIEW gemini.site_plot_view AS
+SELECT
+    s.site_name,
+    p.id as plot_id,
+    p.plot_number,
+    p.plot_row_number,
+    p.plot_column_number,
+    p.plot_geometry_info,
+    p.plot_info
+FROM gemini.sites AS s
+JOIN gemini.plots AS p
+    ON s.id = p.site_id;
+
+-------------------------------------------------------------------------------
+-- View for plots and respective plants
+CREATE OR REPLACE VIEW gemini.plot_plant_view AS
+SELECT
+    p.id as plot_id,
+    p.plot_number,
+    p.plot_row_number,
+    p.plot_column_number,
+    p.plot_geometry_info,
+    p.plot_info,
+    pl.id as plant_id,  
+    pl.plant_number,
+    pl.plant_info
+FROM gemini.plots AS p
+JOIN gemini.plants AS pl
+    ON p.id = pl.plot_id;
+
+
+-------------------------------------------------------------------------------
 -- Materialized View for Plot Information
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.plot_view
@@ -360,32 +534,32 @@ SET max_parallel_workers = 1;
 -------------------------------------------------------------------------------
 -- Sensor Records IMMV
 -------------------------------------------------------------------------------
-SELECT create_immv('gemini.sensor_records_immv', 'select * from gemini.sensor_records');
+SELECT pgivm.create_immv('gemini.sensor_records_immv', 'select * from gemini.sensor_records');
 
 -------------------------------------------------------------------------------
 -- Trait Records IMMV
 -------------------------------------------------------------------------------
-SELECT create_immv('gemini.trait_records_immv', 'select * from gemini.trait_records');
+SELECT pgivm.create_immv('gemini.trait_records_immv', 'select * from gemini.trait_records');
 
 -------------------------------------------------------------------------------
 -- Procedure Records IMMV
 -------------------------------------------------------------------------------
-SELECT create_immv('gemini.procedure_records_immv', 'select * from gemini.procedure_records');
+SELECT pgivm.create_immv('gemini.procedure_records_immv', 'select * from gemini.procedure_records');
 
 -------------------------------------------------------------------------------
 -- Script Records IMMV
 -------------------------------------------------------------------------------
-SELECT create_immv('gemini.script_records_immv', 'select * from gemini.script_records');
+SELECT pgivm.create_immv('gemini.script_records_immv', 'select * from gemini.script_records');
 
 -------------------------------------------------------------------------------
 -- Model Records IMMV
 -------------------------------------------------------------------------------
-SELECT create_immv('gemini.model_records_immv', 'select * from gemini.model_records');
+SELECT pgivm.create_immv('gemini.model_records_immv', 'select * from gemini.model_records');
 
 -------------------------------------------------------------------------------
 -- Dataset Records IMMV
 -------------------------------------------------------------------------------
-SELECT create_immv('gemini.dataset_records_immv', 'select * from gemini.dataset_records');
+SELECT pgivm.create_immv('gemini.dataset_records_immv', 'select * from gemini.dataset_records');
 
 
 SET max_parallel_workers = DEFAULT;
