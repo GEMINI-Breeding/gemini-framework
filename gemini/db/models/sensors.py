@@ -36,7 +36,7 @@ class SensorModel(BaseModel):
         Index("idx_sensors_info", "sensor_info", postgresql_using="GIN"),
     )
 
-    sensor_type = relationship("SensorTypeModel", lazy="subquery", viewonly=True)
-    sensor_data_type = relationship("DataTypeModel", lazy="subquery", viewonly=True)
-    sensor_data_format = relationship("DataFormatModel", lazy="subquery", viewonly=True)
-    datasets = relationship("DatasetModel", secondary="gemini.sensor_datasets", lazy="subquery", viewonly=True)
+    sensor_type = relationship("SensorTypeModel", lazy="selectin", cascade="save-update, merge, delete", uselist=False)
+    sensor_data_type = relationship("DataTypeModel", lazy="selectin", cascade="save-update, merge, delete", uselist=False)
+    sensor_data_format = relationship("DataFormatModel", lazy="selectin", cascade="save-update, merge, delete", uselist=False)
+    datasets = relationship("DatasetModel", secondary="gemini.sensor_datasets", lazy="selectin", cascade="save-update, merge, delete")

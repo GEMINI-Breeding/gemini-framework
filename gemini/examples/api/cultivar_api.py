@@ -27,3 +27,17 @@ for cultivar in all_cultivars:
 searched_cultivars = Cultivar.search(experiment_name="Experiment A")
 length_searched_cultivars = len(searched_cultivars)
 print(f"Found {length_searched_cultivars} cultivars in Experiment A")
+
+# Refresh the cultivar
+cultivar.refresh()
+print(f"Refreshed Cultivar: {cultivar}")
+
+# Update the cultivar
+cultivar.update(
+    cultivar_info={"test": "test_updated"},
+)
+print(f"Updated Cultivar: {cultivar}")
+
+# Delete the new cultivar
+is_deleted = new_cultivar.delete()
+print(f"Deleted Cultivar: {is_deleted}")

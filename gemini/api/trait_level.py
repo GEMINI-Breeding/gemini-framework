@@ -69,6 +69,9 @@ class TraitLevel(APIBase):
         trait_level_info: dict = None,
     ) -> List["TraitLevel"]:
         try:
+            if not trait_level_name and not trait_level_info:
+                raise Exception("Either trait_level_name or trait_level_info must be provided.")
+
             instances = TraitLevelModel.search(
                 trait_level_name=trait_level_name,
                 trait_level_info=trait_level_info,
@@ -79,11 +82,43 @@ class TraitLevel(APIBase):
             raise e
         
     
-    def update(self, **kwargs) -> "TraitLevel":
-        return super().update(**kwargs)
+    def update(
+        self,
+        trait_level_info: dict = None
+    ) -> "TraitLevel":
+        try:
+            if not trait_level_info:
+                raise ValueError("trait_level_info must be provided.")
+            
+            current_id = self.id
+            trait_level = TraitLevelModel.get(current_id)
+            trait_level = TraitLevelModel.update(
+                trait_level,
+                trait_level_info=trait_level_info,
+            )
+            trait_level = self.model_validate(trait_level)
+            self.refresh()
+            return trait_level
+        except Exception as e:
+            raise e
+        
     
     def delete(self) -> bool:
-        return super().delete()
+        try:
+            current_id = self.id
+            trait_level = TraitLevelModel.get(current_id)
+            TraitLevelModel.delete(trait_level)
+            return True
+        except Exception as e:
+            raise e
     
     def refresh(self) -> "TraitLevel":  
-        return super().refresh()
+        try:
+            db_instance = TraitLevelModel.get(self.id)
+            instance = self.model_validate(db_instance)
+            for key, value in instance.model_dump().items():
+                if hasattr(self, key) and key != "id":
+                    setattr(self, key, value)
+            return self
+        except Exception as e:
+            raise e

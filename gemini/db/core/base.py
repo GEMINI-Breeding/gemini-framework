@@ -248,6 +248,8 @@ class BaseModel(DeclarativeBase, SerializeMixin):
                     query = query.filter(attribute.contains(value))
                 elif isinstance(attribute.type, TIMESTAMP):
                     query = query.filter(attribute >= value)
+                elif isinstance(attribute.type, DATE):
+                    query = query.filter(attribute == value)
                 else:
                     query = query.filter(attribute == value)
             number_of_records = query.count()
@@ -268,6 +270,8 @@ class BaseModel(DeclarativeBase, SerializeMixin):
                 query = query.where(attribute.contains(value))
             elif isinstance(attribute.type, TIMESTAMP):
                 query = query.where(attribute >= value)
+            elif isinstance(attribute.type, DATE):
+                query = query.where(attribute == value)
             else:
                 query = query.where(attribute == value)
         query = query.execution_options(yield_per=1000)

@@ -1,13 +1,28 @@
 from typing import Optional, List, Generator
 import os
+from uuid import UUID
 
 from gemini.api.types import ID
 from pydantic import Field, AliasChoices
+
 from gemini.api.base import APIBase, FileHandlerMixin
+
 from gemini.db.models.models import ModelModel
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.model_records import ModelRecordModel
 from gemini.db.models.views.model_records_immv import ModelRecordsIMMVModel
+from gemini.db.models.views.validation_views import ValidModelDatasetCombinationsViewModel
+from gemini.db.models.views.experiment_views import (
+    ExperimentModelsViewModel,
+    ExperimentDatasetsViewModel,
+    ExperimentSeasonsViewModel,
+    ExperimentSitesViewModel,
+)
+
+from gemini.db.models.experiments import ExperimentModel
+from gemini.db.models.seasons import SeasonModel
+from gemini.db.models.sites import SiteModel
+from gemini.db.models.datasets import DatasetModel
 
 from datetime import date, datetime
 
@@ -35,96 +50,136 @@ class ModelRecord(APIBase, FileHandlerMixin):
     def create(
         cls,
         timestamp: datetime = datetime.now(),
-        collection_date: date = date.today(),
-        dataset_id: ID = None,
+        collection_date: date = None,
         dataset_name: str = None,
-        model_id: ID = None,
         model_name: str = None,
         model_data: dict = {},
-        experiment_id: ID = None,
         experiment_name: str = 'Default',
-        site_id: ID = None,
         site_name: str = 'Default',
-        season_id: ID = None,
         season_name: str = 'Default',
         record_file: str = None,
         record_info: dict = {}
     ) -> 'ModelRecord':
         try:
-            record = ModelRecord.model_construct(
-                _fields_set=ModelRecord.model_fields_set,
+            if not model_name:
+                raise ValueError("Model name is required.")
+            
+            if not dataset_name:
+                raise ValueError("Dataset name is required.")
+            
+            if not experiment_name:
+                raise ValueError("Experiment name is required.")
+            
+            if not site_name:
+                raise ValueError("Site name is required.")
+            
+            if not season_name:
+                raise ValueError("Season name is required.")
+            
+            record = ModelRecord(
                 timestamp=timestamp,
                 collection_date=collection_date,
-                dataset_id=dataset_id,
                 dataset_name=dataset_name,
-                model_id=model_id,
                 model_name=model_name,
                 model_data=model_data,
-                experiment_id=experiment_id,
                 experiment_name=experiment_name,
-                site_id=site_id,
                 site_name=site_name,
-                season_id=season_id,
                 season_name=season_name,
                 record_file=record_file,
                 record_info=record_info
             )
+
             return record
         except Exception as e:
             raise e
+
+
     
-    @classmethod
-    def delete(self):
-        # Implement the delete method
-        pass
-
-    @classmethod
-    def get_all(cls):
-        # Implement the get_all method
-        pass
-
-    @classmethod
-    def get_by_id(cls, id):
-        # Implement the get_by_id method
-        pass
-
-    def refresh(self):
-        # Implement the refresh method
-        pass
-
-    def update(self, **kwargs):
-        # Implement the update method
-        pass
-
-    @classmethod
-    def add(cls, records: List['ModelRecord']):
+    def delete(self) -> bool:
         try:
-            records_to_insert = []
-            dataset_id = DatasetModel.get_or_create(dataset_name=records[0].dataset_name).id
+            current_id = self.id
+            model_record = ModelRecordModel.get(current_id)
+            ModelRecordModel.delete(model_record)
+            return True
+        except Exception as e:
+            raise e
+
+    @classmethod
+    def get_all(cls, limit: int = 100) -> List['ModelRecord']:
+        try:
+            instances = ModelRecordModel.all(limit=limit)
+            instances = [cls.model_validate(instance) for instance in instances]
+            return instances
+        except Exception as e:
+            raise e
+
+    @classmethod
+    def get_by_id(cls, id: UUID | int | str) -> 'ModelRecord':
+        try:
+            record = ModelRecordModel.get(id)
+            record = cls.model_construct(
+                _fields_set=cls.model_fields_set,
+                **record.to_dict()
+            )        
+            record = record.model_dump()
+            record = cls._postprocess_record(record)
+            record = cls.model_validate(record)
+            return record
+        except Exception as e:
+            raise e
+        
+
+    def refresh(self) -> 'ModelRecord':
+        try:
+            db_instance = ModelRecordModel.get(self.id)
+            instance = self.model_construct(
+                _fields_set=self.model_fields_set,
+                **db_instance.to_dict()
+            )
+            for key, value in instance.model_dump().items():
+               if hasattr(self, key) and key != "id":
+                   setattr(self, key, value)
+            return self
+        except Exception as e:
+            raise e
+
+    def update(
+        self,
+        model_data: dict = None,
+        record_info: dict = None
+    ) -> 'ModelRecord':
+        try:
+            if not model_data and not record_info:
+                raise ValueError("At least one parameter must be provided.")
+            
+            current_id = self.id
+            model_record = ModelRecordModel.get(current_id)
+            model_record = ModelRecordModel.update(
+                model_record,
+                model_data=model_data,
+                record_info=record_info
+            )
+            model_record = self.model_validate(model_record)
+            self.refresh()
+            return model_record
+        except Exception as e:
+            raise e
+
+    @classmethod
+    def add(cls, records: List['ModelRecord']) -> bool:
+        try:
+            records = cls._verify_records(records)
             records = [cls._preprocess_record(record) for record in records]
+            records_to_insert = []
             for record in records:
-                record_to_insert = {
-                    'timestamp': record.timestamp,
-                    'collection_date': record.timestamp.date(),
-                    'dataset_id': dataset_id,
-                    'dataset_name': record.dataset_name,
-                    'model_id': record.model_id,
-                    'model_name': record.model_name,
-                    'model_data': record.model_data,
-                    'experiment_id': record.experiment_id,
-                    'experiment_name': record.experiment_name,
-                    'site_id': record.site_id,
-                    'site_name': record.site_name,
-                    'season_id': record.season_id,
-                    'season_name': record.season_name,
-                    'record_file': record.record_file,
-                    'record_info': record.record_info
-                }
+                record_to_insert = record.model_dump()
+                record_to_insert = {k: v for k, v in record_to_insert.items() if v is not None}
                 records_to_insert.append(record_to_insert)
             ModelRecordModel.insert_bulk('model_records_unique', records_to_insert)
             return True
         except Exception as e:
             return False
+
         
     @classmethod
     def get(cls, model_record_id: ID) -> 'ModelRecord':
@@ -136,9 +191,29 @@ class ModelRecord(APIBase, FileHandlerMixin):
             raise e
         
     @classmethod
-    def search(cls, **kwargs) -> Generator['ModelRecord', None, None]:
+    def search(
+        cls, 
+        dataset_name: str = None,
+        model_name: str = None,
+        experiment_name: str = None,
+        site_name: str = None,
+        season_name: str = None,
+        collection_date: date = None,
+        record_info: dict = None    
+    ) -> Generator['ModelRecord', None, None]:
         try:
-            records = ModelRecordsIMMVModel.stream(**kwargs)
+            if not dataset_name and not model_name and not experiment_name and not site_name and not season_name and not collection_date:
+                raise ValueError("At least one parameter must be provided.")
+
+            records = ModelRecordsIMMVModel.stream(
+                dataset_name=dataset_name,
+                model_name=model_name,
+                experiment_name=experiment_name,
+                site_name=site_name,
+                season_name=season_name,
+                collection_date=collection_date,
+                record_info=record_info
+            )
             for record in records:
                 record = cls.model_construct(
                     _fields_set=cls.model_fields_set,
@@ -151,6 +226,125 @@ class ModelRecord(APIBase, FileHandlerMixin):
         except Exception as e:
             raise e
         
+        
+    def set_experiment(self, experiment_name: str) -> 'ModelRecord':
+        try:
+            record = ModelRecordModel.get(self.id)
+            experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+            ModelRecordModel.update(record, experiment_id=experiment.id, experiment_name=experiment.experiment_name)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
+        
+
+    def set_season(self, season_name: str) -> 'ModelRecord':
+        try:
+            record = ModelRecordModel.get(self.id)
+            experiment = ExperimentModel.get(record.experiment_id)
+            season = ExperimentSeasonsViewModel.get_by_parameters(
+                season_name=season_name,
+                experiment_name=experiment.experiment_name
+            )
+            ModelRecordModel.update(record, season_id=season.season_id, season_name=season.season_name)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
+
+    
+    def set_site(self, site_name: str) -> 'ModelRecord':
+        try:
+            record = ModelRecordModel.get(self.id)
+            experiment = ExperimentModel.get(record.experiment_id)
+            site = ExperimentSitesViewModel.get_by_parameters(
+                site_name=site_name,
+                experiment_name=experiment.experiment_name
+            )
+            ModelRecordModel.update(record, site_id=site.site_id, site_name=site.site_name)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
+        
+    @classmethod
+    def get_valid_combinations(
+        cls,
+        dataset_name: str = None,
+        model_name: str = None,
+        experiment_name: str = None,
+        site_name: str = None,
+        season_name: str = None
+    ) -> List[dict]:
+        try:
+            valid_combinations = ValidModelDatasetCombinationsViewModel.search(
+                dataset_name=dataset_name,
+                model_name=model_name,
+                experiment_name=experiment_name,
+                site_name=site_name,
+                season_name=season_name
+            )
+            return [record.to_dict() for record in valid_combinations]
+        except Exception as e:
+            raise e
+        
+
+    @classmethod
+    def _verify_records(cls, records: List['ModelRecord']) -> List['ModelRecord']:
+        try:
+
+            # Refresh all the views
+            ExperimentModelsViewModel.refresh()
+            ExperimentDatasetsViewModel.refresh()
+            ExperimentSeasonsViewModel.refresh()
+            ExperimentSitesViewModel.refresh()
+
+            # Variables
+            model = None
+            datasets = {}
+            experiments = {}
+            seasons = {}
+            sites = {}
+
+            # Get all the records
+            for record in records:
+                if not record.timestamp:
+                    raise ValueError("Timestamp is required.")
+                if not record.collection_date:
+                    record.collection_date = record.timestamp.date()
+                
+                if model and model.model_name != record.model_name:
+                    raise ValueError("All records must have the same model name.")
+                
+                if not model and ModelModel.exists(model_name=record.model_name):
+                    model = ModelModel.get_by_parameters(model_name=record.model_name)
+
+                record.model_id = model.id
+
+                if record.dataset_name not in datasets and DatasetModel.exists(dataset_name=record.dataset_name):
+                    datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=record.dataset_name)
+                
+                record.dataset_id = datasets[record.dataset_name].id
+
+                if record.experiment_name not in experiments and ExperimentDatasetsViewModel.exists(experiment_name=record.experiment_name, dataset_name=record.dataset_name):
+                    experiments[record.experiment_name] = ExperimentDatasetsViewModel.get_by_parameters(experiment_name=record.experiment_name, dataset_name=record.dataset_name)
+
+                record.experiment_id = experiments[record.experiment_name].experiment_id
+
+                if record.season_name not in seasons and ExperimentSeasonsViewModel.exists(experiment_name=record.experiment_name, season_name=record.season_name):
+                    seasons[record.season_name] = ExperimentSeasonsViewModel.get_by_parameters(experiment_name=record.experiment_name, season_name=record.season_name)
+
+                record.season_id = seasons[record.season_name].season_id
+
+                if record.site_name not in sites and ExperimentSitesViewModel.exists(experiment_name=record.experiment_name, site_name=record.site_name):
+                    sites[record.site_name] = ExperimentSitesViewModel.get_by_parameters(experiment_name=record.experiment_name, site_name=record.site_name)
+
+                record.site_id = sites[record.site_name].site_id
+
+            return records
+        except Exception as e:
+            raise e
+
     @classmethod
     def _preprocess_record(cls, record: 'ModelRecord') -> 'ModelRecord':
         try:

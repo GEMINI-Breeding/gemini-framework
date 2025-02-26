@@ -24,7 +24,18 @@ CREATE TABLE IF NOT EXISTS gemini.dataset_records (
 ) USING columnar;
 
 
-ALTER TABLE gemini.dataset_records ADD CONSTRAINT dataset_records_unique UNIQUE NULLS DISTINCT (timestamp, collection_date, dataset_id, dataset_name, record_info);
+ALTER TABLE gemini.dataset_records ADD CONSTRAINT dataset_records_unique UNIQUE NULLS DISTINCT (
+    timestamp, 
+    collection_date, 
+    dataset_id, 
+    dataset_name, 
+    experiment_id,
+    experiment_name, 
+    season_id, 
+    season_name,
+    site_id,
+    site_name
+);
 
 CREATE INDEX dataset_records_record_info_idx ON gemini.dataset_records USING GIN (record_info);
 ------------------------------------------------------------------------------
@@ -54,7 +65,24 @@ CREATE TABLE IF NOT EXISTS gemini.sensor_records (
     record_info JSONB NOT NULL DEFAULT '{}'
 );
 
-ALTER TABLE gemini.sensor_records ADD CONSTRAINT sensor_records_unique UNIQUE NULLS DISTINCT (timestamp, collection_date, dataset_id, dataset_name, sensor_id, sensor_name, record_info);
+ALTER TABLE gemini.sensor_records ADD CONSTRAINT sensor_records_unique UNIQUE NULLS DISTINCT (
+    timestamp, 
+    collection_date, 
+    sensor_id, 
+    sensor_name, 
+    dataset_id,
+    dataset_name, 
+    experiment_id,
+    experiment_name, 
+    season_id,
+    season_name, 
+    site_id,
+    site_name, 
+    plot_id, 
+    plot_number, 
+    plot_row_number, 
+    plot_column_number
+);
 
 CREATE INDEX sensor_records_record_info_idx ON gemini.sensor_records USING GIN (record_info);
 
@@ -84,7 +112,24 @@ CREATE TABLE IF NOT EXISTS gemini.trait_records (
     record_info JSONB NOT NULL DEFAULT '{}'
 ) USING columnar;
 
-ALTER TABLE gemini.trait_records ADD CONSTRAINT trait_records_unique UNIQUE NULLS DISTINCT (timestamp, collection_date, dataset_id, dataset_name, trait_id, trait_name, record_info);
+ALTER TABLE gemini.trait_records ADD CONSTRAINT trait_records_unique UNIQUE NULLS DISTINCT (
+    timestamp, 
+    collection_date, 
+    trait_id, 
+    trait_name, 
+    dataset_id,
+    dataset_name, 
+    experiment_id,
+    experiment_name, 
+    season_id,
+    season_name, 
+    site_id,
+    site_name, 
+    plot_id, 
+    plot_number, 
+    plot_row_number, 
+    plot_column_number
+);
 
 CREATE INDEX trait_records_record_info_idx ON gemini.trait_records USING GIN (record_info);
 
@@ -111,7 +156,20 @@ CREATE TABLE IF NOT EXISTS gemini.procedure_records (
     record_info JSONB NOT NULL DEFAULT '{}'
 ) USING columnar;
 
-ALTER TABLE gemini.procedure_records ADD CONSTRAINT procedure_records_unique UNIQUE NULLS DISTINCT (timestamp, collection_date, dataset_id, dataset_name, procedure_id, procedure_name, record_info);
+ALTER TABLE gemini.procedure_records ADD CONSTRAINT procedure_records_unique UNIQUE NULLS DISTINCT (
+    timestamp, 
+    collection_date, 
+    procedure_id, 
+    procedure_name, 
+    dataset_id,
+    dataset_name, 
+    experiment_id,
+    experiment_name, 
+    season_id,
+    season_name, 
+    site_id,
+    site_name
+);
 
 CREATE INDEX procedure_records_record_info_idx ON gemini.procedure_records USING GIN (record_info);
 
@@ -138,7 +196,20 @@ CREATE TABLE IF NOT EXISTS gemini.script_records (
     record_info JSONB NOT NULL DEFAULT '{}'
 ) USING columnar;
 
-ALTER TABLE gemini.script_records ADD CONSTRAINT script_records_unique UNIQUE NULLS DISTINCT (timestamp, collection_date, dataset_id, dataset_name, script_id, script_name, record_info);
+ALTER TABLE gemini.script_records ADD CONSTRAINT script_records_unique UNIQUE NULLS DISTINCT (
+    timestamp, 
+    collection_date, 
+    script_id, 
+    script_name, 
+    dataset_id,
+    dataset_name, 
+    experiment_id,
+    experiment_name, 
+    season_id,
+    season_name, 
+    site_id,
+    site_name
+);
 
 CREATE INDEX script_records_record_info_idx ON gemini.script_records USING GIN (record_info);
 ------------------------------------------------------------------------------
@@ -164,6 +235,19 @@ CREATE TABLE IF NOT EXISTS gemini.model_records (
     record_info JSONB NOT NULL DEFAULT '{}'
 ) USING columnar;
 
-ALTER TABLE gemini.model_records ADD CONSTRAINT model_records_unique UNIQUE NULLS DISTINCT (timestamp, collection_date, dataset_id, dataset_name, model_id, model_name, record_info);
+ALTER TABLE gemini.model_records ADD CONSTRAINT model_records_unique UNIQUE NULLS DISTINCT (
+    timestamp, 
+    collection_date, 
+    model_id, 
+    model_name, 
+    dataset_id,
+    dataset_name, 
+    experiment_id,
+    experiment_name, 
+    season_id,
+    season_name, 
+    site_id,
+    site_name
+);
 
 CREATE INDEX model_records_record_info_idx ON gemini.model_records USING GIN (record_info);

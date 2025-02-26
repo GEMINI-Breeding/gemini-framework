@@ -27,11 +27,18 @@ class DatasetRecordModel(ColumnarBaseModel):
     __table_args__ = (
         UniqueConstraint(
             'timestamp',
-            'collection_date', 
-            'dataset_id', 
-            'dataset_name', 
-            'record_info',
+            'collection_date',
+            'dataset_id',
+            'dataset_name',
+            'experiment_id',
+            'experiment_name',
+            'season_id',
+            'season_name',
+            'site_id',
+            'site_name',
             name='dataset_records_unique'
         ),
+        Index('idx_dataset_records_record_info', 'record_info', postgresql_using='GIN'),
     )
 
+ 

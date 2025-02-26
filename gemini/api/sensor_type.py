@@ -66,6 +66,9 @@ class SensorType(APIBase):
         sensor_type_info: dict = None,
     ) -> List["SensorType"]:
         try:
+            if not sensor_type_name and not sensor_type_info:
+                raise Exception("Must provide at least one search parameter.")
+
             instances = SensorTypeModel.search(
                 sensor_type_name=sensor_type_name,
                 sensor_type_info=sensor_type_info,
@@ -76,15 +79,48 @@ class SensorType(APIBase):
             raise e
         
 
-    def update(self, **update_parameters) -> "SensorType":
-        return super().update(**update_parameters)
+    def update(
+            self, 
+            sensor_type_name: str = None,
+            sensor_type_info: dict = None
+        ) -> "SensorType":
+        try:
+            if not sensor_type_name and not sensor_type_info:
+                raise ValueError("At least one parameter must be provided.")
+            
+            current_id = self.id
+            sensor_type = SensorTypeModel.get(current_id)
+            sensor_type = SensorTypeModel.update(
+                sensor_type,
+                sensor_type_name=sensor_type_name,
+                sensor_type_info=sensor_type_info,
+            )
+            sensor_type = self.model_validate(sensor_type)
+            self.refresh()
+            return sensor_type
+        except Exception as e:
+            raise e
     
     def delete(self) -> bool:
-        return super().delete()
-    
+        try:
+            current_id = self.id
+            sensor_type = SensorTypeModel.get(current_id)
+            SensorTypeModel.delete(sensor_type)
+            return True
+        except Exception as e:
+            raise e
+
+        
     def refresh(self) -> "SensorType":
-        return super().refresh()
-    
+        try:
+            db_instance = SensorTypeModel.get(self.id)
+            instance = self.model_validate(db_instance)
+            for key, value in instance.model_dump().items():
+                if hasattr(self, key) and key != "id":
+                    setattr(self, key, value)
+            return self
+        except Exception as e:
+            raise e
 
         
 

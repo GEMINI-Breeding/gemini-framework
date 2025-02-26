@@ -53,7 +53,7 @@ class Dataset(APIBase):
     @classmethod
     def get(cls, dataset_name: str, experiment_name: str = None) -> "Dataset":
         try:
-            db_instance = DatasetModel.get_by_parameters(
+            db_instance = ExperimentDatasetsViewModel.get_by_parameters(
                 dataset_name=dataset_name,
                 experiment_name=experiment_name
             )
@@ -93,6 +93,9 @@ class Dataset(APIBase):
         collection_date: date = None,
     ) -> List["Dataset"]:
         try:
+            if not experiment_name and not dataset_name and not dataset_info and not dataset_type and not collection_date:
+                raise ValueError("At least one parameter must be provided.")
+
             datasets = ExperimentDatasetsViewModel.search(
                 experiment_name=experiment_name,
                 dataset_name=dataset_name,
@@ -105,11 +108,26 @@ class Dataset(APIBase):
         except Exception as e:
             raise e
         
-    def update(self, **update_parameters) -> "Dataset":
+    def update(
+            self,
+            dataset_name: str = None,
+            dataset_info: dict = None,
+            dataset_type: GEMINIDatasetType = None,
+            collection_date: date = None 
+    ) -> "Dataset":
         try:
+            if not dataset_name and not dataset_info and not dataset_type and not collection_date:
+                raise ValueError("At least one parameter must be provided.")
+
             current_id = self.id
             dataset = DatasetModel.get(current_id)
-            dataset = DatasetModel.update(dataset, **update_parameters)
+            dataset = DatasetModel.update(
+                dataset,
+                dataset_name=dataset_name,
+                dataset_info=dataset_info,
+                dataset_type_id=dataset_type.value if dataset_type else None,
+                collection_date=collection_date
+            )
             dataset = self.model_validate(dataset)
             self.refresh()
             return dataset
@@ -131,78 +149,77 @@ class Dataset(APIBase):
             instance = self.model_validate(db_instance)
             for key, value in instance.model_dump().items():
                 if hasattr(self, key) and key != "id":
-                    actual_value = getattr(instance, key)
-                    setattr(self, key, actual_value)
+                    setattr(self, key, value)
             return self
         except Exception as e:
             raise e
         
-    def add_record(
-        self,
-        record = DatasetRecord
-    ) -> bool:
-        try:
-            if record.timestamp is None:
-                record.timestamp = datetime.now()
-            if record.collection_date is None:
-                record.collection_date = record.timestamp.date()
-            if record.dataset_name is None:
-                record.dataset_name = self.dataset_name
-            if record.record_info is None:
-                record.record_info = {}
+    # def add_record(
+    #     self,
+    #     record = DatasetRecord
+    # ) -> bool:
+    #     try:
+    #         if record.timestamp is None:
+    #             record.timestamp = datetime.now()
+    #         if record.collection_date is None:
+    #             record.collection_date = record.timestamp.date()
+    #         if record.dataset_name is None:
+    #             record.dataset_name = self.dataset_name
+    #         if record.record_info is None:
+    #             record.record_info = {}
 
-            record.dataset_id = self.id
+    #         record.dataset_id = self.id
 
-            success = DatasetRecord.add([record])
-            return success
-        except Exception as e:
-            return False
+    #         success = DatasetRecord.add([record])
+    #         return success
+    #     except Exception as e:
+    #         return False
 
 
-    def add_records(
-            self,
-            records: List[DatasetRecord]
-    ) -> bool:
-        try:
-            for record in records:
-                if record.timestamp is None:
-                    record.timestamp = datetime.now()
-                if record.collection_date is None:
-                    record.collection_date = record.timestamp.date()
-                if record.dataset_name is None:
-                    record.dataset_name = self.dataset_name
-                if record.record_info is None:
-                    record.record_info = {}
+    # def add_records(
+    #         self,
+    #         records: List[DatasetRecord]
+    # ) -> bool:
+    #     try:
+    #         for record in records:
+    #             if record.timestamp is None:
+    #                 record.timestamp = datetime.now()
+    #             if record.collection_date is None:
+    #                 record.collection_date = record.timestamp.date()
+    #             if record.dataset_name is None:
+    #                 record.dataset_name = self.dataset_name
+    #             if record.record_info is None:
+    #                 record.record_info = {}
 
-                record.dataset_id = self.id
+    #             record.dataset_id = self.id
                 
-            success = DatasetRecord.add(records)
-            return success
-        except Exception as e:
-            return False
+    #         success = DatasetRecord.add(records)
+    #         return success
+    #     except Exception as e:
+    #         return False
         
-    def get_records(
-            self,
-            collection_date: date = None,
-            experiment_name: str = None,
-            season_name: str = None,
-            site_name: str = None,
-            record_info: dict = None
-    ) -> List[DatasetRecord]:
-        try:
-            record_info = record_info if record_info else {}
-            record_info = {k: v for k, v in record_info.items() if v is not None}
+    # def get_records(
+    #         self,
+    #         collection_date: date = None,
+    #         experiment_name: str = None,
+    #         season_name: str = None,
+    #         site_name: str = None,
+    #         record_info: dict = None
+    # ) -> List[DatasetRecord]:
+    #     try:
+    #         record_info = record_info if record_info else {}
+    #         record_info = {k: v for k, v in record_info.items() if v is not None}
 
-            records = DatasetRecord.search(
-                dataset_id=self.id,
-                collection_date=collection_date,
-                dataset_name=self.dataset_name,
-                experiment_name=experiment_name,
-                season_name=season_name,
-                site_name=site_name,
-                record_info=record_info
-            )
-            return records
-        except Exception as e:
-            raise e
+    #         records = DatasetRecord.search(
+    #             dataset_id=self.id,
+    #             collection_date=collection_date,
+    #             dataset_name=self.dataset_name,
+    #             experiment_name=experiment_name,
+    #             season_name=season_name,
+    #             site_name=site_name,
+    #             record_info=record_info
+    #         )
+    #         return records
+    #     except Exception as e:
+    #         raise e
 

@@ -102,7 +102,7 @@ class DataFormat(APIBase):
                 data_format_info=data_format_info,
             )
             data_format = self.model_validate(data_format)
-            data_format.refresh()
+            self.refresh()
             return data_format
         except Exception as e:
             raise e
@@ -123,8 +123,7 @@ class DataFormat(APIBase):
             instance = self.model_validate(db_instance)
             for key, value in instance.model_dump().items():
                 if hasattr(self, key) and key != "id":
-                    actual_value = getattr(self, key)
-                    setattr(self, key, actual_value)
+                    setattr(self, key, value)
             return self
         except Exception as e:
             raise e

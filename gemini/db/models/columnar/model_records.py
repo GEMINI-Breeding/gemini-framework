@@ -7,7 +7,6 @@ import uuid
 from datetime import datetime, date
 
 
-
 class ModelRecordModel(ColumnarBaseModel):
 
     __tablename__ = "model_records"
@@ -33,11 +32,16 @@ class ModelRecordModel(ColumnarBaseModel):
         UniqueConstraint(
             'timestamp',
             'collection_date', 
-            'dataset_id', 
-            'dataset_name', 
             'model_id', 
             'model_name', 
-            'record_info',
+            'dataset_id',
+            'dataset_name', 
+            'experiment_id',
+            'experiment_name', 
+            'season_id', 
+            'season_name',
+            'site_id',
             name='model_records_unique'
         ),
+        Index('idx_model_records_record_info', 'record_info', postgresql_using='GIN'),
     )

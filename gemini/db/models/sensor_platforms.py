@@ -37,4 +37,4 @@ class SensorPlatformModel(BaseModel):
         ),
     )
 
-    sensors = relationship("SensorModel", secondary="gemini.sensor_platform_sensors", lazy="subquery", viewonly=True)
+    sensors = relationship("SensorModel", secondary="gemini.sensor_platform_sensors", lazy="selectin", cascade="save-update, merge, delete")

@@ -36,4 +36,4 @@ class DatasetModel(BaseModel):
         Index("idx_datasets_info", "dataset_info", postgresql_using="GIN"),
     )
 
-    dataset_type = relationship("DatasetTypeModel", lazy="subquery", viewonly=True)
+    dataset_type = relationship("DatasetTypeModel", lazy="selectin", uselist=False)

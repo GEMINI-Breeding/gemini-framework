@@ -31,12 +31,17 @@ class ProcedureRecordModel(ColumnarBaseModel):
         UniqueConstraint(
             'timestamp',
             'collection_date', 
-            'dataset_id', 
-            'dataset_name', 
             'procedure_id', 
             'procedure_name', 
-            'record_info',
+            'dataset_id',
+            'dataset_name', 
+            'experiment_id',
+            'experiment_name', 
+            'season_id', 
+            'season_name',
+            'site_id',
+            'site_name',
             name='procedure_records_unique'
         ),
+        Index('idx_procedure_records_record_info', 'record_info', postgresql_using='GIN'),
     )
-

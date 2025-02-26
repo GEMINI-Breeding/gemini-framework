@@ -79,6 +79,7 @@ class DatabaseEngine:
             bind=self._engine,
             autocommit=False,
             autoflush=False,
+            future=True,
             expire_on_commit=False
         )
 
@@ -149,7 +150,7 @@ class DatabaseEngine:
             session.commit()
         except Exception as e:
             session.rollback()
-            logger.exception("Database session error: %s", str(e))
+            # logger.exception("Database session error: %s", str(e))
             raise
         finally:
             session.close()

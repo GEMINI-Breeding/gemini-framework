@@ -22,9 +22,10 @@ for data_type in all_data_types:
 
 # Select first data type
 first_data_type = all_data_types[0]
+
 # Print all formats of the first data type
 print(f"All Formats of the first Data Type:")
-for data_format in first_data_type.formats:
+for data_format in first_data_type.get_formats():
     print(data_format)
 
 # Search for data types
@@ -33,13 +34,13 @@ length_searched_data_types = len(searched_data_types)
 print(f"Found {length_searched_data_types} data types")
 
 # Update the data type
-data_type = data_type.update(
+data_type.update(
     data_type_info={"test": "test_updated"},
 )
 print(f"Updated Data Type: {data_type}")
 
 # Refresh the data type
-data_type = data_type.refresh()
+data_type.refresh()
 print(f"Refreshed Data Type: {data_type}")
 
 # Add a new format to the data type

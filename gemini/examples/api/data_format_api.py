@@ -28,7 +28,7 @@ length_searched_data_formats = len(searched_data_formats)
 print(f"Found {length_searched_data_formats} data formats")
 
 # Update the data format
-data_format = data_format.update(
+data_format.update(
     data_format_mime_type="text/csv",
     data_format_info={"test": "test_updated"},
 )

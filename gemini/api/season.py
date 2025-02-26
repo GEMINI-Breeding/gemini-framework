@@ -7,7 +7,7 @@ from gemini.api.base import APIBase
 from gemini.db.models.seasons import SeasonModel
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.views.experiment_views import ExperimentSeasonsViewModel
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 class Season(APIBase):
 
@@ -23,8 +23,8 @@ class Season(APIBase):
     def create(
         cls,
         season_name: str,
-        season_start_date: date,
-        season_end_date: date,
+        season_start_date: date = date.today(),
+        season_end_date: date = date.today() + timedelta(days=30),
         season_info: dict = {},
         experiment_name: str = None
     ) -> "Season":
@@ -90,6 +90,9 @@ class Season(APIBase):
         season_info: dict = None
     ) -> List["Season"]:
         try:
+            if any([experiment_name, season_name, season_start_date, season_end_date, season_info]):
+                raise Exception("At least one search parameter must be provided.")
+
             seasons = ExperimentSeasonsViewModel.search(
                 experiment_name=experiment_name,
                 season_name=season_name,
@@ -102,11 +105,38 @@ class Season(APIBase):
         except Exception as e:
             raise e
         
-    def update(self, **kwargs):
-        return super().update(**kwargs)
-    
-    def delete(self):
-        return super().delete()
+    def update(
+        self,
+        season_start_date: date = None,
+        season_end_date: date = None,
+        season_info: dict = None
+    ) -> "Season":
+        try:
+            if any([season_start_date, season_end_date, season_info]):
+                raise Exception("At least one update parameter must be provided.")
+            current_id = self.id
+            season = SeasonModel.get(current_id)
+            season = SeasonModel.update(
+                season,
+                season_start_date=season_start_date,
+                season_end_date=season_end_date,
+                season_info=season_info
+            )
+            season = self.model_validate(season)
+            self.refresh()
+            return season
+        except Exception as e:
+            raise e
+
+
+    def delete(self) -> bool:
+        try:
+            current_id = self.id
+            season = SeasonModel.get(current_id)
+            SeasonModel.delete(season)
+            return True
+        except Exception as e:
+            raise e
     
     def refresh(self) -> "Season":
         try:
@@ -114,8 +144,7 @@ class Season(APIBase):
             instance = self.model_validate(db_instance)
             for key, value in instance.model_dump().items():
                 if hasattr(self, key) and key != "id":
-                    actual_value = getattr(self, key)
-                    setattr(self, key, actual_value)
+                    setattr(self, key, value)
             return self
         except Exception as e:
             raise e

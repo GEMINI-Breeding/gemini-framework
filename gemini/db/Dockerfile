@@ -1,5 +1,5 @@
 # Get Bitnami PostgreSQL image
-FROM bitnami/postgresql:16.0.0
+FROM bitnami/postgresql:16
 
 USER root
 

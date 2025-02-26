@@ -37,5 +37,5 @@ class TraitModel(BaseModel):
         Index('idx_traits_info', 'trait_info', postgresql_using='GIN')
     )
 
-    trait_level = relationship("TraitLevelModel", lazy="subquery", viewonly=True)
-    datasets = relationship("DatasetModel", secondary="gemini.trait_datasets", lazy="subquery", viewonly=True)
+    trait_level = relationship("TraitLevelModel", lazy="selectin", cascade="save-update, merge, delete", uselist=False)
+    datasets = relationship("DatasetModel", secondary="gemini.trait_datasets", lazy="selectin", cascade="save-update, merge, delete")

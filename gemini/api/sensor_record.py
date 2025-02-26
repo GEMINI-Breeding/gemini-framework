@@ -1,5 +1,6 @@
 from typing import Optional, List, Generator
 import os
+from uuid import UUID
 
 from gemini.api.types import ID
 from pydantic import Field, AliasChoices
@@ -7,7 +8,18 @@ from gemini.api.base import APIBase, FileHandlerMixin
 from gemini.db.models.sensors import SensorModel
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.sensor_records import SensorRecordModel
+from gemini.db.models.views.validation_views import ValidSensorDatasetCombinationsViewModel
 from gemini.db.models.views.sensor_records_immv import SensorRecordsIMMVModel
+from gemini.db.models.views.plot_view import PlotViewModel
+from gemini.db.models.views.experiment_views import (
+    ExperimentSensorsViewModel,
+    ExperimentDatasetsViewModel,
+    ExperimentSitesViewModel,
+    ExperimentSeasonsViewModel
+)
+
+from gemini.db.models.experiments import ExperimentModel
+from gemini.db.models.datasets import DatasetModel
 
 from datetime import date, datetime
 
@@ -29,9 +41,9 @@ class SensorRecord(APIBase, FileHandlerMixin):
     site_id: Optional[ID] = None
     site_name: Optional[str] = None
     plot_id: Optional[ID] = None
-    plot_number: Optional[str] = None
-    plot_row_number: Optional[str] = None
-    plot_column_number: Optional[str] = None
+    plot_number: Optional[int] = None
+    plot_row_number: Optional[int] = None
+    plot_column_number: Optional[int] = None
     record_file: Optional[str] = None
     record_info: Optional[dict] = None
 
@@ -39,48 +51,51 @@ class SensorRecord(APIBase, FileHandlerMixin):
     def create(
         cls,
         timestamp: datetime = datetime.now(),
-        collection_date: date = date.today(),
-        dataset_id: ID = None,
+        collection_date: date = None,
         dataset_name: str = None,
-        sensor_id: ID = None,
         sensor_name: str = None,
         sensor_data: dict = {},
-        experiment_id: ID = None,
-        experiment_name: str = 'Default',
-        site_id: ID = None,
-        site_name: str = 'Default',
-        season_id: ID = None,
-        season_name: str = 'Default',
-        plot_id: ID = None,
-        plot_number: str = 'Default',
-        plot_row_number: str = 'Default',
-        plot_column_number: str = 'Default',
+        experiment_name: str = None,
+        site_name: str = None,
+        season_name: str = None,
+        plot_number: int = None,
+        plot_row_number: int = None,
+        plot_column_number: int = None,
         record_file: str = None,
         record_info: dict = {}
     ) -> 'SensorRecord':
         try:
-            record = SensorRecord.model_construct(
-                _fields_set=SensorRecord.model_fields_set,
+            if not sensor_name:
+                raise ValueError("Sensor name is required.")
+            
+            if not dataset_name:
+                raise ValueError("Dataset name is required.")
+            
+            if not experiment_name:
+                raise ValueError("Experiment name is required.")
+            
+            if not site_name:
+                raise ValueError("Site name is required.")
+            
+            if not season_name:
+                raise ValueError("Season name is required.")
+
+            record = SensorRecord(
                 timestamp=timestamp,
                 collection_date=collection_date,
-                dataset_id=dataset_id,
                 dataset_name=dataset_name,
-                sensor_id=sensor_id,
                 sensor_name=sensor_name,
                 sensor_data=sensor_data,
-                experiment_id=experiment_id,
                 experiment_name=experiment_name,
-                site_id=site_id,
                 site_name=site_name,
-                season_id=season_id,
                 season_name=season_name,
-                plot_id=plot_id,
                 plot_number=plot_number,
                 plot_row_number=plot_row_number,
                 plot_column_number=plot_column_number,
                 record_file=record_file,
                 record_info=record_info
             )
+            
             return record
         except Exception as e:
             raise e
@@ -88,59 +103,89 @@ class SensorRecord(APIBase, FileHandlerMixin):
     @classmethod
     def add(cls, records: List['SensorRecord']):
         try:
-            records_to_insert = []
-            dataset_id = DatasetModel.get_or_create(dataset_name=records[0].dataset_name).id
+            records = cls._verify_records(records)
             records = [cls._preprocess_record(record) for record in records]
+            records_to_insert = []
             for record in records:
-                record_to_insert = {
-                    'timestamp': record.timestamp,
-                    'collection_date': record.timestamp.date(),
-                    'dataset_id': dataset_id,
-                    'dataset_name': record.dataset_name,
-                    'sensor_id': record.sensor_id,
-                    'sensor_name': record.sensor_name,
-                    'sensor_data': record.sensor_data,
-                    'experiment_id': record.experiment_id,
-                    'experiment_name': record.experiment_name,
-                    'site_id': record.site_id,
-                    'site_name': record.site_name,
-                    'season_id': record.season_id,
-                    'season_name': record.season_name,
-                    'plot_id': record.plot_id,
-                    'plot_number': record.plot_number,
-                    'plot_row_number': record.plot_row_number,
-                    'plot_column_number': record.plot_column_number,
-                    'record_file': record.record_file,
-                    'record_info': record.record_info
-                }
+                record_to_insert = record.model_dump()
+                record_to_insert = {k:v for k, v in record_to_insert.items() if v is not None}
                 records_to_insert.append(record_to_insert)
             SensorRecordModel.insert_bulk('sensor_records_unique', records_to_insert)
             return True
         except Exception as e:
-            return False
+            raise e
+
 
     @classmethod
-    def delete(self):
-        # Implement the delete method
-        pass
+    def delete(self) -> bool:
+        try:
+            current_id = self.id
+            record = SensorRecordModel.get(current_id)
+            SensorRecordModel.delete(record)
+            return True
+        except Exception as e:
+            raise e
+        
+    @classmethod
+    def get_all(cls, limit: int = 100) -> List['SensorRecord']:
+        try:
+            instances = SensorRecordModel.all(limit)
+            instances = [cls.model_validate(instance) for instance in instances]
+            return instances
+        except Exception as e:
+            raise e
+
 
     @classmethod
-    def get_all(cls):
-        # Implement the get_all method
-        pass
+    def get_by_id(cls, id: UUID | int | str) -> "SensorRecord":
+        try:
+            record = SensorRecordModel.get(id)
+            record = cls.model_construct(
+                _fields_set=cls.model_fields_set,
+                **record.to_dict()
+            )
+            record = record.model_dump()
+            record = cls._postprocess_record(record)
+            record = cls.model_validate(record)
+            return record
+        except Exception as e:
+            raise e
 
-    @classmethod
-    def get_by_id(cls, id):
-        # Implement the get_by_id method
-        pass
+    def refresh(self) -> "SensorRecord":
+        try:
+            db_instance = SensorRecordModel.get(self.id)
+            instance = self.model_construct(
+                _fields_set=self.model_fields_set,
+                **db_instance.to_dict()
+            )
+            for key, value in instance.model_dump().items():
+                if hasattr(self, key) and key != "id":
+                    setattr(self, key, value)
+            return self
+        except Exception as e:
+            raise e
 
-    def refresh(self):
-        # Implement the refresh method
-        pass
-
-    def update(self, **kwargs):
-        # Implement the update method
-        pass
+    def update(
+        self,
+        sensor_data: dict = None,
+        record_info: dict = None
+    ) -> "SensorRecord":
+        try:
+            if not sensor_data and not record_info:
+                raise ValueError("At least one update parameter must be provided.")
+            
+            current_id = self.id
+            sensor_record = SensorRecordModel.get(current_id)
+            sensor_record = SensorRecordModel.update(
+                sensor_record,
+                sensor_data=sensor_data,
+                record_info=record_info
+            )
+            sensor_record = self.model_validate(sensor_record)
+            self.refresh()
+            return sensor_record
+        except Exception as e:
+            raise e
 
     @classmethod
     def get(cls, sensor_record_id: ID) -> 'SensorRecord':
@@ -151,10 +196,179 @@ class SensorRecord(APIBase, FileHandlerMixin):
         except Exception as e:
             raise e
         
-    @classmethod
-    def search(cls, **kwargs) -> Generator['SensorRecord', None, None]:
+    def set_experiment(self, experiment_name: str) -> "SensorRecord":
         try:
-            records = SensorRecordsIMMVModel.stream(**kwargs)
+            record = SensorRecordModel.get(self.id)
+            experiment = ExperimentModel.get_or_create(experiment_name=experiment_name)
+            record = SensorRecordModel.update(record, experiment_id=experiment.id, experiment_name=experiment_name)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
+        
+    def set_season(self, season_name: str) -> "SensorRecord":
+        try:
+            record = SensorRecordModel.get(self.id)
+            experiment = ExperimentModel.get(record.experiment_id)
+            season = ExperimentSeasonsViewModel.get_by_parameters(
+                experiment_id=experiment.id,
+                season_name=season_name
+            )
+            SensorRecordModel.update(record, season_id=season.season_id, season_name=season_name)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
+        
+    def set_site(self, site_name: str) -> "SensorRecord":
+        try:
+            record = SensorRecordModel.get(self.id)
+            experiment = ExperimentModel.get(record.experiment_id)
+            site = ExperimentSitesViewModel.get_by_parameters(
+                experiment_id=experiment.id,
+                site_name=site_name
+            )
+            SensorRecordModel.update(record, site_id=site.site_id, site_name=site_name)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
+        
+    def set_plot(self, plot_number: int, plot_row_number: int, plot_column_number: int) -> "SensorRecord":
+        try:
+            record = SensorRecordModel.get(self.id)
+            plot = PlotViewModel.get_by_parameters(
+                experiment_id=record.experiment_id,
+                site_id=record.site_id,
+                season_id=record.season_id,
+                plot_number=plot_number,
+                plot_row_number=plot_row_number,
+                plot_column_number=plot_column_number
+            )
+            SensorRecordModel.update(record, plot_id=plot.plot_id, plot_number=plot_number, plot_row_number=plot_row_number, plot_column_number=plot_column_number)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
+
+
+    @classmethod
+    def get_valid_combinations(
+        cls,
+        dataset_name: str = None,
+        sensor_name: str = None,
+        experiment_name: str = None,
+        site_name: str = None,
+        season_name: str = None
+    ) -> List[dict]:
+        try:
+            valid_combinations = ValidSensorDatasetCombinationsViewModel.search(
+                dataset_name=dataset_name,
+                sensor_name=sensor_name,
+                experiment_name=experiment_name,
+                site_name=site_name,
+                season_name=season_name
+            )
+            return [record.to_dict() for record in valid_combinations]
+        except Exception as e:
+            raise e
+
+    @classmethod
+    def _verify_records(cls, records: List['SensorRecord']) -> List['SensorRecord']:
+        try:
+
+            # Refresh all the views
+            ExperimentSensorsViewModel.refresh()
+            ExperimentDatasetsViewModel.refresh()
+            ExperimentSitesViewModel.refresh()
+            ExperimentSeasonsViewModel.refresh()
+            PlotViewModel.refresh()
+
+            # Verify the records
+            sensor = None
+            datasets = {}
+            experiments = {}
+            sites = {}
+            seasons = {}
+
+            for record in records:
+                if not record.timestamp:
+                    raise ValueError("Timestamp is required.")
+                if not record.collection_date:
+                    record.collection_date = record.timestamp.date()
+
+                if sensor and record.sensor_name != sensor.sensor_name:
+                    raise ValueError("All records must have the same sensor name.")
+                
+                if not sensor and SensorModel.exists(sensor_name=record.sensor_name):
+                    sensor = SensorModel.get_by_parameters(sensor_name=record.sensor_name)
+
+                record.sensor_id = sensor.id
+
+                if record.dataset_name not in datasets and DatasetModel.exists(dataset_name=record.dataset_name):
+                    datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=record.dataset_name)
+
+                record.dataset_id = datasets[record.dataset_name].id
+
+                if record.experiment_name not in experiments and ExperimentDatasetsViewModel.exists(experiment_name=record.experiment_name, dataset_name=record.dataset_name):
+                    experiments[record.experiment_name] = ExperimentDatasetsViewModel.get_by_parameters(experiment_name=record.experiment_name, dataset_name=record.dataset_name)
+        
+                record.experiment_id = experiments[record.experiment_name].experiment_id
+
+                if record.site_name not in sites and ExperimentSitesViewModel.exists(experiment_id=record.experiment_id, site_name=record.site_name):
+                    sites[record.site_name] = ExperimentSitesViewModel.get_by_parameters(experiment_id=record.experiment_id, site_name=record.site_name)
+
+                record.site_id = sites[record.site_name].site_id
+
+                if record.season_name not in seasons and ExperimentSeasonsViewModel.exists(experiment_id=record.experiment_id, season_name=record.season_name):
+                    seasons[record.season_name] = ExperimentSeasonsViewModel.get_by_parameters(experiment_id=record.experiment_id, season_name=record.season_name)
+
+                record.season_id = seasons[record.season_name].season_id
+
+                if record.plot_number and record.plot_row_number and record.plot_column_number:
+                    plot = PlotViewModel.get_by_parameters(
+                        experiment_id=record.experiment_id,
+                        site_id=record.site_id,
+                        season_id=record.season_id,
+                        plot_number=record.plot_number,
+                        plot_row_number=record.plot_row_number,
+                        plot_column_number=record.plot_column_number
+                    )
+                    record.plot_id = plot.plot_id
+            return records
+        except Exception as e:
+            raise e
+
+
+
+    @classmethod
+    def search(
+        cls, 
+        dataset_name: str = None,
+        sensor_name: str = None,
+        experiment_name: str = None,
+        site_name: str = None,
+        season_name: str = None,
+        plot_number: str = None,
+        plot_row_number: str = None,
+        plot_column_number: str = None,
+        record_info: dict = None
+    ) -> Generator['SensorRecord', None, None]:
+        try:
+            if not any([dataset_name, sensor_name, experiment_name, site_name, season_name, plot_number, plot_row_number, plot_column_number, record_info]):
+                raise ValueError("At least one search parameter must be provided.")
+
+            records = SensorRecordsIMMVModel.stream(
+                dataset_name=dataset_name,
+                sensor_name=sensor_name,
+                experiment_name=experiment_name,
+                site_name=site_name,
+                season_name=season_name,
+                plot_number=plot_number,
+                plot_row_number=plot_row_number,
+                plot_column_number=plot_column_number,
+                record_info=record_info
+            )
             for record in records:
                 record = cls.model_construct(
                     _fields_set=cls.model_fields_set,

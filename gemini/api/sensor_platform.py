@@ -4,9 +4,9 @@ from uuid import UUID
 from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
-from gemini.api.sensor import Sensor
+from gemini.api.sensor import Sensor, GEMINIDataFormat, GEMINIDataType, GEMINISensorType
 from gemini.db.models.experiments import ExperimentModel
-from gemini.db.models.associations import ExperimentSensorPlatformModel
+from gemini.db.models.associations import ExperimentSensorPlatformModel, SensorPlatformSensorModel
 from gemini.db.models.sensor_platforms import SensorPlatformModel
 from gemini.db.models.sensors import SensorModel
 from gemini.db.models.views.experiment_views import ExperimentSensorPlatformsViewModel
@@ -39,15 +39,14 @@ class SensorPlatform(APIBase):
 
             instance = cls.model_validate(db_instance)
             return instance
-
-
         except Exception as e:
             raise e
     
     @classmethod
     def get(cls, sensor_platform_name: str, experiment_name: str = None) -> "SensorPlatform":
         try:
-            instance = SensorPlatformModel.get_by_parameters(
+
+            instance = ExperimentSensorPlatformsViewModel.get_by_parameters(
                 sensor_platform_name=sensor_platform_name,
                 experiment_name=experiment_name
             )
@@ -84,7 +83,10 @@ class SensorPlatform(APIBase):
         sensor_platform_info: dict = None
     ) -> List["SensorPlatform"]:
         try:
-            instances = SensorPlatformModel.search(
+            if not any([experiment_name, sensor_platform_name, sensor_platform_info]):
+                raise ValueError("At least one search parameter must be provided.")
+
+            instances = ExperimentSensorPlatformsViewModel.search(
                 experiment_name=experiment_name,
                 sensor_platform_name=sensor_platform_name,
                 sensor_platform_info=sensor_platform_info
@@ -95,11 +97,17 @@ class SensorPlatform(APIBase):
             raise e
         
 
-    def update(self, **update_parameters) -> "SensorPlatform":
+    def update(
+            self, 
+            sensor_platform_info: dict = None
+        ) -> "SensorPlatform":
         try:
+            if not sensor_platform_info:
+                raise ValueError("At least one update parameter must be provided.")
+
             current_id = self.id
             platform = SensorPlatformModel.get(current_id)
-            platform = SensorPlatformModel.update(platform, **update_parameters)
+            platform = SensorPlatformModel.update(platform, sensor_platform_info=sensor_platform_info)
             platform = self.model_validate(platform)
             self.refresh()
             return platform
@@ -123,17 +131,43 @@ class SensorPlatform(APIBase):
             instance = self.model_validate(db_instance)
             for key, value in instance.model_dump().items():
                 if hasattr(self, key) and key != "id":
-                    actual_value = getattr(instance, key)
-                    setattr(self, key, actual_value)
+                    setattr(self, key, value)
             return self
         except Exception as e:
             raise e
         
 
-    # def get_sensors(self) -> List[Sensor]:
-    #     try:
-    #         sensors = self.sensors
-    #         return sensors
-    #     except Exception as e:
-    #         raise e
-
+    def get_sensors(self) -> List[Sensor]:
+        try:
+            sensor_platform = SensorPlatformModel.get(self.id)
+            sensors = sensor_platform.sensors
+            sensors = [Sensor.model_validate(sensor) for sensor in sensors]
+            return sensors
+        except Exception as e:
+            raise e
+        
+    def add_sensor(
+        self,
+        sensor_name: str,
+        sensor_type: GEMINISensorType = GEMINISensorType.Default,
+        sensor_data_type: GEMINIDataType = GEMINIDataType.Default,
+        sensor_data_format: GEMINIDataFormat = GEMINIDataFormat.Default,
+        sensor_info: dict = {}
+    ) -> "Sensor":
+        try:
+            sensor = Sensor.create(
+                sensor_name=sensor_name,
+                sensor_type=sensor_type,
+                sensor_data_type=sensor_data_type,
+                sensor_data_format=sensor_data_format,
+                sensor_info=sensor_info
+            )
+            SensorPlatformSensorModel.get_or_create(
+                sensor_platform_id=self.id,
+                sensor_id=sensor.id
+            )
+            return sensor
+        except Exception as e:
+            raise e
+            
+        

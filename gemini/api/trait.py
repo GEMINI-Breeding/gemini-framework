@@ -98,6 +98,9 @@ class Trait(APIBase):
         trait_metrics: dict = None
     ) -> List["Trait"]:
         try:
+            if not any([experiment_name, trait_name, trait_units, trait_level, trait_info, trait_metrics]):
+                raise Exception("At least one search parameter must be provided.")
+            
             traits = ExperimentTraitsViewModel.search(
                 experiment_name=experiment_name,
                 trait_name=trait_name,
@@ -112,11 +115,26 @@ class Trait(APIBase):
             raise e
         
 
-    def update(self, **update_parameters) -> "Trait":
+    def update(
+            self, 
+            trait_units: str = None,
+            trait_level: GEMINITraitLevel = None,
+            trait_info: dict = None,
+            trait_metrics: dict = None,
+        ) -> "Trait":
         try:
+            if not any([trait_units, trait_level, trait_info, trait_metrics]):
+                raise Exception("At least one update parameter must be provided.")
+
             current_id = self.id
             trait = TraitModel.get(current_id)
-            trait = TraitModel.update(trait, **update_parameters)
+            trait = TraitModel.update(
+                trait,
+                trait_units=trait_units,
+                trait_level_id=trait_level.value if trait_level else None,
+                trait_info=trait_info,
+                trait_metrics=trait_metrics
+            )
             trait = self.model_validate(trait)
             self.refresh()
         except Exception as e:
@@ -140,85 +158,84 @@ class Trait(APIBase):
             instance = self.model_validate(db_instance)
             for key, value in instance.model_dump().items():
                 if hasattr(self, key) and key != "id":
-                    actual_value = getattr(instance, key)
-                    setattr(self, key, actual_value)
+                    setattr(self, key, value)
             return self
         except Exception as e:
             raise e
 
 
-    def add_record(
-        self,
-        record: TraitRecord
-    ) -> bool:
-        try:
-            if record.timestamp is None:
-                record.timestamp = datetime.now()
-            if record.collection_date is None:
-                record.collection_date = record.timestamp.date()
-            if record.dataset_name is None:
-                record.dataset_name = f"{self.trait_name} Dataset"
-            if record.trait_name is None:
-                record.trait_name = self.trait_name
-            if record.record_info is None:
-                record.record_info = {}
+    # def add_record(
+    #     self,
+    #     record: TraitRecord
+    # ) -> bool:
+    #     try:
+    #         if record.timestamp is None:
+    #             record.timestamp = datetime.now()
+    #         if record.collection_date is None:
+    #             record.collection_date = record.timestamp.date()
+    #         if record.dataset_name is None:
+    #             record.dataset_name = f"{self.trait_name} Dataset"
+    #         if record.trait_name is None:
+    #             record.trait_name = self.trait_name
+    #         if record.record_info is None:
+    #             record.record_info = {}
 
-            record.trait_id = self.id
-            success = TraitRecord.add([record])
-            return success
-        except Exception as e:
-            return False
+    #         record.trait_id = self.id
+    #         success = TraitRecord.add([record])
+    #         return success
+    #     except Exception as e:
+    #         return False
         
 
-    def add_records(
-        self,
-        records: List[TraitRecord]
-    ) -> bool:
-        try:
-            for record in records:
-                if record.timestamp is None:
-                    record.timestamp = datetime.now()
-                if record.collection_date is None:
-                    record.collection_date = record.timestamp.date()
-                if record.dataset_name is None:
-                    record.dataset_name = f"{self.trait_name} Dataset"
-                if record.trait_name is None:
-                    record.trait_name = self.trait_name
-                if record.record_info is None:
-                    record.record_info = {}
+    # def add_records(
+    #     self,
+    #     records: List[TraitRecord]
+    # ) -> bool:
+    #     try:
+    #         for record in records:
+    #             if record.timestamp is None:
+    #                 record.timestamp = datetime.now()
+    #             if record.collection_date is None:
+    #                 record.collection_date = record.timestamp.date()
+    #             if record.dataset_name is None:
+    #                 record.dataset_name = f"{self.trait_name} Dataset"
+    #             if record.trait_name is None:
+    #                 record.trait_name = self.trait_name
+    #             if record.record_info is None:
+    #                 record.record_info = {}
 
-                record.trait_id = self.id
-            success = TraitRecord.add(records)
-            return success
-        except Exception as e:
-            return False
+    #             record.trait_id = self.id
+    #         success = TraitRecord.add(records)
+    #         return success
+    #     except Exception as e:
+    #         return False
         
-    def get_records(
-            self,
-            collection_date: date = None,
-            experiment_name: str = None,
-            season_name: str = None,
-            site_name: str = None,
-            plot_number: int = None,
-            plot_row_number: int = None,
-            plot_column_number: int = None,
-            record_info: dict = None
-    ) -> List[TraitRecord]:
-        try:
-            record_info = record_info if record_info else {}
-            record_info = {k: v for k, v in record_info.items() if v is not None}
+    # def get_records(
+    #         self,
+    #         collection_date: date = None,
+    #         experiment_name: str = None,
+    #         season_name: str = None,
+    #         site_name: str = None,
+    #         plot_number: int = None,
+    #         plot_row_number: int = None,
+    #         plot_column_number: int = None,
+    #         record_info: dict = None
+    # ) -> List[TraitRecord]:
+    #     try:
+    #         record_info = record_info if record_info else {}
+    #         record_info = {k: v for k, v in record_info.items() if v is not None}
 
-            records = TraitRecord.search(
-                trait_id=self.id,
-                collection_date=collection_date,
-                experiment_name=experiment_name,
-                season_name=season_name,
-                site_name=site_name,
-                plot_number=plot_number,
-                plot_row_number=plot_row_number,
-                plot_column_number=plot_column_number,
-                record_info=record_info
-            )
-            return records
-        except Exception as e:
-            raise e
+    #         records = TraitRecord.search(
+    #             trait_id=self.id,
+    #             collection_date=collection_date,
+    #             experiment_name=experiment_name,
+    #             season_name=season_name,
+    #             site_name=site_name,
+    #             plot_number=plot_number,
+    #             plot_row_number=plot_row_number,
+    #             plot_column_number=plot_column_number,
+    #             record_info=record_info
+    #         )
+    #         return records
+    #     except Exception as e:
+    #         raise e

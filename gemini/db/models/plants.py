@@ -33,4 +33,5 @@ class PlantModel(BaseModel):
         Index("idx_plants_info", "plant_info", postgresql_using="GIN"),
     )
 
-    cultivar = relationship("CultivarModel", uselist=False, lazy="subquery", viewonly=True)
+    cultivar = relationship("CultivarModel", uselist=False, lazy="selectin", cascade="save-update, merge, delete")
+    plot = relationship("PlotModel", uselist=False, lazy="selectin", cascade="save-update, merge, delete", viewonly=True)

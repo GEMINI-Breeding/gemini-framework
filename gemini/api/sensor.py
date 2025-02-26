@@ -4,14 +4,14 @@ from uuid import UUID
 from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
-from gemini.api.dataset import Dataset
+from gemini.api.dataset import Dataset, GEMINIDatasetType
 from gemini.api.enums import GEMINISensorType, GEMINIDataType, GEMINIDataFormat
 from gemini.api.sensor_record import SensorRecord
 from gemini.db.models.sensors import SensorModel
 from gemini.db.models.sensor_types import SensorTypeModel
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.views.experiment_views import ExperimentSensorsViewModel
-from gemini.db.models.associations import ExperimentSensorModel, SensorPlatformSensorModel
+from gemini.db.models.associations import ExperimentSensorModel, SensorPlatformSensorModel, SensorDatasetModel
 from datetime import date, datetime
 
 class Sensor(APIBase):
@@ -109,6 +109,9 @@ class Sensor(APIBase):
         sensor_platform_name: str = None
     ) -> List["Sensor"]:
         try:
+            if not any([experiment_name, sensor_name, sensor_type, sensor_data_type, sensor_data_format, sensor_info, sensor_platform_name]):
+                raise Exception("Must provide at least one search parameter.")
+
             sensors = ExperimentSensorsViewModel.search(
                 experiment_name=experiment_name,
                 sensor_name=sensor_name,
@@ -124,11 +127,26 @@ class Sensor(APIBase):
             raise e
         
 
-    def update(self, **update_parameters) -> "Sensor":
+    def update(
+        self, 
+        sensor_type: GEMINISensorType = None,
+        sensor_data_type: GEMINIDataType = None,
+        sensor_data_format: GEMINIDataFormat = None,
+        sensor_info: dict = None
+    ) -> "Sensor":
         try:
+            if not any([sensor_type, sensor_data_type, sensor_data_format, sensor_info]):
+                raise Exception("At least one update parameter must be provided.")
+
             current_id = self.id
             sensor = SensorModel.get(current_id)
-            sensor = SensorModel.update(sensor, **update_parameters)
+            sensor = SensorModel.update(
+                sensor,
+                sensor_type=sensor_type,
+                sensor_data_type=sensor_data_type,
+                sensor_data_format=sensor_data_format,
+                sensor_info=sensor_info
+            )
             sensor = self.model_validate(sensor)
             self.refresh()
             return sensor
@@ -158,80 +176,108 @@ class Sensor(APIBase):
         except Exception as e:
             raise e
         
-
-    def add_record(
-        self,
-        record: SensorRecord
-    ) -> bool:
+    def get_datasets(self) -> List[Dataset]:
         try:
-            if record.timestamp is None:
-                record.timestamp = datetime.now()
-            if record.collection_date is None:
-                record.collection_date = record.timestamp.date()
-            if record.dataset_name is None:
-                record.dataset_name = f"{self.sensor_name} Dataset"
-            if record.sensor_name is None:
-                record.sensor_name = self.sensor_name
-            if record.record_info is None:
-                record.record_info = {}
-
-            record.sensor_id = self.id
-            success = SensorRecord.add([record])
-            return success
-        except Exception as e:
-            return False
-        
-
-    def add_records(
-        self,
-        records: List[SensorRecord]
-    ) -> bool:
-        try:
-            for record in records:
-                if record.timestamp is None:
-                    record.timestamp = datetime.now()
-                if record.collection_date is None:
-                    record.collection_date = record.timestamp.date()
-                if record.dataset_name is None:
-                    record.dataset_name = f"{self.sensor_name} Dataset"
-                if record.sensor_name is None:
-                    record.sensor_name = self.sensor_name
-                if record.record_info is None:
-                    record.record_info = {}
-
-                record.sensor_id = self.id
-            success = SensorRecord.add(records)
-            return success
-        except Exception as e:
-            return False
-        
-
-    def get_records(
-            self,
-            collection_date: date = None,
-            experiment_name: str = None,
-            season_name: str = None,
-            site_name: str = None,
-            plot_number: int = None,
-            plot_row_number: int = None,
-            plot_column_number: int = None,
-            record_info: dict = None
-    ) -> List[SensorRecord]:
-        try:
-            record_info = record_info if record_info else {}
-            record_info = {k: v for k, v in record_info.items() if v is not None}
-
-            records = SensorRecord.search(
-                sensor_id=self.id,
-                collection_date=collection_date,
-                experiment_name=experiment_name,
-                season_name=season_name,
-                site_name=site_name,
-                plot_number=plot_number,
-                plot_row_number=plot_row_number,
-                plot_column_number=plot_column_number,
-                record_info=record_info
-            )
-            return records
+            sensor = SensorModel.get(self.id)
+            datasets = sensor.datasets
+            datasets = [Dataset.model_validate(dataset) for dataset in datasets]
+            return datasets
         except Exception as e:
             raise e
+        
+    def create_dataset(
+        self,
+        dataset_name: str,
+        dataset_info: dict = {},
+        collection_date: date = None,
+        experiment_name: str = None
+    ) -> Dataset:
+        try:
+            dataset = Dataset.create(
+                dataset_name=dataset_name,
+                dataset_info=dataset_info,
+                collection_date=collection_date,
+                experiment_name=experiment_name,
+                dataset_type=GEMINIDatasetType.Sensor
+            )
+            SensorDatasetModel.get_or_create(sensor_id=self.id, dataset_id=dataset.id)
+            return dataset
+        except Exception as e:
+            raise e
+
+    # def add_record(
+    #     self,
+    #     record: SensorRecord
+    # ) -> bool:
+    #     try:
+    #         if record.timestamp is None:
+    #             record.timestamp = datetime.now()
+    #         if record.collection_date is None:
+    #             record.collection_date = record.timestamp.date()
+    #         if record.dataset_name is None:
+    #             record.dataset_name = f"{self.sensor_name} Dataset"
+    #         if record.sensor_name is None:
+    #             record.sensor_name = self.sensor_name
+    #         if record.record_info is None:
+    #             record.record_info = {}
+
+    #         record.sensor_id = self.id
+    #         success = SensorRecord.add([record])
+    #         return success
+    #     except Exception as e:
+    #         return False
+        
+
+    # def add_records(
+    #     self,
+    #     records: List[SensorRecord]
+    # ) -> bool:
+    #     try:
+    #         for record in records:
+    #             if record.timestamp is None:
+    #                 record.timestamp = datetime.now()
+    #             if record.collection_date is None:
+    #                 record.collection_date = record.timestamp.date()
+    #             if record.dataset_name is None:
+    #                 record.dataset_name = f"{self.sensor_name} Dataset"
+    #             if record.sensor_name is None:
+    #                 record.sensor_name = self.sensor_name
+    #             if record.record_info is None:
+    #                 record.record_info = {}
+
+    #             record.sensor_id = self.id
+    #         success = SensorRecord.add(records)
+    #         return success
+    #     except Exception as e:
+    #         return False
+        
+
+    # def get_records(
+    #         self,
+    #         collection_date: date = None,
+    #         experiment_name: str = None,
+    #         season_name: str = None,
+    #         site_name: str = None,
+    #         plot_number: int = None,
+    #         plot_row_number: int = None,
+    #         plot_column_number: int = None,
+    #         record_info: dict = None
+    # ) -> List[SensorRecord]:
+    #     try:
+    #         record_info = record_info if record_info else {}
+    #         record_info = {k: v for k, v in record_info.items() if v is not None}
+
+    #         records = SensorRecord.search(
+    #             sensor_id=self.id,
+    #             collection_date=collection_date,
+    #             experiment_name=experiment_name,
+    #             season_name=season_name,
+    #             site_name=site_name,
+    #             plot_number=plot_number,
+    #             plot_row_number=plot_row_number,
+    #             plot_column_number=plot_column_number,
+    #             record_info=record_info
+    #         )
+    #         return records
+    #     except Exception as e:
+    #         raise e

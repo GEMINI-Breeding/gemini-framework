@@ -3,12 +3,12 @@ from uuid import UUID
 
 from pydantic import Field, AliasChoices
 from gemini.api.types import ID
+
 from gemini.api.base import APIBase
 from gemini.api.site import Site
 from gemini.api.sensor import Sensor, GEMINISensorType, GEMINIDataType, GEMINIDataFormat
 from gemini.api.season import Season
 from gemini.api.cultivar import Cultivar
-from gemini.api.dataset import Dataset
 from gemini.api.trait import Trait, GEMINITraitLevel
 from gemini.api.model import Model
 from gemini.api.procedure import Procedure
@@ -29,19 +29,6 @@ class Experiment(APIBase):
     experiment_info: Optional[dict] = None
     experiment_start_date: Optional[date] = None
     experiment_end_date: Optional[date] = None
-
-    seasons : Optional[List[Season]] = None
-    sites : Optional[List[Site]] = None
-    sensors : Optional[List[Sensor]] = None
-    cultivars : Optional[List[Cultivar]] = None
-    datasets : Optional[List[Dataset]] = None
-    traits : Optional[List[Trait]] = None
-    models : Optional[List[Model]] = None
-    procedures : Optional[List[Procedure]] = None
-    scripts : Optional[List[Script]] = None
-    platforms : Optional[List[SensorPlatform]] = None
-
-    
 
 
     @classmethod
@@ -96,19 +83,46 @@ class Experiment(APIBase):
             raise e
 
     @classmethod
-    def search(cls, **search_parameters) -> List["Experiment"]:
+    def search(
+        cls,
+        experiment_name: str = None,
+        experiment_info: dict = None,
+        experiment_start_date: date = None,
+        experiment_end_date: date = None
+    ) -> List["Experiment"]:
         try:
-            experiments = ExperimentModel.search(**search_parameters)
+            if not experiment_name and not experiment_info and not experiment_start_date and not experiment_end_date:
+                raise ValueError("At least one parameter must be provided.")
+
+            experiments = ExperimentModel.search(
+                experiment_name=experiment_name,
+                experiment_info=experiment_info,
+                experiment_start_date=experiment_start_date,
+                experiment_end_date=experiment_end_date
+            )
             experiments = [cls.model_validate(experiment) for experiment in experiments]
             return experiments if experiments else None
         except Exception as e:
             raise e
         
-    def update(self, **kwargs) -> "Experiment":
+    def update(
+            self, 
+            experiment_info: dict = None,
+            experiment_start_date: date = None,
+            experiment_end_date: date = None
+        ) -> "Experiment":
         try:
+            if not experiment_info and not experiment_start_date and not experiment_end_date:
+                raise ValueError("At least one parameter must be provided.")
+
             curent_id = self.id
             experiment = ExperimentModel.get(curent_id)
-            experiment = ExperimentModel.update(experiment, **kwargs)
+            experiment = ExperimentModel.update(
+                experiment,
+                experiment_info=experiment_info,
+                experiment_start_date=experiment_start_date,
+                experiment_end_date=experiment_end_date
+            )
             experiment = self.model_validate(experiment)
             self.refresh()
             return experiment
@@ -122,8 +136,7 @@ class Experiment(APIBase):
             instance = self.model_validate(db_instance)
             for key, value in instance.model_dump().items():
                 if hasattr(self, key) and key != "id":
-                    actual_value = getattr(instance, key)
-                    setattr(self, key, actual_value)
+                    setattr(self, key, value)
             return self
         except Exception as e:
             raise e
@@ -141,7 +154,8 @@ class Experiment(APIBase):
 
     def get_seasons(self) -> List[Season]:
         try:
-            seasons = self.seasons
+            experiment = ExperimentModel.get(self.id)
+            seasons = experiment.seasons
             seasons = [Season.model_validate(season) for season in seasons]
             return seasons
         except Exception as e:
@@ -169,7 +183,8 @@ class Experiment(APIBase):
 
     def get_sites(self) -> List[Site]:
         try:
-            sites = self.sites
+            experiment = ExperimentModel.get(self.id)
+            sites = experiment.sites
             sites = [Site.model_validate(site) for site in sites]
             return sites
         except Exception as e:
@@ -200,7 +215,8 @@ class Experiment(APIBase):
         
     def get_sensors(self) -> List[Sensor]:
         try:
-            sensors = self.sensors
+            experiment = ExperimentModel.get(self.id)
+            sensors = experiment.sensors
             sensors = [Sensor.model_validate(sensor) for sensor in sensors]
             return sensors
         except Exception as e:
@@ -232,7 +248,8 @@ class Experiment(APIBase):
         
     def get_cultivars(self) -> List[Cultivar]:
         try:
-            cultivars = self.cultivars
+            experiment = ExperimentModel.get(self.id)
+            cultivars = experiment.cultivars
             cultivars = [Cultivar.model_validate(cultivar) for cultivar in cultivars]
             return cultivars
         except Exception as e:
@@ -256,38 +273,10 @@ class Experiment(APIBase):
         except Exception as e:
             raise e
         
-    def get_datasets(self) -> List[Dataset]:
-        try:
-            datasets = self.datasets
-            datasets = [Dataset.model_validate(dataset) for dataset in datasets]
-            return datasets
-        except Exception as e:
-            raise e
-        
-
-    def create_dataset(
-        self,
-        dataset_name: str,
-        dataset_info: dict = {},
-        dataset_type: GEMINIDatasetType = GEMINIDatasetType.Default,
-        collection_date: date = date.today()
-    ) -> Dataset:
-        try:
-            dataset = Dataset.create(
-                collection_date=collection_date,
-                dataset_name=dataset_name,
-                dataset_info=dataset_info,
-                dataset_type=dataset_type,
-                experiment_name=self.experiment_name
-            )
-            self.refresh()
-            return dataset
-        except Exception as e:
-            raise e
-        
     def get_traits(self) -> List[Trait]:
         try:
-            traits = self.traits
+            experiment = ExperimentModel.get(self.id)
+            traits = experiment.traits
             traits = [Trait.model_validate(trait) for trait in traits]
             return traits
         except Exception as e:
@@ -318,7 +307,8 @@ class Experiment(APIBase):
 
     def get_models(self) -> List[Model]:
         try:
-            models = self.models
+            experiment = ExperimentModel.get(self.id)
+            models = experiment.models
             models = [Model.model_validate(model) for model in models]
             return models
         except Exception as e:
@@ -343,7 +333,8 @@ class Experiment(APIBase):
 
     def get_procedures(self) -> List[Procedure]:
         try:
-            procedures = self.procedures
+            experiment = ExperimentModel.get(self.id)
+            procedures = experiment.procedures
             procedures = [Procedure.model_validate(procedure) for procedure in procedures]
             return procedures
         except Exception as e:
@@ -368,7 +359,8 @@ class Experiment(APIBase):
 
     def get_scripts(self) -> List[Script]:
         try:
-            scripts = self.scripts
+            experiment = ExperimentModel.get(self.id)
+            scripts = experiment.scripts
             scripts = [Script.model_validate(script) for script in scripts]
             return scripts
         except Exception as e:
@@ -397,7 +389,8 @@ class Experiment(APIBase):
 
     def get_platforms(self) -> List[SensorPlatform]:
         try:
-            sensor_platforms = self.platforms
+            experiment = ExperimentModel.get(self.id)
+            sensor_platforms = experiment.platforms
             sensor_platforms = [SensorPlatform.model_validate(sensor_platform) for sensor_platform in sensor_platforms]
             return sensor_platforms
         except Exception as e:

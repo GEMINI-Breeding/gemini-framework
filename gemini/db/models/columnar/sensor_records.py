@@ -36,12 +36,21 @@ class SensorRecordModel(ColumnarBaseModel):
         UniqueConstraint(
             'timestamp',
             'collection_date', 
-            'dataset_id', 
-            'dataset_name', 
             'sensor_id', 
             'sensor_name', 
-            'record_info',
+            'dataset_id',
+            'dataset_name', 
+            'experiment_id',
+            'experiment_name', 
+            'season_id',
+            'season_name', 
+            'site_id',
+            'site_name', 
+            'plot_id', 
+            'plot_number', 
+            'plot_row_number', 
+            'plot_column_number',
             name='sensor_records_unique'
         ),
+        Index('idx_sensor_records_record_info', 'record_info', postgresql_using='GIN'),
     )
-

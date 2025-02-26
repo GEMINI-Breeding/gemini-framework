@@ -1,144 +1,130 @@
 from gemini.api.experiment import Experiment
-from gemini.api.season import Season
+from gemini.api.enums import GEMINIDataFormat, GEMINIDatasetType, GEMINIDataType, GEMINISensorType, GEMINITraitLevel
 
+# Create a new experiment
+new_experiment = Experiment.create(
+    experiment_name="Experiment Test 1",
+    experiment_info={"test": "test"},
+    experiment_start_date="2023-10-01",
+    experiment_end_date="2023-10-02",
+)
+print(f"Created Experiment: {new_experiment}")
 
-gemini_experiment = Experiment.get(experiment_name="GEMINI")
+# Get Experiment with experiment_name that does exist
+experiment = Experiment.get("Experiment Test 1")
+print(f"Got Experiment: {experiment}")
 
-# List all sensors in GEMINI Experiment
-gemini_sensors = gemini_experiment.get_sensors()
-for sensor in gemini_sensors:
-    print(sensor)
+# Get Experiment by ID
+experiment = Experiment.get_by_id(new_experiment.id)
+print(f"Got Experiment by ID: {experiment}")
 
-
+# Get all experiments
 all_experiments = Experiment.get_all()
+print(f"All Experiments:")
 for experiment in all_experiments:
     print(experiment)
 
+# Search for experiments
+searched_experiments = Experiment.search(experiment_name="Experiment Test 1")
+length_searched_experiments = len(searched_experiments)
+print(f"Found {length_searched_experiments} experiments")
+
+# Update the experiment
+experiment.update(
+    experiment_info={"test": "test_updated"},
+)
+print(f"Updated Experiment: {experiment}")
+
+# Refresh the experiment
+experiment.refresh()
+print(f"Refreshed Experiment: {experiment}")
+
+# Delete the experiment
+experiment.delete()
+print(f"Deleted Experiment: {experiment}")
+
 # Get Experiment A
 experiment_a = Experiment.get("Experiment A")
-print(experiment_a)
+print(f"Got Experiment A: {experiment_a}")
 
 # Get Experiment Seasons
-seasons = experiment_a.get_seasons()
-print(f"Seasons for Experiment A:")
-for season in seasons:
-    print(season)
+experiment_seasons = experiment_a.get_seasons()
+print(f"Got Experiment Seasons: {experiment_seasons}")
 
-# Create a new Season for Experiment A
+# Get Experiment Cultivars
+experiment_cultivars = experiment_a.get_cultivars()
+print(f"Got Experiment Cultivars: {experiment_cultivars}")
+
+# Get Experiment Sites
+experiment_sites = experiment_a.get_sites()
+print(f"Got Experiment Sites: {experiment_sites}")
+
+# Get Experiment Sensors
+experiment_sensors = experiment_a.get_sensors()
+print(f"Got Experiment Sensors: {experiment_sensors}")
+
+# Get Experiment Datasets
+experiment_datasets = experiment_a.get_datasets()
+print(f"Got Experiment Datasets: {experiment_datasets}")
+
+# Get Experiment Traits
+experiment_traits = experiment_a.get_traits()
+print(f"Got Experiment Traits: {experiment_traits}")
+
+# Get Experiment Models
+experiment_models = experiment_a.get_models()
+print(f"Got Experiment Models: {experiment_models}")
+
+# Get Experiment Scripts
+experiment_scripts = experiment_a.get_scripts()
+print(f"Got Experiment Scripts: {experiment_scripts}")
+
+# Get Experiment Procedures
+experiment_procedures = experiment_a.get_procedures()
+print(f"Got Experiment Procedures: {experiment_procedures}")
+
+# Get Experiment Sensor Platforms
+experiment_sensor_platforms = experiment_a.get_platforms()
+print(f"Got Experiment Sensor Platforms: {experiment_sensor_platforms}")
+
+# Create a new season for the experiment
 new_season = experiment_a.create_season(
-    season_name="Season Test A",
-    season_start_date="2021-01-01",
-    season_end_date="2021-12-31",
-    season_info={"test": "test"}
+    season_name="Season Test 1",
+    season_info={"test": "test"},
+    season_start_date="2023-10-01",
+    season_end_date="2023-10-02",
 )
 print(f"Created Season: {new_season}")
 
-# Get Experiment Sites
-sites = experiment_a.get_sites()
-print(f"Sites for Experiment A:")
-for site in sites:
-    print(site)
-
-# Create a new Site for Experiment A
-new_site = experiment_a.create_site(
-    site_name="Site Test Y",
-    site_city="City A",
-    site_state="State A",
-    site_country="Country A",
-    site_info={"test": "test"}
-)
-print(f"Created Site: {new_site}")
-
-
-# Get Experiment Cultivars
-cultivars = experiment_a.get_cultivars()
-print(f"Cultivars for Experiment A:")
-for cultivar in cultivars:
-    print(cultivar)
-
-# Create a new Cultivar for Experiment A
+# Create a new cultivar for the experiment
 new_cultivar = experiment_a.create_cultivar(
-    cultivar_population="Cultivar Test 2",
-    cultivar_accession="Accession A",
-    cultivar_info={"test": "test"}
+    cultivar_accession="Test Accession",
+    cultivar_population="Test Population",
+    cultivar_info={"test": "test"},
 )
 print(f"Created Cultivar: {new_cultivar}")
 
-# Get Experiment Datasets
-datasets = experiment_a.get_datasets()
-print(f"Datasets for Experiment A:")
-for dataset in datasets:
-    print(dataset)
-
-# Create a new Dataset for Experiment A
-new_dataset = experiment_a.create_dataset(
-    dataset_name="Dataset Test 2",
-    dataset_info={"test": "test"}
+# Create a new site for the experiment
+new_site = experiment_a.create_site(
+    site_name="Test Site",
+    site_city="Test City",
+    site_state="Test State",
+    site_country="Test Country",
+    site_info={"test": "test"},
 )
-print(f"Created Dataset: {new_dataset}")
+print(f"Created Site: {new_site}")
 
-# Get Experiment Traits
-traits = experiment_a.get_traits()
-print(f"Traits for Experiment A:")
-for trait in traits:
-    print(trait)
-
-
-# Create a new Trait for Experiment A
-new_trait = experiment_a.create_trait(
-    trait_name="Trait Test 1",
-    trait_info={"test": "test"}
+# Create a new sensor platform for the experiment
+new_platform = experiment_a.create_platform(
+    platform_name="Test Platform",
+    platform_info={"test": "test"},
 )
-print(f"Created Trait: {new_trait}")
 
-# Get Experiment Models
-models = experiment_a.get_models()
-print(f"Models for Experiment A:")
-for model in models:
-    print(model)
-
-# Create a new Model for Experiment A
-new_model = experiment_a.create_model(
-    model_name="Model Test 1",
-    model_info={"test": "test"}
-)
-print(f"Created Model: {new_model}")
-
-# Get Experiment Sensors
-sensors = experiment_a.get_sensors()
-print(f"Sensors for Experiment A:")
-for sensor in sensors:
-    print(sensor)
-
-# Create a new Sensor for Experiment A
+# Create a new sensor for the experiment
 new_sensor = experiment_a.create_sensor(
-    sensor_name="Sensor Test 2",
+    sensor_name="Test Sensor",
+    sensor_type=GEMINISensorType.RGB,
+    sensor_data_format=GEMINIDataFormat.JPEG,
+    sensor_data_type=GEMINIDataType.IMAGE,
     sensor_info={"test": "test"}
 )
-print(f"Created Sensor: {new_sensor}")
-
-# Get Experiment Procedures
-procedures = experiment_a.get_procedures()
-print(f"Procedures for Experiment A:")
-for procedure in procedures:
-    print(procedure)
-
-# Create a new Procedure for Experiment A
-new_procedure = experiment_a.create_procedure(
-    procedure_name="Procedure Test 2",
-    procedure_info={"test": "test"}
-)
-print(f"Created Procedure: {new_procedure}")
-
-# Get Experiment Sensor Platforms
-platforms = experiment_a.get_platforms()
-print(f"Sensor Platforms for Experiment A:")
-for platform in platforms:
-    print(platform)
-
-# Create a new Sensor Platform for Experiment A
-new_platform = experiment_a.create_platform(
-    platform_name="Sensor Platform Test 2",
-    platform_info={"test": "test"}
-)
-print(f"Created Sensor Platform: {new_platform}")

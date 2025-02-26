@@ -32,5 +32,5 @@ class ModelModel(BaseModel):
         Index("idx_models_info", "model_info", postgresql_using="GIN"),
     )
 
-    model_runs = relationship("ModelRunModel", lazy="subquery", viewonly=True)
-    datasets = relationship("DatasetModel", secondary="gemini.model_datasets", lazy="subquery", viewonly=True)
+    model_runs = relationship("ModelRunModel", lazy="selectin", cascade="save-update, merge, delete")
+    datasets = relationship("DatasetModel", secondary="gemini.model_datasets", lazy="selectin", cascade="save-update, merge, delete")

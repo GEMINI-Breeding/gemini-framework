@@ -1,18 +1,16 @@
-from gemini.api.dataset import Dataset
-from gemini.api.dataset import GEMINIDatasetType
-from gemini.api.experiment import Experiment
+from gemini.api.dataset import Dataset, GEMINIDatasetType
 
-# Create a new dataset with experiment Experiment A
+# Create a new dataset
 new_dataset = Dataset.create(
-    collection_date="2021-01-01",
     dataset_name="Dataset Test 1",
     dataset_info={"test": "test"},
-    dataset_type=GEMINIDatasetType.Script,
+    collection_date="2023-10-01",
+    dataset_type=GEMINIDatasetType.Sensor,
     experiment_name="Experiment A"
 )
 print(f"Created Dataset: {new_dataset}")
 
-# Get Dataset with dataset_name and experiment_name that do exist
+# Get Dataset with dataset_name that does exist
 dataset = Dataset.get("Dataset Test 1")
 print(f"Got Dataset: {dataset}")
 
@@ -27,10 +25,24 @@ for dataset in all_datasets:
     print(dataset)
 
 # Search for datasets
-searched_datasets = Dataset.search(experiment_name="Experiment Z")
+searched_datasets = Dataset.search(experiment_name="Experiment A")
 length_searched_datasets = len(searched_datasets)
-print(f"Found {length_searched_datasets} datasets in Experiment Z")
+print(f"Found {length_searched_datasets} datasets in Experiment A")
 
 # Refresh the dataset
-dataset = dataset.refresh()
+dataset.refresh()
 print(f"Refreshed Dataset: {dataset}")
+
+# Update the dataset
+dataset.update(
+    collection_date="2023-10-02",
+    dataset_type=GEMINIDatasetType.Trait,
+    dataset_info={"test": "test_updated"},
+
+)
+
+print(f"Updated Dataset: {dataset}")
+
+# Delete the new dataset
+is_deleted = new_dataset.delete()
+print(f"Deleted Dataset: {is_deleted}")

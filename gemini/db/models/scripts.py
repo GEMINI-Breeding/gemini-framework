@@ -33,5 +33,5 @@ class ScriptModel(BaseModel):
         Index('idx_scripts_info', 'script_info', postgresql_using='GIN')
     )
 
-    script_runs = relationship("ScriptRunModel", lazy="subquery", viewonly=True)
-    datasets = relationship("DatasetModel", secondary="gemini.script_datasets", lazy="subquery", viewonly=True)
+    script_runs = relationship("ScriptRunModel", lazy="selectin", cascade="save-update, merge, delete")
+    datasets = relationship("DatasetModel", secondary="gemini.script_datasets", lazy="selectin", cascade="save-update, merge, delete")

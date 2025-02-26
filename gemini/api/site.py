@@ -89,9 +89,12 @@ class Site(APIBase):
         site_city: str = None,
         site_state: str = None,
         site_country: str = None,
-        site_info: dict = {}
+        site_info: dict = None
     ) -> List["Site"]:
         try:
+            if not any([experiment_name, site_name, site_city, site_state, site_country, site_info]):
+                return None
+
             sites = ExperimentSitesViewModel.search(
                 experiment_name=experiment_name,
                 site_name=site_name,
@@ -106,12 +109,30 @@ class Site(APIBase):
             raise e
         
 
-    def update(self, **update_parameters) -> "Site":
+    def update(
+        self,
+        site_name: str = None,
+        site_city: str = None,
+        site_state: str = None,
+        site_country: str = None,
+        site_info: dict = None
+    ) -> "Site":
         try:
+            if not any([site_name, site_city, site_state, site_country, site_info]):
+                raise Exception("At least one update parameter must be provided.")
+            
             current_id = self.id
             site = SiteModel.get(current_id)
-            site = SiteModel.update(site, **update_parameters)
+            site = SiteModel.update(
+                site,
+                site_name=site_name,
+                site_city=site_city,
+                site_state=site_state,
+                site_country=site_country,
+                site_info=site_info
+            )
             site = self.model_validate(site)
+            self.refresh()
             return site
         except Exception as e:
             raise e
@@ -132,8 +153,7 @@ class Site(APIBase):
             instance = self.model_validate(db_instance)
             for key, value in instance.model_dump().items():
                 if hasattr(self, key) and key != "id":
-                    actual_value = getattr(instance, key)
-                    setattr(self, key, actual_value)
+                    setattr(self, key, value)
             return self
         except Exception as e:
             raise e 

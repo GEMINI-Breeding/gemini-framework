@@ -5,6 +5,7 @@ from gemini.db.core.base import ColumnarBaseModel
 import uuid
 from datetime import datetime, date
 
+
 class ScriptRecordModel(ColumnarBaseModel):
 
     __tablename__ = "script_records"
@@ -30,13 +31,18 @@ class ScriptRecordModel(ColumnarBaseModel):
         UniqueConstraint(
             'timestamp',
             'collection_date', 
-            'dataset_id', 
-            'dataset_name', 
             'script_id', 
             'script_name', 
-            'record_info',
+            'dataset_id',
+            'dataset_name', 
+            'experiment_id',
+            'experiment_name', 
+            'season_id',
+            'season_name', 
+            'site_id',
+            'site_name',
             name='script_records_unique'
         ),
+        Index('idx_script_records_record_info', 'record_info', postgresql_using='GIN'),
     )
-
     

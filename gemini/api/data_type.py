@@ -1,7 +1,7 @@
 from typing import Optional, List
 from uuid import UUID
 
-from pydantic import Field, AliasChoices
+from pydantic import Field, AliasChoices, computed_field
 from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.api.data_format import DataFormat
@@ -15,8 +15,6 @@ class DataType(APIBase):
     data_type_name: str
     data_type_info: Optional[dict] = None
 
-    formats: List[DataFormat] = None
-    
     @classmethod
     def create(
         cls,
@@ -91,9 +89,9 @@ class DataType(APIBase):
 
             current_id = self.id
             data_type = DataTypeModel.get(current_id)
-            data_type.update(data_type, data_type_info=data_type_info)
+            data_type = DataTypeModel.update(data_type, data_type_info=data_type_info)
             data_type = self.model_validate(data_type)
-            data_type.refresh()
+            self.refresh()
             return data_type
         except Exception as e:
             raise e
@@ -112,16 +110,16 @@ class DataType(APIBase):
             db_instance = DataTypeModel.get(self.id)
             instance = self.model_validate(db_instance)
             for key, value in instance.model_dump().items():
-                if hasattr(self, key):
-                    actual_value = getattr(instance, key)
-                    setattr(self, key, actual_value)
+                if hasattr(self, key) and key != "id":
+                    setattr(self, key, value)
             return self
         except Exception as e:
             raise e
         
     def get_formats(self) -> List["DataFormat"]:
         try:
-            data_formats = self.formats
+            db_instance = DataTypeModel.get(self.id)
+            data_formats = db_instance.formats
             data_formats = [DataFormat.model_validate(data_format) for data_format in data_formats]
             return data_formats
         except Exception as e:
@@ -146,5 +144,4 @@ class DataType(APIBase):
             return data_format
         except Exception as e:
             raise e
-
-
+        

@@ -4,11 +4,12 @@ from uuid import UUID
 from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
-from gemini.api.dataset import Dataset
+from gemini.api.dataset import Dataset, GEMINIDatasetType
 from gemini.api.model_record import ModelRecord
+from gemini.api.model_run import ModelRun
 from gemini.db.models.models import ModelModel
 from gemini.db.models.experiments import ExperimentModel
-from gemini.db.models.associations import ExperimentModelModel
+from gemini.db.models.associations import ExperimentModelModel, ModelDatasetModel
 from gemini.db.models.views.experiment_views import ExperimentModelsViewModel
 
 from datetime import date, datetime
@@ -49,7 +50,7 @@ class Model(APIBase):
     @classmethod
     def get(cls, model_name: str, experiment_name: str = None) -> "Model":
         try:
-            db_instance = ModelModel.get_by_parameters(
+            db_instance = ExperimentModelsViewModel.get_by_parameters(
                 model_name=model_name,
                 experiment_name=experiment_name
             )
@@ -72,7 +73,8 @@ class Model(APIBase):
     def get_all(cls) -> List["Model"]:
         try:
             models = ModelModel.all()
-            return [cls.model_validate(model) for model in models]
+            models = [cls.model_validate(model) for model in models]
+            return models
         except Exception as e:
             raise e
         
@@ -85,22 +87,39 @@ class Model(APIBase):
         model_url: str = None
     ) -> List["Model"]:
         try:
+            if not model_name and not model_info and not model_url and not experiment_name:
+                raise Exception("At least one search parameter must be provided.")
+
             models = ExperimentModelsViewModel.search(
                 experiment_name=experiment_name,
                 model_name=model_name,
                 model_info=model_info,
                 model_url=model_url
             )
-            return [cls.model_validate(model) for model in models]
+            models = [cls.model_validate(model) for model in models]
+            return models
         except Exception as e:
             raise e
         
     
-    def update(self, **update_parameters) -> "Model":
+    def update(
+        self, 
+        model_name: str = None,
+        model_url: str = None,
+        model_info: dict = None
+    ) -> "Model":
         try:
+            if not model_name and not model_url and not model_info:
+                raise Exception("At least one update parameter must be provided.")
+
             current_id = self.id
             model = ModelModel.get(current_id)
-            model = ModelModel.update(current_id, **update_parameters)
+            model = ModelModel.update(
+                model,
+                model_name=model_name,
+                model_url=model_url,
+                model_info=model_info
+            )
             model = self.model_validate(model)
             self.refresh()
             return model
@@ -123,8 +142,7 @@ class Model(APIBase):
             instance = self.model_validate(db_instance)
             for key, value in instance.model_dump().items():
                 if hasattr(self, key) and key != "id":
-                    actual_value = getattr(instance, key)
-                    setattr(self, key, actual_value)
+                    setattr(self, key, value)
             return self
         except Exception as e:
             raise e
@@ -132,83 +150,130 @@ class Model(APIBase):
 
     def get_datasets(self) -> List[Dataset]:
         try:
-            datasets = self.datasets
+            model = ModelModel.get(self.id)
+            datasets = model.datasets
+            datasets = [Dataset.model_validate(dataset) for dataset in datasets]
             return datasets
         except Exception as e:
             raise e
         
 
-    def add_record(
+    def create_dataset(
         self,
-        record: "ModelRecord"
-    ) -> bool:
-        try:
-            if record.timestamp is None:
-                record.timestamp = datetime.now()
-            if record.collection_date is None:
-                record.collection_date = record.timestamp.date()
-            if record.dataset_name is None:
-                record.dataset_name = f"{self.model_name} Dataset"
-            if record.model_name is None:
-                record.model_name = self.model_name
-            if record.record_info is None:
-                record.record_info = {}
-
-            record.model_id = self.id
-
-            success = ModelRecord.add([record])
-            return success
-        except Exception as e:
-            return False
-        
-    def add_records(
-        self,
-        records: List["ModelRecord"]
-    ) -> bool:
-        try:
-            for record in records:
-                if record.timestamp is None:
-                    record.timestamp = datetime.now()
-                if record.collection_date is None:
-                    record.collection_date = record.timestamp.date()
-                if record.dataset_name is None:
-                    record.dataset_name = f"{self.model_name} Dataset"
-                if record.model_name is None:
-                    record.model_name = self.model_name
-                if record.record_info is None:
-                    record.record_info = {}
-
-                record.model_id = self.id
-
-            success = ModelRecord.add(records)
-            return success
-        except Exception as e:
-            return False
-        
-
-    def get_records(
-        self,
+        dataset_name: str,
+        dataset_info: dict = None,
         collection_date: date = None,
         experiment_name: str = None,
-        season_name: str = None,
-        site_name: str = None,
-        record_info: dict = None
-    ) -> List["ModelRecord"]:
+    ) -> Dataset:
         try:
-            record_info = record_info if record_info else {}
-            record_info = {k: v for k, v in record_info.items() if v is not None}
-
-            records = ModelRecord.search(
-                model_id=self.id,
+            dataset = Dataset.create(
+                dataset_name=dataset_name,
+                dataset_info=dataset_info,
                 collection_date=collection_date,
                 experiment_name=experiment_name,
-                season_name=season_name,
-                site_name=site_name,
-                record_info=record_info
+                dataset_type=GEMINIDatasetType.Model
             )
-            return records
+            ModelDatasetModel.get_or_create(model_id=self.id, dataset_id=dataset.id)
+            return dataset
         except Exception as e:
             raise e
+        
+
+    def get_runs(self) -> List[ModelRun]:
+        try:
+            model = ModelModel.get(self.id)
+            runs = model.model_runs
+            runs = [ModelRun.model_validate(run) for run in runs]
+            return runs
+        except Exception as e:
+            raise e
+        
+
+    def create_run(
+        self,
+        model_run_info: dict = None
+    ) -> ModelRun:
+        try:
+            run = ModelRun.create(
+                model_run_info=model_run_info,
+                model_name=self.model_name
+            )
+            return run
+        except Exception as e:
+            raise e
+                
+
+    # def add_record(
+    #     self,
+    #     record: "ModelRecord"
+    # ) -> bool:
+    #     try:
+    #         if record.timestamp is None:
+    #             record.timestamp = datetime.now()
+    #         if record.collection_date is None:
+    #             record.collection_date = record.timestamp.date()
+    #         if record.dataset_name is None:
+    #             record.dataset_name = f"{self.model_name} Dataset"
+    #         if record.model_name is None:
+    #             record.model_name = self.model_name
+    #         if record.record_info is None:
+    #             record.record_info = {}
+
+    #         record.model_id = self.id
+
+    #         success = ModelRecord.add([record])
+    #         return success
+    #     except Exception as e:
+    #         return False
+        
+    # def add_records(
+    #     self,
+    #     records: List["ModelRecord"]
+    # ) -> bool:
+    #     try:
+    #         for record in records:
+    #             if record.timestamp is None:
+    #                 record.timestamp = datetime.now()
+    #             if record.collection_date is None:
+    #                 record.collection_date = record.timestamp.date()
+    #             if record.dataset_name is None:
+    #                 record.dataset_name = f"{self.model_name} Dataset"
+    #             if record.model_name is None:
+    #                 record.model_name = self.model_name
+    #             if record.record_info is None:
+    #                 record.record_info = {}
+
+    #             record.model_id = self.id
+
+    #         success = ModelRecord.add(records)
+    #         return success
+    #     except Exception as e:
+    #         return False
+        
+
+    # def get_records(
+    #     self,
+    #     collection_date: date = None,
+    #     experiment_name: str = None,
+    #     season_name: str = None,
+    #     site_name: str = None,
+    #     record_info: dict = None
+    # ) -> List["ModelRecord"]:
+    #     try:
+    #         record_info = record_info if record_info else {}
+    #         record_info = {k: v for k, v in record_info.items() if v is not None}
+
+    #         records = ModelRecord.search(
+    #             model_id=self.id,
+    #             collection_date=collection_date,
+    #             experiment_name=experiment_name,
+    #             season_name=season_name,
+    #             site_name=site_name,
+    #             record_info=record_info
+    #         )
+    #         return records
+    #     except Exception as e:
+    #         raise e
         
     
                 

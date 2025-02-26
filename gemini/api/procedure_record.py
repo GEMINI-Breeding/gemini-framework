@@ -1,5 +1,6 @@
 from typing import Optional, List, Generator
 import os
+from uuid import UUID
 
 from gemini.api.types import ID
 from pydantic import Field, AliasChoices
@@ -8,6 +9,17 @@ from gemini.db.models.procedures import ProcedureModel
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.procedure_records import ProcedureRecordModel
 from gemini.db.models.views.procedure_records_immv import ProcedureRecordsIMMVModel
+from gemini.db.models.views.validation_views import ValidProcedureDatasetCombinationsViewModel
+from gemini.db.models.views.experiment_views import (
+    ExperimentProceduresViewModel,
+    ExperimentDatasetsViewModel,
+    ExperimentSitesViewModel,
+    ExperimentSeasonsViewModel
+)
+
+
+from gemini.db.models.experiments import ExperimentModel
+from gemini.db.models.datasets import DatasetModel
 
 from datetime import date, datetime
 
@@ -35,91 +47,129 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
     def create(
         cls,
         timestamp: datetime = datetime.now(),
-        collection_date: date = date.today(),
-        dataset_id: ID = None,
+        collection_date: date = None,
         dataset_name: str = None,
-        procedure_id: ID = None,
         procedure_name: str = None,
         procedure_data: dict = {},
-        experiment_id: ID = None,
-        experiment_name: str = 'Default',
-        site_id: ID = None,
-        site_name: str = 'Default',
-        season_id: ID = None,
-        season_name: str = 'Default',
+        experiment_name: str = None,
+        site_name: str = None,
+        season_name: str = None,
         record_file: str = None,
         record_info: dict = {}
     ) -> 'ProcedureRecord':
         try:
-            record = ProcedureRecord.model_construct(
-                _fields_set=ProcedureRecord.model_fields_set,
+            if not procedure_name:
+                raise ValueError("Procedure name is required.")
+            
+            if not dataset_name:
+                raise ValueError("Dataset name is required.")
+            
+            if not experiment_name:
+                raise ValueError("Experiment name is required.")
+            
+            if not site_name:
+                raise ValueError("Site name is required.")
+            
+            if not season_name:
+                raise ValueError("Season name is required.")
+            
+            record = ProcedureRecord(
                 timestamp=timestamp,
                 collection_date=collection_date,
-                dataset_id=dataset_id,
                 dataset_name=dataset_name,
-                procedure_id=procedure_id,
                 procedure_name=procedure_name,
                 procedure_data=procedure_data,
-                experiment_id=experiment_id,
                 experiment_name=experiment_name,
-                site_id=site_id,
                 site_name=site_name,
-                season_id=season_id,
                 season_name=season_name,
                 record_file=record_file,
                 record_info=record_info
             )
+
             return record
         except Exception as e:
             raise e
         
     @classmethod
-    def delete(self):
-        # Implement the delete method
-        pass
-
-    @classmethod
-    def get_all(cls):
-        # Implement the get_all method
-        pass
-
-    @classmethod
-    def get_by_id(cls, id):
-        # Implement the get_by_id method
-        pass
-
-    def refresh(self):
-        # Implement the refresh method
-        pass
-
-    def update(self, **kwargs):
-        # Implement the update method
-        pass
-
-    @classmethod
-    def add(cls, records: List['ProcedureRecord']):
+    def delete(self) -> bool:
         try:
-            records_to_insert = []
-            dataset_id = DatasetModel.get_or_create(dataset_name=records[0].dataset_name).id
+            current_id = self.id
+            procedure_record = ProcedureRecordModel.get(current_id)
+            ProcedureRecordModel.delete(procedure_record)
+            return True
+        except Exception as e:
+            raise e
+
+    @classmethod
+    def get_all(cls, limit: int = 100) -> List['ProcedureRecord']:
+        try:
+            instances = ProcedureRecordModel.all(limit=limit)
+            records = [cls.model_validate(instance) for instance in instances]
+            return records
+        except Exception as e:
+            raise e
+
+    @classmethod
+    def get_by_id(cls, id: UUID | int | str) -> 'ProcedureRecord':
+        try:
+            record = ProcedureRecordModel.get(id)
+            record = cls.model_construct(
+                _fields_set=cls.model_fields_set,
+                **record.to_dict()
+            )
+            record = record.model_dump()
+            record = cls._postprocess_record(record)
+            record = cls.model_validate(record)
+            return record
+        except Exception as e:
+            raise e
+
+    def refresh(self) -> 'ProcedureRecord':
+        try:
+            db_instance = ProcedureRecordModel.get(self.id)
+            instance = self.model_construct(
+                _fields_set=self.model_fields_set,
+                **db_instance.to_dict()
+            )
+            for key, value in instance.model_dump().items():
+                if hasattr(self, key) and key != "id":
+                    setattr(self, key, value)
+            return self
+        except Exception as e:
+            raise e
+
+
+    def update(
+        self,
+        procedure_data: dict = None,
+        record_info: dict = None
+    ) -> 'ProcedureRecord':
+        try:
+            if not procedure_data and not record_info:
+                raise ValueError("At least one of procedure_data or record_info must be provided.")
+
+            current_id = self.id
+            procedure_record = ProcedureRecordModel.get(current_id)
+            procedure_record = ProcedureRecordModel.update(
+                procedure_record,
+                procedure_data=procedure_data,
+                record_info=record_info
+            )
+            procedure_record = self.model_validate(procedure_record)
+            self.refresh()
+            return procedure_record
+        except Exception as e:
+            raise e
+
+    @classmethod
+    def add(cls, records: List['ProcedureRecord']) -> bool:
+        try:
+            records = cls._verify_records(records)
             records = [cls._preprocess_record(record) for record in records]
+            records_to_insert = []
             for record in records:
-                record_to_insert = {
-                    'timestamp': record.timestamp,
-                    'collection_date': record.timestamp.date(),
-                    'dataset_id': dataset_id,
-                    'dataset_name': record.dataset_name,
-                    'procedure_id': record.procedure_id,
-                    'procedure_name': record.procedure_name,
-                    'procedure_data': record.procedure_data,
-                    'experiment_id': record.experiment_id,
-                    'experiment_name': record.experiment_name,
-                    'site_id': record.site_id,
-                    'site_name': record.site_name,
-                    'season_id': record.season_id,
-                    'season_name': record.season_name,
-                    'record_file': record.record_file,
-                    'record_info': record.record_info
-                }
+                record_to_insert = record.model_dump()
+                record_to_insert = {k: v for k, v in record_to_insert.items() if v is not None}
                 records_to_insert.append(record_to_insert)
             ProcedureRecordModel.insert_bulk('procedure_records_unique', records_to_insert)
             return True
@@ -127,9 +177,9 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
             return False
 
     @classmethod
-    def get(cls, model_record_id: ID) -> 'ProcedureRecord':
+    def get(cls, procedure_record_id: ID) -> 'ProcedureRecord':
         try:
-            db_instance = ProcedureRecordModel.get(model_record_id)
+            db_instance = ProcedureRecordModel.get(procedure_record_id)
             record = cls.model_validate(db_instance)
             return record
         except Exception as e:
@@ -137,18 +187,158 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
         
 
     @classmethod
-    def search(cls, **kwargs) -> Generator['ProcedureRecord', None, None]:
+    def search(
+        cls,
+        dataset_name: str = None,
+        procedure_name: str = None,
+        experiment_name: str = None,
+        site_name: str = None,
+        season_name: str = None,
+        collection_date: date = None,
+        record_info: dict = None
+    ) -> Generator['ProcedureRecord', None, None]:
         try:
-            records = ProcedureRecordsIMMVModel.stream(**kwargs)
+            if not any([dataset_name, procedure_name, experiment_name, site_name, season_name, collection_date]):
+                raise ValueError("At least one search parameter must be provided.")
+
+            records = ProcedureRecordsIMMVModel.stream(
+                dataset_name=dataset_name,
+                procedure_name=procedure_name,
+                experiment_name=experiment_name,
+                site_name=site_name,
+                season_name=season_name,
+                collection_date=collection_date,
+                record_info=record_info
+            )
             for record in records:
                 record = cls.model_construct(
                     _fields_set=cls.model_fields_set,
                     **record.to_dict()
                 )
+                record = record.model_dump()
+                record = cls._postprocess_record(record)
+                record = cls.model_validate(record)
                 yield record
         except Exception as e:
             raise e
+
+    def set_experiment(self, experiment_name: str) -> 'ProcedureRecord':
+        try:
+            record = ProcedureRecordModel.get(self.id)
+            experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+            ProcedureRecordModel.update(record, experiment_id=experiment.id, experiment_name=experiment.experiment_name)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
         
+
+    def set_season(self, season_name: str) -> 'ProcedureRecord':
+        try:
+            record = ProcedureRecordModel.get(self.id)
+            experiment = ExperimentModel.get(record.experiment_id)
+            season = ExperimentSeasonsViewModel.get_by_parameters(
+                season_name=season_name,
+                experiment_name=experiment.experiment_name
+            )
+            ProcedureRecordModel.update(record, season_id=season.season_id, season_name=season.season_name)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
+
+    
+    def set_site(self, site_name: str) -> 'ProcedureRecord':
+        try:
+            record = ProcedureRecordModel.get(self.id)
+            experiment = ExperimentModel.get(record.experiment_id)
+            site = ExperimentSitesViewModel.get_by_parameters(
+                site_name=site_name,
+                experiment_name=experiment.experiment_name
+            )
+            ProcedureRecordModel.update(record, site_id=site.site_id, site_name=site.site_name)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
+
+    @classmethod
+    def get_valid_combinations(
+        cls,
+        dataset_name: str = None,
+        procedure_name: str = None,
+        experiment_name: str = None,
+        site_name: str = None,
+        season_name: str = None
+    ) -> List[dict]:
+        try:
+            valid_combinations = ValidProcedureDatasetCombinationsViewModel.search(
+                dataset_name=dataset_name,
+                procedure_name=procedure_name,
+                experiment_name=experiment_name,
+                site_name=site_name,
+                season_name=season_name
+            )
+            return [record.to_dict() for record in valid_combinations]
+        except Exception as e:
+            raise e
+        
+    @classmethod
+    def _verify_records(cls, records: List['ProcedureRecord']) -> List['ProcedureRecord']:
+        try:
+
+            # Refresh all the views
+            ExperimentProceduresViewModel.refresh()
+            ExperimentDatasetsViewModel.refresh()
+            ExperimentSeasonsViewModel.refresh()
+            ExperimentSitesViewModel.refresh()
+
+            # Variables
+            procedure = None
+            datasets = {}
+            experiments = {}
+            seasons = {}
+            sites = {}
+
+            # Get all the records
+            for record in records:
+                if not record.timestamp:
+                    raise ValueError("Timestamp is required.")
+                if not record.collection_date:
+                    record.collection_date = record.timestamp.date()
+                
+                if procedure and record.procedure_name != procedure.procedure_name:
+                    raise ValueError("All records must have the same procedure name.")
+
+                if not procedure and ProcedureModel.exists(procedure_name=record.procedure_name):
+                    procedure = ProcedureModel.get_by_parameters(procedure_name=record.procedure_name)
+
+                record.procedure_id = procedure.id
+
+                if record.dataset_name not in datasets and DatasetModel.exists(dataset_name=record.dataset_name):
+                    datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=record.dataset_name)
+                
+                record.dataset_id = datasets[record.dataset_name].id
+
+                if record.experiment_name not in experiments and ExperimentDatasetsViewModel.exists(experiment_name=record.experiment_name, dataset_name=record.dataset_name):
+                    experiments[record.experiment_name] = ExperimentDatasetsViewModel.get_by_parameters(experiment_name=record.experiment_name, dataset_name=record.dataset_name)
+
+                record.experiment_id = experiments[record.experiment_name].experiment_id
+
+                if record.season_name not in seasons and ExperimentSeasonsViewModel.exists(experiment_name=record.experiment_name, season_name=record.season_name):
+                    seasons[record.season_name] = ExperimentSeasonsViewModel.get_by_parameters(experiment_name=record.experiment_name, season_name=record.season_name)
+
+                record.season_id = seasons[record.season_name].season_id
+
+                if record.site_name not in sites and ExperimentSitesViewModel.exists(experiment_name=record.experiment_name, site_name=record.site_name):
+                    sites[record.site_name] = ExperimentSitesViewModel.get_by_parameters(experiment_name=record.experiment_name, site_name=record.site_name)
+
+                record.site_id = sites[record.site_name].site_id
+
+            return records
+        except Exception as e:
+            raise e
+
     @classmethod
     def _preprocess_record(cls, record: 'ProcedureRecord') -> 'ProcedureRecord':
         try:

@@ -4,21 +4,25 @@ from uuid import UUID
 from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
-from gemini.api.experiment import Experiment
-from gemini.api.site import Site
-from gemini.api.season import Season
 from gemini.api.cultivar import Cultivar
 from gemini.api.plant import Plant
 
 from gemini.db.models.experiments import ExperimentModel
-from gemini.db.models.sites import SiteModel
-from gemini.db.models.seasons import SeasonModel
-from gemini.db.models.plants import PlantModel
 from gemini.db.models.cultivars import CultivarModel
 from gemini.db.models.plots import PlotModel
+from gemini.db.models.seasons import SeasonModel
+from gemini.db.models.sites import SiteModel
 
+from gemini.db.models.views.experiment_views import (
+    ExperimentSeasonsViewModel,
+    ExperimentSitesViewModel,
+    ExperimentCultivarsViewModel
+)
+from gemini.db.models.associations import PlotCultivarModel
 from gemini.db.models.views.plot_cultivar_view import PlotCultivarViewModel
 from gemini.db.models.views.plot_view import PlotViewModel
+from gemini.db.models.views.plot_plant_view import PlotPlantViewModel
+from gemini.db.models.views.validation_views import ValidPlotCombinationsViewModel
 
 class Plot(APIBase):
 
@@ -32,15 +36,11 @@ class Plot(APIBase):
     plot_column_number: int
     plot_geometry_info: Optional[dict] = {}
     plot_info: Optional[dict] = {}
+
+    experiment_name: Optional[str] = Field(None, exclude=True)
+    season_name: Optional[str] = Field(None, exclude=True)
+    site_name: Optional[str] = Field(None, exclude=True)
     
-    # experiment: Experiment = None
-    # season: Season = None
-    # site: Site = None
-
-    # cultivars: List[Cultivar] = []
-    # plants: List[Plant] = []
-
-
     @classmethod
     def create(
         cls,
@@ -48,41 +48,62 @@ class Plot(APIBase):
         plot_row_number: int,
         plot_column_number: int,
         plot_info: dict = {},
-        experiment_name: str = "Experiment A",
-        season_name: str = "Season 1",
-        site_name: str = "Site A",
-        cultivar_accession: str = "Population A",
-        cultivar_population: str = "Accession A1"
+        experiment_name: str = None,
+        season_name: str = None,
+        site_name: str = None,
+        cultivar_accession: str = None,
+        cultivar_population: str = None
     ) -> "Plot":
         try:
-            experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-            site = SiteModel.get_by_parameters(site_name=site_name)
-            season = SeasonModel.get_by_parameters(season_name=season_name)
 
-            cultivar = CultivarModel.get_or_create(
-                cultivar_accession=cultivar_accession,
-                cultivar_population=cultivar_population,
+            if not all([experiment_name, season_name, site_name]):
+                raise ValueError("Experiment, season and site names must be provided.")
+
+            # Check if experiment, season and site are valid
+            valid_combination = ValidPlotCombinationsViewModel.get_by_parameters(
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name
             )
+            if not valid_combination:
+                raise ValueError(f"Invalid combination of experiment, season and site.")
 
-            plot = PlotModel.get_or_create(
+           
+            db_instance = PlotModel.get_or_create(
                 plot_number=plot_number,
                 plot_row_number=plot_row_number,
                 plot_column_number=plot_column_number,
                 plot_info=plot_info,
-                experiment_id=experiment.id,
-                site_id=site.id,
-                season_id=season.id,
+                experiment_id=valid_combination.experiment_id,
+                site_id=valid_combination.site_id,
+                season_id=valid_combination.season_id
             )
 
-            if cultivar and cultivar not in plot.cultivars:
-                plot.cultivars.append(cultivar)
+            if cultivar_accession and cultivar_population:
 
-            plot = cls.model_validate(plot)
+                 # Check if cultivar is part of the experiment
+                if not ExperimentCultivarsViewModel.exists(
+                    experiment_name=experiment_name,
+                    cultivar_accession=cultivar_accession,
+                    cultivar_population=cultivar_population
+                ):
+                    raise ValueError(f"Cultivar {cultivar_accession} {cultivar_population} is not part of the experiment {experiment_name}.")
+
+
+                db_cultivar = CultivarModel.get_by_parameters(
+                    cultivar_accession=cultivar_accession,
+                    cultivar_population=cultivar_population
+                )
+                if db_cultivar:
+                    PlotCultivarModel.get_or_create(
+                        plot_id=db_instance.id,
+                        cultivar_id=db_cultivar.id
+                    )
+            plot = cls.model_validate(db_instance)
             return plot
         except Exception as e:
             raise e
         
-
     @classmethod
     def get(
         cls,
@@ -94,7 +115,10 @@ class Plot(APIBase):
         site_name: str = None,
     ) -> "Plot":
         try:
-            plots = PlotViewModel.get_by_parameters(
+            if not any([plot_number, plot_row_number, plot_column_number, experiment_name, season_name, site_name]):
+                raise ValueError("At least one search parameter must be provided.")
+
+            plot = PlotViewModel.get_by_parameters(
                 plot_number=plot_number,
                 plot_row_number=plot_row_number,
                 plot_column_number=plot_column_number,
@@ -111,7 +135,9 @@ class Plot(APIBase):
     @classmethod
     def get_by_id(cls, id: UUID | int | str) -> "Plot":
         try:
-            plot = PlotModel.get(id)
+            plot = PlotViewModel.get_by_parameters(plot_id=id)
+            if not plot:
+                raise ValueError(f"Plot with ID {id} does not exist.")
             plot = cls.model_validate(plot)
             return plot
         except Exception as e:
@@ -138,6 +164,9 @@ class Plot(APIBase):
         site_name: str = None,
     ) -> List["Plot"]:
         try:
+            if not any([plot_number, plot_row_number, plot_column_number, experiment_name, season_name, site_name]):
+                raise ValueError("At least one search parameter must be provided.")
+
             plots = PlotViewModel.search(
                 plot_number=plot_number,
                 plot_row_number=plot_row_number,
@@ -152,16 +181,31 @@ class Plot(APIBase):
             raise e
         
 
-    def update(self, **kwargs) -> "Plot":
+    def update(
+        self,
+        plot_number: int = None,
+        plot_row_number: int = None,
+        plot_column_number: int = None,
+        plot_info: dict = None
+    ) -> "Plot":
         try:
-            curent_id = self.id
-            plot = PlotModel.get(curent_id)
-            plot = PlotModel.update(plot, **kwargs)
+            if not plot_number and not plot_row_number and not plot_column_number and not plot_info:
+                raise ValueError("At least one parameter must be provided.")
+
+            current_id = self.id
+            plot = PlotModel.get(current_id)
+            plot = PlotModel.update(
+                plot,
+                plot_number=plot_number,
+                plot_row_number=plot_row_number,
+                plot_column_number=plot_column_number,
+                plot_info=plot_info
+            )
             plot = self.model_validate(plot)
             self.refresh()
             return plot
         except Exception as e:
-            raise e
+            return None
         
 
     def refresh(self) -> "Plot":
@@ -170,8 +214,8 @@ class Plot(APIBase):
             instance = self.model_validate(db_instance)
             for key, value in instance.model_dump().items():
                 if hasattr(self, key) and key != "id":
-                    actual_value = getattr(instance, key)
-                    setattr(self, key, actual_value)
+                    value = getattr(instance, key)
+                    setattr(self, key, value)
             return self
         except Exception as e:
             raise e
@@ -187,41 +231,130 @@ class Plot(APIBase):
             return False
         
 
-    # def get_cultivars(self) -> List["Cultivar"]:
-    #     try:
-    #         cultivars = [Cultivar.model_validate(cultivar) for cultivar in self.cultivars]
-    #         return cultivars
-    #     except Exception as e:
-    #         raise e
+    @classmethod
+    def get_valid_combinations(cls) -> List[dict]:
+        try:
+            valid_combinations = ValidPlotCombinationsViewModel.all()
+            valid_combinations = [valid_combinations.to_dict() for valid_combinations in valid_combinations]
+            return valid_combinations
+        except Exception as e:
+            raise e
         
-    # def get_plants(self) -> List["Plant"]:
-    #     try:
-    #         plants = [Plant.model_validate(plant) for plant in self.plants]
-    #         return plants
-    #     except Exception as e:
-    #         raise e
+    def get_cultivars(self) -> List["Cultivar"]:
+        try:
+            cultivars = PlotCultivarViewModel.search(plot_id=self.id)
+            cultivars = [Cultivar.model_validate(cultivar) for cultivar in cultivars]
+            return cultivars
+        except Exception as e:
+            raise e
         
-    # def get_experiment(self) -> "Experiment":
-    #     try:
-    #         experiment = Experiment.model_validate(self.experiment)
-    #         return experiment
-    #     except Exception as e:
-    #         raise e
-        
-    # def get_season(self) -> "Season":
-    #     try:
-    #         season = Season.model_validate(self.season)
-    #         return season
-    #     except Exception as e:
-    #         raise e
-        
-    # def get_site(self) -> "Site":
-    #     try:
-    #         site = Site.model_validate(self.site)
-    #         return site
-    #     except Exception as e:
-    #         raise e
-                
+    def add_cultivar(
+        self,
+        cultivar_accession: str,
+        cultivar_population: str,
+        cultivar_info: dict = {}
+    ) -> "Cultivar":
+        try:
 
+            # Check if cultivar is part of the experiment
+            if not ExperimentCultivarsViewModel.exists(
+                experiment_id=self.experiment_id,
+                cultivar_accession=cultivar_accession,
+                cultivar_population=cultivar_population
+            ):
+                return None
+            # Check if it is already added for the plot
+            if PlotCultivarViewModel.exists(plot_id=self.id, cultivar_accession=cultivar_accession, cultivar_population=cultivar_population):
+                return None
+            
+            cultivar = Cultivar.create(
+                cultivar_accession=cultivar_accession,
+                cultivar_population=cultivar_population,
+                cultivar_info=cultivar_info
+            )
+            plot = PlotModel.get(self.id)
+            plot = PlotCultivarModel.get_or_create(
+                plot_id=plot.id,
+                cultivar_id=cultivar.id
+            )
+            cultivar = Cultivar.model_validate(cultivar)
+            return cultivar
+        except Exception as e:
+            raise e
+        
+        
+    def set_experiment(self, experiment_name: str) -> "Plot":
+        try:
+            experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
+            if not experiment:
+                raise ValueError(f"Experiment with name {experiment_name} does not exist.")
+            plot = PlotModel.get(self.id)
+            PlotModel.update(plot, experiment_id=experiment.id)
+            self.refresh()
+            return self
+        except Exception as e:
+            return None
+        
 
+    def set_season(self, experiment_name: str, season_name: str) -> "Plot":
+        try:
+            season = ExperimentSeasonsViewModel.get_by_parameters(
+                experiment_name=experiment_name,
+                season_name=season_name
+            )
+            if not season:
+                raise ValueError(f"Season with name {season_name} does not exist for experiment {experiment_name}.")
+            plot = PlotModel.get(self.id)
+            PlotModel.update(plot, season_id=season.season_id)
+            self.refresh()
+            return plot
+        except Exception as e:
+            return None
+        
+    def set_site(self, site_name: str) -> "Plot":
+        try:
+            site = SiteModel.get_by_parameters(site_name=site_name)
+            if not site:
+                raise ValueError(f"Site with name {site_name} does not exist.")
+            plot = PlotModel.get(self.id)
+            PlotModel.update(plot, site_id=site.id)
+            self.refresh()
+            return self
+        except Exception as e:
+            return None
+        
+    def get_plants(self) -> List["Plant"]:
+        try:
+            plants = PlotPlantViewModel.search(plot_id=self.id)
+            plants = [Plant.model_validate(plant) for plant in plants]
+            return plants
+        except Exception as e:
+            raise e
+        
+    def add_plant(
+        self,
+        plant_number: int,
+        cultivar_accession: str,
+        cultivar_population: str,
+        plant_info: dict = {}
+    ) -> "Plant":
+        try:
+            # Check if cultivar is part of the experiment
+            if not ExperimentCultivarsViewModel.exists(
+                experiment_id=self.experiment_id,
+                cultivar_accession=cultivar_accession,
+                cultivar_population=cultivar_population
+            ):
+                raise ValueError(f"Cultivar {cultivar_accession} {cultivar_population} is not part of the experiment {self.experiment_name}.")
+
+            plant = Plant.create(
+                plot_id=self.id,
+                plant_number=plant_number,
+                cultivar_accession=cultivar_accession,
+                cultivar_population=cultivar_population,
+                plant_info=plant_info
+            )
+            return plant
+        except Exception as e:
+            raise e
         

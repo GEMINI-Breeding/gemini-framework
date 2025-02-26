@@ -45,7 +45,7 @@ class Cultivar(APIBase):
     @classmethod
     def get(cls, cultivar_population: str, cultivar_accession: str, experiment_name: str = None) -> "Cultivar":
         try:
-            db_instance = CultivarModel.get_by_parameters(
+            db_instance = ExperimentCultivarsViewModel.get_by_parameters(
                 cultivar_accession=cultivar_accession,
                 cultivar_population=cultivar_population,
                 experiment_name=experiment_name,
@@ -82,6 +82,10 @@ class Cultivar(APIBase):
         cultivar_info: dict = None
     ) -> List["Cultivar"]:
         try:
+
+            if not experiment_name and not cultivar_population and not cultivar_accession and not cultivar_info:
+                raise Exception("At least one search parameter must be provided.")
+
             cultivars = ExperimentCultivarsViewModel.search(
                 experiment_name=experiment_name,
                 cultivar_population=cultivar_population,
@@ -93,11 +97,25 @@ class Cultivar(APIBase):
         except Exception as e:
             raise e
         
-    def update(self, **update_parameters) -> "Cultivar":
+    def update(
+        self,
+        cultivar_accession: str = None,
+        cultivar_population: str = None,
+        cultivar_info: dict = None,
+    ) -> "Cultivar":
         try:
+
+            if not cultivar_accession and not cultivar_population and not cultivar_info:
+                raise ValueError("At least one parameter must be provided.")
+
             current_id = self.id
             cultivar = CultivarModel.get(current_id)
-            cultivar = CultivarModel.update(cultivar, **update_parameters)
+            cultivar = CultivarModel.update(
+                cultivar,
+                cultivar_accession=cultivar_accession,
+                cultivar_population=cultivar_population,
+                cultivar_info=cultivar_info,
+            )
             cultivar = self.model_validate(cultivar)
             self.refresh()
             return cultivar
@@ -120,8 +138,7 @@ class Cultivar(APIBase):
             instance = self.model_validate(db_instance)
             for key, value in instance.model_dump().items():
                 if hasattr(self, key) and key != "id":
-                    actual_value = getattr(instance, key)
-                    setattr(self, key, actual_value)
+                    setattr(self, key, value)
             return self
         except Exception as e:
             raise e

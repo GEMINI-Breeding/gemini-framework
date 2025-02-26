@@ -2,6 +2,23 @@
 -- Views and Materialized Views
 -------------------------------------------------------------------------------
 
+CREATE OR REPLACE VIEW gemini.valid_plot_combinations_view AS
+SELECT
+    e.id AS experiment_id,
+    e.experiment_name AS experiment_name,
+    s.id AS season_id,
+    s.season_name AS season_name,
+    si.id AS site_id,
+    si.site_name AS site_name
+FROM gemini.experiments AS e
+JOIN gemini.seasons AS s
+    ON e.id = s.experiment_id
+JOIN gemini.experiment_sites AS es
+    ON e.id = es.experiment_id
+JOIN gemini.sites AS si
+    ON es.site_id = si.id;
+
+
 -------------------------------------------------------------------------------
 -- View for storing valid combinations of datasets, experiments, seasons, and sites
 CREATE OR REPLACE VIEW gemini.valid_dataset_combinations_view AS
@@ -21,7 +38,7 @@ JOIN gemini.experiment_sites AS es
     ON e.id = es.experiment_id
 JOIN gemini.sites AS si
     ON es.site_id = si.id;
-;
+
 
 CREATE OR REPLACE VIEW gemini.valid_sensor_dataset_combinations_view AS
 SELECT
@@ -170,10 +187,15 @@ SELECT
     p.plot_info,
     pl.id as plant_id,  
     pl.plant_number,
-    pl.plant_info
+    pl.plant_info,
+    pl.cultivar_id,
+    c.cultivar_accession,
+    c.cultivar_population
 FROM gemini.plots AS p
 JOIN gemini.plants AS pl
-    ON p.id = pl.plot_id;
+    ON p.id = pl.plot_id
+JOIN gemini.cultivars AS c
+    ON pl.cultivar_id = c.id;
 
 
 -------------------------------------------------------------------------------

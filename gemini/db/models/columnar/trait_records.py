@@ -17,6 +17,7 @@ import uuid
 from datetime import datetime, date
 
 
+
 class TraitRecordModel(ColumnarBaseModel):
 
     __tablename__ = "trait_records"
@@ -45,11 +46,20 @@ class TraitRecordModel(ColumnarBaseModel):
         UniqueConstraint(
             "timestamp",
             "collection_date",
-            "dataset_id",
-            "dataset_name",
             "trait_id",
             "trait_name",
-            "record_info",
-            name="trait_records_unique"
+            "dataset_id",
+            "dataset_name",
+            "experiment_id",
+            "experiment_name",
+            "season_id",
+            "season_name",
+            "site_id",
+            "site_name",
+            "plot_id",
+            "plot_number",
+            "plot_row_number",
+            "plot_column_number",
         ),
+        Index("idx_trait_records_record_info", "record_info", postgresql_using="GIN"),
     )
