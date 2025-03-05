@@ -10,7 +10,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from gemini.db.core.base import BaseModel
 
@@ -23,7 +23,7 @@ class ModelModel(BaseModel):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
     model_name: Mapped[str] = mapped_column(String(255))
     model_url: Mapped[str] = mapped_column(String(255))
-    model_info: Mapped[dict] = mapped_column(JSON, default={})
+    model_info: Mapped[dict] = mapped_column(JSONB, default={})
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 
@@ -31,6 +31,3 @@ class ModelModel(BaseModel):
         UniqueConstraint("model_name", "model_url"),
         Index("idx_models_info", "model_info", postgresql_using="GIN"),
     )
-
-    model_runs = relationship("ModelRunModel", lazy="selectin", cascade="save-update, merge, delete")
-    datasets = relationship("DatasetModel", secondary="gemini.model_datasets", lazy="selectin", cascade="save-update, merge, delete")

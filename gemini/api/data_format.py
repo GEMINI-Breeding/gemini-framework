@@ -28,7 +28,7 @@ class DataFormat(APIBase):
                 data_format_info=data_format_info,
             )
             instance = cls.model_validate(instance)
-            return instance
+            return instance if instance else None
         except Exception as e:
             raise e
         
@@ -38,7 +38,7 @@ class DataFormat(APIBase):
         try:
             instance = DataFormatModel.get_by_parameters(data_format_name=data_format_name)
             instance = cls.model_validate(instance)
-            return instance
+            return instance if instance else None
         except Exception as e:
             raise e
         
@@ -48,7 +48,7 @@ class DataFormat(APIBase):
         try:
             instance = DataFormatModel.get(id)
             instance = cls.model_validate(instance)
-            return instance
+            return instance if instance else None
         except Exception as e:
             raise e
         
@@ -58,7 +58,7 @@ class DataFormat(APIBase):
         try:
             instances = DataFormatModel.all()
             instances = [cls.model_validate(instance) for instance in instances]
-            return instances
+            return instances if instances else None
         except Exception as e:
             raise e
         
@@ -80,24 +80,26 @@ class DataFormat(APIBase):
                 data_format_info=data_format_info,
             )
             data_formats = [cls.model_validate(data_format) for data_format in data_formats]
-            return data_formats
+            return data_formats if data_formats else None
         except Exception as e:
             raise e
     
     def update(
         self,
+        data_format_name: str = None,
         data_format_mime_type: str = None,
         data_format_info: dict = None,       
     ) -> "DataFormat":
         try:
 
-            if not data_format_mime_type and not data_format_info:
+            if not data_format_mime_type and not data_format_info and not data_format_name:
                 raise ValueError("At least one parameter must be provided")
 
             current_id = self.id
             data_format = DataFormatModel.get(current_id)
             data_format = DataFormatModel.update(
                 data_format,
+                data_format_name=data_format_name,
                 data_format_mime_type=data_format_mime_type,
                 data_format_info=data_format_info,
             )

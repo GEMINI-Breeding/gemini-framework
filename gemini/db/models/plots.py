@@ -34,10 +34,3 @@ class PlotModel(BaseModel):
     UniqueConstraint('experiment_id', 'season_id', 'site_id', 'plot_number', 'plot_row_number', 'plot_column_number'),
     Index('idx_plots_info', 'plot_info', postgresql_using='GIN')
   )
-
-  cultivars = relationship('CultivarModel', secondary='gemini.plot_cultivars', lazy='selectin', cascade='save-update, merge, delete')
-  plants = relationship('PlantModel', lazy='selectin', cascade='save-update, merge, delete')
-
-  experiment = relationship('ExperimentModel', lazy='selectin', cascade='save-update, merge, delete', uselist=False)
-  season = relationship('SeasonModel', lazy='selectin', cascade='save-update, merge, delete', uselist=False)
-  site = relationship('SiteModel', lazy='selectin', cascade='save-update, merge, delete', uselist=False)

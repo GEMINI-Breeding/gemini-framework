@@ -56,7 +56,7 @@ class Season(APIBase):
                 experiment_id=experiment.id if experiment else None,
             )
             season = cls.model_validate(db_instance)
-            return season
+            return season if season else None
         except Exception as e:
             raise e
         
@@ -66,7 +66,7 @@ class Season(APIBase):
         try:
             db_instance = SeasonModel.get(id)
             season = cls.model_validate(db_instance)
-            return season
+            return season if season else None
         except Exception as e:
             raise e
         
@@ -76,7 +76,7 @@ class Season(APIBase):
         try:
             seasons = SeasonModel.all()
             seasons = [cls.model_validate(season) for season in seasons]
-            return seasons
+            return seasons if seasons else None
         except Exception as e:
             raise e
         
@@ -90,7 +90,7 @@ class Season(APIBase):
         season_info: dict = None
     ) -> List["Season"]:
         try:
-            if any([experiment_name, season_name, season_start_date, season_end_date, season_info]):
+            if not any([experiment_name, season_name, season_start_date, season_end_date, season_info]):
                 raise Exception("At least one search parameter must be provided.")
 
             seasons = ExperimentSeasonsViewModel.search(
@@ -107,17 +107,19 @@ class Season(APIBase):
         
     def update(
         self,
+        season_name: str = None,
         season_start_date: date = None,
         season_end_date: date = None,
         season_info: dict = None
     ) -> "Season":
         try:
-            if any([season_start_date, season_end_date, season_info]):
+            if not any([season_start_date, season_end_date, season_info, season_name]):
                 raise Exception("At least one update parameter must be provided.")
             current_id = self.id
             season = SeasonModel.get(current_id)
             season = SeasonModel.update(
                 season,
+                season_name=season_name,
                 season_start_date=season_start_date,
                 season_end_date=season_end_date,
                 season_info=season_info

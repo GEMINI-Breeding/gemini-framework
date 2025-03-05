@@ -10,7 +10,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from gemini.db.core.base import BaseModel
 
@@ -26,8 +26,8 @@ class TraitModel(BaseModel):
     trait_name: Mapped[str] = mapped_column(String(255), nullable=False)
     trait_units: Mapped[str] = mapped_column(String(255), default='units')
     trait_level_id: Mapped[int] = mapped_column(Integer, ForeignKey("gemini.trait_levels.id"), default=0)
-    trait_metrics: Mapped[dict] = mapped_column(JSON, default={})
-    trait_info: Mapped[dict] = mapped_column(JSON, default={})
+    trait_metrics: Mapped[dict] = mapped_column(JSONB, default={})
+    trait_info: Mapped[dict] = mapped_column(JSONB, default={})
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 
@@ -36,6 +36,3 @@ class TraitModel(BaseModel):
         UniqueConstraint('trait_name'),
         Index('idx_traits_info', 'trait_info', postgresql_using='GIN')
     )
-
-    trait_level = relationship("TraitLevelModel", lazy="selectin", cascade="save-update, merge, delete", uselist=False)
-    datasets = relationship("DatasetModel", secondary="gemini.trait_datasets", lazy="selectin", cascade="save-update, merge, delete")

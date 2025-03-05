@@ -4,14 +4,14 @@ from uuid import UUID
 from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
-from gemini.api.enums import GEMINITraitLevel
-from gemini.api.trait_record import TraitRecord
+from gemini.api.dataset import Dataset
+from gemini.api.enums import GEMINITraitLevel, GEMINIDatasetType
 from gemini.db.models.traits import TraitModel
-from gemini.db.models.trait_levels import TraitLevelModel
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.views.experiment_views import ExperimentTraitsViewModel
-from gemini.db.models.associations import ExperimentTraitModel
-from datetime import date, datetime
+from gemini.db.models.views.dataset_views import TraitDatasetsViewModel
+from gemini.db.models.associations import ExperimentTraitModel, TraitDatasetModel
+from datetime import date
 
 class Trait(APIBase):
 
@@ -62,7 +62,7 @@ class Trait(APIBase):
                 experiment_name=experiment_name   
             )
             trait = cls.model_validate(trait)
-            return trait
+            return trait if trait else None
         except Exception as e:
             raise e
         
@@ -72,7 +72,7 @@ class Trait(APIBase):
         try:
             trait = TraitModel.get(id)
             trait = cls.model_validate(trait)
-            return trait
+            return trait if trait else None
         except Exception as e:
             raise e
         
@@ -116,20 +116,22 @@ class Trait(APIBase):
         
 
     def update(
-            self, 
+            self,
+            trait_name: str = None, 
             trait_units: str = None,
             trait_level: GEMINITraitLevel = None,
             trait_info: dict = None,
             trait_metrics: dict = None,
         ) -> "Trait":
         try:
-            if not any([trait_units, trait_level, trait_info, trait_metrics]):
+            if not any([trait_units, trait_level, trait_info, trait_metrics, trait_name]):
                 raise Exception("At least one update parameter must be provided.")
 
             current_id = self.id
             trait = TraitModel.get(current_id)
             trait = TraitModel.update(
                 trait,
+                trait_name=trait_name,
                 trait_units=trait_units,
                 trait_level_id=trait_level.value if trait_level else None,
                 trait_info=trait_info,
@@ -137,6 +139,7 @@ class Trait(APIBase):
             )
             trait = self.model_validate(trait)
             self.refresh()
+            return trait 
         except Exception as e:
             raise e
         
@@ -160,6 +163,35 @@ class Trait(APIBase):
                 if hasattr(self, key) and key != "id":
                     setattr(self, key, value)
             return self
+        except Exception as e:
+            raise e
+        
+    def get_datasets(self) -> List[Dataset]:
+        try:
+            trait = TraitModel.get(self.id)
+            datasets = TraitDatasetsViewModel.search(trait_id=trait.id)
+            datasets = [Dataset.model_validate(dataset) for dataset in datasets]
+            return datasets if datasets else None
+        except Exception as e:
+            raise e
+        
+    def create_dataset(
+        self,
+        dataset_name: str,
+        dataset_info: dict = {},
+        collection_date: date = None,
+        experiment_name: str = None
+    ) -> Dataset:
+        try:
+            dataset = Dataset.create(
+                dataset_name=dataset_name,
+                dataset_info=dataset_info,
+                dataset_type=GEMINIDatasetType.Trait,
+                collection_date=collection_date,
+                experiment_name=experiment_name
+            )
+            TraitDatasetModel.get_or_create(trait_id=self.id, dataset_id=dataset.id)
+            return dataset
         except Exception as e:
             raise e
 

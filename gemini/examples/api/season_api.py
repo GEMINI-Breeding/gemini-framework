@@ -31,5 +31,18 @@ length_searched_seasons = len(searched_seasons)
 print(f"Found {length_searched_seasons} seasons in Experiment A")
 
 # Refresh the season
-season = season.refresh()
+season.refresh()
 print(f"Refreshed Season: {season}")
+
+# Update the season
+season.update(
+    season_start_date="2022-01-01",
+    season_end_date="2022-12-31",
+    season_info={"test": "test_updated"},
+)
+print(f"Updated Season: {season}")
+
+# Delete the season
+is_deleted = season.delete()
+print(f"Deleted Season: {is_deleted}")
+

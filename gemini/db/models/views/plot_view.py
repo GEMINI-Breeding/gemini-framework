@@ -1,11 +1,11 @@
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from sqlalchemy import UUID, JSON, String, Integer
 from sqlalchemy.dialects.postgresql import JSONB
-from gemini.db.core.base import ViewBaseModel
+from gemini.db.core.base import MaterializedViewBaseModel
 
 
 
-class PlotViewModel(ViewBaseModel):
+class PlotViewModel(MaterializedViewBaseModel):
 
     __tablename__ = 'plot_view'
 
@@ -19,8 +19,8 @@ class PlotViewModel(ViewBaseModel):
     plot_number : Mapped[int] = mapped_column(Integer)
     plot_row_number : Mapped[int] = mapped_column(Integer)
     plot_column_number : Mapped[int] = mapped_column(Integer)
-    plot_geometry_info : Mapped[JSON] = mapped_column(JSON)
-    plot_info : Mapped[JSON] = mapped_column(JSON)
+    plot_geometry_info : Mapped[dict] = mapped_column(JSONB)
+    plot_info : Mapped[dict] = mapped_column(JSONB)
 
 
     

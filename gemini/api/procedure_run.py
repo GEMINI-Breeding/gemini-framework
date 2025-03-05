@@ -7,7 +7,7 @@ from gemini.api.base import APIBase
 from gemini.db.models.procedure_runs import ProcedureRunModel
 from gemini.db.models.procedures import ProcedureModel
 
-from datetime import date, datetime
+
 
 class ProcedureRun(APIBase):
 
@@ -46,7 +46,7 @@ class ProcedureRun(APIBase):
                 procedure_id=db_procedure.id
             )
             procedure_run = cls.model_validate(db_instance)
-            return procedure_run
+            return procedure_run if procedure_run else None
         except Exception as e:
             raise e
         
@@ -55,7 +55,7 @@ class ProcedureRun(APIBase):
         try:
             db_instance = ProcedureRunModel.get(id)
             procedure_run = cls.model_validate(db_instance)
-            return procedure_run
+            return procedure_run if procedure_run else None
         except Exception as e:
             raise e
         
@@ -64,7 +64,7 @@ class ProcedureRun(APIBase):
         try:
             db_instances = ProcedureRunModel.all()
             procedure_runs = [cls.model_validate(db_instance) for db_instance in db_instances]
-            return procedure_runs
+            return procedure_runs if procedure_runs else None
         except Exception as e:
             raise e
         
@@ -87,7 +87,7 @@ class ProcedureRun(APIBase):
                 procedure_id=db_model.id
             )
             procedure_runs = [cls.model_validate(procedure_run) for procedure_run in procedure_runs]
-            return procedure_runs
+            return procedure_runs if procedure_runs else None
         except Exception as e:
             raise e
         
@@ -106,7 +106,7 @@ class ProcedureRun(APIBase):
             )
             procedure_run = self.model_validate(procedure_run)
             self.refresh()
-            return procedure_run
+            return procedure_run 
         except Exception as e:
             raise e
         

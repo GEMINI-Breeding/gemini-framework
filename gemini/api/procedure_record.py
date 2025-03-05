@@ -25,8 +25,7 @@ from datetime import date, datetime
 
 class ProcedureRecord(APIBase, FileHandlerMixin):
 
-    id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "model_record_id"))
-
+    id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "procedure_record_id"))
     timestamp: Optional[datetime] = None
     collection_date: Optional[date] = None
     dataset_id: Optional[ID] = None
@@ -90,7 +89,6 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
         except Exception as e:
             raise e
         
-    @classmethod
     def delete(self) -> bool:
         try:
             current_id = self.id
@@ -105,14 +103,14 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
         try:
             instances = ProcedureRecordModel.all(limit=limit)
             records = [cls.model_validate(instance) for instance in instances]
-            return records
+            return records if records else None
         except Exception as e:
             raise e
 
     @classmethod
     def get_by_id(cls, id: UUID | int | str) -> 'ProcedureRecord':
         try:
-            record = ProcedureRecordModel.get(id)
+            record = ProcedureRecordsIMMVModel.get(id)
             record = cls.model_construct(
                 _fields_set=cls.model_fields_set,
                 **record.to_dict()
@@ -120,7 +118,7 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
             record = record.model_dump()
             record = cls._postprocess_record(record)
             record = cls.model_validate(record)
-            return record
+            return record if record else None
         except Exception as e:
             raise e
 
@@ -181,7 +179,28 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
         try:
             db_instance = ProcedureRecordModel.get(procedure_record_id)
             record = cls.model_validate(db_instance)
-            return record
+            return record if record else None
+        except Exception as e:
+            raise e
+        
+    def get_record_info(self) -> dict:
+        try:
+            if not self.id:
+                raise ValueError("Record ID is required to get the record info.")
+            record = ProcedureRecordModel.get(self.id)
+            record_info = record.record_info
+            return record_info if record_info else None
+        except Exception as e:
+            raise e
+        
+    def set_record_info(self, record_info: dict) -> 'ProcedureRecord':
+        try:
+            if not self.id:
+                raise ValueError("Record ID is required to set the record info.")
+            record = ProcedureRecordModel.get(self.id)
+            ProcedureRecordModel.update(record, record_info=record_info)
+            self.refresh()
+            return self
         except Exception as e:
             raise e
         
@@ -191,6 +210,7 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
         cls,
         dataset_name: str = None,
         procedure_name: str = None,
+        procedure_data: dict = None,
         experiment_name: str = None,
         site_name: str = None,
         season_name: str = None,
@@ -198,12 +218,13 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
         record_info: dict = None
     ) -> Generator['ProcedureRecord', None, None]:
         try:
-            if not any([dataset_name, procedure_name, experiment_name, site_name, season_name, collection_date]):
+            if not any([dataset_name, procedure_data, procedure_name, experiment_name, site_name, season_name, collection_date]):
                 raise ValueError("At least one search parameter must be provided.")
 
             records = ProcedureRecordsIMMVModel.stream(
                 dataset_name=dataset_name,
                 procedure_name=procedure_name,
+                procedure_data=procedure_data,
                 experiment_name=experiment_name,
                 site_name=site_name,
                 season_name=season_name,
@@ -261,6 +282,20 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
             return self
         except Exception as e:
             raise e
+        
+    def get_record_file(self, download_folder: str) -> str:
+        try:
+            if not self.id:
+                raise ValueError("Record ID is required to get the record file.")
+            record = ProcedureRecordModel.get(self.id)
+            if not record.record_file:
+                raise ValueError("Record file is not set.")
+            file_path = os.path.join(download_folder, record.record_file)
+            if not os.path.exists(file_path):
+                file_path = self._download_file(output_folder=download_folder)
+            return file_path
+        except Exception as e:
+            raise e
 
     @classmethod
     def get_valid_combinations(
@@ -279,7 +314,8 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
                 site_name=site_name,
                 season_name=season_name
             )
-            return [record.to_dict() for record in valid_combinations]
+            valid_combinations = [record.to_dict() for record in valid_combinations]
+            return valid_combinations if valid_combinations else None
         except Exception as e:
             raise e
         
@@ -394,12 +430,13 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
         except Exception as e:
             raise e
         
-    def _get_file_download_url(self, record_file_key: str) -> str:
+    @classmethod
+    def _get_file_download_url(cls, record_file_key: str) -> str:
         try:
             # Check if record_file is a file key or a file url
             if record_file_key.startswith("http"):
                 return record_file_key
-            file_url = self.minio_storage_provider.get_download_url(object_name=record_file_key)
+            file_url = cls.minio_storage_provider.get_download_url(object_name=record_file_key)
             return file_url
         except Exception as e:
             raise e
@@ -410,12 +447,17 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
             file_path = record.record_file
             if not os.path.exists(file_path):
                 raise FileNotFoundError(f"File {file_path} does not exist.")
-            file_name = os.path.basename(file_path)
             collection_date = record.collection_date.strftime("%Y-%m-%d")
             procedure_name = record.procedure_name
-            file_key = f"procedure_data/{procedure_name}/{collection_date}/{file_name}"
+            experiment_name = record.experiment_name
+            season_name = record.season_name
+            site_name = record.site_name
+            file_extension = os.path.splitext(file_path)[1]
+            file_timestamp = str(int(record.timestamp.timestamp()*1000))
+            file_key = f"procedure_records/{experiment_name}/{procedure_name}/{collection_date}/{site_name}/{season_name}/{file_timestamp}{file_extension}"
             return file_key
         except Exception as e:
             raise e
+
         
 

@@ -1,9 +1,11 @@
 from sqlalchemy.orm import relationship, mapped_column, Mapped
-from sqlalchemy import UUID, JSON, String, Integer
+from sqlalchemy import UUID, JSON, String, Integer, DATE
 from sqlalchemy.dialects.postgresql import JSONB
-from gemini.db.core.base import ViewBaseModel
+from gemini.db.core.base import MaterializedViewBaseModel
 
-class SensorDatasetsViewModel(ViewBaseModel):
+from datetime import date
+
+class SensorDatasetsViewModel(MaterializedViewBaseModel):
 
     __tablename__ = 'sensor_datasets_view'
 
@@ -11,9 +13,12 @@ class SensorDatasetsViewModel(ViewBaseModel):
     sensor_name : Mapped[str] = mapped_column(String)
     dataset_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     dataset_name : Mapped[str] = mapped_column(String)
-    sensor_dataset_info : Mapped[JSON] = mapped_column(JSON)
+    dataset_info : Mapped[dict] = mapped_column(JSONB)
+    collection_date: Mapped[date] = mapped_column(DATE)
+    dataset_type_id: Mapped[int] = mapped_column(Integer)
+    sensor_dataset_info : Mapped[dict] = mapped_column(JSONB)
 
-class TraitDatasetsViewModel(ViewBaseModel):
+class TraitDatasetsViewModel(MaterializedViewBaseModel):
 
     __tablename__ = 'trait_datasets_view'
 
@@ -21,10 +26,13 @@ class TraitDatasetsViewModel(ViewBaseModel):
     trait_name : Mapped[str] = mapped_column(String)
     dataset_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     dataset_name : Mapped[str] = mapped_column(String)
-    trait_dataset_info : Mapped[JSON] = mapped_column(JSON)
+    dataset_info : Mapped[dict] = mapped_column(JSONB)
+    collection_date: Mapped[date] = mapped_column(DATE)
+    dataset_type_id: Mapped[int] = mapped_column(Integer)
+    trait_dataset_info : Mapped[dict] = mapped_column(JSONB)
 
 
-class ProcedureDatasetsViewModel(ViewBaseModel):
+class ProcedureDatasetsViewModel(MaterializedViewBaseModel):
     
     __tablename__ = 'procedure_datasets_view'
 
@@ -32,10 +40,13 @@ class ProcedureDatasetsViewModel(ViewBaseModel):
     procedure_name : Mapped[str] = mapped_column(String)
     dataset_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     dataset_name : Mapped[str] = mapped_column(String)
-    procedure_dataset_info : Mapped[JSON] = mapped_column(JSON)
+    dataset_info : Mapped[dict] = mapped_column(JSONB)
+    collection_date: Mapped[date] = mapped_column(DATE)
+    dataset_type_id: Mapped[int] = mapped_column(Integer)
+    procedure_dataset_info : Mapped[dict] = mapped_column(JSONB)
 
 
-class ScriptDatasetsViewModel(ViewBaseModel):
+class ScriptDatasetsViewModel(MaterializedViewBaseModel):
      
     __tablename__ = 'script_datasets_view'
 
@@ -43,11 +54,14 @@ class ScriptDatasetsViewModel(ViewBaseModel):
     script_name : Mapped[str] = mapped_column(String)
     dataset_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     dataset_name : Mapped[str] = mapped_column(String)
-    script_dataset_info : Mapped[JSON] = mapped_column(JSON)
+    dataset_info : Mapped[dict] = mapped_column(JSONB)
+    collection_date: Mapped[date] = mapped_column(DATE)
+    dataset_type_id: Mapped[int] = mapped_column(Integer)
+    script_dataset_info : Mapped[dict] = mapped_column(JSONB)
 
 
 
-class ModelDatasetsViewModel(ViewBaseModel):
+class ModelDatasetsViewModel(MaterializedViewBaseModel):
       
     __tablename__ = 'model_datasets_view'
 
@@ -55,6 +69,9 @@ class ModelDatasetsViewModel(ViewBaseModel):
     model_name : Mapped[str] = mapped_column(String)
     dataset_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     dataset_name : Mapped[str] = mapped_column(String)
-    model_dataset_info : Mapped[JSON] = mapped_column(JSON)
+    dataset_info : Mapped[dict] = mapped_column(JSONB)
+    collection_date: Mapped[date] = mapped_column(DATE)
+    dataset_type_id: Mapped[int] = mapped_column(Integer)
+    model_dataset_info : Mapped[dict] = mapped_column(JSONB)
 
     

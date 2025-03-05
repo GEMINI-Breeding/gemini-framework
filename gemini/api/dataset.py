@@ -5,13 +5,14 @@ from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.api.enums import GEMINIDatasetType
-from gemini.api.dataset_record import DatasetRecord
+from gemini.api.dataset_type import DatasetType
 from gemini.db.models.datasets import DatasetModel
+from gemini.db.models.dataset_types import DatasetTypeModel
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.associations import ExperimentDatasetModel
 from gemini.db.models.views.experiment_views import ExperimentDatasetsViewModel
 
-from datetime import date, datetime
+from datetime import date
 
 class Dataset(APIBase):
 
@@ -58,7 +59,7 @@ class Dataset(APIBase):
                 experiment_name=experiment_name
             )
             dataset = cls.model_validate(db_instance)
-            return dataset
+            return dataset if dataset else None
         except Exception as e:
             raise e
         
@@ -68,7 +69,7 @@ class Dataset(APIBase):
         try:
             db_instance = DatasetModel.get(id)
             dataset = cls.model_validate(db_instance)
-            return dataset
+            return dataset if dataset else None
         except Exception as e:
             raise e
         
@@ -154,6 +155,15 @@ class Dataset(APIBase):
         except Exception as e:
             raise e
         
+    def get_type(self) -> DatasetType:
+        try:
+            dataset = DatasetModel.get(self.id)
+            dataset_type = DatasetTypeModel.get(dataset.dataset_type_id)
+            dataset_type = DatasetType.model_validate(dataset_type)
+            return dataset_type if dataset_type else None
+        except Exception as e:
+            raise e 
+
     # def add_record(
     #     self,
     #     record = DatasetRecord

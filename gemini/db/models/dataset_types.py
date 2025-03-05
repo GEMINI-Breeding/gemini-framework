@@ -9,7 +9,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from gemini.db.core.base import BaseModel
 from datetime import datetime
 
@@ -18,7 +18,7 @@ class DatasetTypeModel(BaseModel):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     dataset_type_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    dataset_type_info: Mapped[dict] = mapped_column(JSON, default={})
+    dataset_type_info: Mapped[dict] = mapped_column(JSONB, default={})
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 

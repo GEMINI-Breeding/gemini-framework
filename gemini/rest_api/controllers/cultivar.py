@@ -4,7 +4,14 @@ from litestar.params import Body
 from litestar.controller import Controller
 
 from gemini.api.cultivar import Cultivar
-from gemini.rest_api.models import CultivarInput, CultivarOutput, RESTAPIError, CultivarUpdate, str_to_dict, JSONB  
+from gemini.rest_api.models import (
+    CultivarInput,
+    CultivarOutput,
+    CultivarUpdate,
+    RESTAPIError,
+    str_to_dict,
+    JSONB
+)
 
 from typing import List, Annotated, Optional
 
@@ -17,10 +24,9 @@ class CultivarController(Controller):
         cultivar_population: Optional[str] = None,
         cultivar_accession: Optional[str] = None,
         cultivar_info: Optional[JSONB] = None,
-        experiment_name: Optional[str] = 'Default'
+        experiment_name: Optional[str] = 'Experiment A'
     ) -> List[CultivarOutput]:
         try:
-
             if cultivar_info is not None:
                 cultivar_info = str_to_dict(cultivar_info)
 
@@ -45,7 +51,6 @@ class CultivarController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
-
     # Get Cultivar by ID
     @get(path="/id/{cultivar_id:str}")
     async def get_cultivar_by_id(
@@ -68,7 +73,6 @@ class CultivarController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
-    
     # Create a new Cultivar
     @post()
     async def create_cultivar(
@@ -120,7 +124,6 @@ class CultivarController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
-
     # Delete Cultivar
     @delete(path="/id/{cultivar_id:str}")
     async def delete_cultivar(
@@ -142,9 +145,9 @@ class CultivarController(Controller):
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
-
+        
     # Get Population Accessions
-    @get(path="/population/{cultivar_population:str}")
+    @get(path="/accessions/{cultivar_population:str}")
     async def get_population_accessions(
         self, cultivar_population: str
     ) -> List[CultivarOutput]:
@@ -164,5 +167,4 @@ class CultivarController(Controller):
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
-        
-    
+

@@ -10,7 +10,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from gemini.db.core.base import BaseModel
 
@@ -27,7 +27,7 @@ class SensorModel(BaseModel):
     sensor_type_id: Mapped[int] = mapped_column(Integer, ForeignKey("gemini.sensor_types.id"), default=0)
     sensor_data_type_id: Mapped[int] = mapped_column(Integer, ForeignKey("gemini.data_types.id"), default=0)
     sensor_data_format_id: Mapped[int] = mapped_column(Integer, ForeignKey("gemini.data_formats.id"), default=0)
-    sensor_info: Mapped[dict] = mapped_column(JSON, default={})
+    sensor_info: Mapped[dict] = mapped_column(JSONB, default={})
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 
@@ -35,8 +35,3 @@ class SensorModel(BaseModel):
         UniqueConstraint("sensor_name"),
         Index("idx_sensors_info", "sensor_info", postgresql_using="GIN"),
     )
-
-    sensor_type = relationship("SensorTypeModel", lazy="selectin", cascade="save-update, merge, delete", uselist=False)
-    sensor_data_type = relationship("DataTypeModel", lazy="selectin", cascade="save-update, merge, delete", uselist=False)
-    sensor_data_format = relationship("DataFormatModel", lazy="selectin", cascade="save-update, merge, delete", uselist=False)
-    datasets = relationship("DatasetModel", secondary="gemini.sensor_datasets", lazy="selectin", cascade="save-update, merge, delete")

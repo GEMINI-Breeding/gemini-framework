@@ -40,9 +40,9 @@ class TraitRecord(APIBase, FileHandlerMixin):
     site_id: Optional[ID] = None
     site_name: Optional[str] = None
     plot_id: Optional[ID] = None
-    plot_number: Optional[str] = None
-    plot_row_number: Optional[str] = None
-    plot_column_number: Optional[str] = None
+    plot_number: Optional[int] = None
+    plot_row_number: Optional[int] = None
+    plot_column_number: Optional[int] = None
     record_info: Optional[dict] = None
 
     @classmethod
@@ -56,9 +56,9 @@ class TraitRecord(APIBase, FileHandlerMixin):
         experiment_name: str = None,
         site_name: str = None,
         season_name: str = None,
-        plot_number: str = None,
-        plot_row_number: str = None,
-        plot_column_number: str = None,
+        plot_number: int = None,
+        plot_row_number: int = None,
+        plot_column_number: int = None,
         record_info: dict = {}
     ) -> 'TraitRecord':
         try:
@@ -112,7 +112,6 @@ class TraitRecord(APIBase, FileHandlerMixin):
             raise e
 
 
-    @classmethod
     def delete(self) -> bool:
         try:
             current_id = self.id
@@ -127,7 +126,7 @@ class TraitRecord(APIBase, FileHandlerMixin):
         try:
             instances = TraitRecordModel.all(limit=limit)
             records = [cls.model_validate(instance) for instance in instances]
-            return records
+            return records if records else None
         except Exception as e:
             raise e
 
@@ -188,6 +187,27 @@ class TraitRecord(APIBase, FileHandlerMixin):
         try:
             db_instance = TraitRecordModel.get(trait_record_id)
             record = cls.model_validate(db_instance)
+            return record if record else None
+        except Exception as e:
+            raise e
+        
+    def get_record_info(self) -> dict:
+        try:
+            if not self.id:
+                raise ValueError('Record ID is required.')
+            record = TraitRecordModel.get(self.id)
+            record_info = record.record_info
+            return record_info if record_info else None
+        except Exception as e:
+            raise e
+        
+    def set_record_info(self, record_info: dict) -> dict:
+        try:
+            if not self.id:
+                raise ValueError('Record ID is required.')
+            record = TraitRecordModel.get(self.id)
+            record = TraitRecordModel.update(record, record_info=record_info)
+            self.refresh()
             return record
         except Exception as e:
             raise e
@@ -197,22 +217,30 @@ class TraitRecord(APIBase, FileHandlerMixin):
         cls,
         dataset_name: str = None,
         trait_name: str = None,
+        trait_value: float = None,
         experiment_name: str = None,
         site_name: str = None,
         season_name: str = None,
+        plot_number: int = None,
+        plot_row_number: int = None,
+        plot_column_number: int = None,
         collection_date: date = None,
         record_info: dict = None
     ) -> Generator['TraitRecord', None, None]:
         try:
-            if not any([dataset_name, trait_name, experiment_name, site_name, season_name, collection_date, record_info]):
+            if not any([dataset_name, trait_name, trait_value, experiment_name, site_name, season_name, plot_number, plot_row_number, plot_column_number, collection_date, record_info]):
                 raise ValueError('At least one search parameter must be provided.')
             
-            records = TraitRecordsIMMVModel.search(
+            records = TraitRecordsIMMVModel.stream(
                 dataset_name=dataset_name,
                 trait_name=trait_name,
+                trait_value=trait_value,
                 experiment_name=experiment_name,
                 site_name=site_name,
                 season_name=season_name,
+                plot_number=plot_number,
+                plot_row_number=plot_row_number,
+                plot_column_number=plot_column_number,
                 collection_date=collection_date,
                 record_info=record_info
             )
@@ -302,7 +330,8 @@ class TraitRecord(APIBase, FileHandlerMixin):
                 site_name=site_name,
                 season_name=season_name
             )
-            return [record.to_dict() for record in valid_combinations]
+            valid_combinations = [record.to_dict() for record in valid_combinations]
+            return valid_combinations if valid_combinations else None
         except Exception as e:
             raise e
 

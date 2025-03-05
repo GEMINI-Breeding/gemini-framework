@@ -4,8 +4,6 @@ from uuid import UUID
 from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
-from gemini.api.data_format import DataFormat
-
 from gemini.db.models.dataset_types import DatasetTypeModel
 
 class DatasetType(APIBase):
@@ -37,7 +35,7 @@ class DatasetType(APIBase):
         try:
             instance = DatasetTypeModel.get_by_parameters(dataset_type_name=dataset_type_name)
             instance = cls.model_validate(instance)
-            return instance
+            return instance if instance else None
         except Exception as e:
             raise e
         
@@ -47,7 +45,7 @@ class DatasetType(APIBase):
         try:
             instance = DatasetTypeModel.get(id)
             instance = cls.model_validate(instance)
-            return instance
+            return instance if instance else None
         except Exception as e:
             raise e
         
@@ -56,7 +54,7 @@ class DatasetType(APIBase):
         try:
             instances = DatasetTypeModel.all()
             instances = [cls.model_validate(instance) for instance in instances]
-            return instances
+            return instances if instances else None
         except Exception as e:
             raise e
         
@@ -75,22 +73,24 @@ class DatasetType(APIBase):
                 dataset_type_info=dataset_type_info
             )
             instances = [cls.model_validate(instance) for instance in instances]
-            return instances
+            return instances if instances else None
         except Exception as e:
             raise e
         
     def update(
-            self, 
+            self,
+            dataset_type_name: str = None, 
             dataset_type_info: dict = None
         ) -> "DatasetType":
         try:
-            if not dataset_type_info:
+            if not dataset_type_info and not dataset_type_name:
                 raise ValueError("At least one parameter must be provided.")
             
             current_id = self.id
             dataset_type = DatasetTypeModel.get(current_id)
             dataset_type = DatasetTypeModel.update(
                 dataset_type,
+                dataset_type_name=dataset_type_name,
                 dataset_type_info=dataset_type_info,
             )
             dataset_type = self.model_validate(dataset_type)

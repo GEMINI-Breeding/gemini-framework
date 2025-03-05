@@ -46,7 +46,7 @@ class ModelRun(APIBase):
                 model_id=db_model.id
             )
             model_run = cls.model_validate(db_instance)
-            return model_run
+            return model_run if model_run else None
         except Exception as e:
             raise e
         
@@ -55,7 +55,7 @@ class ModelRun(APIBase):
         try:
             db_instance = ModelRunModel.get(id)
             model_run = cls.model_validate(db_instance)
-            return model_run
+            return model_run if model_run else None
         except Exception as e:
             raise e
         
@@ -64,7 +64,7 @@ class ModelRun(APIBase):
         try:
             model_runs = ModelRunModel.all()
             model_runs = [cls.model_validate(model_run) for model_run in model_runs]
-            return model_runs
+            return model_runs if model_runs else None
         except Exception as e:
             raise e
         
@@ -87,7 +87,7 @@ class ModelRun(APIBase):
                 model_id=db_model.id
             )
             model_runs = [cls.model_validate(model_run) for model_run in model_runs]
-            return model_runs
+            return model_runs if model_runs else None
         except Exception as e:
             raise e
         

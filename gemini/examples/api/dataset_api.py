@@ -14,6 +14,10 @@ print(f"Created Dataset: {new_dataset}")
 dataset = Dataset.get("Dataset Test 1")
 print(f"Got Dataset: {dataset}")
 
+# Get Dataset Type
+dataset_type = dataset.get_type()
+print(f"Dataset Type: {dataset_type}")
+
 # Get Dataset by ID
 dataset = Dataset.get_by_id(new_dataset.id)
 print(f"Got Dataset by ID: {dataset}")
@@ -40,7 +44,6 @@ dataset.update(
     dataset_info={"test": "test_updated"},
 
 )
-
 print(f"Updated Dataset: {dataset}")
 
 # Delete the new dataset

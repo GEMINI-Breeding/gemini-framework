@@ -281,8 +281,10 @@ class BaseModel(DeclarativeBase, SerializeMixin):
                     yield instance
 
 
-
 class ViewBaseModel(BaseModel):
+    __abstract__ = True
+
+class MaterializedViewBaseModel(BaseModel):
 
     __abstract__ = True
 

@@ -31,3 +31,5 @@ class ModelRunModel(BaseModel):
         UniqueConstraint("model_id", "model_run_info"),
         Index("idx_model_runs_info", "model_run_info", postgresql_using="GIN"),
     )
+
+

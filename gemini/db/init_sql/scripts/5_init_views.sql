@@ -2,6 +2,8 @@
 -- Views and Materialized Views
 -------------------------------------------------------------------------------
 
+-------------------------------------------------------------------------------
+-- View for plot entity combinations
 CREATE OR REPLACE VIEW gemini.valid_plot_combinations_view AS
 SELECT
     e.id AS experiment_id,
@@ -39,7 +41,8 @@ JOIN gemini.experiment_sites AS es
 JOIN gemini.sites AS si
     ON es.site_id = si.id;
 
-
+-------------------------------------------------------------------------------
+-- View for sensor combinations
 CREATE OR REPLACE VIEW gemini.valid_sensor_dataset_combinations_view AS
 SELECT
     d.dataset_name,
@@ -63,7 +66,8 @@ JOIN gemini.experiment_sites AS es
 JOIN gemini.sites AS si
     ON es.site_id = si.id;
 
-
+-------------------------------------------------------------------------------
+-- View for trait combinations
 CREATE OR REPLACE VIEW gemini.valid_trait_dataset_combinations_view AS
 SELECT
     d.dataset_name,
@@ -87,7 +91,8 @@ JOIN gemini.experiment_sites AS es
 JOIN gemini.sites AS si
     ON es.site_id = si.id;
 
-
+-------------------------------------------------------------------------------
+-- View for procedure combinations
 CREATE OR REPLACE VIEW gemini.valid_procedure_dataset_combinations_view AS
 SELECT
     d.dataset_name,
@@ -111,7 +116,8 @@ JOIN gemini.experiment_sites AS es
 JOIN gemini.sites AS si
     ON es.site_id = si.id;
 
-
+-------------------------------------------------------------------------------
+-- View for script combinations
 CREATE OR REPLACE VIEW gemini.valid_script_dataset_combinations_view AS
 SELECT
     d.dataset_name,
@@ -135,7 +141,8 @@ JOIN gemini.experiment_sites AS es
 JOIN gemini.sites AS si
     ON es.site_id = si.id;
 
-
+-------------------------------------------------------------------------------
+-- View for model combinations
 CREATE OR REPLACE VIEW gemini.valid_model_dataset_combinations_view AS
 SELECT
     d.dataset_name,
@@ -473,6 +480,9 @@ SELECT
     s.sensor_name AS sensor_name,
     sd.dataset_id,
     d.dataset_name AS dataset_name,
+    d.dataset_info AS dataset_info,
+    d.collection_date AS collection_date,
+    d.dataset_type_id AS dataset_type_id,
     sd.info AS sensor_dataset_info
 FROM
     gemini.sensor_datasets sd
@@ -489,6 +499,9 @@ SELECT
     t.trait_name AS trait_name,
     td.dataset_id,
     d.dataset_name AS dataset_name,
+    d.dataset_info AS dataset_info,
+    d.collection_date AS collection_date,
+    d.dataset_type_id AS dataset_type_id,
     td.info AS trait_dataset_info
 FROM
     gemini.trait_datasets td
@@ -506,6 +519,9 @@ SELECT
     p.procedure_name AS procedure_name,
     pd.dataset_id,
     d.dataset_name AS dataset_name,
+    d.dataset_info AS dataset_info,
+    d.collection_date AS collection_date,
+    d.dataset_type_id AS dataset_type_id,
     pd.info AS procedure_dataset_info
 FROM
     gemini.procedure_datasets pd
@@ -522,6 +538,9 @@ SELECT
     s.script_name AS script_name,
     sd.dataset_id,
     d.dataset_name AS dataset_name,
+    d.dataset_info AS dataset_info,
+    d.collection_date AS collection_date,
+    d.dataset_type_id AS dataset_type_id,
     sd.info AS script_dataset_info
 FROM
     gemini.script_datasets sd
@@ -539,6 +558,9 @@ SELECT
     m.model_name AS model_name,
     md.dataset_id,
     d.dataset_name AS dataset_name,
+    d.dataset_info AS dataset_info,
+    d.collection_date AS collection_date,
+    d.dataset_type_id AS dataset_type_id,
     md.info AS model_dataset_info
 FROM
     gemini.model_datasets md

@@ -23,9 +23,9 @@ class Site(APIBase):
     def create(
         cls,
         site_name: str,
-        site_city: str,
-        site_state: str,
-        site_country: str,
+        site_city: str = None,
+        site_state: str = None,
+        site_country: str = None,
         site_info: dict = {},
         experiment_name: str = None
     ) -> "Site":
@@ -57,7 +57,7 @@ class Site(APIBase):
                 experiment_name=experiment_name
             )
             site = cls.model_validate(db_instance)
-            return site
+            return site if site else None
         except Exception as e:
             raise e
         
@@ -66,7 +66,7 @@ class Site(APIBase):
         try:
             db_instance = SiteModel.get(id)
             site = cls.model_validate(db_instance)
-            return site
+            return site if site else None
         except Exception as e:
             raise e
         
@@ -118,7 +118,7 @@ class Site(APIBase):
         site_info: dict = None
     ) -> "Site":
         try:
-            if not any([site_name, site_city, site_state, site_country, site_info]):
+            if not any([site_city, site_state, site_country, site_info, site_name]):
                 raise Exception("At least one update parameter must be provided.")
             
             current_id = self.id
@@ -156,5 +156,6 @@ class Site(APIBase):
                     setattr(self, key, value)
             return self
         except Exception as e:
-            raise e 
-        
+            raise e
+
+

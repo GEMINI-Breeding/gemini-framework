@@ -10,7 +10,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from gemini.db.core.base import BaseModel
 
@@ -25,7 +25,7 @@ class SensorPlatformModel(BaseModel):
         UUID(as_uuid=False), primary_key=True, default=uuid.uuid4
     )
     sensor_platform_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    sensor_platform_info: Mapped[dict] = mapped_column(JSON, default={})
+    sensor_platform_info: Mapped[dict] = mapped_column(JSONB, default={})
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 
@@ -36,5 +36,3 @@ class SensorPlatformModel(BaseModel):
             "idx_sensor_platforms_info", "sensor_platform_info", postgresql_using="GIN"
         ),
     )
-
-    sensors = relationship("SensorModel", secondary="gemini.sensor_platform_sensors", lazy="selectin", cascade="save-update, merge, delete")

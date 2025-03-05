@@ -1,11 +1,12 @@
 from typing import Optional, List
 from uuid import UUID
 
-from pydantic import Field, AliasChoices, computed_field
+from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.api.data_format import DataFormat
 from gemini.db.models.data_types import DataTypeModel
+from gemini.db.models.data_formats import DataFormatModel
 from gemini.db.models.associations import DataTypeFormatModel
 
 class DataType(APIBase):
@@ -36,7 +37,7 @@ class DataType(APIBase):
         try:
             instance = DataTypeModel.get_by_parameters(data_type_name=data_type_name)
             instance = cls.model_validate(instance)
-            return instance
+            return instance if instance else None
         except Exception as e:
             raise e
         
@@ -45,7 +46,7 @@ class DataType(APIBase):
         try:
             instance = DataTypeModel.get(id)
             instance = cls.model_validate(instance)
-            return instance
+            return instance if instance else None
         except Exception as e:
             raise e
         
@@ -54,7 +55,7 @@ class DataType(APIBase):
         try:
             instances = DataTypeModel.all()
             instances = [cls.model_validate(instance) for instance in instances]
-            return instances
+            return instances if instances else None
         except Exception as e:
             raise e
         
@@ -74,22 +75,27 @@ class DataType(APIBase):
                 data_type_info=data_type_info
             )
             instances = [cls.model_validate(instance) for instance in instances]
-            return instances
+            return instances if instances else None
         except Exception as e:
             raise e
         
 
     def update(
         self,
+        data_type_name: str = None,
         data_type_info: dict = None,
     ) -> "DataType":
         try:
-            if not data_type_info:
+            if not data_type_info and not data_type_name:
                 raise ValueError("At least one parameter must be provided.")
 
             current_id = self.id
             data_type = DataTypeModel.get(current_id)
-            data_type = DataTypeModel.update(data_type, data_type_info=data_type_info)
+            data_type = DataTypeModel.update(
+                data_type,
+                data_type_name=data_type_name, 
+                data_type_info=data_type_info
+            )
             data_type = self.model_validate(data_type)
             self.refresh()
             return data_type
@@ -119,9 +125,10 @@ class DataType(APIBase):
     def get_formats(self) -> List["DataFormat"]:
         try:
             db_instance = DataTypeModel.get(self.id)
-            data_formats = db_instance.formats
+            data_formats = DataTypeFormatModel.search(data_type_id=db_instance.id)
+            data_formats = [DataFormatModel.get(data_format.data_format_id) for data_format in data_formats]
             data_formats = [DataFormat.model_validate(data_format) for data_format in data_formats]
-            return data_formats
+            return data_formats if data_formats else None
         except Exception as e:
             raise e
         

@@ -6,12 +6,13 @@ from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.api.script_run import ScriptRun
 from gemini.api.dataset import Dataset, GEMINIDatasetType
-from gemini.api.script_record import ScriptRecord
 from gemini.db.models.scripts import ScriptModel
+from gemini.db.models.script_runs import ScriptRunModel
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.views.experiment_views import ExperimentScriptsViewModel
 from gemini.db.models.associations import ExperimentScriptModel, ScriptDatasetModel
-from datetime import date, datetime
+from gemini.db.models.views.dataset_views import ScriptDatasetsViewModel
+from datetime import date
 
 
 class Script(APIBase):
@@ -46,7 +47,7 @@ class Script(APIBase):
                     ExperimentScriptModel.get_or_create(experiment_id=db_experiment.id, script_id=db_instance.id)
 
             script = cls.model_validate(db_instance)
-            return script
+            return script if script else None
         except Exception as e:
             raise e
         
@@ -59,7 +60,7 @@ class Script(APIBase):
                 experiment_name=experiment_name
             )
             script = cls.model_validate(db_instance)
-            return script
+            return script if script else None
         except Exception as e:
             raise e
         
@@ -69,7 +70,7 @@ class Script(APIBase):
         try:
             db_instance = ScriptModel.get(id)
             script = cls.model_validate(db_instance)
-            return script
+            return script if script else None
         except Exception as e:
             raise e
         
@@ -110,19 +111,21 @@ class Script(APIBase):
         
 
     def update(
-        self, 
+        self,
+        script_name: str = None, 
         script_url : str = None,
         script_extension : str = None,
         script_info : dict = None
     ) -> "Script":
-        try:
-            if not any([script_url, script_extension, script_info]):
+        try:    
+            if not any([script_url, script_extension, script_info, script_name]):                           
                 raise Exception("At least one update parameter must be provided.")
 
             current_id = self.id
             script = ScriptModel.get(current_id)
             script = ScriptModel.update(
                 script,
+                script_name=script_name,
                 script_url=script_url,
                 script_extension=script_extension,
                 script_info=script_info
@@ -157,10 +160,10 @@ class Script(APIBase):
         
     def get_datasets(self) -> List["Dataset"]:
         try:
-            dataset = ScriptModel.get(self.id)
-            datasets = dataset.datasets                                             
+            script = ScriptModel.get(self.id)
+            datasets = ScriptDatasetsViewModel.search(script_id=script.id)
             datasets = [Dataset.model_validate(dataset) for dataset in datasets]
-            return datasets
+            return datasets if datasets else None
         except Exception as e:
             raise e
 
@@ -189,9 +192,9 @@ class Script(APIBase):
     def get_runs(self) -> List[ScriptRun]:
         try:
             script = ScriptModel.get(self.id)
-            runs = script.script_runs
-            runs = [ScriptRun.model_validate(run) for run in runs]
-            return runs
+            script_runs = ScriptRunModel.search(script_id=script.id)
+            script_runs = [ScriptRun.model_validate(script_run) for script_run in script_runs]
+            return script_runs if script_runs else None
         except Exception as e:
             raise e
         

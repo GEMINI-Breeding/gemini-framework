@@ -1,57 +1,26 @@
-#### Variables
-@API_URL = http://localhost:8000/api
+@baseUrl = http://localhost:8000/
 
+#### API Base Requests
 
-#### Experiment
+GET {{baseUrl}}
 
-### Get all experiments
-GET {{API_URL}}/experiments
-Accept: application/json
+#### Cultivar Requests
 
+### Get all cultivars
+GET {{baseUrl}}api/cultivars
 
-### Get an experiment by ID
-GET {{API_URL}}/experiments/id/f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3
-Accept: application/json
-
-
-### Create Experiment
-# @name createExperiment
-POST {{API_URL}}/experiments
+### Create a new cultivar
+POST {{baseUrl}}api/cultivars
 Content-Type: application/json
 
 {
-    "experiment_name": "Experiment 1",
-    "experiment_info": {
-        "description": "This is a test experiment",
-        "start_date": "2021-01-01",
-        "end_date": "2021-01-31",
-        "status": "active"
-    },
-    "experiment_start_date": "2021-01-01",
-    "experiment_end_date": "2021-01-31"
+  "cultivar_population": "Test Population",
+  "cultivar_accession": "Test Accession",
+  "cultivar_info": {"testKey": "testValue"},
+  "experiment_name": "Experiment A"
 }
 
-### Save the new experiment ID
-@experiment_id = {{createExperiment.response.body.id}}
+### Get a cultivar by ID
+GET {{baseUrl}}api/cultivars/{{response.body.id}}
 
-
-### Update Experiment
-PATCH {{API_URL}}/experiments/id/{{experiment_id}}
-Content-Type: application/json
-
-{
-    "experiment_info": {
-        "description": "This is a test experiment",
-        "start_date": "2021-01-01",
-        "end_date": "2021-01-31",
-        "status": "inactive"
-    }
-}
-
-### Get Experiment Seasons
-GET {{API_URL}}/experiments/id/f4b3b3b3-3b3b-4b4b-b3b3-b3b3b3b3b3b3/seasons
-Accept: application/json
-
-### Delete Experiment
-DELETE {{API_URL}}/experiments/id/{{experiment_id}}
 

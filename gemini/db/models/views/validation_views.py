@@ -1,9 +1,9 @@
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from sqlalchemy import UUID, String, Integer, REAL
 from sqlalchemy.dialects.postgresql import JSONB
-from gemini.db.core.base import ViewBaseModel, BaseModel
+from gemini.db.core.base import ViewBaseModel
 
-class ValidPlotCombinationsViewModel(BaseModel):
+class ValidPlotCombinationsViewModel(ViewBaseModel):
     __tablename__ = 'valid_plot_combinations_view'
 
     experiment_name : Mapped[str] = mapped_column(String, primary_key=True)
@@ -15,7 +15,7 @@ class ValidPlotCombinationsViewModel(BaseModel):
 
 
 
-class ValidDatasetCombinationsViewModel(BaseModel):
+class ValidDatasetCombinationsViewModel(ViewBaseModel):
     
     __tablename__ = 'valid_dataset_combinations_view'
 
@@ -24,7 +24,7 @@ class ValidDatasetCombinationsViewModel(BaseModel):
     season_name : Mapped[str] = mapped_column(String, primary_key=True)
     site_name : Mapped[str] = mapped_column(String, primary_key=True)
 
-class ValidSensorDatasetCombinationsViewModel(BaseModel):
+class ValidSensorDatasetCombinationsViewModel(ViewBaseModel):
 
     __tablename__ = 'valid_sensor_dataset_combinations_view'
 
@@ -34,7 +34,7 @@ class ValidSensorDatasetCombinationsViewModel(BaseModel):
     season_name : Mapped[str] = mapped_column(String, primary_key=True)
     site_name : Mapped[str] = mapped_column(String, primary_key=True)
 
-class ValidTraitDatasetCombinationsViewModel(BaseModel):
+class ValidTraitDatasetCombinationsViewModel(ViewBaseModel):
     
     __tablename__ = 'valid_trait_dataset_combinations_view'
 
@@ -44,7 +44,7 @@ class ValidTraitDatasetCombinationsViewModel(BaseModel):
     season_name : Mapped[str] = mapped_column(String, primary_key=True)
     site_name : Mapped[str] = mapped_column(String, primary_key=True)
 
-class ValidProcedureDatasetCombinationsViewModel(BaseModel):
+class ValidProcedureDatasetCombinationsViewModel(ViewBaseModel):
     
     __tablename__ = 'valid_procedure_dataset_combinations_view'
 
@@ -54,7 +54,7 @@ class ValidProcedureDatasetCombinationsViewModel(BaseModel):
     season_name : Mapped[str] = mapped_column(String, primary_key=True)
     site_name : Mapped[str] = mapped_column(String, primary_key=True)
 
-class ValidScriptDatasetCombinationsViewModel(BaseModel):
+class ValidScriptDatasetCombinationsViewModel(ViewBaseModel):
     
     __tablename__ = 'valid_script_dataset_combinations_view'
 
@@ -64,7 +64,7 @@ class ValidScriptDatasetCombinationsViewModel(BaseModel):
     season_name : Mapped[str] = mapped_column(String, primary_key=True)
     site_name : Mapped[str] = mapped_column(String, primary_key=True)
 
-class ValidModelDatasetCombinationsViewModel(BaseModel):
+class ValidModelDatasetCombinationsViewModel(ViewBaseModel):
     
     __tablename__ = 'valid_model_dataset_combinations_view'
 

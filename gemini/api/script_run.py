@@ -7,7 +7,6 @@ from gemini.api.base import APIBase
 from gemini.db.models.script_runs import ScriptRunModel
 from gemini.db.models.scripts import ScriptModel
 
-from datetime import date, datetime
 
 class ScriptRun(APIBase):
 
@@ -46,7 +45,7 @@ class ScriptRun(APIBase):
                 script_id=db_script.id
             )
             script_run = cls.model_validate(db_instance)
-            return script_run
+            return script_run if script_run else None
         except Exception as e:
             raise e
         
@@ -55,7 +54,7 @@ class ScriptRun(APIBase):
         try:
             db_instance = ScriptRunModel.get(id)
             script_run = cls.model_validate(db_instance)
-            return script_run
+            return script_run if script_run else None
         except Exception as e:
             raise e
         
@@ -64,7 +63,7 @@ class ScriptRun(APIBase):
         try:
             script_runs = ScriptRunModel.all()
             script_runs = [cls.model_validate(script_run) for script_run in script_runs]
-            return script_runs
+            return script_runs if script_runs else None
         except Exception as e:
             raise e
         
@@ -88,7 +87,7 @@ class ScriptRun(APIBase):
             )
 
             script_runs = [cls.model_validate(script_run) for script_run in script_runs]
-            return script_runs
+            return script_runs if script_runs else None
         except Exception as e:
             raise e
         

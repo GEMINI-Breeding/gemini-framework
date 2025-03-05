@@ -50,6 +50,12 @@ new_data_format = new_data_type.create_format(
     data_format_info={"test": "test"},
 )
 
+# Get the formats
+data_formats = new_data_type.get_formats()
+print(f"Data Formats:")
+for data_format in data_formats:
+    print(data_format)
+
 # Delete the new data type
 is_deleted = new_data_type.delete()
 print(f"Deleted Data Type: {is_deleted}")

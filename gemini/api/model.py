@@ -5,14 +5,15 @@ from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.api.dataset import Dataset, GEMINIDatasetType
-from gemini.api.model_record import ModelRecord
 from gemini.api.model_run import ModelRun
 from gemini.db.models.models import ModelModel
+from gemini.db.models.model_runs import ModelRunModel
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.associations import ExperimentModelModel, ModelDatasetModel
 from gemini.db.models.views.experiment_views import ExperimentModelsViewModel
+from gemini.db.models.views.dataset_views import ModelDatasetsViewModel
 
-from datetime import date, datetime
+from datetime import date
 
 class Model(APIBase):
 
@@ -55,7 +56,7 @@ class Model(APIBase):
                 experiment_name=experiment_name
             )
             model = cls.model_validate(db_instance)
-            return model
+            return model if model else None
         except Exception as e:
             raise e
         
@@ -64,7 +65,7 @@ class Model(APIBase):
         try:
             db_instance = ModelModel.get(id)
             model = cls.model_validate(db_instance)
-            return model
+            return model if model else None
         except Exception as e:
             raise e
         
@@ -74,7 +75,7 @@ class Model(APIBase):
         try:
             models = ModelModel.all()
             models = [cls.model_validate(model) for model in models]
-            return models
+            return models if models else None
         except Exception as e:
             raise e
         
@@ -97,7 +98,7 @@ class Model(APIBase):
                 model_url=model_url
             )
             models = [cls.model_validate(model) for model in models]
-            return models
+            return models if models else None
         except Exception as e:
             raise e
         
@@ -151,9 +152,9 @@ class Model(APIBase):
     def get_datasets(self) -> List[Dataset]:
         try:
             model = ModelModel.get(self.id)
-            datasets = model.datasets
+            datasets = ModelDatasetsViewModel.search(model_id=model.id)
             datasets = [Dataset.model_validate(dataset) for dataset in datasets]
-            return datasets
+            return datasets if datasets else None
         except Exception as e:
             raise e
         
@@ -182,9 +183,9 @@ class Model(APIBase):
     def get_runs(self) -> List[ModelRun]:
         try:
             model = ModelModel.get(self.id)
-            runs = model.model_runs
-            runs = [ModelRun.model_validate(run) for run in runs]
-            return runs
+            model_runs = ModelRunModel.search(model_id=model.id)
+            runs = [ModelRun.model_validate(model_run) for model_run in model_runs]
+            return runs if runs else None
         except Exception as e:
             raise e
         

@@ -1,6 +1,7 @@
 # gemini/storage/providers/minio_storage.py
 
 import os
+import hashlib
 from datetime import datetime, timedelta
 from typing import BinaryIO, Optional, Union, Dict, Any
 from pathlib import Path
@@ -315,6 +316,8 @@ class MinioStorageProvider(StorageProvider):
             )
             
             return {
+                'bucket_name': stat.bucket_name,
+                'object_name': stat.object_name,
                 'size': stat.size,
                 'etag': stat.etag,
                 'last_modified': stat.last_modified,
@@ -333,3 +336,4 @@ class MinioStorageProvider(StorageProvider):
         except Exception as e:
             raise StorageError(f"Unexpected error while getting metadata: {e}")
         
+

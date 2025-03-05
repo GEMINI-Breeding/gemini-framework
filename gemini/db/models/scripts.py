@@ -10,7 +10,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from gemini.db.core.base import BaseModel
 
@@ -24,7 +24,7 @@ class ScriptModel(BaseModel):
     script_name: Mapped[str] = mapped_column(String(255))
     script_url: Mapped[str] = mapped_column(String(255))
     script_extension: Mapped[str] = mapped_column(String(255))
-    script_info: Mapped[dict] = mapped_column(JSON, default={})
+    script_info: Mapped[dict] = mapped_column(JSONB, default={})
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 
@@ -32,6 +32,3 @@ class ScriptModel(BaseModel):
         UniqueConstraint('script_name', 'script_url'),
         Index('idx_scripts_info', 'script_info', postgresql_using='GIN')
     )
-
-    script_runs = relationship("ScriptRunModel", lazy="selectin", cascade="save-update, merge, delete")
-    datasets = relationship("DatasetModel", secondary="gemini.script_datasets", lazy="selectin", cascade="save-update, merge, delete")

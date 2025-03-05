@@ -25,9 +25,9 @@ class TraitRecordsIMMVModel(BaseModel):
     site_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True))
     site_name : Mapped[str] = mapped_column(String)
     plot_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True))
-    plot_number : Mapped[str] = mapped_column(String)
-    plot_row_number : Mapped[str] = mapped_column(String)
-    plot_column_number : Mapped[str] = mapped_column(String)
+    plot_number : Mapped[int] = mapped_column(Integer)
+    plot_row_number : Mapped[int] = mapped_column(Integer)
+    plot_column_number : Mapped[int] = mapped_column(Integer)
     record_info : Mapped[dict] = mapped_column(JSONB)
 
     

@@ -55,7 +55,7 @@ class Plant(APIBase):
                 plant_number=plant_number,
             )
             plant = cls.model_validate(db_instance)
-            return plant
+            return plant if plant else None
         except Exception as e:
             raise e
         
@@ -64,7 +64,7 @@ class Plant(APIBase):
         try:
             db_instance = PlantModel.get(id)
             plant = cls.model_validate(db_instance)
-            return plant
+            return plant if plant else None
         except Exception as e:
             raise e
         
@@ -160,7 +160,7 @@ class Plant(APIBase):
                 return None
             cultivar = CultivarModel.get(self.cultivar_id)
             cultivar = Cultivar.model_validate(cultivar)
-            return cultivar
+            return cultivar if cultivar else None
         except Exception as e:
             raise e
         

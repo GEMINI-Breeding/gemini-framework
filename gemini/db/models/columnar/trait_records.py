@@ -60,6 +60,7 @@ class TraitRecordModel(ColumnarBaseModel):
             "plot_number",
             "plot_row_number",
             "plot_column_number",
+            name="trait_records_unique"
         ),
         Index("idx_trait_records_record_info", "record_info", postgresql_using="GIN"),
     )

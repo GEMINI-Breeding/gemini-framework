@@ -1,16 +1,28 @@
 from gemini.api.dataset_record import DatasetRecord
+from gemini.api.dataset import Dataset
+from gemini.api.experiment import Experiment
 from datetime import datetime, timedelta
 
-dataset_name = 'Dataset A'
+# Create a new dataset for Experiment A
+dataset = Dataset.create(
+    dataset_name="Test Dataset A",
+    dataset_info={
+        "test_info": "test_value"
+    },
+    experiment_name="Experiment A"
+)
+print(f"Created Dataset: {dataset}")
+
+# Starting timestamp for the records
 starting_timestamp = datetime.strptime("2021-01-01 00:00:00", "%Y-%m-%d %H:%M:%S")
 records_to_add = []
 
-
-valid_combinations = DatasetRecord.get_valid_combinations(dataset_name=dataset_name)
+# Get valid combinations for the dataset
+valid_combinations = DatasetRecord.get_valid_combinations(dataset_name=dataset.dataset_name)
 print(f"Valid Combinations: {valid_combinations}")
+print(f"Number of Valid Combinations: {len(valid_combinations)}")
 
-
-# For each combination add 100 records
+# For each valid combination, add records
 for valid_combination in valid_combinations:
     experiment_name = valid_combination['experiment_name']
     site_name = valid_combination['site_name']
@@ -18,24 +30,28 @@ for valid_combination in valid_combinations:
     record_info = {
         "test_info": "test_value"
     }
-    for i in range(100):
+    for i in range(10):
+        timestamp = starting_timestamp + timedelta(minutes=i)
+        record_info = {
+            "test_info": f"test_value_{i}"
+        }
         new_dataset_record = DatasetRecord.create(
+            dataset_name=dataset.dataset_name,
             experiment_name=experiment_name,
             site_name=site_name,
             season_name=season_name,
-            dataset_name=dataset_name,
             record_info=record_info,
             dataset_data={
-                "data": "data_" + str(i)
+                "data": f"test_data_{i}"
             },
-            timestamp=starting_timestamp + timedelta(minutes=i)
+            timestamp=timestamp
         )
-        print(f"Created Dataset Record: {new_dataset_record}")
-
-        # Add the dataset record
         records_to_add.append(new_dataset_record)
+        print(f"Created Dataset Record: {new_dataset_record}")
+    
+    # Increase the starting timestamp for the next combination
+    starting_timestamp += timedelta(days=1)
 
-# Add the dataset records to the database
 insert_success = DatasetRecord.add(records=records_to_add)
 print(f"Insert Success: {insert_success}")
 
@@ -45,11 +61,10 @@ search_results = DatasetRecord.search(
     experiment_name=one_combination['experiment_name'],
     site_name=one_combination['site_name'],
     season_name=one_combination['season_name'],
-    dataset_name=dataset_name,
-    collection_date=starting_timestamp.date()
+    dataset_name=dataset.dataset_name
 )
 results = [record for record in search_results]
-print(f"Search Results: {results}")
+print(f"Number of Records Found: {len(results)}")
 
 # Get one dataset record
 record = results[0]
@@ -62,21 +77,31 @@ print(f"Record By ID: {record_by_id}")
 record.refresh()
 print(f"Refreshed Record: {record}")
 
-# Get the last valid combination
-last_valid_combination = valid_combinations[-1]
 # Update the record
 record.update(
-    record_info={"test_info": "test_value_updated"},
-    dataset_data={"data": "data_updated"}
+    dataset_data={
+        "updated_data": "updated_value"
+    },
+    record_info={
+        "test_info": "updated_test_value"
+    },
 )
-print(f"Updated Record: {record}")
-# Set new experiment, site and season
-record.set_experiment(experiment_name=last_valid_combination['experiment_name'])
-record.set_season(season_name=last_valid_combination['season_name'])
-record.set_site(site_name=last_valid_combination['site_name'])
-print(f"Updated Record: {record}")
 
+# Create new experiment
+new_experiment_name = "Test Experiment B"
+new_season_name = "Test Season B"
+new_site_name = "Test Site B"
 
-# Delete the record
-record.delete()
-print(f"Deleted Record: {record}")
+new_experiment = Experiment.create(experiment_name=new_experiment_name)
+new_season = new_experiment.create_season(season_name=new_season_name)
+new_site = new_experiment.create_site(site_name=new_site_name)
+
+# Update the script record with new experiment, season and site
+record.set_experiment(experiment_name=new_experiment_name)
+record.set_season(season_name=new_season_name)
+record.set_site(site_name=new_site_name)
+print(f"Updated Record with new Experiment, Site, Season: {record}")
+
+# Delete the script record
+is_deleted = record.delete()
+print(f"Deleted Record: {is_deleted}")

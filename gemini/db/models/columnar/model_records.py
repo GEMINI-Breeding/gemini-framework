@@ -41,6 +41,7 @@ class ModelRecordModel(ColumnarBaseModel):
             'season_id', 
             'season_name',
             'site_id',
+            'site_name',
             name='model_records_unique'
         ),
         Index('idx_model_records_record_info', 'record_info', postgresql_using='GIN'),

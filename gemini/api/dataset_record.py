@@ -1,12 +1,10 @@
-from typing import Optional, List, Generator, Set
+from typing import Optional, List, Generator
 from uuid import UUID
 import os
 
 from gemini.api.types import ID
 from pydantic import Field, AliasChoices
 from gemini.api.base import APIBase, FileHandlerMixin
-
-
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.dataset_records import DatasetRecordModel
 from gemini.db.models.views.dataset_records_immv import DatasetRecordsIMMVModel
@@ -17,10 +15,7 @@ from gemini.db.models.views.experiment_views import (
     ExperimentSitesViewModel
 )
 
-
 from gemini.db.models.experiments import ExperimentModel
-from gemini.db.models.seasons import SeasonModel
-from gemini.db.models.sites import SiteModel
 
 from datetime import date, datetime
 
@@ -99,7 +94,7 @@ class DatasetRecord(APIBase, FileHandlerMixin):
         try:
             records = DatasetRecordModel.all(limit=limit)
             records = [cls.model_validate(record) for record in records]
-            return records
+            return records if records else None
         except Exception as e:
             raise e
 
@@ -114,7 +109,7 @@ class DatasetRecord(APIBase, FileHandlerMixin):
             record = record.model_dump()
             record = cls._postprocess_record(record)
             record = cls.model_validate(record)
-            return record
+            return record if record else None
         except Exception as e:
             raise e
 
@@ -177,7 +172,28 @@ class DatasetRecord(APIBase, FileHandlerMixin):
         try:
             db_instance = DatasetRecordModel.get(dataset_record_id)
             record = cls.model_validate(db_instance)
-            return record
+            return record if record else None
+        except Exception as e:
+            raise e
+        
+    def get_record_info(self) -> dict:
+        try:
+            if not self.id:
+                raise ValueError("Record ID is required to get the record info.")
+            record = DatasetRecordModel.get(self.id)
+            record_info = record.record_info
+            return record_info if record_info else None
+        except Exception as e:
+            raise e
+        
+    def set_record_info(self, record_info: dict) -> 'DatasetRecord':
+        try:
+            if not self.id:
+                raise ValueError("Record ID is required to set the record info.")
+            record = DatasetRecordModel.get(self.id)
+            DatasetRecordModel.update(record, record_info=record_info)
+            self.refresh()
+            return self
         except Exception as e:
             raise e
 
@@ -258,6 +274,20 @@ class DatasetRecord(APIBase, FileHandlerMixin):
             return self
         except Exception as e:
             raise e
+        
+    def get_record_file(self, download_folder: str) -> str:
+        try:
+            if not self.id:
+                raise ValueError("Record ID is required to get the record file.")
+            record = DatasetRecordModel.get(self.id)
+            if not record.record_file:
+                raise ValueError("Record file is not set.")
+            file_path = os.path.join(download_folder, record.record_file)
+            if not os.path.exists(file_path):
+                file_path = self._download_file(download_folder)
+            return file_path
+        except Exception as e:
+            raise e
 
 
     @classmethod
@@ -275,7 +305,8 @@ class DatasetRecord(APIBase, FileHandlerMixin):
                 season_name=season_name,
                 site_name=site_name
             )
-            return [record.to_dict() for record in valid_combinations]
+            valid_combinations = [record.to_dict() for record in valid_combinations]
+            return valid_combinations if valid_combinations else None
         except Exception as e:
             raise e
 
@@ -343,7 +374,6 @@ class DatasetRecord(APIBase, FileHandlerMixin):
                 file_key=file_key,
                 absolute_file_path=file
             )
-
             record.record_file = file_key
             return record
         except Exception as e:
@@ -387,12 +417,14 @@ class DatasetRecord(APIBase, FileHandlerMixin):
         except Exception as e:
             raise e
 
-    def _get_file_download_url(self, record_file_key: str) -> str:
+
+    @classmethod
+    def _get_file_download_url(cls, record_file_key: str) -> str:
         try:
             # Check if record_file is a file key or a file url
             if record_file_key.startswith("http"):
                 return record_file_key
-            file_url = self.minio_storage_provider.get_download_url(object_name=record_file_key)
+            file_url = cls.minio_storage_provider.get_download_url(object_name=record_file_key)
             return file_url
         except Exception as e:
             raise e
@@ -405,10 +437,14 @@ class DatasetRecord(APIBase, FileHandlerMixin):
             file_path = record.record_file
             if not os.path.exists(file_path):
                 raise FileNotFoundError(f"File {file_path} does not exist.")
-            file_name = os.path.basename(file_path)
             collection_date = record.collection_date.strftime("%Y-%m-%d")
             dataset_name = record.dataset_name
-            file_key = f"dataset_data/{dataset_name}/{collection_date}/{file_name}"
+            experiment_name = record.experiment_name
+            season_name = record.season_name
+            site_name = record.site_name
+            file_extension = os.path.splitext(file_path)[1]
+            file_timestamp = str(int(record.timestamp.timestamp()*1000))
+            file_key = f"dataset_data/{experiment_name}/{dataset_name}/{collection_date}/{site_name}/{season_name}/{file_timestamp}{file_extension}"
             return file_key
         except Exception as e:
             raise e

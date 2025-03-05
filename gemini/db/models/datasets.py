@@ -10,7 +10,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from gemini.db.core.base import BaseModel
 
@@ -26,7 +26,7 @@ class DatasetModel(BaseModel):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
     collection_date: Mapped[date] = mapped_column(TIMESTAMP, default=datetime.now)
     dataset_name: Mapped[str] = mapped_column(String(255))
-    dataset_info: Mapped[dict] = mapped_column(JSON, default={})
+    dataset_info: Mapped[dict] = mapped_column(JSONB, default={})
     dataset_type_id: Mapped[int] = mapped_column(Integer, ForeignKey("gemini.dataset_types.id"), default=0)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
@@ -36,4 +36,4 @@ class DatasetModel(BaseModel):
         Index("idx_datasets_info", "dataset_info", postgresql_using="GIN"),
     )
 
-    dataset_type = relationship("DatasetTypeModel", lazy="selectin", uselist=False)
+    dataset_type = relationship("DatasetTypeModel", lazy="selectin")

@@ -10,8 +10,6 @@ from gemini.api.plant import Plant
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.cultivars import CultivarModel
 from gemini.db.models.plots import PlotModel
-from gemini.db.models.seasons import SeasonModel
-from gemini.db.models.sites import SiteModel
 
 from gemini.db.models.views.experiment_views import (
     ExperimentSeasonsViewModel,
@@ -34,8 +32,8 @@ class Plot(APIBase):
     plot_number: int
     plot_row_number: int
     plot_column_number: int
-    plot_geometry_info: Optional[dict] = {}
-    plot_info: Optional[dict] = {}
+    plot_geometry_info: Optional[dict] = None
+    plot_info: Optional[dict] = None
 
     experiment_name: Optional[str] = Field(None, exclude=True)
     season_name: Optional[str] = Field(None, exclude=True)
@@ -48,6 +46,7 @@ class Plot(APIBase):
         plot_row_number: int,
         plot_column_number: int,
         plot_info: dict = {},
+        plot_geometry_info: dict = {},
         experiment_name: str = None,
         season_name: str = None,
         site_name: str = None,
@@ -74,6 +73,7 @@ class Plot(APIBase):
                 plot_row_number=plot_row_number,
                 plot_column_number=plot_column_number,
                 plot_info=plot_info,
+                plot_geometry_info=plot_geometry_info,
                 experiment_id=valid_combination.experiment_id,
                 site_id=valid_combination.site_id,
                 season_id=valid_combination.season_id
@@ -127,7 +127,7 @@ class Plot(APIBase):
                 site_name=site_name
             )
             plot = cls.model_validate(plot)
-            return plot
+            return plot if plot else None
         except Exception as e:
             raise e
         
@@ -139,7 +139,7 @@ class Plot(APIBase):
             if not plot:
                 raise ValueError(f"Plot with ID {id} does not exist.")
             plot = cls.model_validate(plot)
-            return plot
+            return plot if plot else None
         except Exception as e:
             raise e
         
@@ -149,7 +149,7 @@ class Plot(APIBase):
         try:
             plots = PlotModel.all()
             plots = [cls.model_validate(plot) for plot in plots]
-            return plots
+            return plots if plots else None
         except Exception as e:
             raise e
         
@@ -186,7 +186,8 @@ class Plot(APIBase):
         plot_number: int = None,
         plot_row_number: int = None,
         plot_column_number: int = None,
-        plot_info: dict = None
+        plot_info: dict = None,
+        plot_geometry_info: dict = None
     ) -> "Plot":
         try:
             if not plot_number and not plot_row_number and not plot_column_number and not plot_info:
@@ -199,7 +200,8 @@ class Plot(APIBase):
                 plot_number=plot_number,
                 plot_row_number=plot_row_number,
                 plot_column_number=plot_column_number,
-                plot_info=plot_info
+                plot_info=plot_info,
+                plot_geometry_info=plot_geometry_info
             )
             plot = self.model_validate(plot)
             self.refresh()
@@ -210,9 +212,10 @@ class Plot(APIBase):
 
     def refresh(self) -> "Plot":
         try:
-            db_instance = PlotModel.get(self.id)
+            db_instance = PlotViewModel.get_by_parameters(plot_id=self.id)
             instance = self.model_validate(db_instance)
-            for key, value in instance.model_dump().items():
+            instance_dict = dict(instance)
+            for key, value in instance_dict.items():
                 if hasattr(self, key) and key != "id":
                     value = getattr(instance, key)
                     setattr(self, key, value)
@@ -236,7 +239,7 @@ class Plot(APIBase):
         try:
             valid_combinations = ValidPlotCombinationsViewModel.all()
             valid_combinations = [valid_combinations.to_dict() for valid_combinations in valid_combinations]
-            return valid_combinations
+            return valid_combinations if valid_combinations else None
         except Exception as e:
             raise e
         
@@ -244,7 +247,7 @@ class Plot(APIBase):
         try:
             cultivars = PlotCultivarViewModel.search(plot_id=self.id)
             cultivars = [Cultivar.model_validate(cultivar) for cultivar in cultivars]
-            return cultivars
+            return cultivars if cultivars else None
         except Exception as e:
             raise e
         
@@ -313,11 +316,14 @@ class Plot(APIBase):
         
     def set_site(self, site_name: str) -> "Plot":
         try:
-            site = SiteModel.get_by_parameters(site_name=site_name)
+            site = ExperimentSitesViewModel.get_by_parameters(
+                experiment_name=self.experiment_name,
+                site_name=site_name
+            )
             if not site:
                 raise ValueError(f"Site with name {site_name} does not exist.")
             plot = PlotModel.get(self.id)
-            PlotModel.update(plot, site_id=site.id)
+            PlotModel.update(plot, site_id=site.site_id)
             self.refresh()
             return self
         except Exception as e:
@@ -327,7 +333,7 @@ class Plot(APIBase):
         try:
             plants = PlotPlantViewModel.search(plot_id=self.id)
             plants = [Plant.model_validate(plant) for plant in plants]
-            return plants
+            return plants if plants else None
         except Exception as e:
             raise e
         

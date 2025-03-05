@@ -13,10 +13,22 @@ from gemini.api.trait import Trait, GEMINITraitLevel
 from gemini.api.model import Model
 from gemini.api.procedure import Procedure
 from gemini.api.script import Script
+from gemini.api.dataset import Dataset, GEMINIDatasetType
 from gemini.api.sensor_platform import SensorPlatform
-from gemini.api.enums import GEMINIDatasetType
 
 from gemini.db.models.experiments import ExperimentModel
+from gemini.db.models.views.experiment_views import (
+    ExperimentCultivarsViewModel,
+    ExperimentProceduresViewModel,
+    ExperimentScriptsViewModel,
+    ExperimentModelsViewModel,
+    ExperimentSensorsViewModel,
+    ExperimentSitesViewModel,
+    ExperimentSeasonsViewModel,
+    ExperimentTraitsViewModel,
+    ExperimentSensorPlatformsViewModel,
+    ExperimentDatasetsViewModel
+)
 
 from datetime import date
 
@@ -59,7 +71,7 @@ class Experiment(APIBase):
                 experiment_name=experiment_name,
             )
             experiment = cls.model_validate(db_instance)
-            return experiment
+            return experiment if experiment else None
         except Exception as e:
             raise e
         
@@ -68,7 +80,7 @@ class Experiment(APIBase):
         try:
             db_instance = ExperimentModel.get(id)
             experiment = cls.model_validate(db_instance)
-            return experiment
+            return experiment if experiment else None
         except Exception as e:
             raise e
         
@@ -78,7 +90,7 @@ class Experiment(APIBase):
         try:
             experiments = ExperimentModel.all()
             experiments = [cls.model_validate(experiment) for experiment in experiments]
-            return experiments
+            return experiments if experiments else None
         except Exception as e:
             raise e
 
@@ -106,19 +118,21 @@ class Experiment(APIBase):
             raise e
         
     def update(
-            self, 
+            self,
+            experiment_name: str = None, 
             experiment_info: dict = None,
             experiment_start_date: date = None,
             experiment_end_date: date = None
         ) -> "Experiment":
         try:
-            if not experiment_info and not experiment_start_date and not experiment_end_date:
+            if not any([experiment_name, experiment_info, experiment_start_date, experiment_end_date]):
                 raise ValueError("At least one parameter must be provided.")
 
             curent_id = self.id
             experiment = ExperimentModel.get(curent_id)
             experiment = ExperimentModel.update(
                 experiment,
+                experiment_name=experiment_name,
                 experiment_info=experiment_info,
                 experiment_start_date=experiment_start_date,
                 experiment_end_date=experiment_end_date
@@ -155,9 +169,9 @@ class Experiment(APIBase):
     def get_seasons(self) -> List[Season]:
         try:
             experiment = ExperimentModel.get(self.id)
-            seasons = experiment.seasons
+            seasons = ExperimentSeasonsViewModel.search(experiment_id=experiment.id)
             seasons = [Season.model_validate(season) for season in seasons]
-            return seasons
+            return seasons if seasons else None
         except Exception as e:
             raise e
 
@@ -184,9 +198,9 @@ class Experiment(APIBase):
     def get_sites(self) -> List[Site]:
         try:
             experiment = ExperimentModel.get(self.id)
-            sites = experiment.sites
+            sites = ExperimentSitesViewModel.search(experiment_id=experiment.id)
             sites = [Site.model_validate(site) for site in sites]
-            return sites
+            return sites if sites else None
         except Exception as e:
             raise e
         
@@ -194,9 +208,9 @@ class Experiment(APIBase):
     def create_site(
         self,
         site_name: str,
-        site_city: str,
-        site_state: str,
-        site_country: str,
+        site_city: str = None,
+        site_state: str = None,
+        site_country: str = None,
         site_info: dict = {}
     ) -> Site:
         try:
@@ -216,9 +230,9 @@ class Experiment(APIBase):
     def get_sensors(self) -> List[Sensor]:
         try:
             experiment = ExperimentModel.get(self.id)
-            sensors = experiment.sensors
+            sensors = ExperimentSensorsViewModel.search(experiment_id=experiment.id)
             sensors = [Sensor.model_validate(sensor) for sensor in sensors]
-            return sensors
+            return sensors if sensors else None
         except Exception as e:
             raise e
         
@@ -249,9 +263,9 @@ class Experiment(APIBase):
     def get_cultivars(self) -> List[Cultivar]:
         try:
             experiment = ExperimentModel.get(self.id)
-            cultivars = experiment.cultivars
+            cultivars = ExperimentCultivarsViewModel.search(experiment_id=experiment.id)
             cultivars = [Cultivar.model_validate(cultivar) for cultivar in cultivars]
-            return cultivars
+            return cultivars if cultivars else None
         except Exception as e:
             raise e
         
@@ -276,9 +290,9 @@ class Experiment(APIBase):
     def get_traits(self) -> List[Trait]:
         try:
             experiment = ExperimentModel.get(self.id)
-            traits = experiment.traits
+            traits = ExperimentTraitsViewModel.search(experiment_id=experiment.id)
             traits = [Trait.model_validate(trait) for trait in traits]
-            return traits
+            return traits if traits else None
         except Exception as e:
             raise e
         
@@ -308,21 +322,23 @@ class Experiment(APIBase):
     def get_models(self) -> List[Model]:
         try:
             experiment = ExperimentModel.get(self.id)
-            models = experiment.models
+            models = ExperimentModelsViewModel.search(experiment_id=experiment.id)
             models = [Model.model_validate(model) for model in models]
-            return models
+            return models if models else None
         except Exception as e:
             raise e
         
     def create_model(
         self,
         model_name: str,
+        model_url: str = None,
         model_info: dict = {}
     ) -> Model:
         try:
             model = Model.create(
                 model_name=model_name,
                 model_info=model_info,
+                model_url=model_url,
                 experiment_name=self.experiment_name
             )
             self.refresh()
@@ -334,9 +350,9 @@ class Experiment(APIBase):
     def get_procedures(self) -> List[Procedure]:
         try:
             experiment = ExperimentModel.get(self.id)
-            procedures = experiment.procedures
+            procedures = ExperimentProceduresViewModel.search(experiment_id=experiment.id)
             procedures = [Procedure.model_validate(procedure) for procedure in procedures]
-            return procedures
+            return procedures if procedures else None
         except Exception as e:
             raise e
         
@@ -360,9 +376,9 @@ class Experiment(APIBase):
     def get_scripts(self) -> List[Script]:
         try:
             experiment = ExperimentModel.get(self.id)
-            scripts = experiment.scripts
+            scripts = ExperimentScriptsViewModel.search(experiment_id=experiment.id)
             scripts = [Script.model_validate(script) for script in scripts]
-            return scripts
+            return scripts if scripts else None
         except Exception as e:
             raise e
         
@@ -390,9 +406,9 @@ class Experiment(APIBase):
     def get_platforms(self) -> List[SensorPlatform]:
         try:
             experiment = ExperimentModel.get(self.id)
-            sensor_platforms = experiment.platforms
+            sensor_platforms = ExperimentSensorPlatformsViewModel.search(experiment_id=experiment.id)
             sensor_platforms = [SensorPlatform.model_validate(sensor_platform) for sensor_platform in sensor_platforms]
-            return sensor_platforms
+            return sensor_platforms if sensor_platforms else None
         except Exception as e:
             raise e
         
@@ -409,5 +425,33 @@ class Experiment(APIBase):
             )
             self.refresh()
             return sensor_platform
+        except Exception as e:
+            raise e
+        
+    def get_datasets(self) -> List[Dataset]:
+        try:
+            experiment = ExperimentModel.get(self.id)
+            datasets = ExperimentDatasetsViewModel.search(experiment_id=experiment.id)
+            datasets = [Dataset.model_validate(dataset) for dataset in datasets]
+            return datasets if datasets else None
+        except Exception as e:
+            raise e
+        
+    def create_dataset(
+        self,
+        dataset_name: str,
+        dataset_info: dict = None,
+        collection_date: date = None,
+        dataset_type: GEMINIDatasetType = GEMINIDatasetType.Default
+    ) -> Dataset:
+        try:
+            dataset = Dataset.create(
+                dataset_name=dataset_name,
+                dataset_info=dataset_info,
+                collection_date=collection_date,
+                experiment_name=self.experiment_name,
+                dataset_type=dataset_type
+            )
+            return dataset
         except Exception as e:
             raise e

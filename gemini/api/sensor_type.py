@@ -34,7 +34,7 @@ class SensorType(APIBase):
         try:
             instance = SensorTypeModel.get_by_parameters(sensor_type_name=sensor_type_name)
             instance = cls.model_validate(instance)
-            return instance
+            return instance if instance else None
         except Exception as e:
             raise e
         
@@ -44,7 +44,7 @@ class SensorType(APIBase):
         try:
             instance = SensorTypeModel.get(id)
             instance = cls.model_validate(instance)
-            return instance
+            return instance if instance else None
         except Exception as e:
             raise e
         
@@ -52,9 +52,9 @@ class SensorType(APIBase):
     @classmethod
     def get_all(cls) -> List["SensorType"]:
         try:
-            instances = SensorTypeModel.get_all()
+            instances = SensorTypeModel.all()
             instances = [cls.model_validate(instance) for instance in instances]
-            return instances
+            return instances if instances else None
         except Exception as e:
             raise e
         
@@ -74,7 +74,7 @@ class SensorType(APIBase):
                 sensor_type_info=sensor_type_info,
             )
             instances = [cls.model_validate(instance) for instance in instances]
-            return instances
+            return instances if instances else None
         except Exception as e:
             raise e
         

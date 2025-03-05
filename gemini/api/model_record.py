@@ -4,9 +4,7 @@ from uuid import UUID
 
 from gemini.api.types import ID
 from pydantic import Field, AliasChoices
-
 from gemini.api.base import APIBase, FileHandlerMixin
-
 from gemini.db.models.models import ModelModel
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.model_records import ModelRecordModel
@@ -20,8 +18,6 @@ from gemini.db.models.views.experiment_views import (
 )
 
 from gemini.db.models.experiments import ExperimentModel
-from gemini.db.models.seasons import SeasonModel
-from gemini.db.models.sites import SiteModel
 from gemini.db.models.datasets import DatasetModel
 
 from datetime import date, datetime
@@ -54,16 +50,16 @@ class ModelRecord(APIBase, FileHandlerMixin):
         dataset_name: str = None,
         model_name: str = None,
         model_data: dict = {},
-        experiment_name: str = 'Default',
-        site_name: str = 'Default',
-        season_name: str = 'Default',
+        experiment_name: str = None,
+        site_name: str = None,
+        season_name: str = None,
         record_file: str = None,
         record_info: dict = {}
     ) -> 'ModelRecord':
         try:
             if not model_name:
                 raise ValueError("Model name is required.")
-            
+        
             if not dataset_name:
                 raise ValueError("Dataset name is required.")
             
@@ -109,14 +105,14 @@ class ModelRecord(APIBase, FileHandlerMixin):
         try:
             instances = ModelRecordModel.all(limit=limit)
             instances = [cls.model_validate(instance) for instance in instances]
-            return instances
+            return instances if instances else None
         except Exception as e:
             raise e
 
     @classmethod
     def get_by_id(cls, id: UUID | int | str) -> 'ModelRecord':
         try:
-            record = ModelRecordModel.get(id)
+            record = ModelRecordsIMMVModel.get(id)
             record = cls.model_construct(
                 _fields_set=cls.model_fields_set,
                 **record.to_dict()
@@ -124,7 +120,7 @@ class ModelRecord(APIBase, FileHandlerMixin):
             record = record.model_dump()
             record = cls._postprocess_record(record)
             record = cls.model_validate(record)
-            return record
+            return record if record else None
         except Exception as e:
             raise e
         
@@ -139,7 +135,7 @@ class ModelRecord(APIBase, FileHandlerMixin):
             for key, value in instance.model_dump().items():
                if hasattr(self, key) and key != "id":
                    setattr(self, key, value)
-            return self
+            return self 
         except Exception as e:
             raise e
 
@@ -186,7 +182,29 @@ class ModelRecord(APIBase, FileHandlerMixin):
         try:
             db_instance = ModelRecordModel.get(model_record_id)
             record = cls.model_validate(db_instance)
-            return record
+            return record if record else None
+        except Exception as e:
+            raise e
+        
+
+    def get_record_info(self) -> dict:
+        try:
+            if not self.id:
+                raise ValueError("Record ID is required to get the record info.")
+            record = ModelRecordModel.get(self.id)
+            record_info = record.record_info
+            return record_info if record_info else None
+        except Exception as e:
+            raise e
+        
+    def set_record_info(self, record_info: dict) -> 'ModelRecord':
+        try:
+            if not self.id:
+                raise ValueError("Record ID is required to set the record info.")
+            record = ModelRecordModel.get(self.id)
+            ModelRecordModel.update(record, record_info=record_info)
+            self.refresh()
+            return self
         except Exception as e:
             raise e
         
@@ -195,6 +213,7 @@ class ModelRecord(APIBase, FileHandlerMixin):
         cls, 
         dataset_name: str = None,
         model_name: str = None,
+        model_data: dict = None,
         experiment_name: str = None,
         site_name: str = None,
         season_name: str = None,
@@ -202,12 +221,13 @@ class ModelRecord(APIBase, FileHandlerMixin):
         record_info: dict = None    
     ) -> Generator['ModelRecord', None, None]:
         try:
-            if not dataset_name and not model_name and not experiment_name and not site_name and not season_name and not collection_date:
+            if not any([dataset_name, model_name, experiment_name, site_name, season_name, collection_date, record_info]):
                 raise ValueError("At least one parameter must be provided.")
 
             records = ModelRecordsIMMVModel.stream(
                 dataset_name=dataset_name,
                 model_name=model_name,
+                model_data=model_data,
                 experiment_name=experiment_name,
                 site_name=site_name,
                 season_name=season_name,
@@ -267,6 +287,20 @@ class ModelRecord(APIBase, FileHandlerMixin):
         except Exception as e:
             raise e
         
+    def get_record_file(self, download_folder: str) -> str:
+        try:
+            if not self.id:
+                raise ValueError("Record ID is required to get the record file.")
+            record = ModelRecordModel.get(self.id)
+            if not record.record_file:
+                raise ValueError("Record file is not available.")
+            file_path = os.path.join(download_folder, record.record_file)
+            if not os.path.exists(file_path):
+                file_path = self._download_file(download_folder)
+            return file_path
+        except Exception as e:
+            raise e
+        
     @classmethod
     def get_valid_combinations(
         cls,
@@ -284,7 +318,8 @@ class ModelRecord(APIBase, FileHandlerMixin):
                 site_name=site_name,
                 season_name=season_name
             )
-            return [record.to_dict() for record in valid_combinations]
+            valid_combinations = [record.to_dict() for record in valid_combinations]
+            return valid_combinations if valid_combinations else None
         except Exception as e:
             raise e
         
@@ -400,12 +435,13 @@ class ModelRecord(APIBase, FileHandlerMixin):
         except Exception as e:
             raise e
         
-    def _get_file_download_url(self, record_file_key: str) -> str:
+    @classmethod
+    def _get_file_download_url(cls, record_file_key: str) -> str:
         try:
             # Check if record_file is a file key or a file url
             if record_file_key.startswith("http"):
                 return record_file_key
-            file_url = self.minio_storage_provider.get_download_url(object_name=record_file_key)
+            file_url = cls.minio_storage_provider.get_download_url(object_name=record_file_key)
             return file_url
         except Exception as e:
             raise e
@@ -416,10 +452,15 @@ class ModelRecord(APIBase, FileHandlerMixin):
             file_path = record.record_file
             if not os.path.exists(file_path):
                 raise FileNotFoundError(f"File {file_path} does not exist.")
-            file_name = os.path.basename(file_path)
             collection_date = record.collection_date.strftime("%Y-%m-%d")
             model_name = record.model_name
-            file_key = f"model_data/{model_name}/{collection_date}/{file_name}"
+            experiment_name = record.experiment_name
+            season_name = record.season_name
+            site_name = record.site_name
+            file_extension = os.path.splitext(file_path)[1]
+            file_timestamp = str(int(record.timestamp.timestamp()*1000))
+            file_key = f"model_data/{experiment_name}/{model_name}/{collection_date}/{site_name}/{season_name}/{file_timestamp}{file_extension}"
             return file_key
         except Exception as e:
             raise e
+        

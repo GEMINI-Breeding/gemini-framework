@@ -1,4 +1,5 @@
 from gemini.api.sensor_platform import SensorPlatform
+from gemini.api.sensor import Sensor, GEMINIDataFormat, GEMINIDataType, GEMINISensorType
 from gemini.api.experiment import Experiment
 
 # Create a new sensor platform with experiment Experiment A
@@ -27,3 +28,30 @@ for sensor_platform in all_sensor_platforms:
 searched_sensor_platforms = SensorPlatform.search(experiment_name="Experiment A")
 length_searched_sensor_platforms = len(searched_sensor_platforms)
 print(f"Found {length_searched_sensor_platforms} sensor platforms in Experiment A")
+
+# Refresh the sensor platform
+sensor_platform.refresh()
+print(f"Refreshed Sensor Platform: {sensor_platform}")
+
+# Update the sensor platform
+sensor_platform.update(
+    sensor_platform_info={"test": "test_updated"},
+)
+print(f"Updated Sensor Platform: {sensor_platform}")
+
+# Create a new sensor with experiment Experiment A
+new_sensor = sensor_platform.add_sensor(
+    sensor_name = "Sensor Test 1",
+    sensor_type= GEMINISensorType.Thermal,
+    sensor_data_type=GEMINIDataType.Binary,
+    sensor_data_format=GEMINIDataFormat.CSV,
+    sensor_info={"test": "test"},
+    experiment_name="Experiment A",
+)
+print(f"Created Sensor: {new_sensor}")
+
+# Get all sensors
+all_sensors = sensor_platform.get_sensors()
+print(f"All Sensors:")
+for sensor in all_sensors:
+    print(sensor)

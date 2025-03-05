@@ -9,7 +9,7 @@ from gemini.db.models.scripts import ScriptModel
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.script_records import ScriptRecordModel
 from gemini.db.models.views.script_records_immv import ScriptRecordsIMMVModel
-from gemini.db.models.views.validation_views import ValidProcedureDatasetCombinationsViewModel
+from gemini.db.models.views.validation_views import ValidScriptDatasetCombinationsViewModel
 from gemini.db.models.views.experiment_views import (
     ExperimentScriptsViewModel,
     ExperimentDatasetsViewModel,
@@ -50,9 +50,9 @@ class ScriptRecord(APIBase, FileHandlerMixin):
         dataset_name: str = None,
         script_name: str = None,
         script_data: dict = {},
-        experiment_name: str = 'Default',
-        site_name: str = 'Default',
-        season_name: str = 'Default',
+        experiment_name: str = None,
+        site_name: str = None,
+        season_name: str = None,
         record_file: str = None,
         record_info: dict = {}
     ) -> 'ScriptRecord':
@@ -104,8 +104,6 @@ class ScriptRecord(APIBase, FileHandlerMixin):
         except Exception as e:
             return False
 
-
-    @classmethod
     def delete(self) -> bool:
         try:
             current_id = self.id
@@ -120,7 +118,7 @@ class ScriptRecord(APIBase, FileHandlerMixin):
         try:
             instances = ScriptRecordModel.all(limit=limit)
             records = [cls.model_validate(instance) for instance in instances]
-            return records
+            return records if records else None
         except Exception as e:
             raise e
 
@@ -135,7 +133,7 @@ class ScriptRecord(APIBase, FileHandlerMixin):
             record = record.model_dump()
             record = cls._postprocess_record(record)
             record = cls.model_validate(record)
-            return record
+            return record if record else None
         except Exception as e:
             raise e
 
@@ -179,15 +177,38 @@ class ScriptRecord(APIBase, FileHandlerMixin):
         try:
             db_instance = ScriptRecordModel.get(script_record_id)
             record = cls.model_validate(db_instance)
-            return record
+            return record if record else None
         except Exception as e:
             raise e
+        
+    def get_record_info(self) -> dict:
+        try:
+            if not self.id:
+                raise ValueError("Record ID is required to get the record info.")
+            record = ScriptRecordModel.get(self.id)
+            record_info = record.record_info
+            return record_info if record_info else None
+        except Exception as e:
+            raise e
+        
+    def set_record_info(self, record_info: dict) -> "ScriptRecord":
+        try:
+            if not self.id:
+                raise ValueError("Record ID is required to set the record info.")
+            record = ScriptRecordModel.get(self.id)
+            record = ScriptRecordModel.update(record, record_info=record_info)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
+
 
     @classmethod
     def search(
         cls, 
         dataset_name: str = None,
         script_name: str = None,
+        script_data: dict = None,
         experiment_name: str = None,
         site_name: str = None,
         season_name: str = None,
@@ -195,12 +216,13 @@ class ScriptRecord(APIBase, FileHandlerMixin):
         record_info: dict = None
     ) -> Generator['ScriptRecord', None, None]:
         try:
-            if not any([dataset_name, script_name, experiment_name, site_name, season_name, collection_date]):
+            if not any([dataset_name, script_data, script_name, experiment_name, site_name, season_name, collection_date]):
                 raise Exception("At least one search parameter must be provided.")
 
             records = ScriptRecordsIMMVModel.stream(
                 dataset_name=dataset_name,
                 script_name=script_name,
+                script_data=script_data,
                 experiment_name=experiment_name,
                 site_name=site_name,
                 season_name=season_name,
@@ -258,6 +280,21 @@ class ScriptRecord(APIBase, FileHandlerMixin):
         except Exception as e:
             raise e
         
+          
+    def get_record_file(self, download_folder: str) -> str:
+        try:
+            if not self.id:
+                raise ValueError("Record ID is required to get the record file.")
+            record = ScriptRecordModel.get(self.id)
+            if not record.record_file:
+                raise ValueError("Record file is not available.")
+            file_path = os.path.join(download_folder, record.record_file)
+            if not os.path.exists(file_path):
+                file_path = self._download_file(download_folder)
+            return file_path
+        except Exception as e:
+            raise e
+        
     @classmethod
     def get_valid_combinations(
         cls,
@@ -268,14 +305,15 @@ class ScriptRecord(APIBase, FileHandlerMixin):
         season_name: str = None
     ) -> List[dict]:
         try:
-            valid_combinations = ValidProcedureDatasetCombinationsViewModel.search(
+            valid_combinations = ValidScriptDatasetCombinationsViewModel.search(
                 dataset_name=dataset_name,
                 script_name=script_name,
                 experiment_name=experiment_name,
                 site_name=site_name,
                 season_name=season_name
             )
-            return [record.to_dict() for record in valid_combinations]
+            valid_combinations = [record.to_dict() for record in valid_combinations]
+            return valid_combinations if valid_combinations else None
         except Exception as e:
             raise e
         
@@ -393,13 +431,13 @@ class ScriptRecord(APIBase, FileHandlerMixin):
         except Exception as e:
             raise e
 
-
-    def _get_file_download_url(self, record_file_key: str) -> str:
+    @classmethod
+    def _get_file_download_url(cls, record_file_key: str) -> str:
         try:
             # Check if record_file is a file key or a file url
             if record_file_key.startswith("http"):
                 return record_file_key
-            file_url = self.minio_storage_provider.get_download_url(object_name=record_file_key)
+            file_url = cls.minio_storage_provider.get_download_url(object_name=record_file_key)
             return file_url
         except Exception as e:
             raise e
@@ -410,14 +448,19 @@ class ScriptRecord(APIBase, FileHandlerMixin):
             file_path = record.record_file
             if not os.path.exists(file_path):
                 raise FileNotFoundError(f"File {file_path} does not exist.")
-            file_name = os.path.basename(file_path)
             collection_date = record.collection_date.strftime("%Y-%m-%d")
             script_name = record.script_name
-            file_key = f"script_data/{script_name}/{collection_date}/{file_name}"
+            experiment_name = record.experiment_name
+            season_name = record.season_name
+            site_name = record.site_name
+            file_extension = os.path.splitext(file_path)[1]
+            file_timestamp = str(int(record.timestamp.timestamp()*1000))
+            file_key = f"script_records/{experiment_name}/{script_name}/{collection_date}/{site_name}/{season_name}/{file_timestamp}{file_extension}"
             return file_key
         except Exception as e:
             raise e
         
+
 
    
 

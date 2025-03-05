@@ -1,8 +1,8 @@
 from gemini.api.site import Site
 
-# Create a new site
+# Create a new site with experiment Experiment A
 new_site = Site.create(
-    site_name="Site Test X",
+    site_name="Site Test 1",
     site_city="City A",
     site_state="State A",
     site_country="Country A",
@@ -11,8 +11,8 @@ new_site = Site.create(
 )
 print(f"Created Site: {new_site}")
 
-# Get Site with site_name that does exist
-site = Site.get("Site Test X")
+# Get Site with site_name and experiment_name that do exist
+site = Site.get("Site Test 1", "Experiment A")
 print(f"Got Site: {site}")
 
 # Get Site by ID
@@ -31,5 +31,21 @@ length_searched_sites = len(searched_sites)
 print(f"Found {length_searched_sites} sites in Experiment A")
 
 # Refresh the site
-site = site.refresh()
+site.refresh()
 print(f"Refreshed Site: {site}")
+
+# Update the site
+site.update(
+    site_info={"test": "test_updated"},
+    site_city="City B",
+    site_state="State B",
+    site_country="Country B",
+)
+print(f"Updated Site: {site}")
+
+# Delete the site
+is_deleted = new_site.delete()
+print(f"Deleted Site: {is_deleted}")
+
+
+

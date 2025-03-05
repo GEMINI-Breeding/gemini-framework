@@ -6,13 +6,14 @@ from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.api.dataset import Dataset, GEMINIDatasetType
 from gemini.api.enums import GEMINISensorType, GEMINIDataType, GEMINIDataFormat
-from gemini.api.sensor_record import SensorRecord
 from gemini.db.models.sensors import SensorModel
 from gemini.db.models.sensor_types import SensorTypeModel
+from gemini.db.models.sensor_platforms import SensorPlatformModel
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.views.experiment_views import ExperimentSensorsViewModel
 from gemini.db.models.associations import ExperimentSensorModel, SensorPlatformSensorModel, SensorDatasetModel
-from datetime import date, datetime
+from gemini.db.models.views.dataset_views import SensorDatasetsViewModel
+from datetime import date
 
 class Sensor(APIBase):
 
@@ -54,7 +55,7 @@ class Sensor(APIBase):
                     ExperimentSensorModel.get_or_create(experiment_id=db_experiment.id, sensor_id=db_instance.id)
 
             if sensor_platform_name:
-                db_sensor_platform = SensorTypeModel.get_by_parameters(sensor_platform_name=sensor_platform_name)
+                db_sensor_platform = SensorPlatformModel.get_by_parameters(sensor_platform_name=sensor_platform_name)
                 if db_sensor_platform:
                     SensorPlatformSensorModel.get_or_create(sensor_id=db_instance.id, sensor_platform_id=db_sensor_platform.id)
 
@@ -72,7 +73,7 @@ class Sensor(APIBase):
                 experiment_name=experiment_name
             )
             sensor = cls.model_validate(db_instance)
-            return sensor
+            return sensor if sensor else None
         except Exception as e:
             raise e
         
@@ -82,7 +83,7 @@ class Sensor(APIBase):
         try:
             db_instance = SensorModel.get(id)
             sensor = cls.model_validate(db_instance)
-            return sensor
+            return sensor if sensor else None
         except Exception as e:
             raise e
         
@@ -126,25 +127,26 @@ class Sensor(APIBase):
         except Exception as e:
             raise e
         
-
     def update(
-        self, 
+        self,
+        sensor_name: str = None, 
         sensor_type: GEMINISensorType = None,
         sensor_data_type: GEMINIDataType = None,
         sensor_data_format: GEMINIDataFormat = None,
         sensor_info: dict = None
     ) -> "Sensor":
         try:
-            if not any([sensor_type, sensor_data_type, sensor_data_format, sensor_info]):
+            if not any([sensor_type, sensor_data_type, sensor_data_format, sensor_info, sensor_name]):
                 raise Exception("At least one update parameter must be provided.")
 
             current_id = self.id
             sensor = SensorModel.get(current_id)
             sensor = SensorModel.update(
                 sensor,
-                sensor_type=sensor_type,
-                sensor_data_type=sensor_data_type,
-                sensor_data_format=sensor_data_format,
+                sensor_name=sensor_name,
+                sensor_type_id=sensor_type.value if sensor_type else None,
+                sensor_data_type_id=sensor_data_type.value if sensor_data_type else None,
+                sensor_data_format_id=sensor_data_format.value if sensor_data_format else None,
                 sensor_info=sensor_info
             )
             sensor = self.model_validate(sensor)
@@ -179,9 +181,9 @@ class Sensor(APIBase):
     def get_datasets(self) -> List[Dataset]:
         try:
             sensor = SensorModel.get(self.id)
-            datasets = sensor.datasets
+            datasets = SensorDatasetsViewModel.search(sensor_id=sensor.id)
             datasets = [Dataset.model_validate(dataset) for dataset in datasets]
-            return datasets
+            return datasets if datasets else None
         except Exception as e:
             raise e
         
@@ -201,7 +203,7 @@ class Sensor(APIBase):
                 dataset_type=GEMINIDatasetType.Sensor
             )
             SensorDatasetModel.get_or_create(sensor_id=self.id, dataset_id=dataset.id)
-            return dataset
+            return dataset 
         except Exception as e:
             raise e
 

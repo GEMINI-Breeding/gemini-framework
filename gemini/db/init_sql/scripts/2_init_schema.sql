@@ -25,7 +25,7 @@ ALTER TABLE gemini.experiments ADD CONSTRAINT experiment_end_date_check CHECK (e
 -- Each experiment can have multiple seasons
 CREATE TABLE IF NOT EXISTS gemini.seasons (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    experiment_id uuid REFERENCES gemini.experiments(id),
+    experiment_id uuid REFERENCES gemini.experiments(id) ON DELETE CASCADE,
     season_name VARCHAR(255) NOT NULL,
     season_info JSONB DEFAULT '{}',
     season_start_date DATE DEFAULT NOW(),
@@ -79,9 +79,9 @@ ALTER TABLE gemini.cultivars ADD CONSTRAINT cultivar_unique UNIQUE (cultivar_acc
 -- This is where all the plot information is stored
 CREATE TABLE IF NOT EXISTS gemini.plots (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    experiment_id uuid REFERENCES gemini.experiments(id),
-    season_id uuid REFERENCES gemini.seasons(id),
-    site_id uuid REFERENCES gemini.sites(id),
+    experiment_id uuid REFERENCES gemini.experiments(id) ON DELETE SET NULL,
+    season_id uuid REFERENCES gemini.seasons(id) ON DELETE SET NULL, 
+    site_id uuid REFERENCES gemini.sites(id) ON DELETE SET NULL,
     plot_number INTEGER,
     plot_row_number INTEGER,
     plot_column_number INTEGER,
@@ -101,7 +101,7 @@ ALTER TABLE gemini.plots ADD CONSTRAINT plot_unique UNIQUE (experiment_id, seaso
 -- This is where all the plant information is stored
 CREATE TABLE IF NOT EXISTS gemini.plants (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    plot_id uuid REFERENCES gemini.plots(id),
+    plot_id uuid REFERENCES gemini.plots(id) ON DELETE CASCADE,
     plant_number INTEGER,
     plant_info JSONB DEFAULT '{}',
     cultivar_id uuid REFERENCES gemini.cultivars(id) ON DELETE SET NULL,
@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS gemini.traits (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     trait_name VARCHAR(255) NOT NULL,
     trait_units VARCHAR(255) DEFAULT 'units',
-    trait_level_id INTEGER REFERENCES gemini.trait_levels(id) DEFAULT 0,
+    trait_level_id INTEGER REFERENCES gemini.trait_levels(id) ON DELETE SET NULL DEFAULT 0,
     trait_metrics JSONB DEFAULT '{}',
     trait_info JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -221,9 +221,9 @@ ALTER TABLE gemini.sensor_platforms ADD CONSTRAINT sensor_platform_unique UNIQUE
 CREATE TABLE IF NOT EXISTS gemini.sensors (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     sensor_name VARCHAR(255) NOT NULL,
-    sensor_type_id INTEGER REFERENCES gemini.sensor_types(id) DEFAULT 0,
-    sensor_data_type_id INTEGER REFERENCES gemini.data_types(id) DEFAULT 0,
-    sensor_data_format_id INTEGER REFERENCES gemini.data_formats(id) DEFAULT 0,
+    sensor_type_id INTEGER REFERENCES gemini.sensor_types(id) ON DELETE SET NULL DEFAULT 0,
+    sensor_data_type_id INTEGER REFERENCES gemini.data_types(id) ON DELETE SET NULL DEFAULT 0,
+    sensor_data_format_id INTEGER REFERENCES gemini.data_formats(id) ON DELETE SET NULL DEFAULT 0,
     sensor_info JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -242,7 +242,7 @@ CREATE TABLE IF NOT EXISTS gemini.resources (
     resource_uri VARCHAR(255),
     resource_file_name VARCHAR(255),
     is_external BOOLEAN DEFAULT FALSE,
-    resource_experiment_id UUID REFERENCES gemini.experiments(id) DEFAULT NULL,
+    resource_experiment_id UUID REFERENCES gemini.experiments(id) ON DELETE SET NULL DEFAULT NULL,
     resource_data_format_id INTEGER REFERENCES gemini.data_formats(id) DEFAULT 0,
     resource_info JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -369,7 +369,7 @@ CREATE TABLE IF NOT EXISTS gemini.datasets(
     collection_date DATE DEFAULT NOW(),
     dataset_name VARCHAR(255),
     dataset_info JSONB DEFAULT '{}',
-    dataset_type_id INTEGER REFERENCES gemini.dataset_types(id) DEFAULT 0,
+    dataset_type_id INTEGER REFERENCES gemini.dataset_types(id) ON DELETE SET NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

@@ -2,7 +2,7 @@ from sqlalchemy import JSON, String, TIMESTAMP, UniqueConstraint, Index, Integer
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from gemini.db.core.base import BaseModel
 
@@ -15,7 +15,7 @@ class TraitLevelModel(BaseModel):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     trait_level_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    trait_level_info: Mapped[dict] = mapped_column(JSON, default={})
+    trait_level_info: Mapped[dict] = mapped_column(JSONB, default={})
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 

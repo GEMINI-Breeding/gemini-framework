@@ -116,7 +116,6 @@ class SensorRecord(APIBase, FileHandlerMixin):
             raise e
 
 
-    @classmethod
     def delete(self) -> bool:
         try:
             current_id = self.id
@@ -131,7 +130,7 @@ class SensorRecord(APIBase, FileHandlerMixin):
         try:
             instances = SensorRecordModel.all(limit)
             instances = [cls.model_validate(instance) for instance in instances]
-            return instances
+            return instances if instances else None
         except Exception as e:
             raise e
 
@@ -147,7 +146,7 @@ class SensorRecord(APIBase, FileHandlerMixin):
             record = record.model_dump()
             record = cls._postprocess_record(record)
             record = cls.model_validate(record)
-            return record
+            return record if record else None
         except Exception as e:
             raise e
 
@@ -192,7 +191,28 @@ class SensorRecord(APIBase, FileHandlerMixin):
         try:
             db_instance = SensorRecordModel.get(sensor_record_id)
             record = cls.model_validate(db_instance)
-            return record
+            return record if record else None
+        except Exception as e:
+            raise e
+        
+    def get_record_info(self) -> dict:
+        try:
+            if not self.id:
+                raise ValueError("Record ID is required to get record info.")
+            record = SensorRecordModel.get(self.id)
+            record_info = record.record_info
+            return record_info if record_info else None
+        except Exception as e:
+            raise e
+        
+    def set_record_info(self, record_info: dict) -> "SensorRecord":
+        try:
+            if not self.id:
+                raise ValueError("Record ID is required to set record info.")
+            record = SensorRecordModel.get(self.id)
+            SensorRecordModel.update(record, record_info=record_info)
+            self.refresh()
+            return self
         except Exception as e:
             raise e
         
@@ -250,6 +270,21 @@ class SensorRecord(APIBase, FileHandlerMixin):
             return self
         except Exception as e:
             raise e
+        
+            
+    def get_record_file(self, download_folder: str) -> str:
+        try:
+            if not self.id:
+                raise ValueError("Record ID is required to get the record file.")
+            record = SensorRecord.get(self.id)
+            if not record.record_file:
+                raise ValueError("Record file is not available.")
+            file_path = os.path.join(download_folder, record.record_file)
+            if not os.path.exists(file_path):
+                file_path = self._download_file(download_folder)
+            return file_path
+        except Exception as e:
+            raise e
 
 
     @classmethod
@@ -269,7 +304,8 @@ class SensorRecord(APIBase, FileHandlerMixin):
                 site_name=site_name,
                 season_name=season_name
             )
-            return [record.to_dict() for record in valid_combinations]
+            valid_combinations = [record.to_dict() for record in valid_combinations]
+            return valid_combinations if valid_combinations else None
         except Exception as e:
             raise e
 
@@ -346,28 +382,32 @@ class SensorRecord(APIBase, FileHandlerMixin):
         cls, 
         dataset_name: str = None,
         sensor_name: str = None,
+        sensor_data: dict = None,
         experiment_name: str = None,
         site_name: str = None,
         season_name: str = None,
         plot_number: str = None,
         plot_row_number: str = None,
         plot_column_number: str = None,
+        collection_date: str = None,
         record_info: dict = None
     ) -> Generator['SensorRecord', None, None]:
         try:
-            if not any([dataset_name, sensor_name, experiment_name, site_name, season_name, plot_number, plot_row_number, plot_column_number, record_info]):
+            if not any([dataset_name, sensor_data, sensor_name, collection_date, experiment_name, site_name, season_name, plot_number, plot_row_number, plot_column_number, record_info]):
                 raise ValueError("At least one search parameter must be provided.")
 
             records = SensorRecordsIMMVModel.stream(
                 dataset_name=dataset_name,
                 sensor_name=sensor_name,
+                sensor_data=sensor_data,
                 experiment_name=experiment_name,
                 site_name=site_name,
                 season_name=season_name,
                 plot_number=plot_number,
                 plot_row_number=plot_row_number,
                 plot_column_number=plot_column_number,
-                record_info=record_info
+                record_info=record_info,
+                collection_date=collection_date
             )
             for record in records:
                 record = cls.model_construct(
@@ -436,12 +476,13 @@ class SensorRecord(APIBase, FileHandlerMixin):
         except Exception as e:
             raise e
         
-    def _get_file_download_url(self, record_file_key: str) -> str:
+    @classmethod
+    def _get_file_download_url(cls, record_file_key: str) -> str:
         try:
             # Check if record_file is a file key or a file url
             if record_file_key.startswith("http"):
                 return record_file_key
-            file_url = self.minio_storage_provider.get_download_url(object_name=record_file_key)
+            file_url = cls.minio_storage_provider.get_download_url(object_name=record_file_key)
             return file_url
         except Exception as e:
             raise e
@@ -452,11 +493,17 @@ class SensorRecord(APIBase, FileHandlerMixin):
             file_path = record.record_file
             if not os.path.exists(file_path):
                 raise FileNotFoundError(f"File {file_path} does not exist.")
-            file_name = os.path.basename(file_path)
             collection_date = record.collection_date.strftime("%Y-%m-%d")
             sensor_name = record.sensor_name
-            file_key = f"sensor_data/{sensor_name}/{collection_date}/{file_name}"
+            experiment_name = record.experiment_name
+            season_name = record.season_name
+            site_name = record.site_name
+            file_extension = os.path.splitext(file_path)[1]
+            file_timestamp = str(int(record.timestamp.timestamp()*1000))
+            file_key = f"sensor_records/{experiment_name}/{sensor_name}/{collection_date}/{site_name}/{season_name}/{file_timestamp}{file_extension}"
             return file_key
         except Exception as e:
             raise e
+
+        
     

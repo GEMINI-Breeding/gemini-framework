@@ -36,7 +36,7 @@ class TraitLevel(APIBase):
         try:
             instance = TraitLevelModel.get_by_parameters(trait_level_name=trait_level_name)
             instance = cls.model_validate(instance)
-            return instance
+            return instance if instance else None
         except Exception as e:
             raise e
         
@@ -46,7 +46,7 @@ class TraitLevel(APIBase):
         try:
             instance = TraitLevelModel.get(id)
             instance = cls.model_validate(instance)
-            return instance
+            return instance if instance else None
         except Exception as e:
             raise e
         
@@ -54,9 +54,9 @@ class TraitLevel(APIBase):
     @classmethod
     def get_all(cls) -> List["TraitLevel"]:
         try:
-            instances = TraitLevelModel.get_all()
+            instances = TraitLevelModel.all()
             instances = [cls.model_validate(instance) for instance in instances]
-            return instances
+            return instances if instances else None
         except Exception as e:
             raise e
         
@@ -77,13 +77,14 @@ class TraitLevel(APIBase):
                 trait_level_info=trait_level_info,
             )
             instances = [cls.model_validate(instance) for instance in instances]
-            return instances
+            return instances if instances else None
         except Exception as e:
             raise e
         
     
     def update(
         self,
+        trait_level_name: str = None,
         trait_level_info: dict = None
     ) -> "TraitLevel":
         try:
@@ -94,6 +95,7 @@ class TraitLevel(APIBase):
             trait_level = TraitLevelModel.get(current_id)
             trait_level = TraitLevelModel.update(
                 trait_level,
+                trait_level_name=trait_level_name,
                 trait_level_info=trait_level_info,
             )
             trait_level = self.model_validate(trait_level)

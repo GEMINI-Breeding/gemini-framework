@@ -32,6 +32,3 @@ class PlantModel(BaseModel):
         UniqueConstraint("plot_id", "plant_number"),
         Index("idx_plants_info", "plant_info", postgresql_using="GIN"),
     )
-
-    cultivar = relationship("CultivarModel", uselist=False, lazy="selectin", cascade="save-update, merge, delete")
-    plot = relationship("PlotModel", uselist=False, lazy="selectin", cascade="save-update, merge, delete", viewonly=True)

@@ -51,7 +51,7 @@ class Cultivar(APIBase):
                 experiment_name=experiment_name,
             )
             cultivar = cls.model_validate(db_instance)
-            return cultivar
+            return cultivar if cultivar else None
         except Exception as e:
             raise e
         
@@ -60,7 +60,7 @@ class Cultivar(APIBase):
         try:
             db_instance = CultivarModel.get(id)
             cultivar = cls.model_validate(db_instance)
-            return cultivar
+            return cultivar if cultivar else None
         except Exception as e:
             raise e
         

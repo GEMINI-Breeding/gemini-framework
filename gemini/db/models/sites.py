@@ -8,7 +8,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 from gemini.db.core.base import BaseModel
 
@@ -25,7 +25,7 @@ class SiteModel(BaseModel):
   site_city: Mapped[str] = mapped_column(String(255), default='')
   site_state: Mapped[str] = mapped_column(String(255), default='')
   site_country: Mapped[str] = mapped_column(String(255), default='')
-  site_info: Mapped[dict] = mapped_column(JSON, default={})
+  site_info: Mapped[dict] = mapped_column(JSONB, default={})
   created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now)
   updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
 

@@ -5,14 +5,15 @@ from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.api.dataset import Dataset, GEMINIDatasetType
-from gemini.api.procedure_record import ProcedureRecord
 from gemini.api.procedure_run import ProcedureRun
 from gemini.db.models.procedures import ProcedureModel
+from gemini.db.models.procedure_runs import ProcedureRunModel
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.associations import ExperimentProcedureModel, ProcedureDatasetModel
 from gemini.db.models.views.experiment_views import ExperimentProceduresViewModel
+from gemini.db.models.views.dataset_views import ProcedureDatasetsViewModel
 
-from datetime import date, datetime
+from datetime import date
 
 class Procedure(APIBase):
 
@@ -53,7 +54,7 @@ class Procedure(APIBase):
                 experiment_name=experiment_name
             )
             procedure = cls.model_validate(db_instance)
-            return procedure
+            return procedure if procedure else None
         except Exception as e:
             raise e
         
@@ -62,7 +63,7 @@ class Procedure(APIBase):
         try:
             db_instance = ProcedureModel.get(id)
             procedure = cls.model_validate(db_instance)
-            return procedure
+            return procedure if procedure else None
         except Exception as e:
             raise e
         
@@ -71,7 +72,7 @@ class Procedure(APIBase):
         try:
             procedures = ProcedureModel.all()
             procedures = [cls.model_validate(procedure) for procedure in procedures]
-            return procedures
+            return procedures if procedures else None
         except Exception as e:
             raise e
         
@@ -103,7 +104,7 @@ class Procedure(APIBase):
         procedure_info: dict = None
     ) -> "Procedure":
         try:
-            if not procedure_name and not procedure_info:
+            if  not procedure_info and not procedure_name:
                 raise Exception("At least one parameter must be provided.")
             
             current_id = self.id
@@ -143,10 +144,10 @@ class Procedure(APIBase):
         
     def get_datasets(self) -> List["Dataset"]:
         try:
-            dataset = ProcedureModel.get(self.id)
-            datasets = dataset.datasets                                             
+            procedure = ProcedureModel.get(self.id)
+            datasets = ProcedureDatasetsViewModel.search(procedure_id=procedure.id)
             datasets = [Dataset.model_validate(dataset) for dataset in datasets]
-            return datasets
+            return datasets if datasets else None
         except Exception as e:
             raise e
 
@@ -173,10 +174,10 @@ class Procedure(APIBase):
 
     def get_runs(self) -> List[ProcedureRun]:
         try:
-            model = ProcedureModel.get(self.id)
-            runs = model.procedure_runs
+            procedure = ProcedureModel.get(self.id)
+            runs = ProcedureRunModel.search(procedure_id=procedure.id)
             runs = [ProcedureRun.model_validate(run) for run in runs]
-            return runs
+            return runs if runs else None
         except Exception as e:
             raise e
 
