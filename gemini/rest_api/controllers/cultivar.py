@@ -90,7 +90,7 @@ class CultivarController(Controller):
                     error="Cultivar creation failed",
                     error_description="The cultivar could not be created"
                 ).to_html()
-                return Response(content=error_html, status_code=400)
+                return Response(content=error_html, status_code=500)
             return cultivar
         except Exception as e:
             error_message = RESTAPIError(
@@ -113,8 +113,17 @@ class CultivarController(Controller):
                     error_description="The cultivar with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            parameters = data.model_dump()
-            cultivar = cultivar.update(**parameters)
+            cultivar = cultivar.update(
+                cultivar_accession=data.cultivar_accession,
+                cultivar_population=data.cultivar_population,
+                cultivar_info=data.cultivar_info
+            )
+            if cultivar is None:
+                error_html = RESTAPIError(
+                    error="Cultivar update failed",
+                    error_description="The cultivar could not be updated"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
             return cultivar
         except Exception as e:
             error_message = RESTAPIError(
@@ -137,7 +146,14 @@ class CultivarController(Controller):
                     error_description="The cultivar with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            cultivar.delete()
+            is_deleted = cultivar.delete()
+            if not is_deleted:
+                error_html = RESTAPIError(
+                    error="Cultivar deletion failed",
+                    error_description="The cultivar could not be deleted"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return None
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),

@@ -4,7 +4,19 @@ from litestar.params import Body
 from litestar.controller import Controller
 
 from gemini.api.model import Model
-from gemini.rest_api.models import ModelInput, ModelOutput, ModelSearch, ModelUpdate, RESTAPIError, str_to_dict, JSONB
+from gemini.rest_api.models import ( 
+    ModelInput, 
+    ModelOutput, 
+    ModelSearch, 
+    ModelUpdate,
+    DatasetOutput,
+    DatasetInput,
+    ModelRunOutput,
+    ModelRunInput, 
+    RESTAPIError, 
+    str_to_dict, 
+    JSONB
+)
 
 from typing import List, Annotated, Optional
 
@@ -17,13 +29,11 @@ class ModelController(Controller):
         model_name: Optional[str] = None,
         model_url: Optional[str] = None,
         model_info: Optional[JSONB] = None,
-        experiment_name: Optional[str] = 'Default'
+        experiment_name: Optional[str] = 'Experiment A'
     ) -> List[ModelOutput]:
         try:
-
             if model_info is not None:
                 model_info = str_to_dict(model_info)
-
             models = Model.search(
                 model_name=model_name,
                 model_info=model_info,
@@ -45,7 +55,6 @@ class ModelController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
-
     # Get Model by ID
     @get(path="/id/{model_id:str}")
     async def get_model_by_id(
@@ -67,13 +76,11 @@ class ModelController(Controller):
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
-        
     
     # Create a new Model
     @post()
     async def create_model(
-        self,
-        data: Annotated[ModelInput, Body]
+        self, data: Annotated[ModelInput, Body]
     ) -> ModelOutput:
         try:
             model = Model.create(
@@ -97,7 +104,6 @@ class ModelController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
-
     # Update Model
     @patch(path="/id/{model_id:str}")
     async def update_model(
@@ -113,8 +119,17 @@ class ModelController(Controller):
                     error_description="The model with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            parameters = data.model_dump()
-            model = model.update(**parameters)
+            model = model.update(
+                model_name=data.model_name,
+                model_url=data.model_url,
+                model_info=data.model_info
+            )
+            if model is None:
+                error_html = RESTAPIError(
+                    error="Model not updated",
+                    error_description="The model could not be updated"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
             return model
         except Exception as e:
             error_message = RESTAPIError(
@@ -124,7 +139,6 @@ class ModelController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
-
     # Delete Model
     @delete(path="/id/{model_id:str}")
     async def delete_model(
@@ -138,7 +152,14 @@ class ModelController(Controller):
                     error_description="The model with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            model.delete()
+            is_deleted = model.delete()
+            if not is_deleted:
+                error_html = RESTAPIError(
+                    error="Model not deleted",
+                    error_description="The model could not be deleted"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return None
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
@@ -146,3 +167,131 @@ class ModelController(Controller):
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
+        
+
+    # Get Model Runs
+    @get(path="/id/{model_id:str}/runs")
+    async def get_model_runs(
+        self, model_id: str
+    ) -> List[ModelRunOutput]:
+        try:
+            model = Model.get_by_id(id=model_id)
+            if model is None:
+                error_html = RESTAPIError(
+                    error="Model not found",
+                    error_description="The model with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            model_runs = model.get_runs()
+            if model_runs is None:
+                error_html = RESTAPIError(
+                    error="No model runs found",
+                    error_description="No model runs were found for the given model"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return model_runs
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving model runs"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+    # Get Model Datasets
+    @get(path="/id/{model_id:str}/datasets")
+    async def get_model_datasets(
+        self, model_id: str
+    ) -> List[DatasetOutput]:
+        try:
+            model = Model.get_by_id(id=model_id)
+            if model is None:
+                error_html = RESTAPIError(
+                    error="Model not found",
+                    error_description="The model with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            model_datasets = model.get_datasets()
+            if model_datasets is None:
+                error_html = RESTAPIError(
+                    error="No model datasets found",
+                    error_description="No model datasets were found for the given model"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return model_datasets
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving model datasets"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+    # Create Model Run
+    @post(path="/id/{model_id:str}/runs")
+    async def create_model_run(
+        self,
+        model_id: str,
+        data: Annotated[ModelRunInput, Body]
+    ) -> ModelRunOutput:
+        try:
+            model = Model.get_by_id(id=model_id)
+            if model is None:
+                error_html = RESTAPIError(
+                    error="Model not found",
+                    error_description="The model with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            model_run = model.create_run(model_run_info=data.model_run_info)
+            if model_run is None:
+                error_html = RESTAPIError(
+                    error="Model run not created",
+                    error_description="The model run could not be created"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return model_run
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while creating the model run"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+    # Create Model Dataset
+    @post(path="/id/{model_id:str}/datasets")
+    async def create_model_dataset(
+        self,
+        model_id: str,
+        data: Annotated[DatasetInput, Body]
+    ) -> DatasetOutput:
+        try:
+            model = Model.get_by_id(id=model_id)
+            if model is None:
+                error_html = RESTAPIError(
+                    error="Model not found",
+                    error_description="The model with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            dataset = model.create_dataset(
+                dataset_name=data.dataset_name,
+                dataset_info=data.dataset_info,
+                collection_date=data.collection_date,
+                experiment_name=data.experiment_name
+            )
+            if dataset is None:
+                error_html = RESTAPIError(
+                    error="Dataset not created",
+                    error_description="The dataset could not be created"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return dataset
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while creating the dataset"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)    
+        
+    
