@@ -4,13 +4,13 @@ from litestar.params import Body
 from litestar.controller import Controller
 
 from gemini.api.trait_level import TraitLevel
-from gemini.rest_api.models import TraitLevelInput, TraitLevelOutput, RESTAPIError, str_to_dict, JSONB
+from gemini.rest_api.models import TraitLevelInput, TraitLevelOutput, TraitLevelUpdate, RESTAPIError, str_to_dict, JSONB
 
 from typing import List, Annotated, Optional
 
 class TraitLevelController(Controller):
 
-    # Get Trait Levels
+    # Get all Trait Levels
     @get()
     async def get_trait_levels(
         self,
@@ -32,7 +32,6 @@ class TraitLevelController(Controller):
                     error_description="No trait levels were found with the given search criteria"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            
             return trait_levels
         except Exception as e:
             error_message = RESTAPIError(
@@ -41,7 +40,6 @@ class TraitLevelController(Controller):
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
-        
 
     # Get Trait Level by ID
     @get(path="/id/{trait_level_id:int}")
@@ -64,7 +62,6 @@ class TraitLevelController(Controller):
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
-        
 
     # Create Trait Level
     @post()
@@ -91,3 +88,67 @@ class TraitLevelController(Controller):
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
+        
+    # Update Trait Level
+    @patch(path="/id/{trait_level_id:int}")
+    async def update_trait_level(
+        self,
+        trait_level_id: int,
+        data: Annotated[TraitLevelUpdate, Body]
+    ) -> TraitLevelOutput:
+        try:
+            trait_level = TraitLevel.get_by_id(id=trait_level_id)
+            if trait_level is None:
+                error_html = RESTAPIError(
+                    error="Trait level not found",
+                    error_description="The trait level with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            trait_level = trait_level.update(
+                trait_level_name=data.trait_level_name,
+                trait_level_info=data.trait_level_info
+            )
+            if trait_level is None:
+                error_html = RESTAPIError(
+                    error="An error occurred while updating trait level",
+                    error_description="An error occurred while updating trait level"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return trait_level
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while updating trait level"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+    # Delete Trait Level
+    @delete(path="/id/{trait_level_id:int}")
+    async def delete_trait_level(
+        self, trait_level_id: int
+    ) -> None:
+        try:
+            trait_level = TraitLevel.get_by_id(id=trait_level_id)
+            if trait_level is None:
+                error_html = RESTAPIError(
+                    error="Trait level not found",
+                    error_description="The trait level with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            is_deleted = trait_level.delete()
+            if not is_deleted:
+                error_html = RESTAPIError(
+                    error="Failed to delete trait level",
+                    error_description="The trait level could not be deleted"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return Response(status_code=204)
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while deleting trait level"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        

@@ -5,6 +5,7 @@ from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.api.script_run import ScriptRun
+from gemini.api.script_record import ScriptRecord
 from gemini.api.dataset import Dataset, GEMINIDatasetType
 from gemini.db.models.scripts import ScriptModel
 from gemini.db.models.script_runs import ScriptRunModel
@@ -212,75 +213,58 @@ class Script(APIBase):
         except Exception as e:
             raise e
                 
+    def add_record(
+        self,
+        record: ScriptRecord
+    ) -> bool:
+        try:
+            record.script_id = self.id
+            record.script_name = self.script_name
+            record.dataset_name = f"{self.script_name} Dataset"
+            record.timestamp = record.timestamp if record.timestamp else date.today()
+
+            success = ScriptRecord.add([record])
+            return success
+        except Exception as e:
+            raise e
         
+    def add_records(
+        self,
+        records: List[ScriptRecord]
+    ) -> bool:
+        try:
+            for record in records:
+                record.script_id = self.id
+                record.script_name = self.script_name
+                record.dataset_name = f"{self.script_name} Dataset"
+                record.timestamp = record.timestamp if record.timestamp else date.today()
 
-    # def add_record(
-    #     self,
-    #     record: ScriptRecord
-    # ) -> bool:
-    #     try:
-    #         if record.timestamp is None:
-    #             record.timestamp = datetime.now()
-    #         if record.collection_date is None:
-    #             record.collection_date = record.timestamp.date()
-    #         if record.dataset_name is None:
-    #             record.dataset_name = f"{self.script_name} Dataset"
-    #         if record.script_name is None:
-    #             record.script_name = self.script_name
-    #         if record.record_info is None:
-    #             record.record_info = {}
-
-    #         record.script_id = self.id
-    #         success = ScriptRecord.add([record])
-    #         return success
-    #     except Exception as e:
-    #         return False
+            success = ScriptRecord.add(records)
+            return success
+        except Exception as e:
+            raise e
         
+    def get_records(
+        self,
+        collection_date: date = None,
+        experiment_name: str = None,
+        season_name: str = None,
+        site_name: str = None,
+        record_info: dict = None
+    ) -> List[ScriptRecord]:
+        try:
+            record_info = record_info if record_info else {}
+            record_info = {k: v for k, v in record_info.items() if v is not None}
 
-    # def add_records(
-    #     self,
-    #     records: List[ScriptRecord]
-    # ) -> bool:
-    #     try:
-    #         for record in records:
-    #             if record.timestamp is None:
-    #                 record.timestamp = datetime.now()
-    #             if record.collection_date is None:
-    #                 record.collection_date = record.timestamp.date()
-    #             if record.dataset_name is None:
-    #                 record.dataset_name = f"{self.script_name} Dataset"
-    #             if record.script_name is None:
-    #                 record.script_name = self.script_name
-    #             if record.record_info is None:
-    #                 record.record_info = {}
-
-    #             record.script_id = self.id
-    #         success = ScriptRecord.add(records)
-    #         return success
-    #     except Exception as e:
-    #         return False
+            records = ScriptRecord.search(
+                script_id=self.id,
+                collection_date=collection_date,
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name,
+                record_info=record_info
+            )
+            return records
+        except Exception as e:
+            raise e
         
-
-    # def get_records(
-    #         self,
-    #         collection_date: date = None,
-    #         experiment_name: str = None,
-    #         season_name: str = None,
-    #         site_name: str = None,
-    #         record_info: dict = None
-    # ) -> List[ScriptRecord]:
-    #     try:
-    #         record_info = record_info if record_info else {}
-    #         record_info = {k: v for k, v in record_info.items() if v is not None}
-
-    #         records = ScriptRecord.search(
-    #             script_id=self.id,
-    #             collection_date=collection_date,
-    #             experiment_name=experiment_name,
-    #             season_name=season_name,
-    #             site_name=site_name,
-    #             record_info=record_info
-    #         )
-    #         return records
-    #     except Exception as e:
-    #         raise e

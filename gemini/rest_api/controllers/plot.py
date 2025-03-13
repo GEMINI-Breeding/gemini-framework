@@ -4,14 +4,16 @@ from litestar.params import Body
 from litestar.controller import Controller
 
 from gemini.api.plot import Plot
-from gemini.rest_api.models import PlotInput, PlotOutput, PlotUpdate, RESTAPIBase, JSONB, str_to_dict
+from gemini.rest_api.models import PlotInput, PlotOutput, PlotUpdate, RESTAPIError, JSONB, str_to_dict
 from gemini.rest_api.models import (
-    ExperimentOutput,
-    SiteOutput,
-    SeasonOutput,
-    CultivarOutput
+    CultivarInput,
+    CultivarOutput,
+    ExperimentInput,
+    SeasonInput,
+    SiteInput,
+    PlantInput,
+    PlantOutput
 )
-
 
 from typing import List, Annotated, Optional
 
@@ -24,42 +26,36 @@ class PlotController(Controller):
         plot_number: Optional[int] = None,
         plot_row_number: Optional[int] = None,
         plot_column_number: Optional[int] = None,
-        plot_info: Optional[JSONB] = None,
         experiment_name: Optional[str] = None,
         season_name: Optional[str] = None,
-        site_name: Optional[str] = None,
+        site_name: Optional[str] = None
     ) -> List[PlotOutput]:
         try:
-            if plot_info is not None:
-                plot_info = str_to_dict(plot_info)
 
             plots = Plot.search(
                 plot_number=plot_number,
                 plot_row_number=plot_row_number,
                 plot_column_number=plot_column_number,
-                plot_info=plot_info,
                 experiment_name=experiment_name,
                 season_name=season_name,
-                site_name=site_name,
+                site_name=site_name
             )
 
             if plots is None:
-                error_html = RESTAPIBase(
+                error_html = RESTAPIError(
                     error="No plots found",
                     error_description="No plots were found with the given search criteria"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            
             return plots
         except Exception as e:
-            error_message = RESTAPIBase(
+            error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving plots"
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
-
     # Get Plot by ID
     @get(path="/id/{plot_id:str}")
     async def get_plot_by_id(
@@ -68,20 +64,19 @@ class PlotController(Controller):
         try:
             plot = Plot.get_by_id(id=plot_id)
             if plot is None:
-                error_html = RESTAPIBase(
+                error_html = RESTAPIError(
                     error="Plot not found",
                     error_description="The plot with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
             return plot
         except Exception as e:
-            error_message = RESTAPIBase(
+            error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving plot"
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
-        
 
     # Create a new Plot
     @post()
@@ -98,23 +93,24 @@ class PlotController(Controller):
                 experiment_name=data.experiment_name,
                 season_name=data.season_name,
                 site_name=data.site_name,
+                cultivar_accession=data.cultivar_accession,
+                cultivar_population=data.cultivar_population,
             )
             if plot is None:
-                error_html = RESTAPIBase(
+                error_html = RESTAPIError(
                     error="Plot not created",
                     error_description="The plot was not created"
                 ).to_html()
                 return Response(content=error_html, status_code=500)
             return plot
         except Exception as e:
-            error_message = RESTAPIBase(
+            error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the plot"
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
-
     # Update Plot
     @patch(path="/id/{plot_id:str}")
     async def update_plot(
@@ -125,23 +121,34 @@ class PlotController(Controller):
         try:
             plot = Plot.get_by_id(id=plot_id)
             if plot is None:
-                error_html = RESTAPIBase(
+                error_html = RESTAPIError(
                     error="Plot not found",
                     error_description="The plot with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            parameters = data.model_dump()
-            plot = plot.update(**parameters)
+            plot = Plot.update(
+                id=plot_id,
+                plot_number=data.plot_number,
+                plot_row_number=data.plot_row_number,
+                plot_column_number=data.plot_column_number,
+                plot_info=data.plot_info,
+                plot_geometry_info=data.plot_geometry_info,
+            )
+            if plot is None:
+                error_html = RESTAPIError(
+                    error="Plot not updated",
+                    error_description="The plot was not updated"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
             return plot
         except Exception as e:
-            error_message = RESTAPIBase(
+            error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while updating the plot"
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
-
     # Delete Plot
     @delete(path="/id/{plot_id:str}")
     async def delete_plot(
@@ -150,114 +157,224 @@ class PlotController(Controller):
         try:
             plot = Plot.get_by_id(id=plot_id)
             if plot is None:
-                error_html = RESTAPIBase(
+                error_html = RESTAPIError(
                     error="Plot not found",
                     error_description="The plot with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            plot.delete()
+            is_deleted = plot.delete()
+            if not is_deleted:
+                error_html = RESTAPIError(
+                    error="Failed to delete plot",
+                    error_description="The plot was not deleted"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return None
         except Exception as e:
-            error_message = RESTAPIBase(
+            error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while deleting the plot"
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
-
-    # Get Experiment for Plot
-    @get(path="/id/{plot_id:str}/experiment")
-    async def get_experiment_for_plot(
+    # Get Plot Plants
+    @get(path="/id/{plot_id:str}/plants")
+    async def get_plot_plants(
         self, plot_id: str
-    ) -> ExperimentOutput:
+    ) -> List[PlantOutput]:
         try:
             plot = Plot.get_by_id(id=plot_id)
             if plot is None:
-                error_html = RESTAPIBase(
+                error_html = RESTAPIError(
                     error="Plot not found",
                     error_description="The plot with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            experiment = plot.experiment
-            return experiment
-        except Exception as e:
-            error_message = RESTAPIBase(
-                error=str(e),
-                error_description="An error occurred while retrieving the experiment for the plot"
-            )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
-        
-
-    # Get Site for Plot
-    @get(path="/id/{plot_id:str}/site")
-    async def get_site_for_plot(
-        self, plot_id: str
-    ) -> SiteOutput:
-        try:
-            plot = Plot.get_by_id(id=plot_id)
-            if plot is None:
-                error_html = RESTAPIBase(
-                    error="Plot not found",
-                    error_description="The plot with the given ID was not found"
+            plants = plot.get_plants()
+            if plants is None:
+                error_html = RESTAPIError(
+                    error="No plants found",
+                    error_description="No plants were found for the given plot"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            site = plot.site
-            return site
+            return plants
         except Exception as e:
-            error_message = RESTAPIBase(
+            error_message = RESTAPIError(
                 error=str(e),
-                error_description="An error occurred while retrieving the site for the plot"
+                error_description="An error occurred while retrieving the plants for the plot"
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
-
-    # Get Season for Plot
-    @get(path="/id/{plot_id:str}/season")
-    async def get_season_for_plot(
-        self, plot_id: str
-    ) -> SeasonOutput:
-        try:
-            plot = Plot.get_by_id(id=plot_id)
-            if plot is None:
-                error_html = RESTAPIBase(
-                    error="Plot not found",
-                    error_description="The plot with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            season = plot.season
-            return season
-        except Exception as e:
-            error_message = RESTAPIBase(
-                error=str(e),
-                error_description="An error occurred while retrieving the season for the plot"
-            )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
-        
-
-    # Get Cultivars for Plot
+    # Get Plot Cultivars
     @get(path="/id/{plot_id:str}/cultivars")
-    async def get_cultivars_for_plot(
+    async def get_plot_cultivars(
         self, plot_id: str
     ) -> List[CultivarOutput]:
         try:
             plot = Plot.get_by_id(id=plot_id)
             if plot is None:
-                error_html = RESTAPIBase(
+                error_html = RESTAPIError(
                     error="Plot not found",
                     error_description="The plot with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            cultivars = plot.cultivars
+            cultivars = plot.get_cultivars()
+            if cultivars is None:
+                error_html = RESTAPIError(
+                    error="No cultivars found",
+                    error_description="No cultivars were found for the given plot"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
             return cultivars
         except Exception as e:
-            error_message = RESTAPIBase(
+            error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the cultivars for the plot"
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
+
+    # Add Plant to Plot
+    @post(path="/id/{plot_id:str}/plants")
+    async def add_plant_to_plot(
+        self,
+        plot_id: str,
+        data: Annotated[PlantInput, Body]
+    ) -> PlotOutput:
+        try:
+            plot = Plot.get_by_id(id=plot_id)
+            if plot is None:
+                error_html = RESTAPIError(
+                    error="Plot not found",
+                    error_description="The plot with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            plot = plot.add_plant(
+                plant_number=data.plant_number,
+                cultivar_accession=data.cultivar_accession,
+                cultivar_population=data.cultivar_population,
+                plant_info=data.plant_info
+            )
+            if plot is None:
+                error_html = RESTAPIError(
+                    error="Plant not added",
+                    error_description="The plant was not added to the plot"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return plot
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while adding the plant to the plot"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+    
+    
+    # Add Cultivar to Plot
+    @post(path="/id/{plot_id:str}/cultivars")
+    async def add_cultivar_to_plot(
+        self,
+        plot_id: str,
+        data: Annotated[CultivarInput, Body]
+    ) -> PlotOutput:
+        try:
+            plot = Plot.get_by_id(id=plot_id)
+            if plot is None:
+                error_html = RESTAPIError(
+                    error="Plot not found",
+                    error_description="The plot with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            plot = plot.add_cultivar(
+                cultivar_accession=data.cultivar_accession,
+                cultivar_population=data.cultivar_population,
+                cultivar_info=data.cultivar_info
+            )
+            if plot is None:
+                error_html = RESTAPIError(
+                    error="Cultivar not added",
+                    error_description="The cultivar was not added to the plot"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return plot
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while adding the cultivar to the plot"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
         
+    
+
+    # Update Plot Experiment
+    @patch(path="/id/{plot_id:str}/experiment")
+    async def update_plot_experiment(
+        self,
+        plot_id: str,
+        data: Annotated[ExperimentInput, Body]
+    ) -> PlotOutput:
+        try:
+            plot = Plot.get_by_id(id=plot_id)
+            if plot is None:
+                error_html = RESTAPIError(
+                    error="Plot not found",
+                    error_description="The plot with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            plot = plot.set_experiment(
+                experiment_name=data.experiment_name,
+            )
+            if plot is None:
+                error_html = RESTAPIError(
+                    error="Plot not updated",
+                    error_description="The plot was not updated"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return plot
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while updating the plot experiment"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+    # Update Plot Site
+    @patch(path="/id/{plot_id:str}/site")
+    async def update_plot_site(
+        self,
+        plot_id: str,
+        data: Annotated[SiteInput, Body]
+    ) -> PlotOutput:
+        try:
+            plot = Plot.get_by_id(id=plot_id)
+            if plot is None:
+                error_html = RESTAPIError(
+                    error="Plot not found",
+                    error_description="The plot with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            plot = plot.set_site(
+                site_name=data.site_name,
+            )
+            if plot is None:
+                error_html = RESTAPIError(
+                    error="Plot not updated",
+                    error_description="The plot was not updated"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return plot
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while updating the plot site"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+
 

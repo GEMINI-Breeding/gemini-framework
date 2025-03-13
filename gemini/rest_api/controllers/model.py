@@ -7,7 +7,6 @@ from gemini.api.model import Model
 from gemini.rest_api.models import ( 
     ModelInput, 
     ModelOutput, 
-    ModelSearch, 
     ModelUpdate,
     DatasetOutput,
     DatasetInput,

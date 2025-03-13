@@ -10,6 +10,7 @@ from typing import List, Annotated, Optional
 
 class SiteController(Controller):
 
+
     # Get Sites
     @get()
     async def get_sites(
@@ -19,10 +20,9 @@ class SiteController(Controller):
         site_state: Optional[str] = None,
         site_country: Optional[str] = None,
         site_info: Optional[JSONB] = None,
-        experiment_name: Optional[str] = 'Default'
+        experiment_name: Optional[str] = 'Experiment A'
     ) -> List[SiteOutput]:
         try:
-
             if site_info is not None:
                 site_info = str_to_dict(site_info)
 
@@ -49,7 +49,6 @@ class SiteController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
-
     # Get Site by ID
     @get(path="/id/{site_id:str}")
     async def get_site_by_id(
@@ -72,7 +71,6 @@ class SiteController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
-
     # Create Site
     @post()
     async def create_site(
@@ -102,7 +100,7 @@ class SiteController(Controller):
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
-        
+
 
     # Update Site
     @patch(path="/id/{site_id:str}")
@@ -119,8 +117,13 @@ class SiteController(Controller):
                     error_description="The site with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            parameters = data.model_dump()
-            site = site.update(**parameters)
+            site = site.update(
+                site_name=data.site_name,
+                site_city=data.site_city,
+                site_state=data.site_state,
+                site_country=data.site_country,
+                site_info=data.site_info
+            )
             return site
         except Exception as e:
             error_message = RESTAPIError(
@@ -130,7 +133,6 @@ class SiteController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
-
     # Delete Site
     @delete(path="/id/{site_id:str}")
     async def delete_site(
@@ -144,7 +146,13 @@ class SiteController(Controller):
                     error_description="The site with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            site.delete()
+            is_deleted = site.delete()
+            if not is_deleted:
+                error_html = RESTAPIError(
+                    error="Failed to delete site",
+                    error_description="The site could not be deleted"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
@@ -152,3 +160,4 @@ class SiteController(Controller):
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
+        

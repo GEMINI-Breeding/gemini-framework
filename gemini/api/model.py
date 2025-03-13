@@ -6,6 +6,7 @@ from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.api.dataset import Dataset, GEMINIDatasetType
 from gemini.api.model_run import ModelRun
+from gemini.api.model_record import ModelRecord
 from gemini.db.models.models import ModelModel
 from gemini.db.models.model_runs import ModelRunModel
 from gemini.db.models.experiments import ExperimentModel
@@ -204,80 +205,59 @@ class Model(APIBase):
             raise e
                 
 
-    # def add_record(
-    #     self,
-    #     record: "ModelRecord"
-    # ) -> bool:
-    #     try:
-    #         if record.timestamp is None:
-    #             record.timestamp = datetime.now()
-    #         if record.collection_date is None:
-    #             record.collection_date = record.timestamp.date()
-    #         if record.dataset_name is None:
-    #             record.dataset_name = f"{self.model_name} Dataset"
-    #         if record.model_name is None:
-    #             record.model_name = self.model_name
-    #         if record.record_info is None:
-    #             record.record_info = {}
+    def add_record(
+        self,
+        record: ModelRecord
+    ) -> bool:
+        try:
+            record.model_id = self.id
+            record.model_name = self.model_name
+            record.dataset_name = f"{self.model_name} Dataset"
+            record.timestamp = record.timestamp if record.timestamp else date.today()
 
-    #         record.model_id = self.id
-
-    #         success = ModelRecord.add([record])
-    #         return success
-    #     except Exception as e:
-    #         return False
+            success = ModelRecord.add([record])
+            return success
+        except Exception as e:
+            raise e
         
-    # def add_records(
-    #     self,
-    #     records: List["ModelRecord"]
-    # ) -> bool:
-    #     try:
-    #         for record in records:
-    #             if record.timestamp is None:
-    #                 record.timestamp = datetime.now()
-    #             if record.collection_date is None:
-    #                 record.collection_date = record.timestamp.date()
-    #             if record.dataset_name is None:
-    #                 record.dataset_name = f"{self.model_name} Dataset"
-    #             if record.model_name is None:
-    #                 record.model_name = self.model_name
-    #             if record.record_info is None:
-    #                 record.record_info = {}
+    def add_records(
+        self,
+        records: List[ModelRecord]
+    ) -> bool:
+        try:
+            for record in records:
+                record.model_id = self.id
+                record.model_name = self.model_name
+                record.dataset_name = f"{self.model_name} Dataset"
+                record.timestamp = record.timestamp if record.timestamp else date.today()
 
-    #             record.model_id = self.id
-
-    #         success = ModelRecord.add(records)
-    #         return success
-    #     except Exception as e:
-    #         return False
+            success = ModelRecord.add(records)
+            return success
+        except Exception as e:
+            raise e
         
+    def get_records(
+        self,
+        collection_date: date = None,
+        experiment_name: str = None,
+        season_name: str = None,
+        site_name: str = None,
+        record_info: dict = None
+    ) -> List[ModelRecord]:
+        try:
+            record_info = record_info if record_info else {}
+            record_info = {k: v for k, v in record_info.items() if v is not None}
 
-    # def get_records(
-    #     self,
-    #     collection_date: date = None,
-    #     experiment_name: str = None,
-    #     season_name: str = None,
-    #     site_name: str = None,
-    #     record_info: dict = None
-    # ) -> List["ModelRecord"]:
-    #     try:
-    #         record_info = record_info if record_info else {}
-    #         record_info = {k: v for k, v in record_info.items() if v is not None}
-
-    #         records = ModelRecord.search(
-    #             model_id=self.id,
-    #             collection_date=collection_date,
-    #             experiment_name=experiment_name,
-    #             season_name=season_name,
-    #             site_name=site_name,
-    #             record_info=record_info
-    #         )
-    #         return records
-    #     except Exception as e:
-    #         raise e
-        
-    
-                
-     
+            records = ModelRecord.search(
+                model_id=self.id,
+                collection_date=collection_date,
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name,
+                record_info=record_info
+            )
+            return records
+        except Exception as e:
+            raise e
 
             

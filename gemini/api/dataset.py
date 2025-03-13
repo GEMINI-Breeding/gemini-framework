@@ -6,6 +6,7 @@ from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.api.enums import GEMINIDatasetType
 from gemini.api.dataset_type import DatasetType
+from gemini.api.dataset_record import DatasetRecord
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.dataset_types import DatasetTypeModel
 from gemini.db.models.experiments import ExperimentModel
@@ -162,74 +163,61 @@ class Dataset(APIBase):
             dataset_type = DatasetType.model_validate(dataset_type)
             return dataset_type if dataset_type else None
         except Exception as e:
-            raise e 
-
-    # def add_record(
-    #     self,
-    #     record = DatasetRecord
-    # ) -> bool:
-    #     try:
-    #         if record.timestamp is None:
-    #             record.timestamp = datetime.now()
-    #         if record.collection_date is None:
-    #             record.collection_date = record.timestamp.date()
-    #         if record.dataset_name is None:
-    #             record.dataset_name = self.dataset_name
-    #         if record.record_info is None:
-    #             record.record_info = {}
-
-    #         record.dataset_id = self.id
-
-    #         success = DatasetRecord.add([record])
-    #         return success
-    #     except Exception as e:
-    #         return False
+            raise e
 
 
-    # def add_records(
-    #         self,
-    #         records: List[DatasetRecord]
-    # ) -> bool:
-    #     try:
-    #         for record in records:
-    #             if record.timestamp is None:
-    #                 record.timestamp = datetime.now()
-    #             if record.collection_date is None:
-    #                 record.collection_date = record.timestamp.date()
-    #             if record.dataset_name is None:
-    #                 record.dataset_name = self.dataset_name
-    #             if record.record_info is None:
-    #                 record.record_info = {}
+    def add_record(
+        self,
+        record: DatasetRecord
+    ) -> bool:
+        try:
+            record.dataset_id = self.id
+            record.dataset_name = self.dataset_name
+            record.timestamp = record.timestamp if record.timestamp else date.today()
 
-    #             record.dataset_id = self.id
-                
-    #         success = DatasetRecord.add(records)
-    #         return success
-    #     except Exception as e:
-    #         return False
+            success = DatasetRecord.add([record])
+            return success
+        except Exception as e:
+            raise e
         
-    # def get_records(
-    #         self,
-    #         collection_date: date = None,
-    #         experiment_name: str = None,
-    #         season_name: str = None,
-    #         site_name: str = None,
-    #         record_info: dict = None
-    # ) -> List[DatasetRecord]:
-    #     try:
-    #         record_info = record_info if record_info else {}
-    #         record_info = {k: v for k, v in record_info.items() if v is not None}
+    def add_records(
+        self,
+        records: List[DatasetRecord]
+    ) -> bool:
+        try:
+            for record in records:
+                record.dataset_id = self.id
+                record.dataset_name = self.dataset_name
+                record.timestamp = record.timestamp if record.timestamp else date.today()
 
-    #         records = DatasetRecord.search(
-    #             dataset_id=self.id,
-    #             collection_date=collection_date,
-    #             dataset_name=self.dataset_name,
-    #             experiment_name=experiment_name,
-    #             season_name=season_name,
-    #             site_name=site_name,
-    #             record_info=record_info
-    #         )
-    #         return records
-    #     except Exception as e:
-    #         raise e
+            success = DatasetRecord.add(records)
+            return success
+        except Exception as e:
+            raise e
+        
+    def get_records(
+        self,
+        collection_date: date = None,
+        experiment_name: str = None,
+        season_name: str = None,
+        site_name: str = None,
+        record_info: dict = None
+    ) -> List[DatasetRecord]:
+        try:
+            record_info = record_info if record_info else {}
+            record_info = {k: v for k, v in record_info.items() if v is not None}
 
+            records = DatasetRecord.search(
+                dataset_id=self.id,
+                collection_date=collection_date,
+                dataset_name=self.dataset_name,
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name,
+                record_info=record_info
+            )
+            return records
+        except Exception as e:
+            raise e
+
+  

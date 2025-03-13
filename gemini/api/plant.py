@@ -88,7 +88,8 @@ class Plant(APIBase):
         cultivar_population: str = None,
         experiment_name: str = None,
         season_name: str = None,
-        site_name: str = None
+        site_name: str = None,
+        plant_info: dict = None
     ) -> List["Plant"]:
         try:
             if not any([plot_id, plant_number, cultivar_accession, cultivar_population, experiment_name, season_name, site_name]):
@@ -101,7 +102,8 @@ class Plant(APIBase):
                 cultivar_population=cultivar_population,
                 experiment_name=experiment_name,
                 season_name=season_name,
-                site_name=site_name
+                site_name=site_name,
+                plant_info=plant_info
             )
             plants = [cls.model_validate(plant) for plant in plants]
             return plants if plants else None

@@ -106,6 +106,7 @@ class SeasonInput(RESTAPIBase):
     experiment_name: Optional[str] = None
 
 class SeasonUpdate(RESTAPIBase):
+    season_name: Optional[str] = None
     season_info: Optional[JSONB] = None
     season_start_date: Optional[datetime] = None
     season_end_date: Optional[datetime] = None
@@ -140,6 +141,7 @@ class SiteInput(RESTAPIBase):
     experiment_name: Optional[str] = None
 
 class SiteUpdate(RESTAPIBase):
+    site_name: Optional[str] = None
     site_city: Optional[str] = None
     site_state: Optional[str] = None
     site_country: Optional[str] = None
@@ -355,8 +357,6 @@ class PlantInput(RESTAPIBase):
 class PlantUpdate(RESTAPIBase):
     plant_number: Optional[int] = None
     plant_info: Optional[JSONB] = None
-    cultivar_accession: Optional[str] = None
-    cultivar_population: Optional[str] = None
 
 class PlantSearch(RESTAPIBase):
     plot_id: Optional[ID] = None
@@ -396,9 +396,7 @@ class PlotUpdate(RESTAPIBase):
     plot_column_number: Optional[int] = None
     plot_info: Optional[JSONB] = None
     plot_geometry_info: Optional[JSONB] = None
-    experiment_name: Optional[str] = None
-    season_name: Optional[str] = None
-    site_name: Optional[str] = None
+
 
 class PlotSearch(RESTAPIBase):
     plot_number: Optional[int] = None

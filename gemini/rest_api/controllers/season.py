@@ -4,7 +4,14 @@ from litestar.params import Body
 from litestar.controller import Controller
 
 from gemini.api.season import Season
-from gemini.rest_api.models import SeasonInput, SeasonOutput, SeasonUpdate, RESTAPIBase, JSONB, str_to_dict
+from gemini.rest_api.models import ( 
+    SeasonInput, 
+    SeasonOutput, 
+    SeasonUpdate, 
+    RESTAPIBase, 
+    JSONB, 
+    str_to_dict
+)
 
 from typing import List, Annotated, Optional
 
@@ -16,7 +23,9 @@ class SeasonController(Controller):
         self,
         season_name: Optional[str] = None,
         season_info: Optional[JSONB] = None,
-        experiment_name: Optional[str] = None,
+        season_start_date: Optional[str] = None,
+        season_end_date: Optional[str] = None,
+        experiment_name: Optional[str] = 'Experiment A'
     ) -> List[SeasonOutput]:
         try:
             if season_info is not None:
@@ -25,16 +34,16 @@ class SeasonController(Controller):
             seasons = Season.search(
                 season_name=season_name,
                 season_info=season_info,
+                season_start_date=season_start_date,
+                season_end_date=season_end_date,
                 experiment_name=experiment_name,
             )
-
             if seasons is None:
                 error_html = RESTAPIBase(
                     error="No seasons found",
                     error_description="No seasons were found with the given search criteria"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            
             return seasons
         except Exception as e:
             error_message = RESTAPIBase(
@@ -44,7 +53,6 @@ class SeasonController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
-
     # Get Season by ID
     @get(path="/id/{season_id:str}")
     async def get_season_by_id(
@@ -67,7 +75,6 @@ class SeasonController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
-
     # Create Season
     @post()
     async def create_season(
@@ -96,7 +103,6 @@ class SeasonController(Controller):
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
-        
 
     # Update Season
     @patch(path="/id/{season_id:str}")
@@ -113,8 +119,18 @@ class SeasonController(Controller):
                     error_description="The season with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            parameters = data.model_dump()
-            season.update(**parameters)
+            season = season.update(
+                season_name=data.season_name,
+                season_info=data.season_info,
+                season_start_date=data.season_start_date,
+                season_end_date=data.season_end_date
+            )
+            if season is None:
+                error_html = RESTAPIBase(
+                    error="Season not updated",
+                    error_description="The season could not be updated"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
             return season
         except Exception as e:
             error_message = RESTAPIBase(
@@ -124,7 +140,6 @@ class SeasonController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
-
     # Delete Season
     @delete(path="/id/{season_id:str}")
     async def delete_season(
@@ -138,7 +153,13 @@ class SeasonController(Controller):
                     error_description="The season with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            season.delete()
+            is_deleted = season.delete()
+            if not is_deleted:
+                error_html = RESTAPIBase(
+                    error="Season not deleted",
+                    error_description="The season could not be deleted"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
         except Exception as e:
             error_message = RESTAPIBase(
                 error=str(e),
@@ -146,3 +167,4 @@ class SeasonController(Controller):
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
+    
