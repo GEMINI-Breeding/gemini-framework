@@ -75,6 +75,7 @@ class ExperimentInput(RESTAPIBase):
     experiment_end_date: Optional[datetime] = None
 
 class ExperimentUpdate(RESTAPIBase):
+    experiment_name: Optional[str] = None
     experiment_info: Optional[JSONB] = None
     experiment_start_date: Optional[datetime] = None
     experiment_end_date: Optional[datetime] = None

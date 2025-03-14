@@ -4,18 +4,29 @@ from litestar.params import Body
 from litestar.controller import Controller
 
 from gemini.api.experiment import Experiment
+from gemini.api.enums import GEMINIDataFormat, GEMINIDatasetType, GEMINISensorType, GEMINIDataType, GEMINITraitLevel
 from gemini.rest_api.models import ExperimentInput, ExperimentOutput, ExperimentUpdate, RESTAPIError, str_to_dict, JSONB
 from gemini.rest_api.models import (
     SeasonOutput,
+    SeasonInput,
     SiteOutput,
+    SiteInput,
     CultivarOutput,
+    CultivarInput,
     SensorPlatformOutput,
+    SensorPlatformInput,
     TraitOutput,
+    TraitInput,
     SensorOutput,
+    SensorInput,
     ScriptOutput,
+    ScriptInput,
     ProcedureOutput,
+    ProcedureInput,
     ModelOutput,
-    DatasetOutput
+    ModelInput,
+    DatasetOutput,
+    DatasetInput
 )
 from typing import List, Annotated, Optional
 
@@ -122,8 +133,12 @@ class ExperimentController(Controller):
                     error_description="No experiment was found with the given ID"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            parameters = data.model_dump()
-            experiment = experiment.update(**parameters)
+            experiment = experiment.update(
+                experiment_name=data.experiment_name,
+                experiment_info=data.experiment_info,
+                experiment_start_date=data.experiment_start_date,
+                experiment_end_date=data.experiment_end_date
+            )
             return experiment
         except Exception as e:
             error_message = RESTAPIError(
@@ -186,6 +201,41 @@ class ExperimentController(Controller):
             return Response(content=error_html, status_code=500)
         
 
+    # Create Season for Experiment
+    @post(path="/id/{experiment_id:str}/seasons")
+    async def create_experiment_season(
+        self, experiment_id: str, data: Annotated[SeasonInput, Body]
+    ) -> SeasonOutput:
+        try:
+            experiment = Experiment.get_by_id(id=experiment_id)
+            if experiment is None:
+                error_html = RESTAPIError(
+                    error="Experiment not found",
+                    error_description="No experiment was found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            season = experiment.create_season(
+                season_name=data.season_name,
+                season_info=data.season_info,
+                season_start_date=data.season_start_date,
+                season_end_date=data.season_end_date
+            )
+            if not season:
+                error_html = RESTAPIError(
+                    error="Season not created",
+                    error_description="The season could not be created"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return season
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while creating the experiment season"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+
     # Get Experiment Sites
     @get(path="/id/{experiment_id:str}/sites")
     async def get_experiment_sites(
@@ -216,6 +266,42 @@ class ExperimentController(Controller):
             return Response(content=error_html, status_code=500)
         
 
+    # Create Site for Experiment
+    @post(path="/id/{experiment_id:str}/sites")
+    async def create_experiment_site(
+        self, experiment_id: str, data: Annotated[SiteInput, Body]
+    ) -> SiteOutput:
+        try:
+            experiment = Experiment.get_by_id(id=experiment_id)
+            if experiment is None:
+                error_html = RESTAPIError(
+                    error="Experiment not found",
+                    error_description="No experiment was found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            site = experiment.create_site(
+                site_name=data.site_name,
+                site_info=data.site_info,
+                site_city=data.site_city,
+                site_state=data.site_state,
+                site_country=data.site_country
+            )
+            if not site:
+                error_html = RESTAPIError(
+                    error="Site not created",
+                    error_description="The site could not be created"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return site
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while creating the experiment site"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+
     # Get Experiment Cultivars
     @get(path="/id/{experiment_id:str}/cultivars")
     async def get_experiment_cultivars(
@@ -241,6 +327,40 @@ class ExperimentController(Controller):
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the experiment cultivars"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
+    
+    # Create Cultivar for Experiment
+    @post(path="/id/{experiment_id:str}/cultivars")
+    async def create_experiment_cultivar(
+        self, experiment_id: str, data: Annotated[CultivarInput, Body]
+    ) -> CultivarOutput:
+        try:
+            experiment = Experiment.get_by_id(id=experiment_id)
+            if experiment is None:
+                error_html = RESTAPIError(
+                    error="Experiment not found",
+                    error_description="No experiment was found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            cultivar = experiment.create_cultivar(
+                cultivar_population=data.cultivar_population,
+                cultivar_accession=data.cultivar_accession,
+                cultivar_info=data.cultivar_info
+            )
+            if not cultivar:
+                error_html = RESTAPIError(
+                    error="Cultivar not created",
+                    error_description="The cultivar could not be created"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return cultivar
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while creating the experiment cultivar"
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
@@ -276,6 +396,39 @@ class ExperimentController(Controller):
             return Response(content=error_html, status_code=500)
         
 
+    # Create Sensor Platform for Experiment
+    @post(path="/id/{experiment_id:str}/sensor_platforms")
+    async def create_experiment_sensor_platform(
+        self, experiment_id: str, data: Annotated[SensorPlatformInput, Body]
+    ) -> SensorPlatformOutput:
+        try:
+            experiment = Experiment.get_by_id(id=experiment_id)
+            if experiment is None:
+                error_html = RESTAPIError(
+                    error="Experiment not found",
+                    error_description="No experiment was found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            sensor_platform = experiment.create_platform(
+                platform_name=data.sensor_platform_name,
+                platform_info=data.sensor_platform_info,
+            )
+            if not sensor_platform:
+                error_html = RESTAPIError(
+                    error="Sensor Platform not created",
+                    error_description="The sensor platform could not be created"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return sensor_platform
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while creating the experiment sensor platform"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+
     # Get Experiment Traits
     @get(path="/id/{experiment_id:str}/traits")
     async def get_experiment_traits(
@@ -301,6 +454,41 @@ class ExperimentController(Controller):
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the experiment traits"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+    # Create Trait for Experiment
+    @post(path="/id/{experiment_id:str}/traits")
+    async def create_experiment_trait(
+        self, experiment_id: str, data: Annotated[TraitInput, Body]
+    ) -> TraitOutput:
+        try:
+            experiment = Experiment.get_by_id(id=experiment_id)
+            if experiment is None:
+                error_html = RESTAPIError(
+                    error="Experiment not found",
+                    error_description="No experiment was found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            trait = experiment.create_trait(
+                trait_name=data.trait_name,
+                trait_units=data.trait_units,
+                trait_level=GEMINITraitLevel(data.trait_level_id),
+                trait_info=data.trait_info,
+                trait_metrics=data.trait_metrics
+            )
+            if not trait:
+                error_html = RESTAPIError(
+                    error="Trait not created",
+                    error_description="The trait could not be created"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return trait
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while creating the experiment trait"
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
@@ -331,6 +519,42 @@ class ExperimentController(Controller):
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the experiment sensors"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+    # Create Sensor for Experiment
+    @post(path="/id/{experiment_id:str}/sensors")
+    async def create_experiment_sensor(
+        self, experiment_id: str, data: Annotated[SensorInput, Body]
+    ) -> SensorOutput:
+        try:
+            experiment = Experiment.get_by_id(id=experiment_id)
+            if experiment is None:
+                error_html = RESTAPIError(
+                    error="Experiment not found",
+                    error_description="No experiment was found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            sensor = experiment.create_sensor(
+                sensor_name=data.sensor_name,
+                sensor_data_type=GEMINIDataType(data.sensor_data_type_id),
+                sensor_data_format=GEMINIDataFormat(data.sensor_data_format_id),
+                sensor_type=GEMINISensorType(data.sensor_type_id),
+                sensor_info=data.sensor_info,
+                sensor_platform_name=data.sensor_platform_name
+            )
+            if not sensor:
+                error_html = RESTAPIError(
+                    error="Sensor not created",
+                    error_description="The sensor could not be created"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return sensor
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while creating the experiment sensor"
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
@@ -366,6 +590,41 @@ class ExperimentController(Controller):
             return Response(content=error_html, status_code=500)
         
 
+    # Create Experiment Script
+    @post(path="/id/{experiment_id:str}/scripts")
+    async def create_experiment_script(
+        self, experiment_id: str, data: Annotated[ScriptInput, Body]
+    ) -> ScriptOutput:
+        try:
+            experiment = Experiment.get_by_id(id=experiment_id)
+            if experiment is None:
+                error_html = RESTAPIError(
+                    error="Experiment not found",
+                    error_description="No experiment was found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            script = experiment.create_script(
+                script_name=data.script_name,
+                script_extension=data.script_extension,
+                script_url=data.script_url,
+                script_info=data.script_info
+            )
+            if not script:
+                error_html = RESTAPIError(
+                    error="Script not created",
+                    error_description="The script could not be created"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return script
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while creating the experiment script"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+
     # Get Experiment Procedures
     @get(path="/id/{experiment_id:str}/procedures")
     async def get_experiment_procedures(
@@ -391,6 +650,39 @@ class ExperimentController(Controller):
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the experiment procedures"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+
+    # Create Experiment Procedure
+    @post(path="/id/{experiment_id:str}/procedures")
+    async def create_experiment_procedure(
+        self, experiment_id: str, data: Annotated[ProcedureInput, Body]
+    ) -> ProcedureOutput:
+        try:
+            experiment = Experiment.get_by_id(id=experiment_id)
+            if experiment is None:
+                error_html = RESTAPIError(
+                    error="Experiment not found",
+                    error_description="No experiment was found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            procedure = experiment.create_procedure(
+                procedure_name=data.procedure_name,
+                procedure_info=data.procedure_info,
+            )
+            if not procedure:
+                error_html = RESTAPIError(
+                    error="Procedure not created",
+                    error_description="The procedure could not be created"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return procedure
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while creating the experiment procedure"
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
@@ -426,6 +718,40 @@ class ExperimentController(Controller):
             return Response(content=error_html, status_code=500)
         
 
+    # Create Experiment Model
+    @post(path="/id/{experiment_id:str}/models")
+    async def create_experiment_model(
+        self, experiment_id: str, data: Annotated[ModelInput, Body]
+    ) -> ModelOutput:
+        try:
+            experiment = Experiment.get_by_id(id=experiment_id)
+            if experiment is None:
+                error_html = RESTAPIError(
+                    error="Experiment not found",
+                    error_description="No experiment was found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            model = experiment.create_model(
+                model_name=data.model_name,
+                model_info=data.model_info,
+                model_url=data.model_url
+            )
+            if not model:
+                error_html = RESTAPIError(
+                    error="Model not created",
+                    error_description="The model could not be created"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return model
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while creating the experiment model"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+
     # Get Experiment Datasets
     @get(path="/id/{experiment_id:str}/datasets")
     async def get_experiment_datasets(
@@ -454,4 +780,43 @@ class ExperimentController(Controller):
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
+        
+
+    # Create Dataset for Experiment
+    @post(path="/id/{experiment_id:str}/datasets")
+    async def create_experiment_dataset(
+        self, experiment_id: str, data: Annotated[DatasetInput, Body]
+    ) -> DatasetOutput:
+        try:
+            experiment = Experiment.get_by_id(id=experiment_id)
+            if experiment is None:
+                error_html = RESTAPIError(
+                    error="Experiment not found",
+                    error_description="No experiment was found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            dataset = experiment.create_dataset(
+                dataset_name=data.dataset_name,
+                dataset_info=data.dataset_info,
+                dataset_type=GEMINIDatasetType(data.dataset_type_id),
+                collection_date=data.collection_date
+            )
+            if not dataset:
+                error_html = RESTAPIError(
+                    error="Dataset not created",
+                    error_description="The dataset could not be created"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return dataset
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while creating the experiment dataset"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+            
+        
+
+    
         
