@@ -33,8 +33,8 @@ class SensorType(APIBase):
     def get(cls, sensor_type_name: str) -> "SensorType":
         try:
             instance = SensorTypeModel.get_by_parameters(sensor_type_name=sensor_type_name)
-            instance = cls.model_validate(instance)
-            return instance if instance else None
+            instance = cls.model_validate(instance) if instance else None
+            return instance
         except Exception as e:
             raise e
         

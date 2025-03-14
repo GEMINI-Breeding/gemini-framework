@@ -54,8 +54,8 @@ class Plant(APIBase):
                 plot_id=plot_id,
                 plant_number=plant_number,
             )
-            plant = cls.model_validate(db_instance)
-            return plant if plant else None
+            plant = cls.model_validate(db_instance) if db_instance else None
+            return plant
         except Exception as e:
             raise e
         
@@ -63,8 +63,8 @@ class Plant(APIBase):
     def get_by_id(cls, id: UUID | int | str) -> "Plant":
         try:
             db_instance = PlantModel.get(id)
-            plant = cls.model_validate(db_instance)
-            return plant if plant else None
+            plant = cls.model_validate(db_instance) if db_instance else None
+            return plant
         except Exception as e:
             raise e
         

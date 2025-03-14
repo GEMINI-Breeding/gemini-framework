@@ -139,6 +139,8 @@ class SensorRecord(APIBase, FileHandlerMixin):
     def get_by_id(cls, id: UUID | int | str) -> "SensorRecord":
         try:
             record = SensorRecordModel.get(id)
+            if not record:
+                return None
             record = cls.model_construct(
                 _fields_set=cls.model_fields_set,
                 **record.to_dict()

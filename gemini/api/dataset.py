@@ -59,8 +59,8 @@ class Dataset(APIBase):
                 dataset_name=dataset_name,
                 experiment_name=experiment_name
             )
-            dataset = cls.model_validate(db_instance)
-            return dataset if dataset else None
+            dataset = cls.model_validate(db_instance) if db_instance else None
+            return dataset
         except Exception as e:
             raise e
         
@@ -69,8 +69,8 @@ class Dataset(APIBase):
     def get_by_id(cls, id: UUID | int | str) -> "Dataset":
         try:
             db_instance = DatasetModel.get(id)
-            dataset = cls.model_validate(db_instance)
-            return dataset if dataset else None
+            dataset = cls.model_validate(db_instance) if db_instance else None
+            return dataset
         except Exception as e:
             raise e
         
@@ -208,7 +208,6 @@ class Dataset(APIBase):
             record_info = {k: v for k, v in record_info.items() if v is not None}
 
             records = DatasetRecord.search(
-                dataset_id=self.id,
                 collection_date=collection_date,
                 dataset_name=self.dataset_name,
                 experiment_name=experiment_name,

@@ -45,8 +45,8 @@ class ProcedureRun(APIBase):
                 procedure_run_info=procedure_run_info,
                 procedure_id=db_procedure.id
             )
-            procedure_run = cls.model_validate(db_instance)
-            return procedure_run if procedure_run else None
+            procedure_run = cls.model_validate(db_instance) if db_instance else None
+            return procedure_run
         except Exception as e:
             raise e
         
@@ -54,8 +54,8 @@ class ProcedureRun(APIBase):
     def get_by_id(cls, id: UUID | int | str) -> "ProcedureRun":
         try:
             db_instance = ProcedureRunModel.get(id)
-            procedure_run = cls.model_validate(db_instance)
-            return procedure_run if procedure_run else None
+            procedure_run = cls.model_validate(db_instance) if db_instance else None
+            return procedure_run
         except Exception as e:
             raise e
         

@@ -36,8 +36,8 @@ class DataType(APIBase):
     def get(cls, data_type_name: str) -> "DataType":
         try:
             instance = DataTypeModel.get_by_parameters(data_type_name=data_type_name)
-            instance = cls.model_validate(instance)
-            return instance if instance else None
+            instance = cls.model_validate(instance) if instance else None
+            return instance
         except Exception as e:
             raise e
         
@@ -45,8 +45,8 @@ class DataType(APIBase):
     def get_by_id(cls, id: UUID | int | str) -> "DataType":
         try:
             instance = DataTypeModel.get(id)
-            instance = cls.model_validate(instance)
-            return instance if instance else None
+            instance = cls.model_validate(instance) if instance else None
+            return instance
         except Exception as e:
             raise e
         

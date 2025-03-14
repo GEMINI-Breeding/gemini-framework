@@ -126,8 +126,8 @@ class Plot(APIBase):
                 season_name=season_name,
                 site_name=site_name
             )
-            plot = cls.model_validate(plot)
-            return plot if plot else None
+            plot = cls.model_validate(plot) if plot else None
+            return plot
         except Exception as e:
             raise e
         
@@ -138,8 +138,8 @@ class Plot(APIBase):
             plot = PlotViewModel.get_by_parameters(plot_id=id)
             if not plot:
                 raise ValueError(f"Plot with ID {id} does not exist.")
-            plot = cls.model_validate(plot)
-            return plot if plot else None
+            plot = cls.model_validate(plot) if plot else None
+            return plot
         except Exception as e:
             raise e
         
@@ -321,7 +321,7 @@ class Plot(APIBase):
                 site_name=site_name
             )
             if not site:
-                raise ValueError(f"Site with name {site_name} does not exist.")
+                raise ValueError(f"Site with name {site_name} does not exist for experiment {self.experiment_name}.")
             plot = PlotModel.get(self.id)
             PlotModel.update(plot, site_id=site.site_id)
             self.refresh()

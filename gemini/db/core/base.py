@@ -281,6 +281,29 @@ class BaseModel(DeclarativeBase, SerializeMixin):
                     yield instance
 
 
+    @classmethod
+    def rawstream(cls, **kwargs):
+        query = select(cls)
+        kwargs = cls.validate_fields(**kwargs)
+        for key, value in kwargs.items():
+            attribute = getattr(cls, key)
+            if isinstance(attribute.type, JSON):
+                query = query.where(attribute.contains(value))
+            elif isinstance(attribute.type, TIMESTAMP):
+                query = query.where(attribute >= value)
+            elif isinstance(attribute.type, DATE):
+                query = query.where(attribute == value)
+            else:
+                query = query.where(attribute == value)
+        query = query.execution_options(yield_per=1000)
+        with db_engine.get_engine().connect() as conn:
+            result = conn.execute(query).scalars().partitions()
+            for partition in result:
+                for instance in partition:
+                    yield instance
+
+
+
 class ViewBaseModel(BaseModel):
     __abstract__ = True
 

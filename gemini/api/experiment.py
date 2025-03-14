@@ -70,8 +70,8 @@ class Experiment(APIBase):
             db_instance = ExperimentModel.get_by_parameters(
                 experiment_name=experiment_name,
             )
-            experiment = cls.model_validate(db_instance)
-            return experiment if experiment else None
+            experiment = cls.model_validate(db_instance) if db_instance else None
+            return experiment
         except Exception as e:
             raise e
         
@@ -79,8 +79,8 @@ class Experiment(APIBase):
     def get_by_id(cls, id: UUID | int | str) -> "Experiment":
         try:
             db_instance = ExperimentModel.get(id)
-            experiment = cls.model_validate(db_instance)
-            return experiment if experiment else None
+            experiment = cls.model_validate(db_instance) if db_instance else None
+            return experiment
         except Exception as e:
             raise e
         

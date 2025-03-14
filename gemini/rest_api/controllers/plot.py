@@ -2,6 +2,8 @@ from litestar import Response
 from litestar.handlers import get, post, patch, delete
 from litestar.params import Body
 from litestar.controller import Controller
+from litestar.plugins.pydantic import PydanticDTO
+from litestar.dto import DTOConfig
 
 from gemini.api.plot import Plot
 from gemini.rest_api.models import PlotInput, PlotOutput, PlotUpdate, RESTAPIError, JSONB, str_to_dict
@@ -16,6 +18,19 @@ from gemini.rest_api.models import (
 )
 
 from typing import List, Annotated, Optional
+
+ExperimentInputDTO = PydanticDTO[Annotated[ExperimentInput, DTOConfig(
+    exclude={"experiment_info", "experiment_start_date", "experiment_end_date"}
+)]]
+
+SeasonInputDTO = PydanticDTO[Annotated[SeasonInput, DTOConfig(
+    exclude={"season_info", "season_start_date", "season_end_date"}
+)]]
+
+SiteInputDTO = PydanticDTO[Annotated[SiteInput, DTOConfig(
+    exclude={"site_info", "site_city", "site_state", "site_country", "experiment_name"}
+)]]
+
 
 class PlotController(Controller):
 
@@ -126,8 +141,7 @@ class PlotController(Controller):
                     error_description="The plot with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            plot = Plot.update(
-                id=plot_id,
+            plot = plot.update(
                 plot_number=data.plot_number,
                 plot_row_number=data.plot_row_number,
                 plot_column_number=data.plot_column_number,
@@ -311,7 +325,7 @@ class PlotController(Controller):
     
 
     # Update Plot Experiment
-    @patch(path="/id/{plot_id:str}/experiment")
+    @patch(path="/id/{plot_id:str}/experiment", dto=ExperimentInputDTO)
     async def update_plot_experiment(
         self,
         plot_id: str,
@@ -343,8 +357,43 @@ class PlotController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
+
+    # Update Plot Season
+    @patch(path="/id/{plot_id:str}/season", dto=SeasonInputDTO)
+    async def update_plot_season(
+        self,
+        plot_id: str,
+        data: Annotated[SeasonInput, Body]
+    ) -> PlotOutput:
+        try:
+            plot = Plot.get_by_id(id=plot_id)
+            if plot is None:
+                error_html = RESTAPIError(
+                    error="Plot not found",
+                    error_description="The plot with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            plot = plot.set_season(
+                experiment_name=data.experiment_name,
+                season_name=data.season_name,
+            )
+            if plot is None:
+                error_html = RESTAPIError(
+                    error="Plot not updated",
+                    error_description="The plot was not updated"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return plot
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while updating the plot season"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
     # Update Plot Site
-    @patch(path="/id/{plot_id:str}/site")
+    @patch(path="/id/{plot_id:str}/site", dto=SiteInputDTO)
     async def update_plot_site(
         self,
         plot_id: str,

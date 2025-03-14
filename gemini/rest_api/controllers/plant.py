@@ -79,18 +79,18 @@ class PlantController(Controller):
     @post()
     async def create_plant(
         self,
-        plant: Annotated[PlantInput, Body(embed=True)]
+        data: Annotated[PlantInput, Body]
     ) -> PlantOutput:
         try:
-            if plant.plant_info is not None:
-                plant.plant_info = str_to_dict(plant.plant_info)
+            if data.plant_info is not None:
+                data.plant_info = str_to_dict(data.plant_info)
 
             plant = Plant.create(
-                plot_id=plant.plot_id,
-                plant_number=plant.plant_number,
-                plant_info=plant.plant_info,
-                cultivar_accession=plant.cultivar_accession,
-                cultivar_population=plant.cultivar_population
+                plot_id=data.plot_id,
+                plant_number=data.plant_number,
+                plant_info=data.plant_info,
+                cultivar_accession=data.cultivar_accession,
+                cultivar_population=data.cultivar_population
             )
             if plant is None:
                 error_html = RESTAPIError(

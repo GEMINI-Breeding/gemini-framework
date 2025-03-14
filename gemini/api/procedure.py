@@ -54,8 +54,8 @@ class Procedure(APIBase):
                 procedure_name=procedure_name,
                 experiment_name=experiment_name
             )
-            procedure = cls.model_validate(db_instance)
-            return procedure if procedure else None
+            procedure = cls.model_validate(db_instance) if db_instance else None
+            return procedure
         except Exception as e:
             raise e
         
@@ -63,8 +63,8 @@ class Procedure(APIBase):
     def get_by_id(cls, id: UUID | int | str) -> "Procedure":
         try:
             db_instance = ProcedureModel.get(id)
-            procedure = cls.model_validate(db_instance)
-            return procedure if procedure else None
+            procedure = cls.model_validate(db_instance) if db_instance else None
+            return procedure
         except Exception as e:
             raise e
         
@@ -240,7 +240,7 @@ class Procedure(APIBase):
             record_info = {k: v for k, v in record_info.items() if v is not None}
 
             records = ProcedureRecord.search(
-                procedure_id=self.id,
+                procedure_name=self.procedure_name,
                 collection_date=collection_date,
                 experiment_name=experiment_name,
                 season_name=season_name,

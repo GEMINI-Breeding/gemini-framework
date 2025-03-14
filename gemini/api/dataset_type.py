@@ -34,8 +34,8 @@ class DatasetType(APIBase):
     def get(cls, dataset_type_name: str) -> "DatasetType":
         try:
             instance = DatasetTypeModel.get_by_parameters(dataset_type_name=dataset_type_name)
-            instance = cls.model_validate(instance)
-            return instance if instance else None
+            instance = cls.model_validate(instance) if instance else None
+            return instance
         except Exception as e:
             raise e
         
@@ -44,8 +44,8 @@ class DatasetType(APIBase):
     def get_by_id(cls, id: UUID | int | str) -> "DatasetType":
         try:
             instance = DatasetTypeModel.get(id)
-            instance = cls.model_validate(instance)
-            return instance if instance else None
+            instance = cls.model_validate(instance) if instance else None
+            return instance
         except Exception as e:
             raise e
         

@@ -334,6 +334,7 @@ SELECT
     t.trait_name AS trait_name,
     t.trait_units AS trait_units,
     t.trait_metrics AS trait_metrics,
+    t.trait_level_id AS trait_level_id,
     t.trait_info AS trait_info
 FROM
     gemini.experiments e

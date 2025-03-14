@@ -44,8 +44,8 @@ class ScriptRun(APIBase):
                 script_run_info=script_run_info,
                 script_id=db_script.id
             )
-            script_run = cls.model_validate(db_instance)
-            return script_run if script_run else None
+            script_run = cls.model_validate(db_instance) if db_instance else None
+            return script_run
         except Exception as e:
             raise e
         
@@ -53,8 +53,8 @@ class ScriptRun(APIBase):
     def get_by_id(cls, id: UUID | int | str) -> "ScriptRun":
         try:
             db_instance = ScriptRunModel.get(id)
-            script_run = cls.model_validate(db_instance)
-            return script_run if script_run else None
+            script_run = cls.model_validate(db_instance) if db_instance else None
+            return script_run
         except Exception as e:
             raise e
         

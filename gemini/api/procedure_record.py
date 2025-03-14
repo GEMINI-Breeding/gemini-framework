@@ -111,6 +111,8 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
     def get_by_id(cls, id: UUID | int | str) -> 'ProcedureRecord':
         try:
             record = ProcedureRecordsIMMVModel.get(id)
+            if not record:
+                return None
             record = cls.model_construct(
                 _fields_set=cls.model_fields_set,
                 **record.to_dict()

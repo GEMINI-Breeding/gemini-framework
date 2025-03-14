@@ -32,7 +32,7 @@ class TraitController(Controller):
             traits = Trait.search(
                 trait_name=trait_name,
                 trait_units=trait_units,
-                trait_level_id=trait_level_id,
+                trait_level=GEMINITraitLevel(trait_level_id) if trait_level_id else None,
                 trait_info=trait_info,
                 trait_metrics=trait_metrics,
                 experiment_name=experiment_name
@@ -122,7 +122,7 @@ class TraitController(Controller):
             trait = trait.update(
                 trait_name=data.trait_name,
                 trait_units=data.trait_units,
-                trait_level=GEMINITraitLevel(data.trait_level_id),
+                trait_level=GEMINITraitLevel(data.trait_level_id) if data.trait_level_id else None,
                 trait_info=data.trait_info,
                 trait_metrics=data.trait_metrics,
             )

@@ -56,8 +56,8 @@ class Model(APIBase):
                 model_name=model_name,
                 experiment_name=experiment_name
             )
-            model = cls.model_validate(db_instance)
-            return model if model else None
+            model = cls.model_validate(db_instance) if db_instance else None
+            return model
         except Exception as e:
             raise e
         
@@ -65,8 +65,8 @@ class Model(APIBase):
     def get_by_id(cls, id: UUID | int | str) -> "Model":
         try:
             db_instance = ModelModel.get(id)
-            model = cls.model_validate(db_instance)
-            return model if model else None
+            model = cls.model_validate(db_instance) if db_instance else None
+            return model
         except Exception as e:
             raise e
         
@@ -249,7 +249,7 @@ class Model(APIBase):
             record_info = {k: v for k, v in record_info.items() if v is not None}
 
             records = ModelRecord.search(
-                model_id=self.id,
+                model_name=self.model_name,
                 collection_date=collection_date,
                 experiment_name=experiment_name,
                 season_name=season_name,

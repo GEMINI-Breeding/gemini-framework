@@ -45,8 +45,8 @@ class ModelRun(APIBase):
                 model_run_info=model_run_info,
                 model_id=db_model.id
             )
-            model_run = cls.model_validate(db_instance)
-            return model_run if model_run else None
+            model_run = cls.model_validate(db_instance) if db_instance else None
+            return model_run
         except Exception as e:
             raise e
         
@@ -54,8 +54,8 @@ class ModelRun(APIBase):
     def get_by_id(cls, id: UUID | int | str) -> "ModelRun":
         try:
             db_instance = ModelRunModel.get(id)
-            model_run = cls.model_validate(db_instance)
-            return model_run if model_run else None
+            model_run = cls.model_validate(db_instance) if db_instance else None
+            return model_run
         except Exception as e:
             raise e
         

@@ -49,8 +49,8 @@ class SensorPlatform(APIBase):
                 sensor_platform_name=sensor_platform_name,
                 experiment_name=experiment_name
             )
-            instance = cls.model_validate(instance)
-            return instance if instance else None
+            instance = cls.model_validate(instance) if instance else None
+            return instance
         except Exception as e:
             raise e
         
@@ -59,8 +59,8 @@ class SensorPlatform(APIBase):
     def get_by_id(cls, id: UUID | int | str) -> "SensorPlatform":
         try:
             instance = SensorPlatformModel.get(id)
-            instance = cls.model_validate(instance)
-            return instance if instance else None
+            instance = cls.model_validate(instance) if instance else None
+            return instance
         except Exception as e:
             raise e
         

@@ -39,6 +39,7 @@ class ExperimentTraitsViewModel(MaterializedViewBaseModel):
     trait_name : Mapped[str] = mapped_column(String)
     trait_units : Mapped[str] = mapped_column(String)
     trait_metrics : Mapped[str] = mapped_column(String)
+    trait_level_id : Mapped[int] = mapped_column(Integer)
     trait_info : Mapped[dict] = mapped_column(JSONB)
 
 

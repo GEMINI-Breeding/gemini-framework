@@ -379,7 +379,7 @@ class ExperimentController(Controller):
                     error_description="No experiment was found with the given ID"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            sensor_platforms = experiment.get_sensor_platforms()
+            sensor_platforms = experiment.get_platforms()
             if sensor_platforms is None:
                 error_html = RESTAPIError(
                     error="No sensor platforms found",

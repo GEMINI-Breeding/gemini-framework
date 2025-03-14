@@ -55,8 +55,8 @@ class Season(APIBase):
                 season_name=season_name,
                 experiment_id=experiment.id if experiment else None,
             )
-            season = cls.model_validate(db_instance)
-            return season if season else None
+            season = cls.model_validate(db_instance) if db_instance else None
+            return season
         except Exception as e:
             raise e
         
@@ -65,8 +65,8 @@ class Season(APIBase):
     def get_by_id(cls, id: UUID | int | str) -> "Season":
         try:
             db_instance = SeasonModel.get(id)
-            season = cls.model_validate(db_instance)
-            return season if season else None
+            season = cls.model_validate(db_instance) if db_instance else None
+            return season
         except Exception as e:
             raise e
         

@@ -60,8 +60,8 @@ class Script(APIBase):
                 script_name=script_name,
                 experiment_name=experiment_name
             )
-            script = cls.model_validate(db_instance)
-            return script if script else None
+            script = cls.model_validate(db_instance) if db_instance else None
+            return script
         except Exception as e:
             raise e
         
@@ -70,8 +70,8 @@ class Script(APIBase):
     def get_by_id(cls, id: UUID | int | str) -> "Script":
         try:
             db_instance = ScriptModel.get(id)
-            script = cls.model_validate(db_instance)
-            return script if script else None
+            script = cls.model_validate(db_instance) if db_instance else None
+            return script
         except Exception as e:
             raise e
         
@@ -257,7 +257,7 @@ class Script(APIBase):
             record_info = {k: v for k, v in record_info.items() if v is not None}
 
             records = ScriptRecord.search(
-                script_id=self.id,
+                script_name=self.script_name,
                 collection_date=collection_date,
                 experiment_name=experiment_name,
                 season_name=season_name,

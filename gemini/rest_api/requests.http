@@ -1,0 +1,698 @@
+@baseUrl = http://localhost:8000
+@apiUrl = http://localhost:8000/api
+
+// ---- Check the API status ----
+GET {{baseUrl}}
+
+// ----------------------
+// ---- Cultivar API ----
+// ----------------------
+
+### Get all cultivars
+# @name list_cultivars
+GET {{apiUrl}}/cultivars
+
+### Select a cultivar
+@cultivarId = {{list_cultivars.response.body.$.0.id}}
+
+### Create a new cultivar
+# @name create_cultivar
+POST {{apiUrl}}/cultivars
+Content-Type: application/json
+
+{
+    "cultivar_accession": "Test Accession Z",
+    "cultivar_population": "Test Population Z",
+    "cultivar_info": {
+        "cultivar_name": "Test Cultivar Z",
+        "cultivar_description": "Test Description Z",
+        "cultivar_origin": "Test Origin Z",
+        "cultivar_usage": "Test Usage Z",
+        "cultivar_notes": "Test Notes Z"
+    },
+    "experiment_name": "Experiment B"
+}
+
+###
+@createdCultivarId = {{create_cultivar.response.body.id}}
+
+### Get a cultivar by ID
+# @name get_cultivar_by_id
+GET {{apiUrl}}/cultivars/id/{{createdCultivarId}}
+
+### Update a cultivar
+# @name update_cultivar
+PATCH  {{apiUrl}}/cultivars/id/{{createdCultivarId}}
+Content-Type: application/json
+
+{
+    "cultivar_accession": "Test Accession ZA",
+    "cultivar_population": "Test Population ZA",
+    "cultivar_info": {
+        "cultivar_name": "Test Cultivar ZA",
+        "cultivar_description": "Test Description ZA",
+        "cultivar_origin": "Test Origin ZA",
+        "cultivar_usage": "Test Usage ZA",
+        "cultivar_notes": "Test Notes ZA"
+    }
+}
+
+### Delete a cultivar
+# @name delete_cultivar
+DELETE {{apiUrl}}/cultivars/id/{{createdCultivarId}}
+
+### Get Population Accessions
+# @name get_population_accessions
+@population = Population A
+
+GET {{apiUrl}}/cultivars/accessions/{{population}}
+
+// -------------------------
+// ---- Data Format API ----
+// -------------------------
+
+### List all data formats
+# @name list_data_formats
+@data_format_name = JSON
+GET {{apiUrl}}/data_formats?data_format_name={{data_format_name}}
+
+### Create a new data format
+# @name create_data_format
+POST {{apiUrl}}/data_formats
+Content-Type: application/json
+
+{
+    "data_format_name": "Test Data Format",
+    "data_format_mime_type": "application/test",
+    "data_format_info": {
+        "data_format_description": "Test Description",
+        "data_format_extension": "Test Extension",
+        "data_format_mime_type": "Test MIME Type",
+        "data_format_notes": "Test Notes"
+    }
+}
+
+###
+@createdDataFormatId = {{create_data_format.response.body.id}}
+
+### Get a data format by ID
+# @name get_data_format_by_id
+GET {{apiUrl}}/data_formats/id/{{createdDataFormatId}}
+
+### Update a data format
+# @name update_data_format
+PATCH  {{apiUrl}}/data_formats/id/{{createdDataFormatId}}
+Content-Type: application/json
+
+{
+    "data_format_name": "Test Data Format A",
+    "data_format_mime_type": "application/jsonpu+a",
+    "data_format_info": {
+        "data_format_description": "Test Description A",
+        "data_format_extension": "Test Extension A",
+        "data_format_mime_type": "Test MIME Type A",
+        "data_format_notes": "Test Notes A"
+    }
+}
+
+### Delete a data format
+# @name delete_data_format
+DELETE {{apiUrl}}/data_formats/id/{{createdDataFormatId}}
+
+
+// -----------------------
+// ---- Data Type API ----
+// -----------------------
+
+### List all data types
+# @name list_data_types
+@data_type_name = Image
+GET {{apiUrl}}/data_types?data_type_name={{data_type_name}}
+
+### Create a new data type
+# @name create_data_type
+POST {{apiUrl}}/data_types
+Content-Type: application/json
+
+{
+    "data_type_name": "Test Data Type",
+    "data_type_info": {
+        "data_type_description": "Test Description",
+        "data_type_notes": "Test Notes"
+    }
+}
+
+###
+@createdDataTypeId = {{create_data_type.response.body.id}}
+
+### Get a data type by ID
+# @name get_data_type_by_id
+GET {{apiUrl}}/data_types/id/{{createdDataTypeId}}
+
+### Update a data type
+# @name update_data_type
+PATCH  {{apiUrl}}/data_types/id/{{createdDataTypeId}}
+Content-Type: application/json
+
+{
+    "data_type_name": "Test Data Type A",
+    "data_type_info": {
+        "data_type_description": "Test Description A",
+        "data_type_notes": "Test Notes A"
+    }
+}
+
+### Delete a data type
+# @name delete_data_type
+DELETE {{apiUrl}}/data_types/id/{{createdDataTypeId}}
+
+### Get Data Type Formats
+# @name get_data_type_formats
+@data_type_id = 1
+GET {{apiUrl}}/data_types/id/{{data_type_id}}/formats
+
+
+// --------------------------
+// ---- Dataset Type API ----
+// --------------------------
+
+### List all dataset types
+# @name list_dataset_types
+@dataset_type_name = Sensor
+GET {{apiUrl}}/dataset_types?dataset_type_name={{dataset_type_name}}
+
+### Create a new dataset type
+# @name create_dataset_type
+POST {{apiUrl}}/dataset_types
+Content-Type: application/json
+
+{
+    "dataset_type_name": "Test Dataset Type",
+    "dataset_type_info": {
+        "dataset_type_description": "Test Description",
+        "dataset_type_notes": "Test Notes"
+    }
+}
+
+###
+@createdDatasetTypeId = {{create_dataset_type.response.body.id}}
+
+### Get a dataset type by ID
+# @name get_dataset_type_by_id
+GET {{apiUrl}}/dataset_types/id/{{createdDatasetTypeId}}
+
+### Update a dataset type
+# @name update_dataset_type
+PATCH  {{apiUrl}}/dataset_types/id/{{createdDatasetTypeId}}
+Content-Type: application/json
+
+{
+    "dataset_type_name": "Test Dataset Type A",
+    "dataset_type_info": {
+        "dataset_type_description": "Test Description A",
+        "dataset_type_notes": "Test Notes A"
+    }
+}
+
+### Delete a dataset type
+# @name delete_dataset_type
+DELETE {{apiUrl}}/dataset_types/id/{{createdDatasetTypeId}}
+
+// ----------------------
+// ---- Dataset API -----
+// ----------------------
+
+### List all datasets
+# @name list_datasets
+GET {{apiUrl}}/datasets
+
+### Create a new dataset
+# @name create_dataset
+POST {{apiUrl}}/datasets
+Content-Type: application/json
+
+{
+    "dataset_name": "Test Dataset",
+    "dataset_type_id": 1,
+    "dataset_info": {
+        "dataset_description": "Test Description",
+        "dataset_notes": "Test Notes"
+    },
+    "collection_date": "2021-01-01",
+    "experiment_name": "Experiment B"
+}
+
+###
+@createdDatasetId = {{create_dataset.response.body.id}}
+
+### Get a dataset by ID
+# @name get_dataset_by_id
+GET {{apiUrl}}/datasets/id/{{createdDatasetId}}
+
+### Update a dataset
+# @name update_dataset
+PATCH  {{apiUrl}}/datasets/id/{{createdDatasetId}}
+Content-Type: application/json
+
+{
+    "dataset_name": "Test Dataset A",
+    "dataset_type_id": 1,
+    "dataset_info": {
+        "dataset_description": "Test Description A",
+        "dataset_notes": "Test Notes A"
+    },
+    "collection_date": "2021-01-02"
+}
+
+### Delete a dataset
+# @name delete_dataset
+DELETE {{apiUrl}}/datasets/id/{{createdDatasetId}}
+
+
+// ------------------------
+// ---- Experiment API ----
+// ------------------------
+
+### List all experiments
+# @name list_experiments
+@experiment_name = Experiment A
+GET {{apiUrl}}/experiments?experiment_name={{experiment_name}}
+
+### Experiment A ID
+@experimentId = {{list_experiments.response.body.$.0.id}}
+
+### Create a new experiment
+# @name create_experiment
+POST {{apiUrl}}/experiments
+Content-Type: application/json
+
+{
+    "experiment_name": "Test Experiment Z",
+    "experiment_info": {
+        "experiment_description": "Test Description",
+        "experiment_notes": "Test Notes"
+    },
+    "experiment_start_date": "2021-01-01",
+    "experiment_end_date": "2021-12-31"
+}
+
+###
+@createdExperimentId = {{create_experiment.response.body.id}}
+
+### Get an experiment by ID
+# @name get_experiment_by_id
+GET {{apiUrl}}/experiments/id/{{createdExperimentId}}
+
+### Update an experiment
+# @name update_experiment
+PATCH  {{apiUrl}}/experiments/id/{{createdExperimentId}}
+Content-Type: application/json
+
+{
+    "experiment_name": "Test Experiment ZA",
+    "experiment_info": {
+        "experiment_description": "Test Description A",
+        "experiment_notes": "Test Notes A"
+    },
+    "experiment_start_date": "2021-01-02",
+    "experiment_end_date": "2021-12-30"
+}
+
+### Delete an experiment
+# @name delete_experiment
+DELETE {{apiUrl}}/experiments/id/{{createdExperimentId}}
+
+### Get Experiment Seasons
+# @name get_experiment_seasons
+GET {{apiUrl}}/experiments/id/{{experimentId}}/seasons
+
+### Create Season for Experiment
+# @name create_experiment_season
+POST {{apiUrl}}/experiments/id/{{experimentId}}/seasons
+Content-Type: application/json
+
+{
+    "season_name": "Test Season X",
+    "season_info": {
+        "season_description": "Test Description",
+        "season_notes": "Test Notes"
+    },
+    "season_start_date": "2021-01-01",
+    "season_end_date": "2021-12-31"
+}
+
+
+### Get Experiment Sites
+# @name get_experiment_sites
+GET {{apiUrl}}/experiments/id/{{experimentId}}/sites
+
+
+### Get Experiment Cultivars
+# @name get_experiment_cultivars
+GET {{apiUrl}}/experiments/id/{{experimentId}}/cultivars
+
+### Get Experiment Sensor Platforms
+# @name get_experiment_sensor_platforms
+GET {{apiUrl}}/experiments/id/{{experimentId}}/sensor_platforms
+
+### Get Experiment Sensors
+# @name get_experiment_sensors
+GET {{apiUrl}}/experiments/id/{{experimentId}}/sensors
+
+### Get Experiment Traits
+# @name get_experiment_traits
+GET {{apiUrl}}/experiments/id/{{experimentId}}/traits
+
+### Get Experiment Scripts
+# @name get_experiment_scripts
+GET {{apiUrl}}/experiments/id/{{experimentId}}/scripts
+
+### Get Experiment Procedures
+# @name get_experiment_procedures
+GET {{apiUrl}}/experiments/id/{{experimentId}}/procedures
+
+### Get Experiment Models
+# @name get_experiment_models
+GET {{apiUrl}}/experiments/id/{{experimentId}}/models
+
+### Get Experiment Datasets
+# @name get_experiment_datasets
+GET {{apiUrl}}/experiments/id/{{experimentId}}/datasets
+
+// ----------------------
+// ---- Season API ------
+// ----------------------
+
+### List all seasons
+# @name list_seasons
+@experiment_name = Experiment A
+GET {{apiUrl}}/seasons?experiment_name={{experiment_name}}
+
+### Select a season
+@seasonId = {{list_seasons.response.body.$.0.id}}
+
+### Create a new season
+# @name create_season
+POST {{apiUrl}}/seasons
+Content-Type: application/json
+
+{
+    "season_name": "Test Season Z",
+    "season_info": {
+        "season_description": "Test Description",
+        "season_notes": "Test Notes"
+    },
+    "season_start_date": "2021-01-01",
+    "season_end_date": "2021-12-31",
+    "experiment_name": "Experiment A"
+}
+
+###
+@createdSeasonId = {{create_season.response.body.id}}
+
+### Get a season by ID
+# @name get_season_by_id
+GET {{apiUrl}}/seasons/id/{{createdSeasonId}}
+
+### Update a season
+# @name update_season
+PATCH  {{apiUrl}}/seasons/id/{{createdSeasonId}}
+Content-Type: application/json
+
+{
+    "season_name": "Test Season ZA",
+    "season_info": {
+        "season_description": "Test Description A",
+        "season_notes": "Test Notes A"
+    },
+    "season_start_date": "2021-01-02",
+    "season_end_date": "2021-12-30"
+}
+
+### Delete a season
+# @name delete_season
+DELETE {{apiUrl}}/seasons/id/{{createdSeasonId}}
+
+// ----------------------
+// ---- Site API --------
+// ----------------------
+
+### List all sites
+# @name list_sites
+@experiment_name = Experiment A
+GET {{apiUrl}}/sites?experiment_name={{experiment_name}}
+
+### Select a site
+@siteId = {{list_sites.response.body.$.0.id}}
+
+### Create a new site
+# @name create_site
+POST {{apiUrl}}/sites
+Content-Type: application/json
+
+{
+    "site_name": "Test Site Z",
+    "site_city": "Test City Z",
+    "site_state": "Test State Z",
+    "site_country": "Test Country Z",
+    "site_info": {
+        "site_description": "Test Description",
+        "site_notes": "Test Notes"
+    },
+    "experiment_name": "Experiment A"
+}
+
+###
+@createdSiteId = {{create_site.response.body.id}}
+
+### Get a site by ID
+# @name get_site_by_id
+GET {{apiUrl}}/sites/id/{{createdSiteId}}
+
+### Update a site
+# @name update_site
+PATCH  {{apiUrl}}/sites/id/{{createdSiteId}}
+Content-Type: application/json
+
+{
+    "site_name": "Test Site ZA",
+    "site_city": "Test City ZA",
+    "site_state": "Test State ZA",
+    "site_country": "Test Country ZA",
+    "site_info": {
+        "site_description": "Test Description A",
+        "site_notes": "Test Notes A"
+    }
+}
+
+### Delete a site
+# @name delete_site
+DELETE {{apiUrl}}/sites/id/{{createdSiteId}}
+
+// ----------------------
+// ---- Plot API --------
+// ----------------------
+
+### List all plots
+# @name list_plots
+@experiment_name = Experiment A
+@season_name = Season 1A
+@site_name = Site A1
+GET {{apiUrl}}/plots?experiment_name={{experiment_name}}&season_name={{season_name}}&site_name={{site_name}}
+
+### Select a plot
+@plotId = {{list_plots.response.body.$.0.id}}
+
+### Create a new plot
+# @name create_plot
+POST {{apiUrl}}/plots
+Content-Type: application/json
+
+{
+    "plot_number" : 9900,
+    "plot_row_number" : 9900,
+    "plot_column_number" : 9900,
+    "plot_info": {
+        "plot_description": "Test Description",
+        "plot_notes": "Test Notes"
+    },
+    "experiment_name": "Experiment A",
+    "season_name": "Season 1A",
+    "site_name": "Site A1"
+}
+
+###
+@createdPlotId = {{create_plot.response.body.id}}
+
+### Get a plot by ID
+# @name get_plot_by_id
+GET {{apiUrl}}/plots/id/{{createdPlotId}}
+
+### Update a plot
+# @name update_plot
+PATCH  {{apiUrl}}/plots/id/{{createdPlotId}}
+Content-Type: application/json
+
+{
+    "plot_number" : 9901,
+    "plot_row_number" : 9901,
+    "plot_column_number" : 9901,
+    "plot_info": {
+        "plot_description": "Test Description A",
+        "plot_notes": "Test Notes A"
+    }
+}
+
+### Delete a plot
+# @name delete_plot
+DELETE {{apiUrl}}/plots/id/{{createdPlotId}}
+
+### Get Plot Cultivars
+# @name get_plot_cultivars
+GET {{apiUrl}}/plots/id/{{plotId}}/cultivars
+
+### Get Plot Plants
+# @name get_plot_plants
+GET {{apiUrl}}/plots/id/{{plotId}}/plants
+
+// ----------------------
+// ---- Plant API -------
+// ----------------------
+
+### List all plants
+# @name list_plants
+GET {{apiUrl}}/plants?plot_id={{plotId}}
+
+### Create a new plant
+# @name create_plant
+POST {{apiUrl}}/plants
+Content-Type: application/json
+
+{
+    "plot_id": "{{plotId}}",
+    "plant_number": 9900,
+    "plant_info": {
+        "plant_description": "Test Description",
+        "plant_notes": "Test Notes"
+    },
+    "cultivar_accession": "Accession A1",
+    "cultivar_population": "Population A"
+}
+
+
+// ----------------------
+// ---- Model API -------
+// ----------------------
+
+### List all models
+# @name list_models
+GET {{apiUrl}}/models
+
+###
+@modelId = {{list_models.response.body.$.0.id}}
+
+### Create a new model
+# @name create_model
+POST {{apiUrl}}/models
+Content-Type: application/json
+
+{
+    "model_name": "Test Model",
+    "model_url": "http://test.com",
+    "model_info": {
+        "model_description": "Test Description",
+        "model_notes": "Test Notes"
+    },
+    "experiment_name": "Experiment B"
+}
+
+###
+@createdModelId = {{create_model.response.body.id}}
+
+### Get a model by ID
+GET {{apiUrl}}/models/id/{{createdModelId}}
+
+### Update a model
+# @name update_model
+PATCH  {{apiUrl}}/models/id/{{createdModelId}}
+Content-Type: application/json
+
+{
+    "model_name": "Test Model A",
+    "model_url": "http://test.com/a",
+    "model_info": {
+        "model_description": "Test Description A",
+        "model_notes": "Test Notes A"
+    }
+}
+
+### Delete a model
+# @name delete_model
+DELETE {{apiUrl}}/models/id/{{createdModelId}}
+
+### Get Model Runs
+# @name get_model_runs
+GET {{apiUrl}}/models/id/{{modelId}}/runs
+
+### Get Model Datasets
+# @name get_model_datasets
+GET {{apiUrl}}/models/id/{{modelId}}/datasets
+
+
+
+
+
+
+
+
+// ----------------------
+// ---- Script API ------
+// ----------------------
+
+### List all scripts
+# @name list_scripts
+GET {{apiUrl}}/scripts
+
+
+// -----------------------------
+// ---- Sensor Platform API ----
+// -----------------------------
+
+### List all sensor platforms
+# @name list_sensor_platforms
+GET {{apiUrl}}/sensor_platforms
+
+// -------------------------
+// ---- Sensor Type API ----
+// -------------------------
+
+### List all sensor types
+# @name list_sensor_types
+@sensor_type_name=RGB
+GET {{apiUrl}}/sensor_types?sensor_type_name={{sensor_type_name}}
+
+// ----------------------
+// ---- Sensor API ------
+// ----------------------
+
+### List all sensors
+# @name list_sensors
+GET {{apiUrl}}/sensors
+
+
+// -------------------------
+// ---- Trait Level API ----
+// -------------------------
+
+### List all trait levels
+# @name list_trait_levels
+@trait_level_name = Plant
+GET {{apiUrl}}/trait_levels?trait_level_name={{trait_level_name}}
+
+// ----------------------
+// ---- Trait API -------
+// ----------------------
+
+### List all traits
+# @name list_traits
+GET {{apiUrl}}/traits

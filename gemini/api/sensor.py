@@ -257,7 +257,7 @@ class Sensor(APIBase):
             record_info = {k: v for k, v in record_info.items() if v is not None}
 
             records = SensorRecord.search(
-                sensor_id=self.id,
+                sensor_name=self.sensor_name,
                 collection_date=collection_date,
                 experiment_name=experiment_name,
                 season_name=season_name,

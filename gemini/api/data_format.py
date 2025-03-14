@@ -37,8 +37,8 @@ class DataFormat(APIBase):
     def get(cls, data_format_name: str) -> "DataFormat":
         try:
             instance = DataFormatModel.get_by_parameters(data_format_name=data_format_name)
-            instance = cls.model_validate(instance)
-            return instance if instance else None
+            instance = cls.model_validate(instance) if instance else None
+            return instance
         except Exception as e:
             raise e
         
@@ -47,8 +47,8 @@ class DataFormat(APIBase):
     def get_by_id(cls, id: UUID | int | str) -> "DataFormat":
         try:
             instance = DataFormatModel.get(id)
-            instance = cls.model_validate(instance)
-            return instance if instance else None
+            instance = cls.model_validate(instance) if instance else None
+            return instance
         except Exception as e:
             raise e
         

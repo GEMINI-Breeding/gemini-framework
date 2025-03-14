@@ -102,6 +102,8 @@ class DatasetRecord(APIBase, FileHandlerMixin):
     def get_by_id(cls, id: UUID | int | str) -> 'DatasetRecord':
         try:
             record = DatasetRecordsIMMVModel.get(id)
+            if not record:
+                return None
             record = cls.model_construct(
                 _fields_set=cls.model_fields_set,
                 **record.to_dict()
@@ -109,7 +111,7 @@ class DatasetRecord(APIBase, FileHandlerMixin):
             record = record.model_dump()
             record = cls._postprocess_record(record)
             record = cls.model_validate(record)
-            return record if record else None
+            return record 
         except Exception as e:
             raise e
 

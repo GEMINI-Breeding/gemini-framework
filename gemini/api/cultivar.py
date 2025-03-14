@@ -50,8 +50,8 @@ class Cultivar(APIBase):
                 cultivar_population=cultivar_population,
                 experiment_name=experiment_name,
             )
-            cultivar = cls.model_validate(db_instance)
-            return cultivar if cultivar else None
+            cultivar = cls.model_validate(db_instance) if db_instance else None
+            return cultivar
         except Exception as e:
             raise e
         
@@ -59,8 +59,8 @@ class Cultivar(APIBase):
     def get_by_id(cls, id: UUID | int | str) -> "Cultivar":
         try:
             db_instance = CultivarModel.get(id)
-            cultivar = cls.model_validate(db_instance)
-            return cultivar if cultivar else None
+            cultivar = cls.model_validate(db_instance) if db_instance else None
+            return cultivar
         except Exception as e:
             raise e
         

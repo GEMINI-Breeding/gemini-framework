@@ -72,12 +72,12 @@ class DatasetTypeController(Controller):
     # Create Dataset Type
     @post()
     async def create_dataset_type(
-        cls, dataset_type: Annotated[DatasetTypeInput, Body]
+        cls, data: Annotated[DatasetTypeInput, Body]
     ) -> DatasetTypeOutput:
         try:
             dataset_type = DatasetType.create(
-                dataset_type_name=dataset_type.dataset_type_name,
-                dataset_type_info=dataset_type.dataset_type_info
+                dataset_type_name=data.dataset_type_name,
+                dataset_type_info=data.dataset_type_info
             )
             if dataset_type is None:
                 error_html = RESTAPIError(
@@ -97,7 +97,7 @@ class DatasetTypeController(Controller):
     # Update Dataset Type
     @patch(path="/id/{dataset_type_id:int}")
     async def update_dataset_type(
-        cls, dataset_type_id: int, dataset_type: Annotated[DatasetTypeUpdate, Body]
+        cls, dataset_type_id: int, data: Annotated[DatasetTypeUpdate, Body]
     ) -> DatasetTypeOutput:
         try:
             dataset_type = DatasetType.get_by_id(id=dataset_type_id)
@@ -107,9 +107,9 @@ class DatasetTypeController(Controller):
                     error_description="The dataset type with the given ID was not found"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            dataset_type = DatasetType.update(
-                dataset_type_name=dataset_type.dataset_type_name,
-                dataset_type_info=dataset_type.dataset_type_info
+            dataset_type = dataset_type.update(
+                dataset_type_name=data.dataset_type_name,
+                dataset_type_info=data.dataset_type_info
             )
             if dataset_type is None:
                 error_html = RESTAPIError(

@@ -28,9 +28,9 @@ class SensorController(Controller):
 
             sensors = Sensor.search(
                 sensor_name=sensor_name,
-                sensor_type_id=sensor_type_id,
-                sensor_data_type_id=sensor_data_type_id,
-                sensor_data_format_id=sensor_data_format_id,
+                sensor_type=GEMINISensorType(sensor_type_id) if sensor_type_id else None,
+                sensor_data_type=GEMINIDataType(sensor_data_type_id) if sensor_data_type_id else None,
+                sensor_data_format=GEMINIDataFormat(sensor_data_format_id) if sensor_data_format_id else None,
                 sensor_info=sensor_info,
                 experiment_name=experiment_name
             )
@@ -80,9 +80,9 @@ class SensorController(Controller):
         try:
             sensor = Sensor.create(
                 sensor_name=data.sensor_name,
-                sensor_type=GEMINISensorType(data.sensor_type_id),
-                sensor_data_type=GEMINIDataType(data.sensor_data_type_id),
-                sensor_data_format=GEMINIDataFormat(data.sensor_data_format_id),
+                sensor_type=GEMINISensorType(data.sensor_type_id) if data.sensor_type_id else None,
+                sensor_data_type=GEMINIDataType(data.sensor_data_type_id) if data.sensor_data_type_id else None,
+                sensor_data_format=GEMINIDataFormat(data.sensor_data_format_id) if data.sensor_data_format_id else None,
                 sensor_info=data.sensor_info,
                 experiment_name=data.experiment_name
             )

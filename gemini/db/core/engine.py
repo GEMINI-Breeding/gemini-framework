@@ -109,6 +109,10 @@ class DatabaseEngine:
             expire_on_commit=False
         )
 
+    def get_engine(self) -> Engine:
+        """Get the SQLAlchemy engine."""
+        return self._engine or self.setup_engine()
+
     def _setup_engine_events(self) -> None:
         """Set up SQLAlchemy event listeners for monitoring."""
         
