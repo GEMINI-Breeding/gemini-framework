@@ -129,6 +129,9 @@ DELETE {{apiUrl}}/data_formats/id/{{createdDataFormatId}}
 @data_type_name = Image
 GET {{apiUrl}}/data_types?data_type_name={{data_type_name}}
 
+###
+@dataTypeId = {{list_data_types.response.body.$.0.id}}
+
 ### Create a new data type
 # @name create_data_type
 POST {{apiUrl}}/data_types
@@ -168,8 +171,21 @@ DELETE {{apiUrl}}/data_types/id/{{createdDataTypeId}}
 
 ### Get Data Type Formats
 # @name get_data_type_formats
-@data_type_id = 1
-GET {{apiUrl}}/data_types/id/{{data_type_id}}/formats
+GET {{apiUrl}}/data_types/id/{{dataTypeId}}/formats
+
+### Create a new data type format
+# @name create_data_type_format
+POST {{apiUrl}}/data_types/id/{{dataTypeId}}/formats
+Content-Type: application/json
+
+{
+    "data_format_name": "Test Data Format",
+    "data_format_mime_type": "application/test",
+    "data_type_format_info": {
+        "data_type_format_description": "Test Description",
+        "data_type_format_notes": "Test Notes"
+    }
+}
 
 
 // --------------------------
@@ -226,6 +242,9 @@ DELETE {{apiUrl}}/dataset_types/id/{{createdDatasetTypeId}}
 # @name list_datasets
 GET {{apiUrl}}/datasets
 
+###
+@datasetId = {{list_datasets.response.body.$.0.id}}
+
 ### Create a new dataset
 # @name create_dataset
 POST {{apiUrl}}/datasets
@@ -268,6 +287,9 @@ Content-Type: application/json
 # @name delete_dataset
 DELETE {{apiUrl}}/datasets/id/{{createdDatasetId}}
 
+### Search Dataset Data
+# @name search_dataset_data
+GET {{apiUrl}}/datasets/id/{{datasetId}}/records
 
 // ------------------------
 // ---- Experiment API ----
@@ -346,38 +368,175 @@ Content-Type: application/json
 # @name get_experiment_sites
 GET {{apiUrl}}/experiments/id/{{experimentId}}/sites
 
+### Create Site for Experiment
+# @name create_experiment_site
+POST {{apiUrl}}/experiments/id/{{experimentId}}/sites
+Content-Type: application/json
+
+{
+    "site_name": "Test Site X",
+    "site_city": "Test City X",
+    "site_state": "Test State X",
+    "site_country": "Test Country X",
+    "site_info": {
+        "site_description": "Test Description",
+        "site_notes": "Test Notes"
+    }
+}
 
 ### Get Experiment Cultivars
 # @name get_experiment_cultivars
 GET {{apiUrl}}/experiments/id/{{experimentId}}/cultivars
 
+### Create Cultivar for Experiment
+# @name create_experiment_cultivar
+POST {{apiUrl}}/experiments/id/{{experimentId}}/cultivars
+Content-Type: application/json
+
+{
+    "cultivar_accession": "Test Accession X",
+    "cultivar_population": "Test Population X",
+    "cultivar_info": {
+        "cultivar_name": "Test Cultivar X",
+        "cultivar_description": "Test Description X",
+        "cultivar_origin": "Test Origin X",
+        "cultivar_usage": "Test Usage X",
+        "cultivar_notes": "Test Notes X"
+    }
+}
+
 ### Get Experiment Sensor Platforms
 # @name get_experiment_sensor_platforms
 GET {{apiUrl}}/experiments/id/{{experimentId}}/sensor_platforms
+
+### Create Sensor Platform for Experiment
+# @name create_experiment_sensor_platform
+POST {{apiUrl}}/experiments/id/{{experimentId}}/sensor_platforms
+Content-Type: application/json
+
+{
+    "sensor_platform_name": "Test Sensor Platform X",
+    "sensor_platform_info": {
+        "sensor_platform_description": "Test Description",
+        "sensor_platform_notes": "Test Notes"
+    }
+}
 
 ### Get Experiment Sensors
 # @name get_experiment_sensors
 GET {{apiUrl}}/experiments/id/{{experimentId}}/sensors
 
+### Create Sensor for Experiment
+# @name create_experiment_sensor
+POST {{apiUrl}}/experiments/id/{{experimentId}}/sensors
+Content-Type: application/json
+
+{
+    "sensor_name": "Test Sensor X",
+    "sensor_info": {
+        "sensor_description": "Test Description",
+        "sensor_notes": "Test Notes"
+    },
+    "sensor_type_id": 1,
+    "sensor_data_format_id": 1,
+    "sensor_data_type_id": 1
+}
+
 ### Get Experiment Traits
 # @name get_experiment_traits
 GET {{apiUrl}}/experiments/id/{{experimentId}}/traits
+
+### Create Trait for Experiment
+# @name create_experiment_trait
+POST {{apiUrl}}/experiments/id/{{experimentId}}/traits
+Content-Type: application/json
+
+{
+    "trait_name": "Test Trait X",
+    "trait_info": {
+        "trait_description": "Test Description",
+        "trait_notes": "Test Notes"
+    },
+    "trait_level_id": 1,
+    "trait_metrics": {
+        "trait_metric_name": "Test Metric X",
+        "trait_metric_description": "Test Description X",
+        "trait_metric_notes": "Test Notes X"
+    },
+    "trait_units": "Test Units X"
+}
 
 ### Get Experiment Scripts
 # @name get_experiment_scripts
 GET {{apiUrl}}/experiments/id/{{experimentId}}/scripts
 
+### Create Script for Experiment
+# @name create_experiment_script
+POST {{apiUrl}}/experiments/id/{{experimentId}}/scripts
+Content-Type: application/json
+
+{
+    "script_name": "Test Script X",
+    "script_url": "http://test.com",
+    "script_info": {
+        "script_description": "Test Description",
+        "script_notes": "Test Notes"
+    }
+}
+
 ### Get Experiment Procedures
 # @name get_experiment_procedures
 GET {{apiUrl}}/experiments/id/{{experimentId}}/procedures
+
+### Create Procedure for Experiment
+# @name create_experiment_procedure
+POST {{apiUrl}}/experiments/id/{{experimentId}}/procedures
+Content-Type: application/json
+
+{
+    "procedure_name": "Test Procedure X",
+    "procedure_info": {
+        "procedure_description": "Test Description",
+        "procedure_notes": "Test Notes"
+    }
+}
 
 ### Get Experiment Models
 # @name get_experiment_models
 GET {{apiUrl}}/experiments/id/{{experimentId}}/models
 
+### Create Model for Experiment
+# @name create_experiment_model
+POST {{apiUrl}}/experiments/id/{{experimentId}}/models
+Content-Type: application/json
+
+{
+    "model_name": "Test Model X",
+    "model_url": "http://test.com",
+    "model_info": {
+        "model_description": "Test Description",
+        "model_notes": "Test Notes"
+    }
+}
+
 ### Get Experiment Datasets
 # @name get_experiment_datasets
 GET {{apiUrl}}/experiments/id/{{experimentId}}/datasets
+
+### Create Dataset for Experiment
+# @name create_experiment_dataset
+POST {{apiUrl}}/experiments/id/{{experimentId}}/datasets
+Content-Type: application/json
+
+{
+    "dataset_name": "Test Dataset X",
+    "dataset_type_id": 1,
+    "dataset_info": {
+        "dataset_description": "Test Description",
+        "dataset_notes": "Test Notes"
+    },
+    "collection_date": "2021-01-01"
+}
 
 // ----------------------
 // ---- Season API ------
@@ -579,6 +738,131 @@ Content-Type: application/json
     "cultivar_population": "Population A"
 }
 
+### 
+@createdPlantId = {{create_plant.response.body.id}}
+
+### Update a plant
+# @name update_plant
+PATCH  {{apiUrl}}/plants/id/{{createdPlantId}}
+Content-Type: application/json
+
+{
+    "plant_number": 9901,
+    "plant_info": {
+        "plant_description": "Test Description A",
+        "plant_notes": "Test Notes A"
+    }
+}
+
+### Get a plant by ID
+# @name get_plant_by_id
+GET {{apiUrl}}/plants/id/{{createdPlantId}}
+
+### Get Plant Cultivar
+# @name get_plant_cultivar
+GET {{apiUrl}}/plants/id/{{createdPlantId}}/cultivar
+
+### Set Plant Cultivar
+# @name set_plant_cultivar
+POST  {{apiUrl}}/plants/id/{{createdPlantId}}/cultivar
+Content-Type: application/json
+
+{
+    "cultivar_accession": "Accession A2",
+    "cultivar_population": "Population A"
+}
+
+### Delete a plant
+# @name delete_plant
+DELETE {{apiUrl}}/plants/id/{{createdPlantId}}
+
+// ----------------------
+// ---- Procedure API ---
+// ----------------------
+
+### List all procedures
+# @name list_procedures
+GET {{apiUrl}}/procedures
+
+###
+@procedureId = {{list_procedures.response.body.$.0.id}}
+
+### Create a new procedure
+# @name create_procedure
+POST {{apiUrl}}/procedures
+Content-Type: application/json
+
+{
+    "procedure_name": "Test Procedure",
+    "procedure_info": {
+        "procedure_description": "Test Description",
+        "procedure_notes": "Test Notes"
+    },
+    "experiment_name": "Experiment B"
+}
+
+###
+@createdProcedureId = {{create_procedure.response.body.id}}
+
+### Get a procedure by ID
+# @name get_procedure_by_id
+GET {{apiUrl}}/procedures/id/{{createdProcedureId}}
+
+### Update a procedure
+# @name update_procedure
+PATCH  {{apiUrl}}/procedures/id/{{createdProcedureId}}
+Content-Type: application/json
+
+{
+    "procedure_name": "Test Procedure A",
+    "procedure_info": {
+        "procedure_description": "Test Description A",
+        "procedure_notes": "Test Notes A"
+    }
+}
+
+### Delete a procedure
+# @name delete_procedure
+DELETE {{apiUrl}}/procedures/id/{{createdProcedureId}}
+
+### Get Procedure Runs
+# @name get_procedure_runs
+GET {{apiUrl}}/procedures/id/{{procedureId}}/runs
+
+### Create a new procedure run
+# @name create_procedure_run
+POST {{apiUrl}}/procedures/id/{{procedureId}}/runs
+Content-Type: application/json
+
+{
+    "procedure_run_info": {
+        "procedure_run_description": "Test Description",
+        "procedure_run_notes": "Test Notes"
+    }
+}
+
+### Get Procedure Datasets
+# @name get_procedure_datasets
+GET {{apiUrl}}/procedures/id/{{procedureId}}/datasets
+
+### Create a new procedure dataset
+# @name create_procedure_dataset
+POST {{apiUrl}}/procedures/id/{{procedureId}}/datasets
+Content-Type: application/json
+
+{
+    "dataset_name": "Test Procedure Dataset",
+    "dataset_info": {
+        "dataset_description": "Test Description",
+        "dataset_notes": "Test Notes"
+    },
+    "collection_date": "2021-01-01",
+    "experiment_name": "Experiment B"
+}
+
+### Search Procedure Data
+# @name search_procedure_data
+GET {{apiUrl}}/procedures/id/{{procedureId}}/records
 
 // ----------------------
 // ---- Model API -------
@@ -634,15 +918,40 @@ DELETE {{apiUrl}}/models/id/{{createdModelId}}
 # @name get_model_runs
 GET {{apiUrl}}/models/id/{{modelId}}/runs
 
+### Create a new model run
+# @name create_model_run
+POST {{apiUrl}}/models/id/{{modelId}}/runs
+Content-Type: application/json
+
+{
+    "model_run_info": {
+        "model_run_description": "Test Description",
+        "model_run_notes": "Test Notes"
+    }
+}
+
 ### Get Model Datasets
 # @name get_model_datasets
 GET {{apiUrl}}/models/id/{{modelId}}/datasets
 
+### Create a new model dataset
+# @name create_model_dataset
+POST {{apiUrl}}/models/id/{{modelId}}/datasets
+Content-Type: application/json
 
+{
+    "dataset_name": "Test Model Dataset",
+    "dataset_info": {
+        "dataset_description": "Test Description",
+        "dataset_notes": "Test Notes"
+    },
+    "collection_date": "2021-01-01",
+    "experiment_name": "Experiment B"
+}
 
-
-
-
+### Search Model Data
+# @name search_model_data
+GET {{apiUrl}}/models/id/{{modelId}}/records
 
 
 // ----------------------
@@ -653,6 +962,85 @@ GET {{apiUrl}}/models/id/{{modelId}}/datasets
 # @name list_scripts
 GET {{apiUrl}}/scripts
 
+###
+@scriptId = {{list_scripts.response.body.$.0.id}}
+
+### Create a new script
+# @name create_script
+POST {{apiUrl}}/scripts
+Content-Type: application/json
+
+{
+    "script_name": "Test Script",
+    "script_url": "http://test.com",
+    "script_info": {
+        "script_description": "Test Description",
+        "script_notes": "Test Notes"
+    },
+    "experiment_name": "Experiment B"
+}
+
+###
+@createdScriptId = {{create_script.response.body.id}}
+
+### Get a script by ID
+GET {{apiUrl}}/scripts/id/{{createdScriptId}}
+
+### Update a script
+# @name update_script
+PATCH  {{apiUrl}}/scripts/id/{{createdScriptId}}
+Content-Type: application/json
+
+{
+    "script_name": "Test Script A",
+    "script_url": "http://test.com/a",
+    "script_info": {
+        "script_description": "Test Description A",
+        "script_notes": "Test Notes A"
+    }
+}
+
+### Delete a script
+# @name delete_script
+DELETE {{apiUrl}}/scripts/id/{{createdScriptId}}
+
+### Get Script Runs
+# @name get_script_runs
+GET {{apiUrl}}/scripts/id/{{scriptId}}/runs
+
+### Create a new script run
+# @name create_script_run
+POST {{apiUrl}}/scripts/id/{{scriptId}}/runs
+Content-Type: application/json
+
+{
+    "script_run_info": {
+        "script_run_description": "Test Description",
+        "script_run_notes": "Test Notes"
+    }
+}
+
+### Get Script Datasets
+# @name get_script_datasets
+GET {{apiUrl}}/scripts/id/{{scriptId}}/datasets
+
+### Create a new script dataset
+# @name create_script_dataset
+POST {{apiUrl}}/scripts/id/{{scriptId}}/datasets
+
+{
+    "dataset_name": "Test Script Dataset",
+    "dataset_info": {
+        "dataset_description": "Test Description",
+        "dataset_notes": "Test Notes"
+    },
+    "collection_date": "2021-01-01",
+    "experiment_name": "Experiment B"
+}
+
+### Search Script Data
+# @name search_script_data
+GET {{apiUrl}}/scripts/id/{{scriptId}}/records
 
 // -----------------------------
 // ---- Sensor Platform API ----
@@ -661,6 +1049,70 @@ GET {{apiUrl}}/scripts
 ### List all sensor platforms
 # @name list_sensor_platforms
 GET {{apiUrl}}/sensor_platforms
+
+###
+@platformId = {{list_sensor_platforms.response.body.$.0.id}}
+
+### Create a new sensor platform
+# @name create_sensor_platform
+POST {{apiUrl}}/sensor_platforms
+Content-Type: application/json
+
+{
+    "sensor_platform_name": "Test Sensor Platform",
+    "sensor_platform_info": {
+        "sensor_platform_description": "Test Description",
+        "sensor_platform_notes": "Test Notes"
+    },
+    "experiment_name": "Experiment B"
+}
+
+###
+@createdPlatformId = {{create_sensor_platform.response.body.id}}
+
+### Get a sensor platform by ID
+# @name get_sensor_platform_by_id
+GET {{apiUrl}}/sensor_platforms/id/{{createdPlatformId}}
+
+### Update a sensor platform
+# @name update_sensor_platform
+PATCH  {{apiUrl}}/sensor_platforms/id/{{createdPlatformId}}
+Content-Type: application/json
+
+{
+    "sensor_platform_name": "Test Sensor Platform A",
+    "sensor_platform_info": {
+        "sensor_platform_description": "Test Description A",
+        "sensor_platform_notes": "Test Notes A"
+    }
+}
+
+### Delete a sensor platform
+# @name delete_sensor_platform
+DELETE {{apiUrl}}/sensor_platforms/id/{{createdPlatformId}}
+
+### Get Sensor Platform Sensors
+# @name get_sensor_platform_sensors
+GET {{apiUrl}}/sensor_platforms/id/{{platformId}}/sensors
+
+### Create a new sensor platform sensor
+# @name create_sensor_platform_sensor
+POST {{apiUrl}}/sensor_platforms/id/{{platformId}}/sensors
+Content-Type: application/json
+
+{
+    "sensor_name": "Test Sensor",
+    "sensor_info": {
+        "sensor_description": "Test Description",
+        "sensor_notes": "Test Notes"
+    },
+    "sensor_type_id": 1,
+    "sensor_data_format_id": 1,
+    "sensor_data_type_id": 1,
+    "experiment_name": "Experiment B"
+}
+
+
 
 // -------------------------
 // ---- Sensor Type API ----
@@ -671,6 +1123,46 @@ GET {{apiUrl}}/sensor_platforms
 @sensor_type_name=RGB
 GET {{apiUrl}}/sensor_types?sensor_type_name={{sensor_type_name}}
 
+###
+@sensorTypeId = {{list_sensor_types.response.body.$.0.id}}
+
+### Create a new sensor type
+# @name create_sensor_type
+POST {{apiUrl}}/sensor_types
+Content-Type: application/json
+
+{
+    "sensor_type_name": "Test Sensor Type",
+    "sensor_type_info": {
+        "sensor_type_description": "Test Description",
+        "sensor_type_notes": "Test Notes"
+    }
+}
+
+###
+@createdSensorTypeId = {{create_sensor_type.response.body.id}}
+
+### Get a sensor type by ID
+# @name get_sensor_type_by_id
+GET {{apiUrl}}/sensor_types/id/{{createdSensorTypeId}}
+
+### Update a sensor type
+# @name update_sensor_type
+PATCH  {{apiUrl}}/sensor_types/id/{{createdSensorTypeId}}
+Content-Type: application/json
+
+{
+    "sensor_type_name": "Test Sensor Type A",
+    "sensor_type_info": {
+        "sensor_type_description": "Test Description A",
+        "sensor_type_notes": "Test Notes A"
+    }
+}
+
+### Delete a sensor type
+# @name delete_sensor_type
+DELETE {{apiUrl}}/sensor_types/id/{{createdSensorTypeId}}
+
 // ----------------------
 // ---- Sensor API ------
 // ----------------------
@@ -678,6 +1170,76 @@ GET {{apiUrl}}/sensor_types?sensor_type_name={{sensor_type_name}}
 ### List all sensors
 # @name list_sensors
 GET {{apiUrl}}/sensors
+
+###
+@sensorId = {{list_sensors.response.body.$.0.id}}
+
+### Create a new sensor
+# @name create_sensor
+POST {{apiUrl}}/sensors
+Content-Type: application/json
+
+{
+    "sensor_name": "Test Sensor",
+    "sensor_info": {
+        "sensor_description": "Test Description",
+        "sensor_notes": "Test Notes"
+    },
+    "sensor_type_id": 1,
+    "sensor_data_format_id": 1,
+    "sensor_data_type_id": 1,
+    "experiment_name": "Experiment B"
+}
+
+###
+@createdSensorId = {{create_sensor.response.body.id}}
+
+### Get a sensor by ID
+# @name get_sensor_by_id
+GET {{apiUrl}}/sensors/id/{{createdSensorId}}
+
+### Update a sensor
+# @name update_sensor
+PATCH  {{apiUrl}}/sensors/id/{{createdSensorId}}
+Content-Type: application/json
+
+{
+    "sensor_name": "Test Sensor A",
+    "sensor_info": {
+        "sensor_description": "Test Description A",
+        "sensor_notes": "Test Notes A"
+    },
+    "sensor_type_id": 1,
+    "sensor_data_format_id": 1,
+    "sensor_data_type_id": 1
+}
+
+### Delete a sensor
+# @name delete_sensor
+DELETE {{apiUrl}}/sensors/id/{{createdSensorId}}
+
+### Get Sensor Datasets
+# @name get_sensor_datasets
+GET {{apiUrl}}/sensors/id/{{sensorId}}/datasets
+
+### Create a new sensor dataset
+# @name create_sensor_dataset
+POST {{apiUrl}}/sensors/id/{{sensorId}}/datasets
+Content-Type: application/json
+
+{
+    "dataset_name": "Test Sensor Dataset",
+    "dataset_info": {
+        "dataset_description": "Test Description",
+        "dataset_notes": "Test Notes"
+    },
+    "collection_date": "2021-01-01",
+    "experiment_name": "Experiment B"
+}
+
+### Search Sensor Data
+# @name search_sensor_data
+GET {{apiUrl}}/sensors/id/{{sensorId}}/records
 
 
 // -------------------------
@@ -689,6 +1251,46 @@ GET {{apiUrl}}/sensors
 @trait_level_name = Plant
 GET {{apiUrl}}/trait_levels?trait_level_name={{trait_level_name}}
 
+###
+@traitLevelId = {{list_trait_levels.response.body.$.0.id}}
+
+### Create a new trait level
+# @name create_trait_level
+POST {{apiUrl}}/trait_levels
+Content-Type: application/json
+
+{
+    "trait_level_name": "Test Trait Level",
+    "trait_level_info": {
+        "trait_level_description": "Test Description",
+        "trait_level_notes": "Test Notes"
+    }
+}
+
+###
+@createdTraitLevelId = {{create_trait_level.response.body.id}}
+
+### Get a trait level by ID
+# @name get_trait_level_by_id
+GET {{apiUrl}}/trait_levels/id/{{createdTraitLevelId}}
+
+### Update a trait level
+# @name update_trait_level
+PATCH  {{apiUrl}}/trait_levels/id/{{createdTraitLevelId}}
+Content-Type: application/json
+
+{
+    "trait_level_name": "Test Trait Level A",
+    "trait_level_info": {
+        "trait_level_description": "Test Description A",
+        "trait_level_notes": "Test Notes A"
+    }
+}
+
+### Delete a trait level
+# @name delete_trait_level
+DELETE {{apiUrl}}/trait_levels/id/{{createdTraitLevelId}}
+
 // ----------------------
 // ---- Trait API -------
 // ----------------------
@@ -696,3 +1298,81 @@ GET {{apiUrl}}/trait_levels?trait_level_name={{trait_level_name}}
 ### List all traits
 # @name list_traits
 GET {{apiUrl}}/traits
+
+###
+@traitId = {{list_traits.response.body.$.0.id}}
+
+### Create a new trait
+# @name create_trait
+POST {{apiUrl}}/traits
+Content-Type: application/json
+
+{
+    "trait_name": "Test Trait",
+    "trait_info": {
+        "trait_description": "Test Description",
+        "trait_notes": "Test Notes"
+    },
+    "trait_level_id": 1,
+    "trait_metrics": {
+        "trait_metric_name": "Test Metric",
+        "trait_metric_description": "Test Description",
+        "trait_metric_notes": "Test Notes"
+    },
+    "trait_units": "Test Units",
+    "experiment_name": "Experiment B"
+}
+
+###
+@createdTraitId = {{create_trait.response.body.id}}
+
+### Get a trait by ID
+# @name get_trait_by_id
+GET {{apiUrl}}/traits/id/{{createdTraitId}}
+
+### Update a trait
+# @name update_trait
+PATCH  {{apiUrl}}/traits/id/{{createdTraitId}}
+Content-Type: application/json
+
+{
+    "trait_name": "Test Trait A",
+    "trait_info": {
+        "trait_description": "Test Description A",
+        "trait_notes": "Test Notes A"
+    },
+    "trait_level_id": 1,
+    "trait_metrics": {
+        "trait_metric_name": "Test Metric A",
+        "trait_metric_description": "Test Description A",
+        "trait_metric_notes": "Test Notes A"
+    },
+    "trait_units": "Test Units A"
+}
+
+### Delete a trait
+# @name delete_trait
+DELETE {{apiUrl}}/traits/id/{{createdTraitId}}
+
+### Get Trait Datasets
+# @name get_trait_datasets
+GET {{apiUrl}}/traits/id/{{traitId}}/datasets
+
+### Create a new trait dataset
+# @name create_trait_dataset
+POST {{apiUrl}}/traits/id/{{traitId}}/datasets
+Content-Type: application/json
+
+{
+    "dataset_name": "Test Trait Dataset",
+    "dataset_info": {
+        "dataset_description": "Test Description",
+        "dataset_notes": "Test Notes"
+    },
+    "collection_date": "2021-01-01",
+    "experiment_name": "Experiment B"
+}
+
+### Search Trait Data
+# @name search_trait_data
+GET {{apiUrl}}/traits/id/{{traitId}}/records

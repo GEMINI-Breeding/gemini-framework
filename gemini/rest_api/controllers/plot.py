@@ -2,34 +2,39 @@ from litestar import Response
 from litestar.handlers import get, post, patch, delete
 from litestar.params import Body
 from litestar.controller import Controller
-from litestar.plugins.pydantic import PydanticDTO
-from litestar.dto import DTOConfig
+
+from pydantic import BaseModel
 
 from gemini.api.plot import Plot
 from gemini.rest_api.models import PlotInput, PlotOutput, PlotUpdate, RESTAPIError, JSONB, str_to_dict
 from gemini.rest_api.models import (
-    CultivarInput,
     CultivarOutput,
-    ExperimentInput,
-    SeasonInput,
-    SiteInput,
-    PlantInput,
     PlantOutput
 )
 
 from typing import List, Annotated, Optional
 
-ExperimentInputDTO = PydanticDTO[Annotated[ExperimentInput, DTOConfig(
-    exclude={"experiment_info", "experiment_start_date", "experiment_end_date"}
-)]]
+class PlotExperimentInput(BaseModel):
+    experiment_name: str
 
-SeasonInputDTO = PydanticDTO[Annotated[SeasonInput, DTOConfig(
-    exclude={"season_info", "season_start_date", "season_end_date"}
-)]]
+class PlotSeasonInput(BaseModel):
+    experiment_name: str
+    season_name: str
 
-SiteInputDTO = PydanticDTO[Annotated[SiteInput, DTOConfig(
-    exclude={"site_info", "site_city", "site_state", "site_country", "experiment_name"}
-)]]
+class PlotSiteInput(BaseModel):
+    site_name: str
+
+class PlotCultivarInput(BaseModel):
+    cultivar_accession: str
+    cultivar_population: str
+    cultivar_info: Optional[JSONB] = None
+
+class PlotPlantInput(BaseModel):
+    plant_number: int
+    cultivar_accession: str
+    cultivar_population: str
+    plant_info: Optional[JSONB] = None
+
 
 
 class PlotController(Controller):
@@ -255,7 +260,7 @@ class PlotController(Controller):
     async def add_plant_to_plot(
         self,
         plot_id: str,
-        data: Annotated[PlantInput, Body]
+        data: Annotated[PlotPlantInput, Body]
     ) -> PlotOutput:
         try:
             plot = Plot.get_by_id(id=plot_id)
@@ -292,7 +297,7 @@ class PlotController(Controller):
     async def add_cultivar_to_plot(
         self,
         plot_id: str,
-        data: Annotated[CultivarInput, Body]
+        data: Annotated[PlotCultivarInput, Body]
     ) -> PlotOutput:
         try:
             plot = Plot.get_by_id(id=plot_id)
@@ -325,11 +330,11 @@ class PlotController(Controller):
     
 
     # Update Plot Experiment
-    @patch(path="/id/{plot_id:str}/experiment", dto=ExperimentInputDTO)
+    @patch(path="/id/{plot_id:str}/experiment")
     async def update_plot_experiment(
         self,
         plot_id: str,
-        data: Annotated[ExperimentInput, Body]
+        data: Annotated[PlotExperimentInput, Body]
     ) -> PlotOutput:
         try:
             plot = Plot.get_by_id(id=plot_id)
@@ -359,11 +364,11 @@ class PlotController(Controller):
         
 
     # Update Plot Season
-    @patch(path="/id/{plot_id:str}/season", dto=SeasonInputDTO)
+    @patch(path="/id/{plot_id:str}/season")
     async def update_plot_season(
         self,
         plot_id: str,
-        data: Annotated[SeasonInput, Body]
+        data: Annotated[PlotSeasonInput, Body]
     ) -> PlotOutput:
         try:
             plot = Plot.get_by_id(id=plot_id)
@@ -393,11 +398,11 @@ class PlotController(Controller):
             return Response(content=error_html, status_code=500)
         
     # Update Plot Site
-    @patch(path="/id/{plot_id:str}/site", dto=SiteInputDTO)
+    @patch(path="/id/{plot_id:str}/site")
     async def update_plot_site(
         self,
         plot_id: str,
-        data: Annotated[SiteInput, Body]
+        data: Annotated[PlotSiteInput, Body]
     ) -> PlotOutput:
         try:
             plot = Plot.get_by_id(id=plot_id)

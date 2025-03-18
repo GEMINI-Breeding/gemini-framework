@@ -2,22 +2,45 @@ from litestar import Response
 from litestar.handlers import get, post, patch, delete
 from litestar.params import Body
 from litestar.controller import Controller
+from litestar.response import Stream
+from litestar.serialization import encode_json
+
+from collections.abc import AsyncGenerator, Generator
+
+from pydantic import BaseModel
 
 from gemini.api.script import Script
+from gemini.api.script_record import ScriptRecord
 from gemini.rest_api.models import ( 
     ScriptInput, 
     ScriptOutput, 
     ScriptUpdate,
-    ScriptRunInput,
     ScriptRunOutput,
-    DatasetInput,
     DatasetOutput, 
- RESTAPIError, 
+    RESTAPIError, 
     JSONB, 
     str_to_dict
 )
 
 from typing import List, Annotated, Optional
+
+async def script_records_bytes_generator(script_record_generator: Generator[ScriptOutput, None, None]) -> AsyncGenerator[bytes, None]:
+    for record in script_record_generator:
+        record = record.model_dump(exclude_none=True)
+        record = encode_json(record) + b'\n'
+        yield record
+
+
+class ScriptScriptRunInput(BaseModel):
+    script_run_info: Optional[JSONB] = {}
+
+class ScriptDatasetInput(BaseModel):
+    dataset_name: str
+    dataset_info: Optional[JSONB] = {}
+    collection_date: Optional[str] = None
+    experiment_name: Optional[str] = 'Experiment A'
+
+
 
 class ScriptController(Controller):
 
@@ -84,15 +107,15 @@ class ScriptController(Controller):
     @post()
     async def create_script(
         self,
-        script: Annotated[ScriptInput, Body]
+        data: Annotated[ScriptInput, Body]
     ) -> ScriptOutput:
         try:
             script = Script.create(
-                script_name=script.script_name,
-                script_url=script.script_url,
-                script_extension=script.script_extension,
-                script_info=script.script_info,
-                experiment_name=script.experiment_name
+                script_name=data.script_name,
+                script_url=data.script_url,
+                script_extension=data.script_extension,
+                script_info=data.script_info,
+                experiment_name=data.experiment_name
             )
             if script is None:
                 error_html = RESTAPIError(
@@ -237,7 +260,7 @@ class ScriptController(Controller):
     async def create_script_run(
         self,
         script_id: str,
-        data: Annotated[ScriptRunInput, Body]
+        data: Annotated[ScriptScriptRunInput, Body]
     ) -> ScriptRunOutput:
         try:
             script = Script.get_by_id(id=script_id)
@@ -268,7 +291,7 @@ class ScriptController(Controller):
     async def create_script_dataset(
         self,
         script_id: str,
-        data: Annotated[DatasetInput, Body]
+        data: Annotated[ScriptDatasetInput, Body]
     ) -> DatasetOutput:
         try:
             script = Script.get_by_id(id=script_id)
@@ -295,6 +318,40 @@ class ScriptController(Controller):
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the dataset"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+
+    # Search Script Records
+    @get(path="/id/{script_id:str}/records")
+    async def search_script_records(
+        self,
+        script_id: str,
+        experiment_name: Optional[str] = None,
+        season_name: Optional[str] = None,
+        site_name: Optional[str] = None,
+        collection_date: Optional[str] = None
+    ) -> Stream:
+        try:
+            script = Script.get_by_id(id=script_id)
+            if script is None:
+                error_html = RESTAPIError(
+                    error="Script not found",
+                    error_description="The script with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            script_records = script.get_records(
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name,
+                collection_date=collection_date
+            )
+            return Stream(script_records_bytes_generator(script_records))
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving script records"
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)

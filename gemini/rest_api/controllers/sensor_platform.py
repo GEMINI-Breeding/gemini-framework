@@ -3,11 +3,22 @@ from litestar.handlers import get, post, patch, delete
 from litestar.params import Body
 from litestar.controller import Controller
 
+from pydantic import BaseModel
+
 from gemini.api.sensor_platform import SensorPlatform
 from gemini.api.enums import GEMINISensorType, GEMINIDataFormat, GEMINIDataType
 from gemini.rest_api.models import SensorPlatformInput, SensorPlatformOutput, SensorPlatformUpdate, RESTAPIError, JSONB, str_to_dict
-from gemini.rest_api.models import SensorOutput, SensorInput
+from gemini.rest_api.models import SensorOutput
 from typing import List, Annotated, Optional
+
+class SensorPlatformSensorInput(BaseModel):
+    sensor_name: str
+    sensor_type_id: int
+    sensor_data_type_id: int
+    sensor_data_format_id: int
+    sensor_info: Optional[JSONB] = None
+    experiment_name: Optional[str] = 'Experiment A'
+
 
 class SensorPlatformController(Controller):
 
@@ -192,7 +203,7 @@ class SensorPlatformController(Controller):
     async def add_sensor_to_sensor_platform(
         self,
         sensor_platform_id: str,
-        data: Annotated[SensorInput, Body]
+        data: Annotated[SensorPlatformSensorInput, Body]
     ) -> SensorOutput:
         try:
             sensor_platform = SensorPlatform.get_by_id(id=sensor_platform_id)

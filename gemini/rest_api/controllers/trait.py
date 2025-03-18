@@ -2,13 +2,35 @@ from litestar import Response
 from litestar.handlers import get, post, patch, delete
 from litestar.params import Body
 from litestar.controller import Controller
+from litestar.response import Stream
+from litestar.serialization import encode_json
+
+from pydantic import BaseModel
+
+from collections.abc import AsyncGenerator, Generator
 
 from gemini.api.trait import Trait, GEMINITraitLevel
+from gemini.api.trait_record import TraitRecord
 from gemini.rest_api.models import TraitInput, TraitOutput, TraitUpdate, JSONB, str_to_dict
 from gemini.rest_api.models import TraitRecordInput, TraitRecordOutput, TraitRecordUpdate, TraitLevelSearch
 from gemini.rest_api.models import RESTAPIError
 from gemini.rest_api.models import DatasetOutput, DatasetInput
 from typing import List, Annotated, Optional
+
+async def trait_records_bytes_generator(trait_record_generator: Generator[TraitOutput, None, None]) -> AsyncGenerator[bytes, None]:
+    for record in trait_record_generator:
+        record = record.model_dump(exclude_none=True)
+        record = encode_json(record) + b'\n'
+        yield record
+
+
+class TraitDatasetInput(BaseModel):
+    dataset_name: str
+    dataset_info: Optional[JSONB] = None
+    collection_date: Optional[str] = None
+    experiment_name: Optional[str] = 'Experiment A'
+
+
 
 class TraitController(Controller):
 
@@ -204,7 +226,7 @@ class TraitController(Controller):
     async def create_trait_dataset(
         self,
         trait_id: str,
-        data: Annotated[DatasetInput, Body]
+        data: Annotated[TraitDatasetInput, Body]
     ) -> DatasetOutput:
         try:
             trait = Trait.get_by_id(id=trait_id)
@@ -231,6 +253,46 @@ class TraitController(Controller):
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating dataset"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+
+    # Search Trait Records
+    @get(path="/id/{trait_id:str}/records")
+    async def search_trait_records(
+        self,
+        trait_id: str,
+        experiment_name: Optional[str] = None,
+        season_name: Optional[str] = None,
+        site_name: Optional[str] = None,
+        plot_number: Optional[int] = None,
+        plot_row_number: Optional[int] = None,
+        plot_column_number: Optional[int] = None,
+        collection_date: Optional[str] = None
+    ) -> Stream:
+        try:
+            trait = Trait.get_by_id(id=trait_id)
+            if trait is None:
+                error_html = RESTAPIError(
+                    error="Trait not found",
+                    error_description="The trait with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            trait_records = trait.get_records(
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name,
+                plot_number=plot_number,
+                plot_row_number=plot_row_number,
+                plot_column_number=plot_column_number,
+                collection_date=collection_date
+            )
+            return Stream(trait_records_bytes_generator(trait_records))
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving trait records"
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)

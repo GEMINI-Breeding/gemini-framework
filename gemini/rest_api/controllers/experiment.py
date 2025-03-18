@@ -3,32 +3,82 @@ from litestar.handlers import get, post, patch, delete
 from litestar.params import Body
 from litestar.controller import Controller
 
+from pydantic import BaseModel
+
 from gemini.api.experiment import Experiment
 from gemini.api.enums import GEMINIDataFormat, GEMINIDatasetType, GEMINISensorType, GEMINIDataType, GEMINITraitLevel
 from gemini.rest_api.models import ExperimentInput, ExperimentOutput, ExperimentUpdate, RESTAPIError, str_to_dict, JSONB
 from gemini.rest_api.models import (
     SeasonOutput,
-    SeasonInput,
     SiteOutput,
-    SiteInput,
     CultivarOutput,
-    CultivarInput,
     SensorPlatformOutput,
-    SensorPlatformInput,
     TraitOutput,
-    TraitInput,
     SensorOutput,
-    SensorInput,
     ScriptOutput,
-    ScriptInput,
     ProcedureOutput,
-    ProcedureInput,
     ModelOutput,
-    ModelInput,
     DatasetOutput,
-    DatasetInput
 )
 from typing import List, Annotated, Optional
+
+class ExperimentSeasonInput(BaseModel):
+    season_name: str
+    season_info: Optional[JSONB] = {}
+    season_start_date: Optional[str] = None
+    season_end_date: Optional[str] = None
+
+class ExperimentSiteInput(BaseModel):
+    site_name: str
+    site_info: Optional[JSONB] = {}
+    site_city: Optional[str] = None
+    site_state: Optional[str] = None
+    site_country: Optional[str] = None
+
+class ExperimentCultivarInput(BaseModel):
+    cultivar_population: str
+    cultivar_accession: Optional[str] = None
+    cultivar_info: Optional[JSONB] = {}
+
+class ExperimentSensorPlatformInput(BaseModel):
+    sensor_platform_name: str
+    sensor_platform_info: Optional[JSONB] = {}
+
+class ExperimentTraitInput(BaseModel):
+    trait_name: str
+    trait_units: Optional[str] = None
+    trait_level_id: Optional[int] = None
+    trait_info: Optional[JSONB] = {}
+    trait_metrics: Optional[JSONB] = {}
+
+class ExperimentSensorInput(BaseModel):
+    sensor_name: str
+    sensor_data_type_id: Optional[int] = None
+    sensor_data_format_id: Optional[int] = None
+    sensor_type_id: Optional[int] = None
+    sensor_info: Optional[JSONB] = {}
+    sensor_platform_name: Optional[str] = None
+
+class ExperimentScriptInput(BaseModel):
+    script_name: str
+    script_extension: Optional[str] = None
+    script_url: Optional[str] = None
+    script_info: Optional[JSONB] = {}
+
+class ExperimentProcedureInput(BaseModel):
+    procedure_name: str
+    procedure_info: Optional[JSONB] = {}
+
+class ExperimentModelInput(BaseModel):
+    model_name: str
+    model_url: Optional[str] = None
+    model_info: Optional[JSONB] = {}
+
+class ExperimentDatasetInput(BaseModel):
+    dataset_name: str
+    dataset_info: Optional[JSONB] = {}
+    collection_date: Optional[str] = None
+    dataset_type_id: Optional[int] = None
 
 
 class ExperimentController(Controller):
@@ -204,7 +254,7 @@ class ExperimentController(Controller):
     # Create Season for Experiment
     @post(path="/id/{experiment_id:str}/seasons")
     async def create_experiment_season(
-        self, experiment_id: str, data: Annotated[SeasonInput, Body]
+        self, experiment_id: str, data: Annotated[ExperimentSeasonInput, Body]
     ) -> SeasonOutput:
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
@@ -269,7 +319,7 @@ class ExperimentController(Controller):
     # Create Site for Experiment
     @post(path="/id/{experiment_id:str}/sites")
     async def create_experiment_site(
-        self, experiment_id: str, data: Annotated[SiteInput, Body]
+        self, experiment_id: str, data: Annotated[ExperimentSiteInput, Body]
     ) -> SiteOutput:
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
@@ -335,7 +385,7 @@ class ExperimentController(Controller):
     # Create Cultivar for Experiment
     @post(path="/id/{experiment_id:str}/cultivars")
     async def create_experiment_cultivar(
-        self, experiment_id: str, data: Annotated[CultivarInput, Body]
+        self, experiment_id: str, data: Annotated[ExperimentCultivarInput, Body]
     ) -> CultivarOutput:
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
@@ -399,7 +449,7 @@ class ExperimentController(Controller):
     # Create Sensor Platform for Experiment
     @post(path="/id/{experiment_id:str}/sensor_platforms")
     async def create_experiment_sensor_platform(
-        self, experiment_id: str, data: Annotated[SensorPlatformInput, Body]
+        self, experiment_id: str, data: Annotated[ExperimentSensorPlatformInput, Body]
     ) -> SensorPlatformOutput:
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
@@ -461,7 +511,7 @@ class ExperimentController(Controller):
     # Create Trait for Experiment
     @post(path="/id/{experiment_id:str}/traits")
     async def create_experiment_trait(
-        self, experiment_id: str, data: Annotated[TraitInput, Body]
+        self, experiment_id: str, data: Annotated[ExperimentTraitInput, Body]
     ) -> TraitOutput:
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
@@ -526,7 +576,7 @@ class ExperimentController(Controller):
     # Create Sensor for Experiment
     @post(path="/id/{experiment_id:str}/sensors")
     async def create_experiment_sensor(
-        self, experiment_id: str, data: Annotated[SensorInput, Body]
+        self, experiment_id: str, data: Annotated[ExperimentSensorInput, Body]
     ) -> SensorOutput:
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
@@ -593,7 +643,7 @@ class ExperimentController(Controller):
     # Create Experiment Script
     @post(path="/id/{experiment_id:str}/scripts")
     async def create_experiment_script(
-        self, experiment_id: str, data: Annotated[ScriptInput, Body]
+        self, experiment_id: str, data: Annotated[ExperimentScriptInput, Body]
     ) -> ScriptOutput:
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
@@ -658,7 +708,7 @@ class ExperimentController(Controller):
     # Create Experiment Procedure
     @post(path="/id/{experiment_id:str}/procedures")
     async def create_experiment_procedure(
-        self, experiment_id: str, data: Annotated[ProcedureInput, Body]
+        self, experiment_id: str, data: Annotated[ExperimentProcedureInput, Body]
     ) -> ProcedureOutput:
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
@@ -721,7 +771,7 @@ class ExperimentController(Controller):
     # Create Experiment Model
     @post(path="/id/{experiment_id:str}/models")
     async def create_experiment_model(
-        self, experiment_id: str, data: Annotated[ModelInput, Body]
+        self, experiment_id: str, data: Annotated[ExperimentModelInput, Body]
     ) -> ModelOutput:
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
@@ -785,7 +835,7 @@ class ExperimentController(Controller):
     # Create Dataset for Experiment
     @post(path="/id/{experiment_id:str}/datasets")
     async def create_experiment_dataset(
-        self, experiment_id: str, data: Annotated[DatasetInput, Body]
+        self, experiment_id: str, data: Annotated[ExperimentDatasetInput, Body]
     ) -> DatasetOutput:
         try:
             experiment = Experiment.get_by_id(id=experiment_id)

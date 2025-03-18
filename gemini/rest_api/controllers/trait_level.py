@@ -143,7 +143,7 @@ class TraitLevelController(Controller):
                     error_description="The trait level could not be deleted"
                 ).to_html()
                 return Response(content=error_html, status_code=500)
-            return Response(status_code=204)
+            return None
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),

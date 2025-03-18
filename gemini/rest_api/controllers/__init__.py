@@ -15,6 +15,7 @@ from gemini.rest_api.controllers.sensor import SensorController
 from gemini.rest_api.controllers.site import SiteController
 from gemini.rest_api.controllers.trait_level import TraitLevelController
 from gemini.rest_api.controllers.trait import TraitController
+from gemini.rest_api.controllers.procedure import ProcedureController
 
 controllers = {
     "cultivars": CultivarController,
@@ -26,6 +27,7 @@ controllers = {
     "models": ModelController,
     "plants": PlantController,
     "plots": PlotController,
+    "procedures": ProcedureController,
     "scripts": ScriptController,
     "seasons": SeasonController,
     "sensor_platforms": SensorPlatformController,

@@ -295,7 +295,7 @@ class BaseModel(DeclarativeBase, SerializeMixin):
                 query = query.where(attribute == value)
             else:
                 query = query.where(attribute == value)
-        query = query.execution_options(yield_per=1000)
+        query = query.execution_options(yield_per=50)
         with db_engine.get_engine().connect() as conn:
             result = conn.execute(query).scalars().partitions()
             for partition in result:

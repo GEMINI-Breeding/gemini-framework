@@ -3,10 +3,17 @@ from litestar.handlers import get, post, patch, delete
 from litestar.params import Body
 from litestar.controller import Controller
 
+from pydantic import BaseModel
+
 from gemini.api.plant import Plant
 from gemini.rest_api.models import PlantInput, PlantOutput, PlantUpdate, RESTAPIError, JSONB, str_to_dict
-from gemini.rest_api.models import CultivarInput, CultivarOutput 
+from gemini.rest_api.models import CultivarOutput 
 from typing import List, Annotated, Optional
+
+class PlantCultivarInput(BaseModel):
+    cultivar_accession: str
+    cultivar_population: str
+
 
 class PlantController(Controller):
 
@@ -54,9 +61,9 @@ class PlantController(Controller):
             return Response(content=error_html, status_code=500)
         
     # Get Plant by ID
-    @get(path="/id/{plant_id:int}")
+    @get(path="/id/{plant_id:str}")
     async def get_plant_by_id(
-            self, plant_id: int
+            self, plant_id: str
     ) -> PlantOutput:
         try:
             plant = Plant.get_by_id(id=plant_id)
@@ -108,10 +115,10 @@ class PlantController(Controller):
             return Response(content=error_html, status_code=500)
         
     # Update a Plant
-    @patch(path="/id/{plant_id:int}")
+    @patch(path="/id/{plant_id:str}")
     async def update_plant(
         self,
-        plant_id: int,
+        plant_id: str,
         data: Annotated[PlantUpdate, Body]
     ) -> PlantOutput:
         try:
@@ -142,10 +149,10 @@ class PlantController(Controller):
             return Response(content=error_html, status_code=500)
         
     # Delete a Plant
-    @delete(path="/id/{plant_id:int}")
+    @delete(path="/id/{plant_id:str}")
     async def delete_plant(
         self,
-        plant_id: int
+        plant_id: str
     ) -> None:
         try:
             plant = Plant.get_by_id(id=plant_id)
@@ -172,10 +179,10 @@ class PlantController(Controller):
             return Response(content=error_html, status_code=500)
         
     # Get Plant Cultivar
-    @get(path="/id/{plant_id:int}/cultivar")
+    @get(path="/id/{plant_id:str}/cultivar")
     async def get_plant_cultivar(
         self,
-        plant_id: int
+        plant_id: str
     ) -> CultivarOutput:
         try:
             plant = Plant.get_by_id(id=plant_id)
@@ -202,11 +209,11 @@ class PlantController(Controller):
             return Response(content=error_html, status_code=500)
         
     # Set Plant Cultivar
-    @post(path="/id/{plant_id:int}/cultivar")
+    @post(path="/id/{plant_id:str}/cultivar")
     async def set_plant_cultivar(
         self,
-        plant_id: int,
-        cultivar: Annotated[CultivarInput, Body]
+        plant_id: str,
+        data: Annotated[PlantCultivarInput, Body]
     ) -> PlantOutput:
         try:
             plant = Plant.get_by_id(id=plant_id)
@@ -217,8 +224,8 @@ class PlantController(Controller):
                 ).to_html()
                 return Response(content=error_html, status_code=404)
             plant = plant.set_cultivar(
-                cultivar_accession=cultivar.cultivar_accession,
-                cultivar_population=cultivar.cultivar_population
+                cultivar_accession=data.cultivar_accession,
+                cultivar_population=data.cultivar_population
             )
             if plant is None:
                 error_html = RESTAPIError(

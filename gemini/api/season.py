@@ -41,6 +41,7 @@ class Season(APIBase):
                 if db_experiment:
                     SeasonModel.update(db_instance, experiment_id=db_experiment.id)
             
+
             season = cls.model_validate(db_instance)
             return season
         except Exception as e:

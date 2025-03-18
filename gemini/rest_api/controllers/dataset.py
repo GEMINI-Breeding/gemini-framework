@@ -5,7 +5,10 @@ from litestar.controller import Controller
 from litestar.response import Stream
 from litestar.serialization import encode_json
 
+from collections.abc import AsyncGenerator, Generator
+
 from gemini.api.dataset import Dataset
+from gemini.api.dataset_record import DatasetRecord
 from gemini.api.enums import GEMINIDatasetType
 from gemini.rest_api.models import ( 
     DatasetInput, 
@@ -23,6 +26,14 @@ from gemini.rest_api.models import (
 )
 
 from typing import List, Annotated, Optional
+
+
+async def dataset_records_bytes_generator(dataset_record_generator: Generator[DatasetOutput, None, None]) -> AsyncGenerator[bytes, None]:
+    for record in dataset_record_generator:
+        record = record.model_dump(exclude_none=True)
+        record = encode_json(record) + b'\n'
+        yield record
+
 
 class DatasetController(Controller):
 
@@ -195,14 +206,13 @@ class DatasetController(Controller):
                     error_description="No dataset was found with the given ID"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            record_stream = Dataset.get_records(
-                dataset_name=dataset.dataset_name,
+            records = dataset.get_records(
                 experiment_name=experiment_name,
                 season_name=season_name,
                 site_name=site_name,
                 collection_date=collection_date
             )
-            return Stream(record_stream)
+            return Stream(dataset_records_bytes_generator(records))
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),

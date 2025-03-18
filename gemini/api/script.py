@@ -181,7 +181,7 @@ class Script(APIBase):
                 dataset_info=dataset_info,
                 collection_date=collection_date,
                 experiment_name=experiment_name,
-                dataset_type=GEMINIDatasetType.Procedure
+                dataset_type=GEMINIDatasetType.Script
             )
             ScriptDatasetModel.get_or_create(script_id=self.id, dataset_id=dataset.id)
             return dataset

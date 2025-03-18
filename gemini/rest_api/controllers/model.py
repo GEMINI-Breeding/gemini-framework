@@ -2,22 +2,44 @@ from litestar import Response
 from litestar.handlers import get, post, patch, delete
 from litestar.params import Body
 from litestar.controller import Controller
+from litestar.response import Stream
+from litestar.serialization import encode_json
+
+from collections.abc import AsyncGenerator, Generator
+
+from pydantic import BaseModel
 
 from gemini.api.model import Model
+from gemini.api.model_record import ModelRecord
 from gemini.rest_api.models import ( 
     ModelInput, 
     ModelOutput, 
     ModelUpdate,
     DatasetOutput,
-    DatasetInput,
     ModelRunOutput,
-    ModelRunInput, 
     RESTAPIError, 
     str_to_dict, 
     JSONB
 )
 
 from typing import List, Annotated, Optional
+
+async def model_records_bytes_generator(model_record_generator: Generator[ModelRecord, None, None]) -> AsyncGenerator[bytes, None]:
+    for record in model_record_generator:
+        record = record.model_dump(exclude_none=True)
+        record = encode_json(record) + b'\n'
+        yield record
+
+
+class ModelModelRunInput(BaseModel):
+    model_run_info: Optional[JSONB] = {}
+
+class ModelDatasetInput(BaseModel):
+    dataset_name: str
+    collection_date: Optional[str] = None
+    dataset_info: Optional[JSONB] = {}
+    experiment_name: Optional[str] = 'Experiment A'
+
 
 class ModelController(Controller):
 
@@ -231,7 +253,7 @@ class ModelController(Controller):
     async def create_model_run(
         self,
         model_id: str,
-        data: Annotated[ModelRunInput, Body]
+        data: Annotated[ModelModelRunInput, Body]
     ) -> ModelRunOutput:
         try:
             model = Model.get_by_id(id=model_id)
@@ -262,7 +284,7 @@ class ModelController(Controller):
     async def create_model_dataset(
         self,
         model_id: str,
-        data: Annotated[DatasetInput, Body]
+        data: Annotated[ModelDatasetInput, Body]
     ) -> DatasetOutput:
         try:
             model = Model.get_by_id(id=model_id)
@@ -291,6 +313,39 @@ class ModelController(Controller):
                 error_description="An error occurred while creating the dataset"
             )
             error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)    
+            return Response(content=error_html, status_code=500)
+
+    # Search Model Records
+    @get(path="/id/{model_id:str}/records")
+    async def search_model_records(
+        self,
+        model_id: str,
+        experiment_name: Optional[str] = None,
+        season_name: Optional[str] = None,
+        site_name: Optional[str] = None,
+        collection_date: Optional[str] = None
+    ) -> Stream:
+        try:
+            model = Model.get_by_id(id=model_id)
+            if model is None:
+                error_html = RESTAPIError(
+                    error="Model not found",
+                    error_description="The model with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            model_records = model.get_records(
+                collection_date=collection_date,
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name
+            )
+            return Stream(model_records_bytes_generator(model_records))
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving model records"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
         
     
