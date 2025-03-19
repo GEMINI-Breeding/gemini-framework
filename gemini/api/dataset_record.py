@@ -153,20 +153,19 @@ class DatasetRecord(APIBase, FileHandlerMixin):
             raise
     
     @classmethod
-    def add(cls, records: List['DatasetRecord']) -> bool:
+    def add(cls, records: List['DatasetRecord']) -> tuple[bool, List[str]]:
         try:
             records = cls._verify_records(records)
             records = [cls._preprocess_record(record) for record in records]
             records_to_insert = []
             for record in records:
                 record_to_insert = record.model_dump()
-                # Remove the None fields
                 record_to_insert = {k: v for k, v in record_to_insert.items() if v is not None}
                 records_to_insert.append(record_to_insert)
-            DatasetRecordModel.insert_bulk('dataset_records_unique', records_to_insert)
-            return True
+            inserted_record_ids = DatasetRecordModel.insert_bulk('dataset_records_unique', records_to_insert)
+            return True, inserted_record_ids
         except Exception as e:
-            return False
+            return False, []
 
 
     @classmethod

@@ -662,8 +662,7 @@ class TraitOutput(RESTAPIBase):
 
 class DatasetRecordInput(RESTAPIBase):
     timestamp: datetime
-    dataset_name: str
-    dataset_data: JSONB
+    dataset_data: Optional[JSONB] = {}
     collection_date: Optional[datetime] = None
     experiment_name: Optional[str] = None
     season_name: Optional[str] = None

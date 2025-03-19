@@ -12,7 +12,7 @@ from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.views.experiment_views import ExperimentTraitsViewModel
 from gemini.db.models.views.dataset_views import TraitDatasetsViewModel
 from gemini.db.models.associations import ExperimentTraitModel, TraitDatasetModel
-from datetime import date
+from datetime import date, datetime
 
 class Trait(APIBase):
 
@@ -198,34 +198,112 @@ class Trait(APIBase):
 
     def add_record(
         self,
-        record: TraitRecord
-    ) -> bool:
+        timestamp: date = None,
+        collection_date: date = None,
+        dataset_name: str = None,
+        trait_value: float = None,
+        experiment_name: str = None,
+        season_name: str = None,
+        site_name: str = None,
+        plot_number: int = -1,
+        plot_row_number: int = -1,
+        plot_column_number: int = -1,
+        record_file: str = None,
+        record_info: dict = {}
+    ) -> tuple[bool, List[str]]:
         try:
-            record.trait_id = self.id
-            record.trait_name = self.trait_name
-            record.dataset_name = f"{self.trait_name} Dataset"
-            record.timestamp = record.timestamp if record.timestamp else date.today()
+            if not experiment_name or not season_name or not site_name:
+                raise Exception("Experiment name, season name, and site name must be provided.")
+            
+            timestamp = timestamp if timestamp else datetime.now()
+            collection_date = collection_date if collection_date else timestamp.date()
+            dataset_name = dataset_name if dataset_name else f"{self.trait_name} Dataset"
+            trait_name = self.trait_name
+            trait_id = self.id
 
-            success = TraitRecord.add([record])
-            return success
+            trait_record = TraitRecord(
+                trait_id=trait_id,
+                trait_name=trait_name,
+                trait_value=trait_value,
+                dataset_name=dataset_name,
+                timestamp=timestamp,
+                collection_date=collection_date,
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name,
+                plot_number=plot_number,
+                plot_row_number=plot_row_number,
+                plot_column_number=plot_column_number,
+                record_file=record_file,
+                record_info=record_info
+            )
+
+            success, inserted_record_ids = TraitRecord.add([trait_record])
+            return success, inserted_record_ids
         except Exception as e:
-            raise e
+            return False, []
         
     def add_records(
         self,
-        records: List[TraitRecord]
-    ) -> bool:
+        timestamps: List[datetime] = None,
+        collection_date: date = None,
+        trait_values: List[float] = [],
+        dataset_name: str = None,
+        experiment_name: str = None,
+        season_name: str = None,
+        site_name: str = None,
+        plot_numbers: List[int] = None,
+        plot_row_numbers: List[int] = None,
+        plot_column_numbers: List[int] = None,
+        record_files: List[str] = None,
+        record_info: List[dict] = []
+    ) -> tuple[bool, List[str]]:
         try:
-            for record in records:
-                record.trait_id = self.id
-                record.trait_name = self.trait_name
-                record.dataset_name = f"{self.trait_name} Dataset"
-                record.timestamp = record.timestamp if record.timestamp else date.today()
+            if not experiment_name or not season_name or not site_name:
+                raise ValueError("Experiment name, season name, and site name must be provided.")
+            
+            if len(timestamps) == 0:
+                raise ValueError("At least one timestamp must be provided.")
+            
+            if len(timestamps) != len(trait_values) or len(timestamps) != len(record_info):
+                raise ValueError("All input lists must have the same length.")
+            
+            if len(plot_numbers) != len(timestamps):
+                raise ValueError("Plot numbers list must have the same length as timestamps.")
+            
+            if len(plot_row_numbers) != len(timestamps):
+                raise ValueError("Plot row numbers list must have the same length as timestamps.")
+            
+            if len(plot_column_numbers) != len(timestamps):
+                raise ValueError("Plot column numbers list must have the same length as timestamps.")
+            
+            collection_date = collection_date if collection_date else timestamps[0].date()
+            trait_records = []
+            timestamps_length = len(timestamps)
 
-            success = TraitRecord.add(records)
-            return success
+            for i in range(timestamps_length):
+                trait_record = TraitRecord(
+                    trait_id=self.id,
+                    trait_name=self.trait_name,
+                    trait_value=trait_values[i],
+                    dataset_name=dataset_name if dataset_name else f"{self.trait_name} Dataset",
+                    timestamp=timestamps[i],
+                    collection_date=collection_date,
+                    experiment_name=experiment_name,
+                    season_name=season_name,
+                    site_name=site_name,
+                    plot_number=plot_numbers[i],
+                    plot_row_number=plot_row_numbers[i],
+                    plot_column_number=plot_column_numbers[i],
+                    record_file=record_files[i] if record_files else None,
+                    record_info=record_info[i] if record_info else {}
+                )
+                trait_records.append(trait_record)
+
+            success, inserted_record_ids = TraitRecord.add(trait_records)
+            return success, inserted_record_ids
         except Exception as e:
-            raise e
+            return False, []
         
     def get_records(
         self,

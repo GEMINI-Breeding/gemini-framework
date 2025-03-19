@@ -5,6 +5,7 @@ from uuid import UUID
 from gemini.api.types import ID
 from pydantic import Field, AliasChoices
 from gemini.api.base import APIBase, FileHandlerMixin
+from gemini.api.dataset import Dataset, GEMINIDatasetType
 from gemini.db.models.models import ModelModel
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.model_records import ModelRecordModel
@@ -164,7 +165,7 @@ class ModelRecord(APIBase, FileHandlerMixin):
             raise e
 
     @classmethod
-    def add(cls, records: List['ModelRecord']) -> bool:
+    def add(cls, records: List['ModelRecord']) -> tuple[bool, List[str]]:
         try:
             records = cls._verify_records(records)
             records = [cls._preprocess_record(record) for record in records]
@@ -173,10 +174,10 @@ class ModelRecord(APIBase, FileHandlerMixin):
                 record_to_insert = record.model_dump()
                 record_to_insert = {k: v for k, v in record_to_insert.items() if v is not None}
                 records_to_insert.append(record_to_insert)
-            ModelRecordModel.insert_bulk('model_records_unique', records_to_insert)
-            return True
+            inserted_record_ids = ModelRecordModel.insert_bulk('model_records_unique', records_to_insert)
+            return True, inserted_record_ids
         except Exception as e:
-            return False
+            return False, []
 
         
     @classmethod
@@ -358,9 +359,18 @@ class ModelRecord(APIBase, FileHandlerMixin):
 
                 record.model_id = model.id
 
-                if record.dataset_name not in datasets and DatasetModel.exists(dataset_name=record.dataset_name):
-                    datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=record.dataset_name)
-                
+                if record.dataset_name not in datasets:
+                    if DatasetModel.exists(dataset_name=record.dataset_name):
+                        datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=record.dataset_name)
+                    else:
+                        created_dataset = Dataset.create(
+                            dataset_name=record.dataset_name,
+                            experiment_name=record.experiment_name,
+                            dataset_type=GEMINIDatasetType.Model
+                        )
+                        ExperimentDatasetsViewModel.refresh()
+                        datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=created_dataset.dataset_name)
+
                 record.dataset_id = datasets[record.dataset_name].id
 
                 if record.experiment_name not in experiments and ExperimentDatasetsViewModel.exists(experiment_name=record.experiment_name, dataset_name=record.dataset_name):

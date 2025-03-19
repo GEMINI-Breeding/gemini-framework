@@ -14,7 +14,7 @@ from gemini.db.models.associations import ExperimentProcedureModel, ProcedureDat
 from gemini.db.models.views.experiment_views import ExperimentProceduresViewModel
 from gemini.db.models.views.dataset_views import ProcedureDatasetsViewModel
 
-from datetime import date
+from datetime import date, datetime
 
 class Procedure(APIBase):
 
@@ -198,32 +198,88 @@ class Procedure(APIBase):
     
     def add_record(
         self,
-        record: ProcedureRecord
-    ) -> bool:
+        timestamp : datetime = None,
+        collection_date: date = None,
+        procedure_data : dict = None,
+        dataset_name: str = None,
+        experiment_name: str = None,
+        season_name: str = None,
+        site_name: str = None,
+        record_file: str = None,
+        record_info: dict = None
+    ) -> tuple[bool, List[str]]: 
         try:
-            record.procedure_id = self.id
-            record.procedure_name = self.procedure_name
-            record.dataset_name = f"{self.procedure_name} Dataset"
-            record.timestamp = record.timestamp if record.timestamp else date.today()
+            if not experiment_name and not season_name and not site_name:
+                raise ValueError("Please provide at least one of experiment_name, season_name, or site_name.")
+            
+            timestamp = timestamp if timestamp else datetime.now()
+            collection_date = collection_date if collection_date else timestamp.date()
+            dataset_name = dataset_name if dataset_name else f"{self.procedure_name} Dataset"
+            procedure_name = self.procedure_name
+            procedure_id = self.id
 
-            success = ProcedureRecord.add([record])
-            return success
+            procedure_record = ProcedureRecord(
+                timestamp=timestamp,
+                collection_date=collection_date,
+                procedure_id=procedure_id,
+                procedure_name=procedure_name,
+                procedure_data=procedure_data,
+                dataset_name=dataset_name,
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name,
+                record_file=record_file if record_file else None,
+                record_info=record_info if record_info else {}
+            )
+            success, inserted_record_ids = ProcedureRecord.add([procedure_record])
+            return success, inserted_record_ids
         except Exception as e:
-            raise e
+            return False, []
         
     def add_records(
         self,
-        records: List[ProcedureRecord]
-    ) -> bool:
+        timestamps: List[datetime] = None,
+        collection_date: date = None,
+        procedure_data: List[dict] = None,
+        dataset_name: str = None,
+        experiment_name: str = None,
+        season_name: str = None,
+        site_name: str = None,
+        record_files: List[str] = None,
+        record_info: List[dict] = None
+    ) -> tuple[bool, List[str]]:
         try:
-            for record in records:
-                record.procedure_id = self.id
-                record.procedure_name = self.procedure_name
-                record.dataset_name = f"{self.procedure_name} Dataset"
-                record.timestamp = record.timestamp if record.timestamp else date.today()
+            if not experiment_name and not season_name and not site_name:
+                raise ValueError("Please provide at least one of experiment_name, season_name, or site_name.")
+            
+            if len(timestamps) == 0:
+                raise ValueError("Please provide at least one timestamp.")
+            
+            if len(timestamps) != len(procedure_data) or len(timestamps) != len(record_info) or len(timestamps) != len(record_files):
+                raise ValueError("All inputs must have the same length.")
+            
+            collection_date = collection_date if collection_date else timestamps[0].date()
+            procedure_records = []
+            timestamps_length = len(timestamps)
 
-            success = ProcedureRecord.add(records)
-            return success
+            for i in range(timestamps_length):
+                procedure_record = ProcedureRecord(
+                    timestamp=timestamps[i],
+                    collection_date=collection_date,
+                    procedure_id=self.id,
+                    procedure_name=self.procedure_name,
+                    procedure_data=procedure_data[i],
+                    dataset_name=dataset_name if dataset_name else f"{self.procedure_name} Dataset",
+                    experiment_name=experiment_name,
+                    season_name=season_name,
+                    site_name=site_name,
+                    record_file=record_files[i] if record_files[i] else None,
+                    record_info=record_info[i] if record_info[i] else {}
+                )
+                procedure_records.append(procedure_record)
+
+            success, inserted_record_ids = ProcedureRecord.add(procedure_records)
+            return success, inserted_record_ids
         except Exception as e:
             raise e
         

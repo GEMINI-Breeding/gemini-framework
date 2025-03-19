@@ -5,6 +5,8 @@ from uuid import UUID
 from gemini.api.types import ID
 from pydantic import Field, AliasChoices
 from gemini.api.base import APIBase, FileHandlerMixin
+from gemini.api.dataset import Dataset, GEMINIDatasetType
+from gemini.api.plot import Plot
 from gemini.db.models.sensors import SensorModel
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.sensor_records import SensorRecordModel
@@ -101,7 +103,7 @@ class SensorRecord(APIBase, FileHandlerMixin):
             raise e
         
     @classmethod
-    def add(cls, records: List['SensorRecord']):
+    def add(cls, records: List['SensorRecord']) -> tuple[bool, List[str]]:
         try:
             records = cls._verify_records(records)
             records = [cls._preprocess_record(record) for record in records]
@@ -110,10 +112,10 @@ class SensorRecord(APIBase, FileHandlerMixin):
                 record_to_insert = record.model_dump()
                 record_to_insert = {k:v for k, v in record_to_insert.items() if v is not None}
                 records_to_insert.append(record_to_insert)
-            SensorRecordModel.insert_bulk('sensor_records_unique', records_to_insert)
-            return True
+            inserted_record_ids = SensorRecordModel.insert_bulk('sensor_records_unique', records_to_insert)
+            return True, inserted_record_ids
         except Exception as e:
-            raise e
+            return False, []
 
 
     def delete(self) -> bool:
@@ -343,8 +345,17 @@ class SensorRecord(APIBase, FileHandlerMixin):
 
                 record.sensor_id = sensor.id
 
-                if record.dataset_name not in datasets and DatasetModel.exists(dataset_name=record.dataset_name):
-                    datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=record.dataset_name)
+                if record.dataset_name not in datasets: 
+                    if DatasetModel.exists(dataset_name=record.dataset_name):
+                        datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=record.dataset_name)
+                    else:
+                        created_dataset = Dataset.create(
+                            dataset_name=record.dataset_name,
+                            experiment_name=record.experiment_name,
+                            dataset_type=GEMINIDatasetType.Sensor
+                        )
+                        ExperimentDatasetsViewModel.refresh()
+                        datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=created_dataset.dataset_name)
 
                 record.dataset_id = datasets[record.dataset_name].id
 
@@ -372,7 +383,17 @@ class SensorRecord(APIBase, FileHandlerMixin):
                         plot_row_number=record.plot_row_number,
                         plot_column_number=record.plot_column_number
                     )
-                    record.plot_id = plot.plot_id
+                    record.plot_id = plot.plot_id if plot else None
+                    if not plot:
+                        plot = Plot.create(
+                            plot_number=record.plot_number,
+                            plot_row_number=record.plot_row_number,
+                            plot_column_number=record.plot_column_number,
+                            experiment_name=record.experiment_name,
+                            site_name=record.site_name,
+                            season_name=record.season_name
+                        )
+                        record.plot_id = plot.id
             return records
         except Exception as e:
             raise e
@@ -502,7 +523,7 @@ class SensorRecord(APIBase, FileHandlerMixin):
             site_name = record.site_name
             file_extension = os.path.splitext(file_path)[1]
             file_timestamp = str(int(record.timestamp.timestamp()*1000))
-            file_key = f"sensor_records/{experiment_name}/{sensor_name}/{collection_date}/{site_name}/{season_name}/{file_timestamp}{file_extension}"
+            file_key = f"sensor_data/{experiment_name}/{sensor_name}/{collection_date}/{site_name}/{season_name}/{file_timestamp}{file_extension}"
             return file_key
         except Exception as e:
             raise e

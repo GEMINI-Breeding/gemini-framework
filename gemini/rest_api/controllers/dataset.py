@@ -4,6 +4,8 @@ from litestar.params import Body
 from litestar.controller import Controller
 from litestar.response import Stream
 from litestar.serialization import encode_json
+from litestar.enums import RequestEncodingType
+
 
 from collections.abc import AsyncGenerator, Generator
 
@@ -24,6 +26,8 @@ from gemini.rest_api.models import (
     DatasetRecordUpdate,
     DatasetRecordSearch
 )
+
+from gemini.rest_api.file_handler import api_file_handler
 
 from typing import List, Annotated, Optional
 
@@ -187,6 +191,57 @@ class DatasetController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
+    # Add a Dataset Record
+    @post(path="/id/{dataset_id:str}/records")
+    async def add_dataset_record(
+        self,
+        dataset_id: str,
+        data: Annotated[DatasetRecordInput, Body(media_type=RequestEncodingType.MULTI_PART)]
+    ) -> DatasetRecordOutput:
+        try:
+            dataset = Dataset.get_by_id(id=dataset_id)
+            if dataset is None:
+                error_html = RESTAPIError(
+                    error="Dataset not found",
+                    error_description="No dataset was found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            
+            if data.record_file:
+                record_file_path = await api_file_handler.create_file(data.record_file)
+            
+            add_success, inserted_record_ids = dataset.add_record(
+                timestamp=data.timestamp,
+                collection_date=data.collection_date,
+                dataset_data=data.dataset_data,
+                experiment_name=data.experiment_name,
+                season_name=data.season_name,
+                site_name=data.site_name,
+                record_file=record_file_path if data.record_file else None,
+                record_info=data.record_info
+            )
+            if not add_success:
+                error_html = RESTAPIError(
+                    error="Dataset record not added",
+                    error_description="The dataset record was not added"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            inserted_record_id = inserted_record_ids[0]
+            inserted_dataset_record = DatasetRecord.get_by_id(id=inserted_record_id)
+            if inserted_dataset_record is None:
+                error_html = RESTAPIError(
+                    error="Dataset record not found",
+                    error_description="The dataset record was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return inserted_dataset_record
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while adding the dataset record"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
 
     # Search Dataset Records
     @get(path="/id/{dataset_id:str}/records")

@@ -14,7 +14,7 @@ from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.views.experiment_views import ExperimentSensorsViewModel
 from gemini.db.models.associations import ExperimentSensorModel, SensorPlatformSensorModel, SensorDatasetModel
 from gemini.db.models.views.dataset_views import SensorDatasetsViewModel
-from datetime import date
+from datetime import date, datetime
 
 class Sensor(APIBase):
 
@@ -210,36 +210,111 @@ class Sensor(APIBase):
         
     def add_record(
         self,
-        record: SensorRecord
-    ) -> bool:
+        timestamp: date = None,
+        collection_date: date = None,
+        dataset_name: str = None,
+        sensor_data: dict = {},
+        experiment_name: str = None,
+        season_name: str = None,
+        site_name: str = None,
+        plot_number: int = -1,
+        plot_row_number: int = -1,
+        plot_column_number: int = -1,
+        record_file: str = None,
+        record_info: dict = {}
+    ) -> tuple[bool, List[str]]:
         try:
-            record.sensor_id = self.id
-            record.sensor_name = self.sensor_name
-            record.timestamp = record.timestamp if record.timestamp else date.today()
-            record.dataset_name = f"{self.sensor_name} Dataset"
-            record.record_info = record.record_info if record.record_info else {}
+            if not experiment_name or not season_name or not site_name:
+                raise ValueError("Experiment name, season name, and site name must be provided.")
+            
+            timestamp = timestamp if timestamp else datetime.now()
+            collection_date = collection_date if collection_date else timestamp.date()
+            dataset_name = dataset_name if dataset_name else f"{self.sensor_name} Dataset"
+            sensor_name = self.sensor_name
+            sensor_id = self.id
 
-            success = SensorRecord.add([record])
-            return success
+            sensor_record = SensorRecord(
+                timestamp=timestamp,
+                collection_date=collection_date,
+                sensor_id=sensor_id,
+                sensor_name=sensor_name,
+                sensor_data=sensor_data,
+                dataset_name=dataset_name,
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name,
+                plot_number=plot_number if plot_number != -1 else None,
+                plot_row_number=plot_row_number if plot_row_number != -1 else None,
+                plot_column_number=plot_column_number if plot_column_number != -1 else None,
+                record_file=record_file if record_file else None,
+                record_info=record_info if record_info else {}
+            )
+            success, inserted_record_ids = SensorRecord.add([sensor_record])
+            return success, inserted_record_ids
         except Exception as e:
-            raise e
+            return False, []
         
     def add_records(
         self,
-        records: List[SensorRecord]
-    ) -> bool:
+        timestamps: List[datetime] = None,
+        collection_date: date = None,
+        sensor_data: List[dict] = [],
+        dataset_name: str = None,
+        experiment_name: str = None,
+        season_name: str = None,
+        site_name: str = None,
+        plot_numbers: List[int] = None,
+        plot_row_numbers: List[int] = None,
+        plot_column_numbers: List[int] = None,
+        record_files: List[str] = None,
+        record_info: List[dict] = []
+    ) -> tuple[bool, List[str]]:
         try:
-            for record in records:
-                record.sensor_id = self.id
-                record.sensor_name = self.sensor_name
-                record.timestamp = record.timestamp if record.timestamp else date.today()
-                record.dataset_name = f"{self.sensor_name} Dataset"
-                record.record_info = record.record_info if record.record_info else {}
+            if not experiment_name or not season_name or not site_name:
+                raise ValueError("Experiment name, season name, and site name must be provided.")
+            
+            if len(timestamps) == 0:
+                raise ValueError("At least one timestamp must be provided.")
+            
+            if len(timestamps) != len(sensor_data) or len(timestamps) != len(record_info) or len(timestamps) != len(record_files):
+                raise ValueError("All input lists must have the same length.")
+            
+            if len(plot_numbers) != len(timestamps):
+                raise ValueError("Plot numbers list must have the same length as timestamps.")
+            
+            if len(plot_row_numbers) != len(timestamps):
+                raise ValueError("Plot row numbers list must have the same length as timestamps.")
+            
+            if len(plot_column_numbers) != len(timestamps):
+                raise ValueError("Plot column numbers list must have the same length as timestamps.")
+            
+            collection_date = collection_date if collection_date else timestamps[0].date()
+            sensor_records = []
+            timestamps_length = len(timestamps)
 
-            success = SensorRecord.add(records)
-            return success
+            for i in range(timestamps_length):
+                sensor_record = SensorRecord(
+                    timestamp=timestamps[i],
+                    collection_date=collection_date,
+                    sensor_id=self.id,
+                    sensor_name=self.sensor_name,
+                    sensor_data=sensor_data[i] if sensor_data else {},
+                    experiment_name=experiment_name,
+                    dataset_name=dataset_name if dataset_name else f"{self.sensor_name} Dataset",
+                    season_name=season_name,
+                    site_name=site_name,
+                    plot_number=plot_numbers[i] if plot_numbers else None,
+                    plot_row_number=plot_row_numbers[i] if plot_row_numbers else None,
+                    plot_column_number=plot_column_numbers[i] if plot_column_numbers else None,
+                    record_file=record_files[i] if record_files else None,
+                    record_info=record_info[i] if record_info else {}
+                )
+                sensor_records.append(sensor_record)
+
+            success, inserted_record_ids = SensorRecord.add(sensor_records)
+            return success, inserted_record_ids
         except Exception as e:
-            raise e
+            return False, []
 
     def get_records(
         self,

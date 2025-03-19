@@ -13,7 +13,7 @@ from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.views.experiment_views import ExperimentScriptsViewModel
 from gemini.db.models.associations import ExperimentScriptModel, ScriptDatasetModel
 from gemini.db.models.views.dataset_views import ScriptDatasetsViewModel
-from datetime import date
+from datetime import date, datetime
 
 
 class Script(APIBase):
@@ -215,34 +215,90 @@ class Script(APIBase):
                 
     def add_record(
         self,
-        record: ScriptRecord
-    ) -> bool:
+        timestamp: datetime = None,
+        collection_date: date = None,
+        dataset_name: str = None,
+        script_data: dict = {},
+        experiment_name: str = None,
+        season_name: str = None,
+        site_name: str = None,
+        record_file: str = None,
+        record_info: dict = {}
+    ) -> tuple[bool, List[str]]:
         try:
-            record.script_id = self.id
-            record.script_name = self.script_name
-            record.dataset_name = f"{self.script_name} Dataset"
-            record.timestamp = record.timestamp if record.timestamp else date.today()
+            if not experiment_name or not season_name or not site_name:
+                raise ValueError("Experiment name, season name, and site name must be provided.")
+            
+            timestamp = timestamp if timestamp else datetime.now()
+            collection_date = collection_date if collection_date else timestamp.date()
+            dataset_name = dataset_name if dataset_name else f"{self.script_name} Dataset"
+            script_name = self.script_name
+            script_id = self.id
 
-            success = ScriptRecord.add([record])
-            return success
+            script_record = ScriptRecord(
+                timestamp=timestamp,
+                collection_date=collection_date,
+                script_id=script_id,
+                script_name=script_name,
+                script_data=script_data,
+                dataset_name=dataset_name,
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name,
+                record_file=record_file if record_file else None,
+                record_info=record_info if record_info else {}
+            )
+            success, inserted_record_ids = ScriptRecord.add([script_record])
+            return success, inserted_record_ids
         except Exception as e:
-            raise e
+            return False, []
         
     def add_records(
         self,
-        records: List[ScriptRecord]
-    ) -> bool:
+        timestamps: List[datetime] = None,
+        collection_date: date = None,
+        script_data: List[dict] = [],
+        dataset_name: str = None,
+        experiment_name: str = None,
+        season_name: str = None,
+        site_name: str = None,
+        record_files: List[str] = None,
+        record_info: List[dict] = []
+    ) -> tuple[bool, List[str]]:
         try:
-            for record in records:
-                record.script_id = self.id
-                record.script_name = self.script_name
-                record.dataset_name = f"{self.script_name} Dataset"
-                record.timestamp = record.timestamp if record.timestamp else date.today()
+            if not experiment_name or not season_name or not site_name:
+                raise ValueError("Experiment name, season name, and site name must be provided.")
+            
+            if len(timestamps) == 0:
+                raise ValueError("At least one timestamp must be provided.")
+            
+            if len(timestamps) != len(script_data) or len(timestamps) != len(record_info) or len(timestamps) != len(record_files):
+                raise ValueError("All input lists must have the same length.")
+            
+            collection_date = collection_date if collection_date else timestamps[0].date()
+            script_records = []
+            timestamps_length = len(timestamps)
 
-            success = ScriptRecord.add(records)
-            return success
+            for i in range(timestamps_length):
+                script_record = ScriptRecord(
+                    timestamp=timestamps[i],
+                    collection_date=collection_date,
+                    script_id=self.id,
+                    script_name=self.script_name,
+                    script_data=script_data[i] if script_data else {},
+                    experiment_name=experiment_name,
+                    dataset_name=dataset_name if dataset_name else f"{self.script_name} Dataset",
+                    season_name=season_name,
+                    site_name=site_name,
+                    record_file=record_files[i] if record_files else None,
+                    record_info=record_info[i] if record_info else {}
+                )
+                script_records.append(script_record)
+
+            success, inserted_record_ids = ScriptRecord.add(script_records)
+            return success, inserted_record_ids
         except Exception as e:
-            raise e
+            return False, []
         
     def get_records(
         self,

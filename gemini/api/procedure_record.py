@@ -5,6 +5,7 @@ from uuid import UUID
 from gemini.api.types import ID
 from pydantic import Field, AliasChoices
 from gemini.api.base import APIBase, FileHandlerMixin
+from gemini.api.dataset import Dataset, GEMINIDatasetType
 from gemini.db.models.procedures import ProcedureModel
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.procedure_records import ProcedureRecordModel
@@ -162,7 +163,7 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
             raise e
 
     @classmethod
-    def add(cls, records: List['ProcedureRecord']) -> bool:
+    def add(cls, records: List['ProcedureRecord']) -> tuple[bool, List[str]]:
         try:
             records = cls._verify_records(records)
             records = [cls._preprocess_record(record) for record in records]
@@ -171,10 +172,10 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
                 record_to_insert = record.model_dump()
                 record_to_insert = {k: v for k, v in record_to_insert.items() if v is not None}
                 records_to_insert.append(record_to_insert)
-            ProcedureRecordModel.insert_bulk('procedure_records_unique', records_to_insert)
-            return True
+            inserted_record_ids = ProcedureRecordModel.insert_bulk('procedure_records_unique', records_to_insert)
+            return True, inserted_record_ids
         except Exception as e:
-            return False
+            return False, []
 
     @classmethod
     def get(cls, procedure_record_id: ID) -> 'ProcedureRecord':
@@ -353,9 +354,19 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
 
                 record.procedure_id = procedure.id
 
-                if record.dataset_name not in datasets and DatasetModel.exists(dataset_name=record.dataset_name):
-                    datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=record.dataset_name)
-                
+                if record.dataset_name not in datasets: 
+                    if DatasetModel.exists(dataset_name=record.dataset_name):
+                        datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=record.dataset_name)
+                    else:
+                        created_dataset = Dataset.create(
+                            dataset_name=record.dataset_name,
+                            experiment_name=record.experiment_name,
+                            dataset_type=GEMINIDatasetType.Procedure
+
+                        )
+                        ExperimentDatasetsViewModel.refresh()
+                        datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=created_dataset.dataset_name)
+
                 record.dataset_id = datasets[record.dataset_name].id
 
                 if record.experiment_name not in experiments and ExperimentDatasetsViewModel.exists(experiment_name=record.experiment_name, dataset_name=record.dataset_name):
@@ -456,7 +467,7 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
             site_name = record.site_name
             file_extension = os.path.splitext(file_path)[1]
             file_timestamp = str(int(record.timestamp.timestamp()*1000))
-            file_key = f"procedure_records/{experiment_name}/{procedure_name}/{collection_date}/{site_name}/{season_name}/{file_timestamp}{file_extension}"
+            file_key = f"procedure_data/{experiment_name}/{procedure_name}/{collection_date}/{site_name}/{season_name}/{file_timestamp}{file_extension}"
             return file_key
         except Exception as e:
             raise e

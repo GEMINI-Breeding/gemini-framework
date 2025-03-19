@@ -14,7 +14,7 @@ from gemini.db.models.associations import ExperimentModelModel, ModelDatasetMode
 from gemini.db.models.views.experiment_views import ExperimentModelsViewModel
 from gemini.db.models.views.dataset_views import ModelDatasetsViewModel
 
-from datetime import date
+from datetime import date, datetime
 
 class Model(APIBase):
 
@@ -207,34 +207,91 @@ class Model(APIBase):
 
     def add_record(
         self,
-        record: ModelRecord
-    ) -> bool:
+        timestamp: datetime = None,
+        collection_date: date = None,
+        dataset_name: str = None,
+        model_data: dict = {},
+        experiment_name: str = None,
+        season_name: str = None,
+        site_name: str = None,
+        record_file: str = None,
+        record_info: dict = {}
+    ) -> tuple[bool, List[str]]:
         try:
-            record.model_id = self.id
-            record.model_name = self.model_name
-            record.dataset_name = f"{self.model_name} Dataset"
-            record.timestamp = record.timestamp if record.timestamp else date.today()
 
-            success = ModelRecord.add([record])
-            return success
+            if not experiment_name or not season_name or not site_name:
+                raise ValueError("Experiment name, season name, and site name must be provided.")
+            
+            timestamp = timestamp if timestamp else datetime.now()
+            collection_date = collection_date if collection_date else timestamp.date()
+            dataset_name = dataset_name if dataset_name else f"{self.model_name} Dataset"
+            model_name = self.model_name
+            model_id = self.id
+
+            model_record = ModelRecord(
+                timestamp=timestamp,
+                collection_date=collection_date,
+                model_id=model_id,
+                model_name=model_name,
+                model_data=model_data,
+                dataset_name=dataset_name,
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name,
+                record_file=record_file if record_file else None,
+                record_info=record_info if record_info else {}
+            )
+            success, inserted_record_ids = ModelRecord.add([model_record])
+            return success, inserted_record_ids
         except Exception as e:
-            raise e
+            return False, []
         
     def add_records(
         self,
-        records: List[ModelRecord]
-    ) -> bool:
+        timestamps: List[datetime] = None,
+        collection_date: date = None,
+        model_data: List[dict] = [],
+        dataset_name: str = None,
+        experiment_name: str = None,
+        season_name: str = None,
+        site_name: str = None,
+        record_files: List[str] = None,
+        record_info: List[dict] = []
+    ) -> tuple[bool, List[str]]:
         try:
-            for record in records:
-                record.model_id = self.id
-                record.model_name = self.model_name
-                record.dataset_name = f"{self.model_name} Dataset"
-                record.timestamp = record.timestamp if record.timestamp else date.today()
+            if not experiment_name or not season_name or not site_name:
+                raise ValueError("Experiment name, season name, and site name must be provided.")
+            
+            if len(timestamps) == 0:
+                raise ValueError("At least one timestamp must be provided.")
+            
+            if len(timestamps) != len(model_data) or len(timestamps) != len(record_info) or len(timestamps) != len(record_files):
+                raise ValueError("All input lists must have the same length.")
+            
+            collection_date = collection_date if collection_date else timestamps[0].date()
+            model_records = []
+            timestamps_length = len(timestamps)
 
-            success = ModelRecord.add(records)
-            return success
+            for i in range(timestamps_length):
+                model_record = ModelRecord(
+                    timestamp=timestamps[i],
+                    collection_date=collection_date,
+                    model_id=self.id,
+                    model_name=self.model_name,
+                    model_data=model_data[i] if model_data else {},
+                    experiment_name=experiment_name,
+                    dataset_name=dataset_name if dataset_name else f"{self.model_name} Dataset",
+                    season_name=season_name,
+                    site_name=site_name,
+                    record_file=record_files[i] if record_files else None,
+                    record_info=record_info[i] if record_info else {}
+                )
+                model_records.append(model_record)
+
+            success, inserted_record_ids = ModelRecord.add(model_records)
+            return success, inserted_record_ids
         except Exception as e:
-            raise e
+            return False, []
         
     def get_records(
         self,

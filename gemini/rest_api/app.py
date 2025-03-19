@@ -4,7 +4,9 @@ from litestar.openapi.plugins import ScalarRenderPlugin, SwaggerRenderPlugin, Ra
 from litestar import Litestar
 from litestar.config.cors import CORSConfig
 from gemini.rest_api.controllers import controllers
-# from gemini.server.rest_api.controllers import controllers
+from gemini.rest_api.file_handler import RESTAPIFileHandler
+
+import os
 
 cors_config = CORSConfig(allow_origins=["*"])
 
@@ -32,6 +34,7 @@ for key, value in controllers.items():
         tags=[key.replace("_", " ").title()]
     )
     routers.append(router)
+
 
 # Entry point for the application
 app = Litestar(route_handlers=[root_handler] + routers, openapi_config=openapi_config, cors_config=cors_config)

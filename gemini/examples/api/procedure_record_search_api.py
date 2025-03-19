@@ -1,14 +1,14 @@
-from gemini.api.dataset import Dataset, DatasetRecord
+from gemini.api.procedure import Procedure
 import os
 from datetime import datetime, timedelta
 
-# Create Dataset X
-dataset = Dataset.create(
-    dataset_name="Dataset X",
-    experiment_name="Experiment A",
-    dataset_info={
-        "description": "Dataset X for Experiment A"
-    }
+# Create Procedure X
+procedure = Procedure.create(
+    procedure_name="Procedure X",
+    procedure_info={
+        "description": "Procedure X for Experiment A"
+    },
+    experiment_name="Experiment A"
 )
 
 # Starting timestamp for records
@@ -25,11 +25,11 @@ images.sort()
 single_image = images[0]
 other_images = images[1:]
 
-# Add a single record to Dataset A
-success, id_list = dataset.add_record(
+# Add a single record to Procedure X
+success, id_list = procedure.add_record(
     timestamp=starting_timestamp,
     collection_date=starting_timestamp.date(),
-    dataset_data={
+    procedure_data={
         "data": "test_data"
     },
     experiment_name="Experiment A",
@@ -42,15 +42,15 @@ success, id_list = dataset.add_record(
 )
 print(f"Added Record Success: {success}, IDs: {id_list}")
 
-# Add multiple records to Dataset A
+# Add multiple records to Procedure X
 timestamps = [starting_timestamp + timedelta(minutes=i+1) for i in range(9)]
-dataset_data = [{"data": f"test_data_{i}"} for i in range(9)]
+procedure_data = [{"data": f"test_data_{i}"} for i in range(9)]
 record_files = [os.path.join(images_folder, img) for img in other_images]
 record_info = [{"test_info": f"test_value_{i}"} for i in range(9)]
-success, id_list = dataset.add_records(
+success, id_list = procedure.add_records(
     timestamps=timestamps,
     collection_date=starting_timestamp.date(),
-    dataset_data=dataset_data,
+    procedure_data=procedure_data,
     experiment_name="Experiment A",
     season_name="Season 1A",
     site_name="Site A1",
@@ -59,8 +59,7 @@ success, id_list = dataset.add_records(
 )
 print(f"Added Records Success: {success}, IDs: {id_list}")
 
-
-# Get all dataset A records
-dataset_records = dataset.get_records(experiment_name="Experiment A")
-dataset_records = [record for record in dataset_records]
-print(f"Number of Records in Dataset A: {len(dataset_records)}")
+# Search for records in Procedure X
+procedure_records = procedure.get_records(experiment_name="Experiment A")
+procedure_records = [record for record in procedure_records]
+print(f"Number of Records: {len(procedure_records)}")
