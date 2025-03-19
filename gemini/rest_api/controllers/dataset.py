@@ -243,6 +243,7 @@ class DatasetController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
 
+
     # Search Dataset Records
     @get(path="/id/{dataset_id:str}/records")
     async def search_dataset_records(
@@ -277,5 +278,87 @@ class DatasetController(Controller):
             return Response(content=error_html, status_code=500)
     
 
+    # Get Dataset Record by ID
+    @get(path="/records/id/{record_id:str}")
+    async def get_dataset_record_by_id(
+        self, record_id: str
+    ) -> DatasetRecordOutput:
+        try:
+            dataset_record = DatasetRecord.get_by_id(id=record_id)
+            if dataset_record is None:
+                error_html = RESTAPIError(
+                    error="Dataset record not found",
+                    error_description="No dataset record was found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return dataset_record
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving the dataset record"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
         
+    # Update Dataset Record
+    @patch(path="/records/id/{record_id:str}")
+    async def update_dataset_record(
+        self, record_id: str, data: Annotated[DatasetRecordUpdate, Body]
+    ) -> DatasetRecordOutput:
+        try:
+            dataset_record = DatasetRecord.get_by_id(id=record_id)
+            if dataset_record is None:
+                error_html = RESTAPIError(
+                    error="Dataset record not found",
+                    error_description="No dataset record was found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            
+            dataset_record = dataset_record.update(
+                dataset_data=data.dataset_data,
+                record_info=data.record_info,
+            )
+            if dataset_record is None:
+                error_html = RESTAPIError(
+                    error="Dataset record not updated",
+                    error_description="The dataset record could not be updated"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return dataset_record
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while updating the dataset record"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
+    # Delete Dataset Record
+    @delete(path="/records/id/{record_id:str}")
+    async def delete_dataset_record(
+        self, record_id: str
+    ) -> None:
+        try:
+            dataset_record = DatasetRecord.get_by_id(id=record_id)
+            if dataset_record is None:
+                error_html = RESTAPIError(
+                    error="Dataset record not found",
+                    error_description="No dataset record was found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            is_deleted = dataset_record.delete()
+            if not is_deleted:
+                error_html = RESTAPIError(
+                    error="Dataset record not deleted",
+                    error_description="The dataset record could not be deleted"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return None
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while deleting the dataset record"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
     

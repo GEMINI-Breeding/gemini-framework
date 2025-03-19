@@ -331,6 +331,30 @@ Content-Disposition: form-data; name="record_file"; filename="example.txt" Conte
 
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
+###
+@createdDatasetRecordId = {{add_dataset_record.response.body.id}}
+
+### Get a dataset record by ID
+# @name get_dataset_record_by_id
+GET {{apiUrl}}/datasets/records/id/{{createdDatasetRecordId}}
+
+### Update a dataset record
+# @name update_dataset_record
+PATCH  {{apiUrl}}/datasets/records/id/{{createdDatasetRecordId}}
+Content-Type: application/json
+
+{
+    "dataset_data": {"data": "test updated"},
+    "record_info": {
+        "record_description": "Test Description A",
+        "record_notes": "Test Notes A"
+    }
+}
+
+### Delete a dataset record
+# @name delete_dataset_record
+DELETE {{apiUrl}}/datasets/records/id/{{createdDatasetRecordId}}
+
 
 // ------------------------
 // ---- Experiment API ----
