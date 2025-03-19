@@ -4,6 +4,7 @@ from litestar.params import Body
 from litestar.controller import Controller
 from litestar.response import Stream
 from litestar.serialization import encode_json
+from litestar.enums import RequestEncodingType
 
 from collections.abc import AsyncGenerator, Generator
 
@@ -21,6 +22,15 @@ from gemini.rest_api.models import (
     str_to_dict, 
     JSONB
 )
+
+from gemini.rest_api.models import (
+    ModelRecordInput,
+    ModelRecordOutput,
+    ModelRecordUpdate,
+    ModelRecordSearch
+)
+
+from gemini.rest_api.file_handler import api_file_handler
 
 from typing import List, Annotated, Optional
 
@@ -314,6 +324,60 @@ class ModelController(Controller):
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
+        
+    # Add a Model Record
+    @post(path="/id/{model_id:str}/records")
+    async def add_model_record(
+        self,
+        model_id: str,
+        data: Annotated[ModelRecordInput, Body(media_type=RequestEncodingType.MULTI_PART)]
+    ) -> ModelOutput:
+        try:
+            model = Model.get_by_id(id=model_id)
+            if model is None:
+                error_html = RESTAPIError(
+                    error="Model not found",
+                    error_description="The model with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            
+            if data.record_file:
+                record_file_path = await api_file_handler.create_file(data.record_file)
+
+            add_success, inserted_record_ids = model.add_record(
+                timestamp=data.timestamp,
+                collection_date=data.collection_date,
+                model_data=data.model_data,
+                dataset_name=data.dataset_name,
+                experiment_name=data.experiment_name,
+                season_name=data.season_name,
+                site_name=data.site_name,
+                record_file=record_file_path if data.record_file else None,
+                record_info=data.record_info
+            )
+            if not add_success:
+                error_html = RESTAPIError(
+                    error="Model record not added",
+                    error_description="The model record could not be added"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            inserted_record_id = inserted_record_ids[0]
+            inserted_model_record = ModelRecord.get_by_id(id=inserted_record_id)
+            if inserted_model_record is None:
+                error_html = RESTAPIError(
+                    error="Model record not found",
+                    error_description="The model record with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return inserted_model_record
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while adding the model record"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+            
 
     # Search Model Records
     @get(path="/id/{model_id:str}/records")
@@ -344,6 +408,92 @@ class ModelController(Controller):
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving model records"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+
+    # Get Model Record by ID
+    @get(path="/records/id/{model_record_id:str}")
+    async def get_model_record_by_id(
+        self, record_id: str
+    ) -> ModelRecordOutput:
+        try:
+            model_record = ModelRecord.get_by_id(id=record_id)
+            if model_record is None:
+                error_html = RESTAPIError(
+                    error="Model record not found",
+                    error_description="The model record with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return model_record
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving the model record"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+    # Update Model Record
+    @patch(path="/records/id/{model_record_id:str}")
+    async def update_model_record(
+        self,
+        model_record_id: str,
+        data: Annotated[ModelRecordUpdate, Body]
+    ) -> ModelRecordOutput:
+        try:
+            model_record = ModelRecord.get_by_id(id=model_record_id)
+            if model_record is None:
+                error_html = RESTAPIError(
+                    error="Model record not found",
+                    error_description="The model record with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            model_record = model_record.update(
+                model_data=data.model_data,
+                record_info=data.record_info
+            )
+            if model_record is None:
+                error_html = RESTAPIError(
+                    error="Model record not updated",
+                    error_description="The model record could not be updated"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return model_record
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while updating the model record"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+    # Delete Model Record
+    @delete(path="/records/id/{model_record_id:str}")
+    async def delete_model_record(
+        self, model_record_id: str
+    ) -> None:
+        try:
+            model_record = ModelRecord.get_by_id(id=model_record_id)
+            if model_record is None:
+                error_html = RESTAPIError(
+                    error="Model record not found",
+                    error_description="The model record with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            is_deleted = model_record.delete()
+            if not is_deleted:
+                error_html = RESTAPIError(
+                    error="Model record not deleted",
+                    error_description="The model record could not be deleted"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return None
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while deleting the model record"
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)

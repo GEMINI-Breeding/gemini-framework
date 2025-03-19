@@ -208,7 +208,6 @@ class Trait(APIBase):
         plot_number: int = -1,
         plot_row_number: int = -1,
         plot_column_number: int = -1,
-        record_file: str = None,
         record_info: dict = {}
     ) -> tuple[bool, List[str]]:
         try:
@@ -234,7 +233,6 @@ class Trait(APIBase):
                 plot_number=plot_number,
                 plot_row_number=plot_row_number,
                 plot_column_number=plot_column_number,
-                record_file=record_file,
                 record_info=record_info
             )
 
@@ -255,7 +253,6 @@ class Trait(APIBase):
         plot_numbers: List[int] = None,
         plot_row_numbers: List[int] = None,
         plot_column_numbers: List[int] = None,
-        record_files: List[str] = None,
         record_info: List[dict] = []
     ) -> tuple[bool, List[str]]:
         try:
@@ -295,7 +292,6 @@ class Trait(APIBase):
                     plot_number=plot_numbers[i],
                     plot_row_number=plot_row_numbers[i],
                     plot_column_number=plot_column_numbers[i],
-                    record_file=record_files[i] if record_files else None,
                     record_info=record_info[i] if record_info else {}
                 )
                 trait_records.append(trait_record)

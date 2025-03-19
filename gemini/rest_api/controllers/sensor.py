@@ -4,6 +4,7 @@ from litestar.params import Body
 from litestar.controller import Controller
 from litestar.response import Stream
 from litestar.serialization import encode_json
+from litestar.enums import RequestEncodingType
 
 from pydantic import BaseModel
 
@@ -15,6 +16,16 @@ from gemini.api.enums import GEMINISensorType, GEMINIDataType, GEMINIDataFormat
 from gemini.rest_api.models import SensorInput, SensorOutput, SensorUpdate, RESTAPIError, JSONB, str_to_dict
 from gemini.rest_api.models import DatasetOutput
 from typing import List, Annotated, Optional
+
+from gemini.rest_api.models import (
+    SensorRecordInput,
+    SensorRecordOutput,
+    SensorRecordSearch,
+    SensorRecordUpdate
+)
+
+from gemini.rest_api.file_handler import api_file_handler
+
 
 async def sensor_records_bytes_generator(sensor_record_generator: Generator[SensorOutput, None, None]) -> AsyncGenerator[bytes, None]:
     for record in sensor_record_generator:
@@ -246,6 +257,61 @@ class SensorController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
+    # Add Sensor Record
+    @post(path="/id/{sensor_id:str}/records")
+    async def add_sensor_record(
+        self,
+        sensor_id: str,
+        data: Annotated[SensorRecordInput, Body(media_type=RequestEncodingType.MULTI_PART)]
+    ) -> SensorRecordOutput:
+        try:
+            sensor = Sensor.get_by_id(id=sensor_id)
+            if sensor is None:
+                error_html = RESTAPIError(
+                    error="Sensor not found",
+                    error_description="The sensor with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            
+            if data.record_file:
+                record_file_path = await api_file_handler.create_file(data.record_file)
+
+            add_success, inserted_record_ids = sensor.add_record(
+                timestamp=data.timestamp,
+                collection_date=data.collection_date,
+                sensor_data=data.sensor_data,
+                dataset_name=data.dataset_name,
+                experiment_name=data.experiment_name,
+                season_name=data.season_name,
+                site_name=data.site_name,
+                plot_number=data.plot_number,
+                plot_row_number=data.plot_row_number,
+                plot_column_number=data.plot_column_number,
+                record_file=record_file_path if data.record_file else None,
+                record_info=data.record_info
+            )
+            if not add_success:
+                error_html = RESTAPIError(
+                    error="Failed to add sensor record",
+                    error_description="An error occurred while adding the sensor record"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            inserted_record_id = inserted_record_ids[0]
+            inserted_sensor_record = SensorRecord.get_by_id(id=inserted_record_id)
+            if inserted_sensor_record is None:
+                error_html = RESTAPIError(
+                    error="Sensor record not found",
+                    error_description="The sensor record with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return inserted_sensor_record
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while adding sensor record"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
 
     # Search Sensor Records
     @get(path="/id/{sensor_id:str}/records")
@@ -285,4 +351,89 @@ class SensorController(Controller):
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
-            
+        
+    # Get Sensor Record by ID
+    @get(path="/records/id/{record_id:str}")
+    async def get_sensor_record_by_id(
+        self, record_id: str
+    ) -> SensorRecordOutput:
+        try:
+            sensor_record = SensorRecord.get_by_id(id=record_id)
+            if sensor_record is None:
+                error_html = RESTAPIError(
+                    error="Sensor record not found",
+                    error_description="The sensor record with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return sensor_record
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving sensor record"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+    # Update Sensor Record
+    @patch(path="/records/id/{record_id:str}")
+    async def update_sensor_record(
+        self,
+        record_id: str,
+        data: Annotated[SensorRecordUpdate, Body]
+    ) -> SensorRecordOutput:
+        try:
+            sensor_record = SensorRecord.get_by_id(id=record_id)
+            if sensor_record is None:
+                error_html = RESTAPIError(
+                    error="Sensor record not found",
+                    error_description="The sensor record with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            sensor_record = sensor_record.update(
+                sensor_data=data.sensor_data,
+                record_info=data.record_info,
+            )
+            if sensor_record is None:
+                error_html = RESTAPIError(
+                    error="Failed to update sensor record",
+                    error_description="An error occurred while updating the sensor record"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return sensor_record
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while updating sensor record"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+
+    # Delete Sensor Record
+    @delete(path="/records/id/{record_id:str}")
+    async def delete_sensor_record(
+        self, record_id: str
+    ) -> None:
+        try:
+            sensor_record = SensorRecord.get_by_id(id=record_id)
+            if sensor_record is None:
+                error_html = RESTAPIError(
+                    error="Sensor record not found",
+                    error_description="The sensor record with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            is_deleted = sensor_record.delete()
+            if not is_deleted:
+                error_html = RESTAPIError(
+                    error="Failed to delete sensor record",
+                    error_description="An error occurred while deleting the sensor record"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while deleting sensor record"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+

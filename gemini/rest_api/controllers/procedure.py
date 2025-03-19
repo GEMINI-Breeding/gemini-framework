@@ -4,6 +4,7 @@ from litestar.params import Body
 from litestar.controller import Controller
 from litestar.response import Stream
 from litestar.serialization import encode_json
+from litestar.enums import RequestEncodingType
 
 from collections.abc import AsyncGenerator, Generator
 
@@ -22,7 +23,17 @@ from gemini.rest_api.models import (
     str_to_dict
 )
 
+from gemini.rest_api.models import (
+    ProcedureRecordInput,
+    ProcedureRecordOutput,
+    ProcedureRecordUpdate,
+    ProcedureRecordSearch
+)
+
+from gemini.rest_api.file_handler import api_file_handler
+
 from typing import List, Annotated, Optional
+
 
 async def procedure_records_bytes_generator(procedure_record_generator : Generator[ProcedureRecord, None, None]) -> AsyncGenerator[bytes, None]:
     for record in procedure_record_generator:
@@ -307,6 +318,57 @@ class ProcedureController(Controller):
             ).to_html()
             return Response(content=error_html, status_code=500)
         
+    # Add a Procedure Record
+    @post(path="/id/{procedure_id:str}/records")
+    async def add_procedure_record(
+        self,
+        procedure_id: str,
+        data: Annotated[ProcedureRecordInput, Body(media_type=RequestEncodingType.MULTI_PART)]
+    ) -> ProcedureRecordOutput:
+        try:
+            procedure = Procedure.get_by_id(id=procedure_id)
+            if procedure is None:
+                error_html = RESTAPIError(
+                    error="Procedure Not Found",
+                    error_description="No procedure found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            if data.record_file:
+                record_file_path = await api_file_handler.create_file(data.record_file)
+
+            add_success, inserted_record_ids = procedure.add_record(
+                timestamp=data.timestamp,
+                collection_date=data.collection_date,
+                procedure_data=data.procedure_data,
+                dataset_name=data.dataset_name,
+                experiment_name=data.experiment_name,
+                season_name=data.season_name,
+                site_name=data.site_name,
+                record_file=record_file_path if data.record_file else None,
+                record_info=data.record_info
+            )
+            if not add_success:
+                error_html = RESTAPIError(
+                    error="Procedure Record Addition Failed",
+                    error_description="Failed to add the procedure record"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            inserted_record_id = inserted_record_ids[0]
+            inserted_procedure_record = ProcedureRecord.get_by_id(id=inserted_record_id)
+            if inserted_procedure_record is None:
+                error_html = RESTAPIError(
+                    error="Procedure Record Not Found",
+                    error_description="No procedure record found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return inserted_procedure_record
+        except Exception as e:
+            error_html = RESTAPIError(
+                error="Internal Server Error",
+                error_description=str(e)
+            ).to_html()
+            return Response(content=error_html, status_code=500)
+        
     # Get Procedure Records
     @get(path="/id/{procedure_id:str}/records")
     async def search_procedure_records(
@@ -338,5 +400,86 @@ class ProcedureController(Controller):
                 error_description=str(e)
             ).to_html()
             return Response(content=error_html, status_code=500)
+        
+    # Get Procedure Record by ID
+    @get(path="/records/id/{procedure_record_id:str}")
+    async def get_procedure_record_by_id(
+        self, procedure_record_id: str
+    ) -> ProcedureRecordOutput:
+        try:
+            record = ProcedureRecord.get_by_id(id=procedure_record_id)
+            if record is None:
+                error_html = RESTAPIError(
+                    error="Procedure Record Not Found",
+                    error_description="No procedure record found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return record
+        except Exception as e:
+            error_html = RESTAPIError(
+                error="Internal Server Error",
+                error_description=str(e)
+            ).to_html()
+            return Response(content=error_html, status_code=500)
     
             
+    # Update Procedure Record
+    @patch(path="/records/id/{procedure_record_id:str}")
+    async def update_procedure_record(
+        self,
+        procedure_record_id: str,
+        data: Annotated[ProcedureRecordUpdate, Body]
+    ) -> ProcedureRecordOutput:
+        try:
+            procedure_record = ProcedureRecord.get_by_id(id=procedure_record_id)
+            if procedure_record is None:
+                error_html = RESTAPIError(
+                    error="Procedure Record Not Found",
+                    error_description="No procedure record found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            procedure_record = procedure_record.update(
+                procedure_data=data.procedure_data,
+                record_info=data.record_info
+            )
+            if not procedure_record:
+                error_html = RESTAPIError(
+                    error="Procedure Record Update Failed",
+                    error_description="Failed to update the procedure record"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return procedure_record
+        except Exception as e:
+            error_html = RESTAPIError(
+                error="Internal Server Error",
+                error_description=str(e)
+            ).to_html()
+            return Response(content=error_html, status_code=500)
+        
+    # Delete Procedure Record
+    @delete(path="/records/id/{procedure_record_id:str}")
+    async def delete_procedure_record(
+        self, procedure_record_id: str
+    ) -> None:
+        try:
+            procedure_record = ProcedureRecord.get_by_id(id=procedure_record_id)
+            if procedure_record is None:
+                error_html = RESTAPIError(
+                    error="Procedure Record Not Found",
+                    error_description="No procedure record found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            is_deleted = procedure_record.delete()
+            if not is_deleted:
+                error_html = RESTAPIError(
+                    error="Procedure Record Deletion Failed",
+                    error_description="Failed to delete the procedure record"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return None
+        except Exception as e:
+            error_html = RESTAPIError(
+                error="Internal Server Error",
+                error_description=str(e)
+            ).to_html()
+            return Response(content=error_html, status_code=500)

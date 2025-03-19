@@ -4,6 +4,7 @@ from litestar.params import Body
 from litestar.controller import Controller
 from litestar.response import Stream
 from litestar.serialization import encode_json
+from litestar.enums import RequestEncodingType
 
 from collections.abc import AsyncGenerator, Generator
 
@@ -21,6 +22,15 @@ from gemini.rest_api.models import (
     JSONB, 
     str_to_dict
 )
+
+from gemini.rest_api.models import (
+    ScriptRecordInput,
+    ScriptRecordOutput,
+    ScriptRecordUpdate,
+    ScriptRecordSearch,
+)
+
+from gemini.rest_api.file_handler import api_file_handler
 
 from typing import List, Annotated, Optional
 
@@ -321,7 +331,60 @@ class ScriptController(Controller):
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
-        
+    
+
+    # Add a Script Record
+    @post(path="/id/{script_id:str}/records")
+    async def add_script_record(
+        self,
+        script_id: str,
+        data: Annotated[ScriptRecordInput, Body(media_type=RequestEncodingType.MULTI_PART)]
+    ) -> ScriptRecordOutput:
+        try:
+            script = Script.get_by_id(id=script_id)
+            if script is None:
+                error_html = RESTAPIError(
+                    error="Script not found",
+                    error_description="The script with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            
+            if data.record_file:
+                record_file_path = await api_file_handler.create_file(data.record_file)
+
+            add_success, inserted_record_ids = script.add_record(
+                timestamp=data.timestamp,
+                collection_date=data.collection_date,
+                script_data=data.script_data,
+                dataset_name=data.dataset_name,
+                experiment_name=data.experiment_name,
+                season_name=data.season_name,
+                site_name=data.site_name,
+                record_file_path=record_file_path if data.record_file else None,
+                record_info=data.record_info
+            )
+            if not add_success:
+                error_html = RESTAPIError(
+                    error="Script record not added",
+                    error_description="The script record was not added"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            inserted_record_id = inserted_record_ids[0]
+            inserted_script_record = ScriptRecord.get_by_id(id=inserted_record_id)
+            if inserted_script_record is None:
+                error_html = RESTAPIError(
+                    error="Script record not found",
+                    error_description="The script record with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return inserted_script_record
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while adding the script record"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500) 
 
     # Search Script Records
     @get(path="/id/{script_id:str}/records")
@@ -357,4 +420,90 @@ class ScriptController(Controller):
             return Response(content=error_html, status_code=500)
 
         
-     
+    # Get Script Record by ID
+    @get(path="/records/id/{record_id:str}")
+    async def get_script_record_by_id(
+        self,
+        record_id: str
+    ) -> ScriptRecordOutput:
+        try:
+            script_record = ScriptRecord.get_by_id(id=record_id)
+            if script_record is None:
+                error_html = RESTAPIError(
+                    error="Script record not found",
+                    error_description="The script record with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return script_record
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving the script record"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+    # Update Script Record
+    @patch(path="/records/id/{record_id:str}")
+    async def update_script_record(
+        self,
+        record_id: str,
+        data: Annotated[ScriptRecordUpdate, Body]
+    ) -> ScriptRecordOutput:
+        try:
+            script_record = ScriptRecord.get_by_id(id=record_id)
+            if script_record is None:
+                error_html = RESTAPIError(
+                    error="Script record not found",
+                    error_description="The script record with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            script_record = script_record.update(
+                script_data=data.script_data,
+                record_info=data.record_info
+            )
+            if script_record is None:
+                error_html = RESTAPIError(
+                    error="Script record not updated",
+                    error_description="The script record was not updated"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return script_record
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while updating the script record"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+
+    # Delete Script Record
+    @delete(path="/records/id/{record_id:str}")
+    async def delete_script_record(
+        self,
+        record_id: str
+    ) -> None:
+        try:
+            script_record = ScriptRecord.get_by_id(id=record_id)
+            if script_record is None:
+                error_html = RESTAPIError(
+                    error="Script record not found",
+                    error_description="The script record with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            is_deleted = script_record.delete()
+            if not is_deleted:
+                error_html = RESTAPIError(
+                    error="Script record not deleted",
+                    error_description="The script record was not deleted"
+                ).to_html()
+                return Response(content=error_html, status_code=500)
+            return None
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while deleting the script record"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)

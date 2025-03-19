@@ -710,7 +710,6 @@ class DatasetRecordOutput(RESTAPIBase):
 class ModelRecordInput(RESTAPIBase):
     timestamp: datetime
     dataset_name: str
-    model_name: str
     model_data: JSONB
     collection_date: Optional[datetime] = None
     experiment_name: Optional[str] = None
@@ -763,7 +762,6 @@ class ModelRecordOutput(RESTAPIBase):
 class ProcedureRecordInput(RESTAPIBase):
     timestamp: datetime
     dataset_name: str 
-    procedure_name: str
     procedure_data: JSONB
     collection_date: Optional[datetime] = None
     experiment_name: Optional[str] = None
@@ -814,7 +812,6 @@ class ProcedureRecordOutput(RESTAPIBase):
 class ScriptRecordInput(RESTAPIBase):
     timestamp: datetime
     dataset_name: str
-    script_name: str
     script_data: JSONB
     collection_date: Optional[datetime] = None
     experiment_name: Optional[str] = None
@@ -865,7 +862,6 @@ class ScriptRecordOutput(RESTAPIBase):
 
 class SensorRecordInput(RESTAPIBase):
     timestamp: datetime
-    sensor_name: str
     sensor_data: JSONB
     collection_date: Optional[datetime] = None
     experiment_name: Optional[str] = None
@@ -927,9 +923,9 @@ class SensorRecordOutput(RESTAPIBase):
 
 class TraitRecordInput(RESTAPIBase):
     timestamp: datetime
-    trait_name: str
     trait_value: float
     collection_date: Optional[datetime] = None
+    dataset_name: Optional[str] = None
     experiment_name: Optional[str] = None
     season_name: Optional[str] = None
     site_name: Optional[str] = None
