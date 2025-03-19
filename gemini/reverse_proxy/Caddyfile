@@ -1,13 +1,25 @@
+{
+  email pghate@ucdavis.edu
+}
+
 :80 {
+	tls pghate@ucdavis.edu
 	basic_auth {
 		gemini $2a$14$KDGw4jgqBrvubieapxBtyOUU1bI/rvBzlbpehuXuk89F1EsK2tAoK
 	}
 	respond "Caddy is running!"
 }
 
-pranavghate.me {
-	basic_auth {
-		gemini $2a$14$KDGw4jgqBrvubieapxBtyOUU1bI/rvBzlbpehuXuk89F1EsK2tAoK
-	}
-	respond "Welcome to GEMINI!"
+storage.pranavghate.me {
+	tls pghate@ucdavis.edu
+	reverse_proxy gemini-storage:9001
+}
+
+api.pranavghate.me {
+	tls pghate@ucdavis.edu
+	reverse_proxy gemini-rest-api:8080
+}
+
+db.pranavghate.me {
+	reverse_proxy gemini-db:5432
 }
