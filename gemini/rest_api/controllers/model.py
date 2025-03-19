@@ -414,7 +414,7 @@ class ModelController(Controller):
         
 
     # Get Model Record by ID
-    @get(path="/records/id/{model_record_id:str}")
+    @get(path="/records/id/{record_id:str}")
     async def get_model_record_by_id(
         self, record_id: str
     ) -> ModelRecordOutput:
@@ -436,14 +436,14 @@ class ModelController(Controller):
             return Response(content=error_html, status_code=500)
         
     # Update Model Record
-    @patch(path="/records/id/{model_record_id:str}")
+    @patch(path="/records/id/{record_id:str}")
     async def update_model_record(
         self,
-        model_record_id: str,
+        record_id: str,
         data: Annotated[ModelRecordUpdate, Body]
     ) -> ModelRecordOutput:
         try:
-            model_record = ModelRecord.get_by_id(id=model_record_id)
+            model_record = ModelRecord.get_by_id(id=record_id)
             if model_record is None:
                 error_html = RESTAPIError(
                     error="Model record not found",
@@ -470,12 +470,12 @@ class ModelController(Controller):
             return Response(content=error_html, status_code=500)
         
     # Delete Model Record
-    @delete(path="/records/id/{model_record_id:str}")
+    @delete(path="/records/id/{record_id:str}")
     async def delete_model_record(
-        self, model_record_id: str
+        self, record_id: str
     ) -> None:
         try:
-            model_record = ModelRecord.get_by_id(id=model_record_id)
+            model_record = ModelRecord.get_by_id(id=record_id)
             if model_record is None:
                 error_html = RESTAPIError(
                     error="Model record not found",
