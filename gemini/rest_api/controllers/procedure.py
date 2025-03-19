@@ -412,7 +412,7 @@ class ProcedureController(Controller):
                 season_name=season_name,
                 site_name=site_name
             )
-            return Stream(procedure_records_bytes_generator(records))
+            return Stream(procedure_records_bytes_generator(records), media_type="application/ndjson")
         except Exception as e:
             error_html = RESTAPIError(
                 error="Internal Server Error",

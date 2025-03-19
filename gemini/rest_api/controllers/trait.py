@@ -369,7 +369,7 @@ class TraitController(Controller):
                 plot_column_number=plot_column_number,
                 collection_date=collection_date
             )
-            return Stream(trait_records_bytes_generator(trait_records))
+            return Stream(trait_records_bytes_generator(trait_records), media_type="application/ndjson")
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),

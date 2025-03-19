@@ -288,7 +288,7 @@ class DatasetController(Controller):
                 site_name=site_name,
                 collection_date=collection_date
             )
-            return Stream(dataset_records_bytes_generator(records))
+            return Stream(dataset_records_bytes_generator(records), media_type="application/ndjson")
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),

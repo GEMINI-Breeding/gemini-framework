@@ -363,7 +363,7 @@ class SensorController(Controller):
                 plot_row_number=plot_row_number,
                 plot_column_number=plot_column_number
             )
-            return Stream(sensor_records_bytes_generator(sensor_record_generator))
+            return Stream(sensor_records_bytes_generator(sensor_record_generator), media_type="application/ndjson")
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),

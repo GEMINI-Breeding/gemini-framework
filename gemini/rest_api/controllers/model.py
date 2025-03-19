@@ -423,7 +423,7 @@ class ModelController(Controller):
                 season_name=season_name,
                 site_name=site_name
             )
-            return Stream(model_records_bytes_generator(model_records))
+            return Stream(model_records_bytes_generator(model_records), media_type="application/ndjson")
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),

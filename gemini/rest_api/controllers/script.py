@@ -430,7 +430,7 @@ class ScriptController(Controller):
                 site_name=site_name,
                 collection_date=collection_date
             )
-            return Stream(script_records_bytes_generator(script_records))
+            return Stream(script_records_bytes_generator(script_records), media_type="application/ndjson")
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
