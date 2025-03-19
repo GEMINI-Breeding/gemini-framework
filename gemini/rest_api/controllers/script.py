@@ -360,7 +360,7 @@ class ScriptController(Controller):
                 experiment_name=data.experiment_name,
                 season_name=data.season_name,
                 site_name=data.site_name,
-                record_file_path=record_file_path if data.record_file else None,
+                record_file=record_file_path if data.record_file else None,
                 record_info=data.record_info
             )
             if not add_success:
