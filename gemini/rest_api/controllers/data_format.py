@@ -18,6 +18,27 @@ from typing import List, Annotated, Optional
 
 class DataFormatController(Controller):
 
+
+    # Get All Data Formats
+    @get(path="/all")
+    async def get_all_data_formats(self) -> List[DataFormatOutput]:
+        try:
+            data_formats = DataFormat.get_all()
+            if data_formats is None:
+                error_html = RESTAPIError(
+                    error="No data formats found",
+                    error_description="No data formats were found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return data_formats
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving all data formats"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
     # Get Data Formats
     @get()
     async def get_data_formats(

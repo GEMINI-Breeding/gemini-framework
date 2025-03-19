@@ -54,6 +54,25 @@ class ProcedureDatasetInput(BaseModel):
 
 class ProcedureController(Controller):
 
+    # Get All Procedures
+    @get(path="/all")
+    async def get_all_procedures(self) -> List[ProcedureOutput]:
+        try:
+            procedures = Procedure.get_all()
+            if procedures is None:
+                error_html = RESTAPIError(
+                    error="No Procedures Found",
+                    error_description="No procedures found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return procedures
+        except Exception as e:
+            error_html = RESTAPIError(
+                error="Internal Server Error",
+                error_description=str(e)
+            ).to_html()
+            return Response(content=error_html, status_code=500)
+
     # Get Procedures
     @get()
     async def get_procedures(

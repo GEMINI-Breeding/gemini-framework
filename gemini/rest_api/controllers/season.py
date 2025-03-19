@@ -17,6 +17,26 @@ from typing import List, Annotated, Optional
 
 class SeasonController(Controller):
 
+    # Get All Seasons
+    @get(path="/all")
+    async def get_all_seasons(self) -> List[SeasonOutput]:
+        try:
+            seasons = Season.get_all()
+            if seasons is None:
+                error_html = RESTAPIError(
+                    error="No seasons found",
+                    error_description="No seasons were found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return seasons
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving all seasons"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
     # Get Seasons
     @get()
     async def get_seasons(

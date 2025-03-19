@@ -18,6 +18,26 @@ from gemini.rest_api.models import (
 from typing import List, Annotated, Optional
 
 class DataTypeController(Controller):
+    
+    # Get All Data Types
+    @get(path="/all")
+    async def get_all_data_types(self) -> List[DataTypeOutput]:
+        try:
+            data_types = DataType.get_all()
+            if data_types is None:
+                error_html = RESTAPIError(
+                    error="No data types found",
+                    error_description="No data types were found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return data_types
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving all data types"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
 
     # Get Data Types
     @get()

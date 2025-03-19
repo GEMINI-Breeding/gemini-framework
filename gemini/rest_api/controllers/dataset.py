@@ -41,6 +41,26 @@ async def dataset_records_bytes_generator(dataset_record_generator: Generator[Da
 
 class DatasetController(Controller):
 
+    # Get All Datasets
+    @get(path="/all")
+    async def get_all_datasets(self) -> List[DatasetOutput]:
+        try:
+            datasets = Dataset.get_all()
+            if datasets is None:
+                error_html = RESTAPIError(
+                    error="No datasets found",
+                    error_description="No datasets were found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return datasets
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving all datasets"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
     # Get Datasets
     @get()
     async def get_datasets(

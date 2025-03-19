@@ -10,6 +10,26 @@ from typing import List, Annotated, Optional
 
 class TraitLevelController(Controller):
 
+    # Get All Trait Levels
+    @get(path="/all")
+    async def get_all_trait_levels(self) -> List[TraitLevelOutput]:
+        try:
+            trait_levels = TraitLevel.get_all()
+            if trait_levels is None:
+                error_html = RESTAPIError(
+                    error="No trait levels found",
+                    error_description="No trait levels were found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return trait_levels
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving all trait levels"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
     # Get all Trait Levels
     @get()
     async def get_trait_levels(

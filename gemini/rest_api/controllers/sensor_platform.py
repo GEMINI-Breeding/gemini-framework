@@ -22,6 +22,26 @@ class SensorPlatformSensorInput(BaseModel):
 
 class SensorPlatformController(Controller):
 
+    # Get All Sensor Platforms
+    @get(path="/all")
+    async def get_all_sensor_platforms(self) -> List[SensorPlatformOutput]:
+        try:
+            sensor_platforms = SensorPlatform.get_all()
+            if sensor_platforms is None:
+                error_html = RESTAPIError(
+                    error="No sensor platforms found",
+                    error_description="No sensor platforms were found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return sensor_platforms
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving all sensor platforms"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
     # Get Sensor Platforms
     @get()
     async def get_sensor_platforms(

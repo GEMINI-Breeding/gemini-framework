@@ -83,6 +83,26 @@ class ExperimentDatasetInput(BaseModel):
 
 class ExperimentController(Controller):
 
+    # Get All Experiments
+    @get(path="/all")
+    async def get_all_experiments(self) -> List[ExperimentOutput]:
+        try:
+            experiments = Experiment.get_all()
+            if experiments is None:
+                error_html = RESTAPIError(
+                    error="No experiments found",
+                    error_description="No experiments were found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return experiments
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving all experiments"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
     # Get Experiments
     @get()
     async def get_experiments(

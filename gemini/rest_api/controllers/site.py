@@ -10,6 +10,25 @@ from typing import List, Annotated, Optional
 
 class SiteController(Controller):
 
+    # Get All Sites
+    @get(path="/all")
+    async def get_all_sites(self) -> List[SiteOutput]:
+        try:
+            sites = Site.get_all()
+            if sites is None:
+                error_html = RESTAPIError(
+                    error="No sites found",
+                    error_description="No sites were found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return sites
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving all sites"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
 
     # Get Sites
     @get()

@@ -17,6 +17,26 @@ class PlantCultivarInput(BaseModel):
 
 class PlantController(Controller):
 
+    # Get All Plants
+    @get(path="/all")
+    async def get_all_plants(self) -> List[PlantOutput]:
+        try:
+            plants = Plant.get_all()
+            if plants is None:
+                error_html = RESTAPIError(
+                    error="No plants found",
+                    error_description="No plants were found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return plants
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving all plants"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
     # Get all Plants
     @get()
     async def get_plants(

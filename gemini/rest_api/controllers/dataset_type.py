@@ -17,6 +17,26 @@ from typing import List, Annotated, Optional
 
 class DatasetTypeController(Controller):
 
+    # Get All Dataset Types
+    @get(path="/all")
+    async def get_all_dataset_types(self) -> List[DatasetTypeOutput]:
+        try:
+            dataset_types = DatasetType.get_all()
+            if dataset_types is None:
+                error_html = RESTAPIError(
+                    error="No dataset types found",
+                    error_description="No dataset types were found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return dataset_types
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving all dataset types"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
     # Get Dataset Types
     @get()
     async def get_dataset_types(

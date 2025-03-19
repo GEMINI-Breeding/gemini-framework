@@ -49,6 +49,11 @@ class GEMINISettings(BaseSettings):
     GEMINI_REST_API_HOSTNAME : Optional[str] = "gemini-rest-api"
     GEMINI_REST_API_PORT : Optional[int] = 7777
 
+    # Reverse Proxy
+    GEMINI_REVERSE_PROXY_CONTAINER_NAME : Optional[str] = "gemini-reverse-proxy"
+    GEMINI_REVERSE_PROXY_IMAGE_NAME : Optional[str] = "gemini/reverse-proxy"
+    GEMINI_REVERSE_PROXY_HOSTNAME : Optional[str] = "gemini-reverse-proxy"
+
     def model_post_init(self, __context: Any) -> None:
         is_local = self.GEMINI_LOCAL
         if is_local:

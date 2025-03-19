@@ -43,6 +43,26 @@ class SensorDatasetInput(BaseModel):
 
 class SensorController(Controller):
 
+    # Get All Sensors
+    @get(path="/all")
+    async def get_all_sensors(self) -> List[SensorOutput]:
+        try:
+            sensors = Sensor.get_all()
+            if sensors is None:
+                error_html = RESTAPIError(
+                    error="No sensors found",
+                    error_description="No sensors were found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return sensors
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving all sensors"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
     # Get Sensors
     @get()
     async def get_sensors(

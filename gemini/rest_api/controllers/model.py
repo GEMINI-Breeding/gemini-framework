@@ -53,6 +53,26 @@ class ModelDatasetInput(BaseModel):
 
 class ModelController(Controller):
 
+    # Get All Models
+    @get(path="/all")
+    async def get_all_models(self) -> List[ModelOutput]:
+        try:
+            models = Model.get_all()
+            if models is None:
+                error_html = RESTAPIError(
+                    error="No models found",
+                    error_description="No models were found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return models
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving all models"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
     # Get Models
     @get()
     async def get_models(

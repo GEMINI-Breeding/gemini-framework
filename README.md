@@ -8,17 +8,17 @@ Many staple crops that are important for food, nutritional, and economic securit
 
 ## Requirements
 
-- Windows, Unix and MacOS (x86 and Apple Silicon)
-- Local Installation of [PostgreSQL Database](https://www.postgresql.org/download/)
+- Linux (Native, on Windows via WSL, and on Apple Silicon via Parallels)
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - Minimum 16GB RAM
-- Minimum 256GB storage
-- Python >=3.8
-- [Task](https://taskfile.dev/installation/)
+- Minimum 256 GB Storage
+- Python >= 3.10
+- [Poetry](https://python-poetry.org/docs/)
+
 
 ## Installation Steps
 
-Install all the prerequisites above before continuing
+Please install all the prerequisites above before continuing
 
 #### Step 1
 

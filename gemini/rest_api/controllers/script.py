@@ -54,6 +54,26 @@ class ScriptDatasetInput(BaseModel):
 
 class ScriptController(Controller):
 
+    # Get All Scripts
+    @get(path="/all")
+    async def get_all_scripts(self) -> List[ScriptOutput]:
+        try:
+            scripts = Script.get_all()
+            if scripts is None:
+                error_html = RESTAPIError(
+                    error="No scripts found",
+                    error_description="No scripts were found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return scripts
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving all scripts"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
     # Get Scripts
     @get()
     async def get_scripts(

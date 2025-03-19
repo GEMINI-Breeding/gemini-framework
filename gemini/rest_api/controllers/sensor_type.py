@@ -10,6 +10,26 @@ from typing import List, Annotated, Optional
 
 class SensorTypeController(Controller):
 
+    # Get All Sensor Types
+    @get(path="/all")
+    async def get_all_sensor_types(self) -> List[SensorTypeOutput]:
+        try:
+            sensor_types = SensorType.get_all()
+            if sensor_types is None:
+                error_html = RESTAPIError(
+                    error="No sensor types found",
+                    error_description="No sensor types were found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return sensor_types
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving all sensor types"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
     # Get all Sensor Types
     @get()
     async def get_sensor_types(

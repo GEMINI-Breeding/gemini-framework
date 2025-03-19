@@ -17,6 +17,26 @@ from typing import List, Annotated, Optional
 
 class CultivarController(Controller):
 
+    # Get All Cultivars
+    @get(path="/all")
+    async def get_all_cultivars(self) -> List[CultivarOutput]:
+        try:
+            cultivars = Cultivar.get_all()
+            if cultivars is None:
+                error_html = RESTAPIError(
+                    error="No cultivars found",
+                    error_description="No cultivars were found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return cultivars
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving all cultivars"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
     # Get Cultivars
     @get()
     async def get_cultivars(

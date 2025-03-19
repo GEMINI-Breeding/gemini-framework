@@ -44,6 +44,26 @@ class TraitDatasetInput(BaseModel):
 
 class TraitController(Controller):
 
+    # Get All Traits
+    @get(path="/all")
+    async def get_all_traits(self) -> List[TraitOutput]:
+        try:
+            traits = Trait.get_all()
+            if traits is None:
+                error_html = RESTAPIError(
+                    error="No traits found",
+                    error_description="No traits were found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return traits
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving all traits"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
     # Get Traits
     @get()
     async def get_traits(

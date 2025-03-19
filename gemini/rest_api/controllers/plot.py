@@ -39,6 +39,26 @@ class PlotPlantInput(BaseModel):
 
 class PlotController(Controller):
 
+    # Get All Plots
+    @get(path="/all")
+    async def get_all_plots(self) -> List[PlotOutput]:
+        try:
+            plots = Plot.get_all()
+            if plots is None:
+                error_html = RESTAPIError(
+                    error="No plots found",
+                    error_description="No plots were found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            return plots
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving all plots"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
     # Get Plots
     @get()
     async def get_plots(
