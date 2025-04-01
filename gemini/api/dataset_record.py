@@ -207,7 +207,7 @@ class DatasetRecord(APIBase, FileHandlerMixin):
         season_name: str = None,
         site_name: str = None,
         collection_date: date = None,
-        record_info: dict = None
+        record_info: dict = None,
     ) -> Generator['DatasetRecord', None, None]:
         try:
 

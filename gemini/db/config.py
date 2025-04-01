@@ -2,7 +2,7 @@
 
 import os
 from pydantic import BaseModel, field_validator
-from sqlalchemy.pool import QueuePool
+from sqlalchemy.pool import QueuePool, AsyncAdaptedQueuePool
 
 class DatabaseConfig(BaseModel):
     """
@@ -24,7 +24,7 @@ class DatabaseConfig(BaseModel):
     echo_pool: bool = False
     pool_class: type = QueuePool
     isolation_level: str = "READ COMMITTED"
-    async_pool_class: type = QueuePool
+    async_pool_class: type = AsyncAdaptedQueuePool
 
     @field_validator("database_url", mode="before")
     def validate_database_url(cls, v: str) -> str:

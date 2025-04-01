@@ -106,7 +106,7 @@ services:
       dockerfile: ./gemini/rest_api/Dockerfile  # Specify the path to the Dockerfile relative to the context
     # image: ${GEMINI_REST_API_IMAGE_NAME}:latest
     ports:
-      - "${GEMINI_REST_API_PORT}:8080"
+      - "${GEMINI_REST_API_PORT}:7777"
     environment:
       - "GEMINI_DB_URL=postgresql://${GEMINI_DB_USER}:${GEMINI_DB_PASSWORD}@${GEMINI_DB_HOSTNAME}:${GEMINI_DB_PORT}/${GEMINI_DB_NAME}"
       - "GEMINI_STORAGE_ACCESS_KEY=${GEMINI_STORAGE_ACCESS_KEY}"
@@ -131,8 +131,8 @@ services:
     - 8080:8080
     volumes:
       - ../reverse_proxy/Caddyfile:/etc/caddy/Caddyfile
-      - gemini-caddy-data:/data
-      - gemini-caddy-config:/config
+      - gemini_rp_data:/data
+      - gemini_rp_config:/config
     networks:
       - gemini_network
     depends_on:
@@ -140,16 +140,125 @@ services:
       - storage
       - logger
       - db
-      
+
+  scheduler-db:
+    container_name: ${GEMINI_SCHEDULER_DB_HOSTNAME}
+    hostname: ${GEMINI_SCHEDULER_DB_HOSTNAME}
+    restart: always
+    build:
+      context: ../scheduler
+      dockerfile: db.Dockerfile
+    ports:
+      - "${GEMINI_SCHEDULER_DB_PORT}:6432"
+    environment:
+      - "POSTGRESQL_USERNAME=${GEMINI_SCHEDULER_DB_USER}"
+      - "POSTGRESQL_PASSWORD=${GEMINI_SCHEDULER_DB_PASSWORD}"
+      - "POSTGRESQL_DATABASE=${GEMINI_SCHEDULER_DB_NAME}"
+      - "POSTGRESQL_PORT_NUMBER=6432"
+    volumes:
+      - gemini_scheduler_db_data:/bitnami/postgresql
+    networks:
+      - gemini_network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${GEMINI_SCHEDULER_DB_USER}", "-d", "${GEMINI_SCHEDULER_DB_NAME}", "-p", "6432"]
+      interval: 10s
+      timeout: 8s
+      retries: 5
+
+  scheduler-code:
+    container_name: ${GEMINI_SCHEDULER_CODE_HOSTNAME}
+    hostname: ${GEMINI_SCHEDULER_CODE_HOSTNAME}
+    # image: ${GEMINI_SCHEDULER_CODE_IMAGE_NAME}:latest
+    restart: always
+    build:
+      context: ../../ # Adjust the context to the parent directory that contains 'gemini'
+      dockerfile: ./gemini/scheduler/code.Dockerfile
+    environment:
+      - "DAGSTER_POSTGRES_USER=${GEMINI_SCHEDULER_DB_USER}"
+      - "DAGSTER_POSTGRES_PASSWORD=${GEMINI_SCHEDULER_DB_PASSWORD}"
+      - "DAGSTER_POSTGRES_DB=${GEMINI_SCHEDULER_DB_NAME}"
+      - "DAGSTER_POSTGRES_HOSTNAME=${GEMINI_SCHEDULER_DB_HOSTNAME}"
+      - "DAGSTER_CURRENT_IMAGE=gemini-scheduler-code"
+    networks:
+      - gemini_network
+    depends_on:
+      - scheduler-db
+
+  scheduler-webserver:
+    container_name: ${GEMINI_SCHEDULER_WEBSERVER_HOSTNAME}
+    hostname: ${GEMINI_SCHEDULER_WEBSERVER_HOSTNAME}
+    # image: ${GEMINI_SCHEDULER_WEBSERVER_IMAGE_NAME}:latest
+    restart: always
+    build:
+      context: ../scheduler
+      dockerfile: Dockerfile
+    expose:
+      - 3000
+    ports:
+      - "${GEMINI_SCHEDULER_WEBSERVER_PORT}:3000"
+    environment:
+      - "DAGSTER_POSTGRES_USER=${GEMINI_SCHEDULER_DB_USER}"
+      - "DAGSTER_POSTGRES_PASSWORD=${GEMINI_SCHEDULER_DB_PASSWORD}"
+      - "DAGSTER_POSTGRES_DB=${GEMINI_SCHEDULER_DB_NAME}"
+      - "DAGSTER_POSTGRES_HOSTNAME=${GEMINI_SCHEDULER_DB_HOSTNAME}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/io_manager_storage:/tmp/io_manager_storage
+    networks:
+      - gemini_network
+    depends_on:
+      scheduler-db:
+        condition: service_healthy
+      scheduler-code:
+        condition: service_started
+    entrypoint:
+      - dagster-webserver
+      - -h
+      - "0.0.0.0"
+      - -p
+      - "3000"
+      - -w
+      - workspace.yaml
+
+  scheduler-daemon:
+    container_name: ${GEMINI_SCHEDULER_DAEMON_HOSTNAME}
+    hostname: ${GEMINI_SCHEDULER_DAEMON_HOSTNAME}
+    # image: ${GEMINI_SCHEDULER_DAEMON_IMAGE_NAME}:latest
+    restart: on-failure
+    build:
+      context: ../scheduler
+      dockerfile: Dockerfile
+    environment:
+      - "DAGSTER_POSTGRES_USER=${GEMINI_SCHEDULER_DB_USER}"
+      - "DAGSTER_POSTGRES_PASSWORD=${GEMINI_SCHEDULER_DB_PASSWORD}"
+      - "DAGSTER_POSTGRES_DB=${GEMINI_SCHEDULER_DB_NAME}"
+      - "DAGSTER_POSTGRES_HOSTNAME=${GEMINI_SCHEDULER_DB_HOSTNAME}"
+    volumes: # Make docker client accessible so we can launch containers using host docker
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/io_manager_storage:/tmp/io_manager_storage
+    networks:
+      - gemini_network
+    depends_on:
+      scheduler-db:
+        condition: service_healthy
+      scheduler-code:
+        condition: service_started
+    entrypoint:
+      - dagster-daemon
+      - run
+
   
 networks:
   gemini_network:
     driver: bridge
+    name: gemini_network
 
 
 volumes:
   gemini_db_data:
   gemini_logger_data:
   gemini_storage_data:
-  gemini-caddy-data:
-  gemini-caddy-config:
+  gemini_rp_data:
+  gemini_rp_config:
+  gemini_scheduler_db_data:
+  gemini_scheduler_server_data:

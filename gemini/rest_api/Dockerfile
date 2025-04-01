@@ -1,14 +1,9 @@
-FROM python:3.11
+FROM python:3.12-slim
 
 RUN echo "Debug: Building image"
 
 # Install poetry
 RUN pip install poetry
-
-# Default ENV Values
-ENV GEMINI_API_PORT="7777"
-ENV GEMINI_API_USER="gemini"
-ENV GEMINI_API_DEBUG="True"
 
 # Set the working directory
 WORKDIR /gemini-framework
@@ -27,15 +22,8 @@ COPY gemini ./gemini
 ENV PYTHONPATH="${PYTHONPATH}:/gemini-framework"
 
 # Expose GEMINI API port
-EXPOSE 8080
-
-
-# Poetry Shellz
-# RUN poetry shell
-
-# Keep Container Running
-# CMD ["tail", "-f", "/dev/null"]
+EXPOSE 7777
 
 # # Start the GEMINI REST API LITESTAR application
-CMD poetry run litestar --app gemini.rest_api.app:app run --host 0.0.0.0 --port 8080
+CMD poetry run litestar --app gemini.rest_api.app:app run --host 0.0.0.0 --port 7777
 

@@ -257,7 +257,7 @@ class Dataset(APIBase):
         experiment_name: str = None,
         season_name: str = None,
         site_name: str = None,
-        record_info: dict = None
+        record_info: dict = None,
     ) -> List[DatasetRecord]:
         try:
             record_info = record_info if record_info else {}

@@ -232,6 +232,8 @@ class BaseModel(DeclarativeBase, SerializeMixin):
                     query = query.where(attribute.contains(value))
                 elif isinstance(attribute.type, TIMESTAMP):
                     query = query.where(attribute >= value)
+                elif isinstance(attribute.type, DATE):
+                    query = query.where(attribute == value)  
                 else:
                     query = query.where(attribute == value)
             result = session.execute(query).scalars().all()

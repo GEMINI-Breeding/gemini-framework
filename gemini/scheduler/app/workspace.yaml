@@ -1,0 +1,6 @@
+load_from:
+    # This section allows you to specify the paths or files from which to load the workspace configuration.
+    - grpc_server:
+        host: scheduler-code
+        port: 4000
+        location_name: "scheduler-code" 

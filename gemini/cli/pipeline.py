@@ -81,13 +81,14 @@ def status(pipeline : PipelineCLIContact):
     
 
 @pipeline.command()
+@click.option('--default', is_flag=True, help="Use default settings")
 @click.pass_obj
-def setup(pipeline : PipelineCLIContact):
+def setup(pipeline : PipelineCLIContact, default: bool = False):
     manager = pipeline.manager
     click.echo(click.style("Setting up the pipeline", fg="blue"))
 
     # Ask for the variables
-    vars = environment_setup()
+    vars = environment_setup(default=default)
 
     # Write the variables to the .env file
     vars.create_env_file(f"{pipeline.pipeline_dir}/.env")
@@ -102,9 +103,12 @@ def setup(pipeline : PipelineCLIContact):
 
     click.echo(click.style("Pipeline setup complete", fg="blue"))
 
-def environment_setup() -> GEMINISettings:
+def environment_setup(default: bool = False) -> GEMINISettings:
     """Collect environment settings interactively."""
+    
     settings = GEMINISettings()
+    if default:
+        return settings
 
     # Asking user for database configuration
     click.echo(click.style("GEMINI Database Configuration", fg="green"))
