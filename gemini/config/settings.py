@@ -51,36 +51,25 @@ class GEMINISettings(BaseSettings):
     GEMINI_REST_API_HOSTNAME : Optional[str] = "gemini-rest-api"
     GEMINI_REST_API_PORT : Optional[int] = 7777
 
+    # Scheduler DB
+    GEMINI_SCHEDULER_DB_CONTAINER_NAME : Optional[str] = "gemini-scheduler-db"
+    GEMINI_SCHEDULER_DB_IMAGE_NAME : Optional[str] = "gemini/scheduler-db"
+    GEMINI_SCHEDULER_DB_HOSTNAME : Optional[str] = "gemini-scheduler-db"
+    GEMINI_SCHEDULER_DB_USER: Optional[str] = "gemini"  # User for scheduler DB
+    GEMINI_SCHEDULER_DB_PASSWORD: Optional[str] = "gemini"
+    GEMINI_SCHEDULER_DB_NAME: Optional[str] = "gemini_scheduler"  # Database name for scheduler
+    GEMINI_SCHEDULER_DB_PORT: Optional[int] = 6432  # Port for scheduler DB
+
     # Reverse Proxy
     GEMINI_REVERSE_PROXY_CONTAINER_NAME : Optional[str] = "gemini-reverse-proxy"
     GEMINI_REVERSE_PROXY_IMAGE_NAME : Optional[str] = "gemini/reverse-proxy"
     GEMINI_REVERSE_PROXY_HOSTNAME : Optional[str] = "gemini-reverse-proxy"
 
-
-    # Scheduler DB
-    GEMINI_SCHEDULER_DB_CONTAINER_NAME : Optional[str] = "gemini-scheduler-db"
-    GEMINI_SCHEDULER_DB_IMAGE_NAME : Optional[str] = "gemini/scheduler-db"
-    GEMINI_SCHEDULER_DB_HOSTNAME : Optional[str] = "gemini-scheduler-db"
-    GEMINI_SCHEDULER_DB_USER : Optional[str] = "gemini"
-    GEMINI_SCHEDULER_DB_PASSWORD : Optional[str] = "gemini"
-    GEMINI_SCHEDULER_DB_NAME : Optional[str] = "gemini_scheduler"
-    GEMINI_SCHEDULER_DB_PORT : Optional[int] = 6432
-
-    # Scheduler Code RPC
-    GEMINI_SCHEDULER_CODE_HOSTNAME : Optional[str] = "gemini-scheduler-code"
-    GEMINI_SCHEDULER_CODE_CONTAINER_NAME : Optional[str] = "gemini-scheduler-code"
-    GEMINI_SCHEDULER_CODE_IMAGE_NAME : Optional[str] = "gemini/scheduler-code"
-
-    # Scheduler Web Server
-    GEMINI_SCHEDULER_WEBSERVER_HOSTNAME : Optional[str] = "gemini-scheduler-webserver"
-    GEMINI_SCHEDULER_WEBSERVER_CONTAINER_NAME : Optional[str] = "gemini-scheduler-webserver"
-    GEMINI_SCHEDULER_WEBSERVER_IMAGE_NAME : Optional[str] = "gemini/scheduler-webserver"
-    GEMINI_SCHEDULER_WEBSERVER_PORT : Optional[int] = 3000
-
-    # Scheduler Daemon
-    GEMINI_SCHEDULER_DAEMON_HOSTNAME : Optional[str] = "gemini-scheduler-daemon"
-    GEMINI_SCHEDULER_DAEMON_CONTAINER_NAME : Optional[str] = "gemini-scheduler-daemon"
-    GEMINI_SCHEDULER_DAEMON_IMAGE_NAME : Optional[str] = "gemini/scheduler-daemon"
+    # Scheduler Server
+    GEMINI_SCHEDULER_SERVER_CONTAINER_NAME : Optional[str] = "gemini-scheduler-server"
+    GEMINI_SCHEDULER_SERVER_IMAGE_NAME : Optional[str] = "gemini/scheduler-server"
+    GEMINI_SCHEDULER_SERVER_HOSTNAME : Optional[str] = "gemini-scheduler-server"
+    GEMINI_SCHEDULER_SERVER_PORT : Optional[int] = 4200
 
 
     def model_post_init(self, __context: Any) -> None:

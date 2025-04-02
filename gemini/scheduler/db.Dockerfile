@@ -1,4 +1,2 @@
+# Get Bitnami PostgreSQL image
 FROM bitnami/postgresql:16
-
-ENV POSTGRESQL_PORT_NUMBER=6432
-

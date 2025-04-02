@@ -21,13 +21,10 @@ dependencies = [
     "pendulum (>=3.0.0,<4.0.0)",
     "minio (>=7.2.15,<8.0.0)",
     "python-on-whales (>=0.76.1,<0.77.0)",
-    "dagster (>=1.10.6,<2.0.0)",
-    "dagster-webserver (>=1.10.6,<2.0.0)",
-    "dagster-postgres (>=0.26.6,<0.27.0)",
-    "dagster-docker (>=0.26.6,<0.27.0)",
-    "dagster-aws (>=0.26.6,<0.27.0)",
-    "gql[all] (>=3.5.2,<4.0.0)",
-    "pandas (>=2.2.3,<3.0.0)"
+    "pandas (>=2.2.3,<3.0.0)",
+    "prefect (>=3.3.1,<4.0.0)",
+    "httpx (>=0.28.1,<0.29.0)",
+    "prefect-aws (>=0.5.9,<0.6.0)"
 ]
 
 [tool.poetry]

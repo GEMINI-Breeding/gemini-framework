@@ -71,7 +71,8 @@ class MinioStorageProvider(StorageProvider):
         object_name: str,
         data_stream: BinaryIO,
         content_type: Optional[str] = None,
-        metadata: Optional[Dict[str, str]] = None
+        metadata: Optional[Dict[str, str]] = None,
+        bucket_name: Optional[str] = None
     ) -> str:
         """Upload a file to MinIO storage.
         
@@ -101,7 +102,7 @@ class MinioStorageProvider(StorageProvider):
             
             # Upload file
             self.client.put_object(
-                bucket_name=self.bucket_name,
+                bucket_name=self.bucket_name if bucket_name is None else bucket_name,
                 object_name=object_name,
                 data=data_stream,
                 length=file_size,
@@ -123,7 +124,8 @@ class MinioStorageProvider(StorageProvider):
     def download_file(
         self,
         object_name: str,
-        file_path: Union[str, Path]
+        file_path: Union[str, Path],
+        bucket_name: Optional[str] = None
     ) -> Path:
         """Download a file from MinIO storage.
         
@@ -144,7 +146,7 @@ class MinioStorageProvider(StorageProvider):
             file_path.parent.mkdir(parents=True, exist_ok=True)
             
             self.client.fget_object(
-                bucket_name=self.bucket_name,
+                bucket_name=self.bucket_name if bucket_name is None else bucket_name,
                 object_name=object_name,
                 file_path=str(file_path)
             )
@@ -162,7 +164,7 @@ class MinioStorageProvider(StorageProvider):
         except Exception as e:
             raise StorageDownloadError(f"Unexpected error during download: {e}")
 
-    def delete_file(self, object_name: str) -> bool:
+    def delete_file(self, object_name: str, bucket_name: str = None) -> bool:
         """Delete a file from MinIO storage.
         
         Args:
@@ -177,7 +179,7 @@ class MinioStorageProvider(StorageProvider):
         """
         try:
             self.client.remove_object(
-                bucket_name=self.bucket_name,
+                bucket_name=self.bucket_name if bucket_name is None else bucket_name,
                 object_name=object_name
             )
             return True
@@ -194,7 +196,8 @@ class MinioStorageProvider(StorageProvider):
         self,
         object_name: str,
         expires: Optional[datetime] = None,
-        response_headers: Optional[Dict[str, str]] = None
+        response_headers: Optional[Dict[str, str]] = None,
+        bucket_name: Optional[str] = None
     ) -> str:
         """Get a pre-signed URL for downloading the file.
         
@@ -220,7 +223,7 @@ class MinioStorageProvider(StorageProvider):
                 expires = timedelta(days=7)
             
             url = self.client.presigned_get_object(
-                bucket_name=self.bucket_name,
+                bucket_name=self.bucket_name if bucket_name is None else bucket_name,
                 object_name=object_name,
                 expires=expires,
                 response_headers=response_headers
@@ -240,7 +243,8 @@ class MinioStorageProvider(StorageProvider):
     def list_files(
         self,
         prefix: Optional[str] = None,
-        recursive: bool = True
+        recursive: bool = True,
+        bucket_name: Optional[str] = None
     ) -> list[str]:
         """List all files in MinIO storage with given prefix.
         
@@ -257,7 +261,7 @@ class MinioStorageProvider(StorageProvider):
         """
         try:
             objects = self.client.list_objects(
-                bucket_name=self.bucket_name,
+                bucket_name=self.bucket_name if bucket_name is None else bucket_name,
                 prefix=prefix,
                 recursive=recursive
             )
@@ -272,7 +276,7 @@ class MinioStorageProvider(StorageProvider):
         except Exception as e:
             raise StorageError(f"Unexpected error while listing files: {e}")
 
-    def file_exists(self, object_name: str) -> bool:
+    def file_exists(self, object_name: str, bucket_name: str = None) -> bool:
         """Check if a file exists in MinIO storage.
         
         Args:
@@ -286,7 +290,7 @@ class MinioStorageProvider(StorageProvider):
         """
         try:
             self.client.stat_object(
-                bucket_name=self.bucket_name,
+                bucket_name=self.bucket_name if bucket_name is None else bucket_name,
                 object_name=object_name
             )
             return True
@@ -295,7 +299,7 @@ class MinioStorageProvider(StorageProvider):
         except ConnectionError as e:
             raise StorageConnectionError(f"Connection failed while checking file: {e}")
 
-    def get_file_metadata(self, object_name: str) -> Dict[str, Any]:
+    def get_file_metadata(self, object_name: str, bucket_name: str = None) -> Dict[str, Any]:
         """Get metadata for a file in MinIO storage.
         
         Args:
@@ -311,7 +315,7 @@ class MinioStorageProvider(StorageProvider):
         """
         try:
             stat = self.client.stat_object(
-                bucket_name=self.bucket_name,
+                bucket_name=self.bucket_name if bucket_name is None else bucket_name,
                 object_name=object_name
             )
             

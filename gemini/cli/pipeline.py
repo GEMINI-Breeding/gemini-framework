@@ -63,11 +63,15 @@ def reset(pipeline : PipelineCLIContact):
     click.echo(click.style("Pipeline started", fg="blue"))
 
 @pipeline.command()
+@click.option('--force-rebuild', is_flag=True, help="Force rebuild the pipeline")
 @click.pass_obj
-def restart(pipeline : PipelineCLIContact):
+def restart(pipeline : PipelineCLIContact, force_rebuild: bool = False):
+
     manager = pipeline.manager
     click.echo(click.style("Restarting the pipeline", fg="blue"))
     manager.stop_pipeline()
+    if force_rebuild:
+        manager.build_pipeline()
     click.echo(click.style("Pipeline stopped", fg="blue"))
     manager.start_pipeline()
     click.echo(click.style("Pipeline started", fg="blue"))
