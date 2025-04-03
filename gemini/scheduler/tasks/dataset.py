@@ -37,7 +37,7 @@ def get_dataset_by_id(dataset_id: str) -> Optional[Dataset]:
     retries=3,
     log_prints=True,
 )
-def get_dataset_by_name(dataset_name: str = "Dataset A") -> Optional[Dataset]:
+def get_dataset_by_name(dataset_name) -> Optional[Dataset]:
     dataset = Dataset.get(dataset_name=dataset_name)
     if dataset is None:
         print(f"Dataset with name {dataset_name} not found")
@@ -51,11 +51,11 @@ def get_dataset_by_name(dataset_name: str = "Dataset A") -> Optional[Dataset]:
     log_prints=True,
 )
 def get_dataset_data(
-    dataset_name: str = "Dataset A",
-    experiment_name: str = "Experiment A",
-    season_name: str = "Season 1A",
-    site_name: str = "Site A1",
-    collection_date: str = date.today().strftime("%Y-%m-%d"),
+    dataset_name: str,
+    experiment_name: Optional[str] = None,
+    season_name: Optional[str] = None,
+    site_name: Optional[str] = None,
+    collection_date: Optional[str] = None,
 ) -> Optional[List[DatasetRecord]]:
     dataset = Dataset.get(
         dataset_name=dataset_name,

@@ -42,6 +42,9 @@ class GEMINIManager(BaseModel):
     def build_pipeline(self) -> bool:
         return self.container_manager.build_images()
     
+    def rebuild_pipeline(self) -> bool:
+        return self.container_manager.rebuild_images()
+    
     def start_pipeline(self) -> bool:
         return self.container_manager.start_containers()
     

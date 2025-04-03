@@ -48,6 +48,15 @@ class GEMINIContainerManager(BaseModel):
             print(e)
             return False
         
+    def rebuild_images(self) -> bool:
+        try:
+            self.docker_client.compose.down(volumes=True)
+            self.docker_client.compose.up(detach=True)
+            return True
+        except Exception as e:
+            print(e)
+            return False
+        
     def start_containers(self) -> bool:
         try:
             # Start the containers
