@@ -158,30 +158,6 @@ services:
       - scheduler-db
     networks:
       - gemini_network
-
-  reverse-proxy:
-    container_name: ${GEMINI_REVERSE_PROXY_HOSTNAME}
-    hostname: ${GEMINI_REVERSE_PROXY_HOSTNAME}
-    restart: always
-    build:
-      context: ../reverse_proxy
-      dockerfile: Dockerfile
-    image: caddy:alpine
-    ports:
-    - 80:80
-    - 443:443
-    - 8080:8080
-    volumes:
-      - ../reverse_proxy/Caddyfile:/etc/caddy/Caddyfile
-      - gemini_rp_data:/data
-      - gemini_rp_config:/config
-    networks:
-      - gemini_network
-    depends_on:
-      - rest-api
-      - storage
-      - logger
-      - db
   
 networks:
   gemini_network:

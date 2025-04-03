@@ -15,6 +15,7 @@ class GEMINISettings(BaseSettings):
     # Meta
     GEMINI_DEBUG : Optional[bool] = False
     GEMINI_LOCAL : Optional[bool] = False
+    GEMINI_DOMAIN : Optional[str] = "localhost"
 
     # Database Configuration
     GEMINI_DB_CONTAINER_NAME : Optional[str] = "gemini-db"
@@ -60,10 +61,6 @@ class GEMINISettings(BaseSettings):
     GEMINI_SCHEDULER_DB_NAME: Optional[str] = "gemini_scheduler"  # Database name for scheduler
     GEMINI_SCHEDULER_DB_PORT: Optional[int] = 6432  # Port for scheduler DB
 
-    # Reverse Proxy
-    GEMINI_REVERSE_PROXY_CONTAINER_NAME : Optional[str] = "gemini-reverse-proxy"
-    GEMINI_REVERSE_PROXY_IMAGE_NAME : Optional[str] = "gemini/reverse-proxy"
-    GEMINI_REVERSE_PROXY_HOSTNAME : Optional[str] = "gemini-reverse-proxy"
 
     # Scheduler Server
     GEMINI_SCHEDULER_SERVER_CONTAINER_NAME : Optional[str] = "gemini-scheduler-server"
@@ -136,4 +133,10 @@ class GEMINISettings(BaseSettings):
         )
 
         return config
+    
+    # Meta Stuff
+    def change_domain(self, domain_name: str = "localhost") -> str:
+        os.environ["GEMINI_DOMAIN"] = domain_name
+
+
     

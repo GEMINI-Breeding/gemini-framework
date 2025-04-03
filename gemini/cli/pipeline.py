@@ -4,7 +4,7 @@ from pathlib import Path
 from gemini.config.settings import GEMINISettings
 from gemini.manager import GEMINIManager
 
-class PipelineCLIContact:
+class PipelineCLIContext:
     def __init__(self) -> None:
         self.manager = GEMINIManager()
         self.script_dir = Path(__file__).parent
@@ -15,12 +15,12 @@ class PipelineCLIContact:
 def pipeline(ctx):
     """Pipeline commands"""
     # Initialize the GEMINIManager once and share it across commands
-    ctx.obj = PipelineCLIContact()
+    ctx.obj = PipelineCLIContext()
     print("Pipeline CLI Contact")
 
 @pipeline.command()
 @click.pass_obj
-def build(pipeline : PipelineCLIContact):
+def build(pipeline : PipelineCLIContext):
     manager = pipeline.manager
     click.echo(click.style("Building the pipeline", fg="blue"))
     manager.build_pipeline()
@@ -28,7 +28,7 @@ def build(pipeline : PipelineCLIContact):
 
 @pipeline.command()
 @click.pass_obj
-def start(pipeline : PipelineCLIContact):
+def start(pipeline : PipelineCLIContext):
     manager = pipeline.manager
     click.echo(click.style("Starting the pipeline", fg="blue"))
     manager.start_pipeline()
@@ -36,7 +36,7 @@ def start(pipeline : PipelineCLIContact):
 
 @pipeline.command()
 @click.pass_obj
-def stop(pipeline : PipelineCLIContact):
+def stop(pipeline : PipelineCLIContext):
     manager = pipeline.manager
     click.echo(click.style("Stopping the pipeline", fg="blue"))
     manager.stop_pipeline()
@@ -44,7 +44,7 @@ def stop(pipeline : PipelineCLIContact):
 
 @pipeline.command()
 @click.pass_obj
-def clean(pipeline : PipelineCLIContact):
+def clean(pipeline : PipelineCLIContext):
     manager = pipeline.manager
     click.echo(click.style("Cleaning the pipeline", fg="blue"))
     manager.clean_pipeline()
@@ -53,7 +53,7 @@ def clean(pipeline : PipelineCLIContact):
 
 @pipeline.command()
 @click.pass_obj
-def reset(pipeline : PipelineCLIContact):
+def reset(pipeline : PipelineCLIContext):
     manager = pipeline.manager
     click.echo(click.style("Resetting the pipeline", fg="blue"))
     manager.stop_pipeline()
@@ -65,7 +65,7 @@ def reset(pipeline : PipelineCLIContact):
 @pipeline.command()
 @click.option('--force-rebuild', is_flag=True, help="Force rebuild the pipeline")
 @click.pass_obj
-def restart(pipeline : PipelineCLIContact, force_rebuild: bool = False):
+def restart(pipeline : PipelineCLIContext, force_rebuild: bool = False):
 
     manager = pipeline.manager
     click.echo(click.style("Restarting the pipeline", fg="blue"))
@@ -78,7 +78,7 @@ def restart(pipeline : PipelineCLIContact, force_rebuild: bool = False):
 
 @pipeline.command()
 @click.pass_obj
-def status(pipeline : PipelineCLIContact):
+def status(pipeline : PipelineCLIContext):
     manager = pipeline.manager
     status = manager.get_status()
     click.echo(click.style(f"Pipeline status: {status}", fg="blue"))
@@ -87,7 +87,7 @@ def status(pipeline : PipelineCLIContact):
 @pipeline.command()
 @click.option('--default', is_flag=True, help="Use default settings")
 @click.pass_obj
-def setup(pipeline : PipelineCLIContact, default: bool = False):
+def setup(pipeline : PipelineCLIContext, default: bool = False):
     manager = pipeline.manager
     click.echo(click.style("Setting up the pipeline", fg="blue"))
 
@@ -106,6 +106,33 @@ def setup(pipeline : PipelineCLIContact, default: bool = False):
     manager.build_pipeline()
 
     click.echo(click.style("Pipeline setup complete", fg="blue"))
+
+
+@pipeline.command()
+@click.argument('domain')
+@click.pass_obj
+def set_domain(pipeline : PipelineCLIContext, domain: str):
+    manager = pipeline.manager
+    click.echo(click.style(f"Setting domain to {domain}", fg="blue"))
+    
+    # Load current settings from env file
+    current_settings = GEMINISettings.from_env_file(f"{pipeline.pipeline_dir}/.env")
+
+    # Change the domain in the settings
+    current_settings.GEMINI_DOMAIN = domain
+
+    # Write the updated settings back to the env file
+    current_settings.create_env_file(f"{pipeline.pipeline_dir}/.env")
+
+    # Apply the settings
+    manager.apply_settings(current_settings)
+    click.echo(click.style("Domain updated", fg="blue"))
+
+    # Restart the pipeline with the new domain and force rebuild
+    manager.rebuild_pipeline()
+    manager.start_pipeline()
+
+    click.echo(click.style("Pipeline restarted with new domain", fg="blue"))
 
 def environment_setup(default: bool = False) -> GEMINISettings:
     """Collect environment settings interactively."""
@@ -134,5 +161,9 @@ def environment_setup(default: bool = False) -> GEMINISettings:
     # GEMINI REST API
     click.echo(click.style("GEMINI REST API Configuration", fg="green"))
     settings.GEMINI_REST_API_PORT = click.prompt("Enter the REST API port", default=7777)
+
+    # GEMINI Domain
+    click.echo(click.style("GEMINI Domain", fg="green"))
+    settings.GEMINI_DOMAIN = click.prompt("Enter the domain", default="localhost")
 
     return settings
