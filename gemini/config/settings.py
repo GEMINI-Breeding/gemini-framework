@@ -15,7 +15,7 @@ class GEMINISettings(BaseSettings):
     # Meta
     GEMINI_DEBUG : Optional[bool] = False
     GEMINI_LOCAL : Optional[bool] = False
-    GEMINI_DOMAIN : Optional[str] = "localhost"
+    GEMINI_DOMAIN : Optional[str] = "127.0.0.1"
 
     # Database Configuration
     GEMINI_DB_CONTAINER_NAME : Optional[str] = "gemini-db"
