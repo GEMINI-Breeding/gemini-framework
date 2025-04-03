@@ -76,6 +76,8 @@ def restart(pipeline : PipelineCLIContext, force_rebuild: bool = False):
     manager.start_pipeline()
     click.echo(click.style("Pipeline started", fg="blue"))
 
+
+
 @pipeline.command()
 @click.pass_obj
 def status(pipeline : PipelineCLIContext):

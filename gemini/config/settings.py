@@ -122,7 +122,7 @@ class GEMINISettings(BaseSettings):
     
     def get_storage_config(self, local: bool = False) -> MinioStorageConfig:
 
-        storage_hostname = self.GEMINI_STORAGE_HOSTNAME if not local else "localhost"
+        storage_hostname = self.GEMINI_DOMAIN if not local else "localhost"
 
         config = MinioStorageConfig(
             endpoint=f"{storage_hostname}:{self.GEMINI_STORAGE_PORT}",

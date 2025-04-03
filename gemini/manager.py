@@ -10,12 +10,17 @@ from gemini.logger.providers.redis_logger import RedisLogger
 from gemini.pipeline.container_manager import GEMINIContainerManager
 from gemini.config.settings import GEMINISettings
 
+import git
+from git import Repo, GitCommandError
+import os
+
 from pydantic import BaseModel, ConfigDict, PrivateAttr, Field
 
 class GEMINIComponentType(str, Enum):
     LOGGER = "logger"
     STORAGE = "storage"
     DB = "db"
+
 
 
 class GEMINIManager(BaseModel):

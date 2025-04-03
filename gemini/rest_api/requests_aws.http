@@ -1,5 +1,5 @@
-@baseUrl = http://localhost:7777
-@apiUrl = http://localhost:7777/api
+@baseUrl = http://209.38.175.119:7777
+@apiUrl = http://209.38.175.119:7777/api
 
 // ---- Check the API status ----
 GET {{baseUrl}}
