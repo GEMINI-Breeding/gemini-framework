@@ -1,29 +1,25 @@
-from typing import Any, ClassVar
-from enum import Enum
+from pydantic import BaseModel, ConfigDict, PrivateAttr
+from pathlib import Path
+from python_on_whales import DockerClient
+from python_on_whales import Container
 
 from gemini.logger.interfaces import logger_provider
-from gemini.storage.interfaces import storage_provider
-
-from gemini.storage.providers.minio_storage import MinioStorageProvider
 from gemini.logger.providers.redis_logger import RedisLogger
 
-from gemini.pipeline.container_manager import GEMINIContainerManager
+from gemini.storage.interfaces import storage_provider
+from gemini.storage.providers.minio_storage import MinioStorageProvider
+
 from gemini.config.settings import GEMINISettings
 
-import git
-from git import Repo, GitCommandError
-import os
+from enum import Enum
+from typing import Any, ClassVar
 
-from pydantic import BaseModel, ConfigDict, PrivateAttr, Field
-
-class GEMINIComponentType(str, Enum):
+class GEMINIComponent(str, Enum):
     LOGGER = "logger"
     STORAGE = "storage"
     DB = "db"
 
-
-
-class GEMINIManager(BaseModel):
+class GEMINIManager:
 
     model_config = ConfigDict(
         arbitrary_types_allowed=True
@@ -31,57 +27,67 @@ class GEMINIManager(BaseModel):
 
     _shared_state: ClassVar[dict] = PrivateAttr(default={})
 
-    container_manager: GEMINIContainerManager = GEMINIContainerManager()
-    settings: GEMINISettings = GEMINISettings()
+    compose_file: str = Path(__file__).parent / "pipeline" / "docker-compose.yaml"
+    env_file: str = Path(__file__).parent / "pipeline" / ".env"
+    docker_client: DockerClient = DockerClient(
+        compose_files=[compose_file]
+    )
+
+    # Pipeline Settings
+    pipeline_settings: GEMINISettings = GEMINISettings()
 
     def model_post_init(self, __context: Any) -> None:
         return super().model_post_init(__context)
+    
+    def save_settings(self, settings: GEMINISettings) -> None:
+        self.pipeline_settings = settings
+        settings.create_env_file(self.env_file)
+        print(f"Settings saved to {self.env_file}")
 
-    def apply_settings(self, settings: GEMINISettings) -> None:
-        self.container_manager.apply_settings(settings)
-        self.settings = settings
-
-    def get_settings(self) -> GEMINISettings:
-        return self.settings
-
-    def build_pipeline(self) -> bool:
-        return self.container_manager.build_images()
-    
-    def rebuild_pipeline(self) -> bool:
-        return self.container_manager.rebuild_images()
-    
-    def start_pipeline(self) -> bool:
-        return self.container_manager.start_containers()
-    
-    def stop_pipeline(self) -> bool:
-        return self.container_manager.stop_containers()
-    
-    def clean_pipeline(self) -> bool:
-        return self.container_manager.teardown()
-    
-    def get_status(self) -> str:
-        return self.container_manager.get_status()
-    
-    def get_component_provider(self, component_type: GEMINIComponentType):
-        component_settings = self._get_component_settings(component_type)
-        if component_type == GEMINIComponentType.LOGGER:
-            return RedisLogger(config=component_settings)
-        elif component_type == GEMINIComponentType.STORAGE:
-            return MinioStorageProvider(config=component_settings)
-        else:
-            return None
+    def build(self) -> bool:
+        try:
+            self.docker_client.compose.build(cache=False)
+            return True
+        except Exception as e:
+            print(e)
+            return False
         
-    def _get_component_settings(self, component_type: GEMINIComponentType) -> object:
+    def rebuild(self) -> bool:
+        try:
+            self.docker_client.compose.down(volumes=True)
+            self.docker_client.compose.build()
+            self.docker_client.compose.up(detach=True)
+            return True
+        except Exception as e:
+            print(e)
+            return False
 
-        is_local = self.settings.GEMINI_LOCAL 
+    def start(self) -> bool:
+        try:
+            self.docker_client.compose.up(detach=True)
+            return True
+        except Exception as e:
+            print(e)
+            return False
         
-        if component_type == GEMINIComponentType.LOGGER:
-            return self.settings.get_logger_config(is_local)
-        elif component_type == GEMINIComponentType.STORAGE:
-            return self.settings.get_storage_config(is_local)
-        elif component_type == GEMINIComponentType.DB:
-            return None
-        else:
-            return None
-            
-    
+    def clean(self) -> bool:
+        try:
+            self.docker_client.compose.down(volumes=True, remove_orphans=True)
+            return True
+        except Exception as e:
+            print(e)
+            return False
+        
+    def stop(self) -> bool:
+        try:
+            self.docker_client.compose.stop()
+            return True
+        except Exception as e:
+            print(e)
+            return False
+        
+    def set_domain(self, domain: str) -> None:
+        self.pipeline_settings.GEMINI_DOMAIN = domain
+        self.save_settings(self.pipeline_settings)
+        print(f"Domain set to {domain}")
+

@@ -1,19 +1,22 @@
 from typing import Any
-import pprint
 
-from sqlalchemy import select, insert, delete, update
-from sqlalchemy import TIMESTAMP, JSON, DATE, String
+from sqlalchemy import select, delete
+from sqlalchemy import TIMESTAMP, JSON, DATE
 from sqlalchemy import MetaData, text
-from sqlalchemy.schema import UniqueConstraint, PrimaryKeyConstraint
+from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy_mixins.serialize import SerializeMixin
 from sqlalchemy.dialects.postgresql import insert as pg_insert, JSONB
 
-from gemini import global_manager
+from gemini.manager import GEMINIManager
 from gemini.db.core.engine import DatabaseEngine
-from gemini.config.settings import GEMINISettings
+from gemini.db.config import DatabaseConfig
+from gemini.config.settings import GEMINISettingsType
 
-db_config = global_manager.get_settings().get_database_config()
+db_config_settings = GEMINIManager().pipeline_settings.get_settings(GEMINISettingsType.DB)
+db_config = DatabaseConfig(
+    database_url=f"postgresql://{db_config_settings['GEMINI_DB_USER']}:{db_config_settings['GEMINI_DB_PASSWORD']}@{db_config_settings['GEMINI_DB_HOSTNAME']}:{db_config_settings['GEMINI_DB_PORT']}/{db_config_settings['GEMINI_DB_NAME']}"
+)
 metadata_obj = MetaData(schema="gemini")
 db_engine = DatabaseEngine(db_config)
 

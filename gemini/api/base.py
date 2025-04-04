@@ -7,13 +7,23 @@ from typing import Any, Optional, Union, ClassVar
 from uuid import UUID
 
 from gemini.storage.providers.minio_storage import MinioStorageProvider
-from gemini.config.settings import GEMINISettings
-from gemini.manager import GEMINIManager, GEMINIComponentType
+from gemini.storage.config.storage_config import MinioStorageConfig
+from gemini.config.settings import GEMINISettingsType
+from gemini.manager import GEMINIManager
 
 from functools import cached_property
 from abc import ABC, abstractmethod
 
 manager = GEMINIManager()
+minio_storage_settings = manager.pipeline_settings.get_settings(GEMINISettingsType.STORAGE)
+minio_storage_config = MinioStorageConfig(
+    endpoint=f"{minio_storage_settings['GEMINI_STORAGE_HOSTNAME']}:{minio_storage_settings['GEMINI_STORAGE_PORT']}",
+    access_key=minio_storage_settings['GEMINI_STORAGE_ACCESS_KEY'],
+    secret_key=minio_storage_settings['GEMINI_STORAGE_SECRET_KEY'],
+    bucket_name=minio_storage_settings['GEMINI_STORAGE_BUCKET_NAME'],
+    secure=False
+)
+minio_storage_provider = MinioStorageProvider(minio_storage_config)
 
 class APIBase(BaseModel):
 
@@ -67,7 +77,7 @@ class FileHandlerMixin(BaseModel):
         arbitrary_types_allowed=True
     )
 
-    minio_storage_provider: ClassVar[MinioStorageProvider] = manager.get_component_provider(GEMINIComponentType.STORAGE)
+    minio_storage_provider: ClassVar[MinioStorageProvider] = minio_storage_provider
 
     @classmethod
     @abstractmethod
