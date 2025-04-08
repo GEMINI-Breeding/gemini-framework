@@ -2,7 +2,7 @@ from litestar import Response
 from litestar.handlers import get, post, patch, delete
 from litestar.params import Body
 from litestar.controller import Controller
-from litestar.response import Stream
+from litestar.response import Stream, Redirect
 from litestar.serialization import encode_json
 from litestar.enums import RequestEncodingType
 
@@ -390,6 +390,38 @@ class SensorController(Controller):
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving sensor record"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+        
+    # Download Sensor Record File
+    @get(path="/records/id/{record_id:str}/download")
+    async def download_sensor_record_file(
+        self, record_id: str
+    ) -> Redirect:
+        try:
+            sensor_record = SensorRecord.get_by_id(id=record_id)
+            if sensor_record is None:
+                error_html = RESTAPIError(
+                    error="Sensor record not found",
+                    error_description="The sensor record with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            record_file = sensor_record.record_file
+            if record_file is None:
+                error_html = RESTAPIError(
+                    error="No record file found",
+                    error_description="The sensor record does not have an associated file"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            bucket_name = "gemini"
+            object_name = record_file
+            object_path = f"{bucket_name}/{object_name}"
+            return Redirect(path=f"/api/files/download/{object_path}")
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while downloading sensor record file"
             )
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)

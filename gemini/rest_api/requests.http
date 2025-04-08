@@ -371,6 +371,7 @@ GET {{apiUrl}}/datasets/records/id/{{createdDatasetRecordId}}
 # @name download_dataset_record_file
 GET {{apiUrl}}/datasets/records/id/{{createdDatasetRecordId}}/download
 
+
 ### Update a dataset record
 # @name update_dataset_record
 PATCH  {{apiUrl}}/datasets/records/id/{{createdDatasetRecordId}}
@@ -393,7 +394,7 @@ DELETE {{apiUrl}}/datasets/records/id/{{createdDatasetRecordId}}
 GET {{apiUrl}}/files/metadata/gemini/{{createdDatasetRecordFileKey}}
 
 ### Get Dataset Record File
-# @name get_dataset_record_file
+# @name download_dataset_record_file_direct
 GET {{apiUrl}}/files/download/gemini/{{createdDatasetRecordFileKey}}
 
 // ------------------------
@@ -1007,6 +1008,8 @@ Content-Disposition: form-data; name="record_info"
 ###
 @createdProcedureRecordId = {{add_procedure_record.response.body.id}}
 
+@createdProcedureRecordFileKey = {{add_procedure_record.response.body.record_file}}
+
 ### Get a procedure record by ID
 # @name get_procedure_record_by_id
 GET {{apiUrl}}/procedures/records/id/{{createdProcedureRecordId}}
@@ -1027,6 +1030,18 @@ Content-Type: application/json
 ### Delete a procedure record
 # @name delete_procedure_record
 DELETE {{apiUrl}}/procedures/records/id/{{createdProcedureRecordId}}
+
+### Get Procedure Record File
+# @name get_procedure_record_file
+GET {{apiUrl}}/procedures/records/id/{{createdProcedureRecordId}}/download
+
+### Get Procedure Record File directly
+# @name get_procedure_record_file_direct
+GET {{apiUrl}}/files/download/gemini/{{createdProcedureRecordFileKey}}
+
+### Procedure Record File Metadata
+# @name get_procedure_record_file_metadata
+GET {{apiUrl}}/files/metadata/gemini/{{createdProcedureRecordFileKey}}
 
 // ----------------------
 // ---- Model API -------
@@ -1155,6 +1170,8 @@ Content-Disposition: form-data; name="record_info"
 ###
 @createdModelRecordId = {{add_model_record.response.body.id}}
 
+@createdModelRecordFileKey = {{add_model_record.response.body.record_file}}
+
 ### Get a model record by ID
 # @name get_model_record_by_id
 GET {{apiUrl}}/models/records/id/{{createdModelRecordId}}
@@ -1175,6 +1192,18 @@ Content-Type: application/json
 ### Delete a model record
 # @name delete_model_record
 DELETE {{apiUrl}}/models/records/id/{{createdModelRecordId}}
+
+### Get Model Record File
+# @name get_model_record_file
+GET {{apiUrl}}/models/records/id/{{createdModelRecordId}}/download
+
+### Get Model Record File directly
+# @name get_model_record_file_direct
+GET {{apiUrl}}/files/download/gemini/{{createdModelRecordFileKey}}
+
+### Model Record File Metadata
+# @name get_model_record_file_metadata
+GET {{apiUrl}}/files/metadata/gemini/{{createdModelRecordFileKey}}
 
 // ----------------------
 // ---- Script API ------
@@ -1302,6 +1331,8 @@ Content-Disposition: form-data; name="record_info"
 ###
 @createdScriptRecordId = {{add_script_record.response.body.id}}
 
+@createdScriptRecordFileKey = {{add_script_record.response.body.record_file}}
+
 ### Get a script record by ID
 # @name get_script_record_by_id
 GET {{apiUrl}}/scripts/records/id/{{createdScriptRecordId}}
@@ -1323,6 +1354,17 @@ Content-Type: application/json
 # @name delete_script_record
 DELETE {{apiUrl}}/scripts/records/id/{{createdScriptRecordId}}
 
+### Get Script Record File
+# @name get_script_record_file
+GET {{apiUrl}}/scripts/records/id/{{createdScriptRecordId}}/download
+
+### Get Script Record File directly
+# @name get_script_record_file_direct
+GET {{apiUrl}}/files/download/gemini/{{createdScriptRecordFileKey}}
+
+### Script Record File Metadata
+# @name get_script_record_file_metadata
+GET {{apiUrl}}/files/metadata/gemini/{{createdScriptRecordFileKey}}
 
 // -----------------------------
 // ---- Sensor Platform API ----
@@ -1573,6 +1615,8 @@ Content-Disposition: form-data; name="record_info"
 ###
 @createdSensorRecordId = {{create_sensor_record.response.body.id}}
 
+@createdSensorRecordFileKey = {{create_sensor_record.response.body.record_file}}
+
 ### Get a sensor record by ID
 # @name get_sensor_record_by_id
 GET {{apiUrl}}/sensors/records/id/{{createdSensorRecordId}}
@@ -1593,6 +1637,19 @@ Content-Type: application/json
 ### Delete a sensor record
 # @name delete_sensor_record
 DELETE {{apiUrl}}/sensors/records/id/{{createdSensorRecordId}}
+
+### Get Sensor Record File
+# @name get_sensor_record_file
+GET {{apiUrl}}/sensors/records/id/{{createdSensorRecordId}}/download
+
+### Get Sensor Record File directly
+# @name get_sensor_record_file_direct
+GET {{apiUrl}}/files/download/gemini/{{createdSensorRecordFileKey}}
+
+### Sensor Record File Metadata
+# @name get_sensor_record_file_metadata
+GET {{apiUrl}}/files/metadata/gemini/{{createdSensorRecordFileKey}}
+
 
 
 // -------------------------

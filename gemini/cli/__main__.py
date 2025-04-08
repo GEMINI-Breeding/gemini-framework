@@ -64,6 +64,14 @@ def setup(ctx: GEMINICLIContext, default: bool = False):
     click.echo(click.style("GEMINI pipeline setup complete", fg="blue"))
 
 
+@cli.command()
+@click.pass_obj
+def update(ctx: GEMINICLIContext):
+    click.echo(click.style("Updating GEMINI pipeline", fg="blue"))
+    ctx.manager.update()
+    ctx.manager.save_settings()
+    ctx.manager.rebuild()
+    click.echo(click.style("GEMINI pipeline updated", fg="blue"))
 
 # Add the settings command group to the main CLI
 cli.add_command(settings_group)

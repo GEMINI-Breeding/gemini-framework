@@ -2,7 +2,7 @@ from litestar import Response
 from litestar.handlers import get, post, patch, delete
 from litestar.params import Body
 from litestar.controller import Controller
-from litestar.response import Stream
+from litestar.response import Stream, Redirect
 from litestar.serialization import encode_json
 from litestar.enums import RequestEncodingType
 
@@ -320,11 +320,12 @@ class DatasetController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
-    # Download Dataset Record by ID
+        
+    # Download Dataset Record File
     @get(path="/records/id/{record_id:str}/download")
-    async def download_dataset_record_by_id(
+    async def download_dataset_record_file(
         self, record_id: str
-    ) -> DatasetRecordOutput:
+    ) -> Redirect:
         try:
             dataset_record = DatasetRecord.get_by_id(id=record_id)
             if dataset_record is None:
@@ -340,8 +341,10 @@ class DatasetController(Controller):
                     error_description="No dataset record file was found with the given ID"
                 ).to_html()
                 return Response(content=error_html, status_code=404)
-            # Redirect to link in record_file
-            return Response(content=record_file, status_code=302)
+            bucket_name = "gemini"
+            object_name = record_file
+            object_path = f"{bucket_name}/{object_name}"
+            return Redirect(path=f"/api/files/download/{object_path}")
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),

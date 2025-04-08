@@ -141,7 +141,7 @@ class TraitRecord(APIBase, FileHandlerMixin):
                 **record.to_dict()
             )
             record = record.model_dump()
-            record = cls._postprocess_record(record)
+            # record = cls._postprocess_record(record)
             record = cls.model_validate(record)
             return record
         except Exception as e:
@@ -253,7 +253,7 @@ class TraitRecord(APIBase, FileHandlerMixin):
                     **record.to_dict()
                 )
                 record = record.model_dump()
-                record = cls._postprocess_record(record)
+                # record = cls._postprocess_record(record)
                 record = cls.model_validate(record)
                 yield record
         except Exception as e:

@@ -111,7 +111,7 @@ class GEMINIManager(BaseModel):
     def rebuild(self) -> bool:
         try:
             subprocess.run(
-                ["docker", "compose", "-f", self.compose_file_path, "--env-file", self.env_file_path, "down", "--volumes", "--remove-orphans"],
+                ["docker", "compose", "-f", self.compose_file_path, "--env-file", self.env_file_path, "down", "--remove-orphans"],
                 check=True
             )
             subprocess.run(
@@ -148,10 +148,25 @@ class GEMINIManager(BaseModel):
         except Exception as e:
             print(e)
             return False
+        
     def stop(self) -> bool:
         try:
             subprocess.run(
                 ["docker","compose", "-f", self.compose_file_path, "--env-file", self.env_file_path, "stop"],
+                check=True
+            )
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
+
+    def update(self) -> bool:
+        try:
+            # Get update.sh script
+            update_script_path = Path(__file__).parent / "scripts" / "update.sh"
+            subprocess.run(
+                ["bash", str(update_script_path)],
                 check=True
             )
             return True

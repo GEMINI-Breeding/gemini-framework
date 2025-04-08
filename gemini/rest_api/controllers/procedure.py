@@ -2,7 +2,7 @@ from litestar import Response
 from litestar.handlers import get, post, patch, delete
 from litestar.params import Body
 from litestar.controller import Controller
-from litestar.response import Stream
+from litestar.response import Stream, Redirect
 from litestar.serialization import encode_json
 from litestar.enums import RequestEncodingType
 
@@ -434,6 +434,37 @@ class ProcedureController(Controller):
                 ).to_html()
                 return Response(content=error_html, status_code=404)
             return record
+        except Exception as e:
+            error_html = RESTAPIError(
+                error="Internal Server Error",
+                error_description=str(e)
+            ).to_html()
+            return Response(content=error_html, status_code=500)
+        
+    # Get Procedure Record File
+    @get(path="/records/id/{record_id:str}/download")
+    async def download_procedure_record_file(
+        self, record_id: str
+    ) -> Redirect:
+        try:
+            procedure_record = ProcedureRecord.get_by_id(id=record_id)
+            if procedure_record is None:
+                error_html = RESTAPIError(
+                    error="Procedure Record Not Found",
+                    error_description="No procedure record found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            record_file = procedure_record.record_file
+            if record_file is None:
+                error_html = RESTAPIError(
+                    error="Procedure Record File Not Found",
+                    error_description="No file associated with the procedure record"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            bucket_name = "gemini"
+            object_name = record_file
+            object_path = f"{bucket_name}/{object_name}"
+            return Redirect(path=f"/api/files/download/{object_path}")
         except Exception as e:
             error_html = RESTAPIError(
                 error="Internal Server Error",

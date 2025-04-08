@@ -2,7 +2,7 @@ from litestar import Response
 from litestar.handlers import get, post, patch, delete
 from litestar.params import Body
 from litestar.controller import Controller
-from litestar.response import Stream
+from litestar.response import Stream, Redirect
 from litestar.serialization import encode_json
 from litestar.enums import RequestEncodingType
 
@@ -455,6 +455,38 @@ class ModelController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
+    # Download Model Record File
+    @get(path="/records/id/{record_id:str}/download")
+    async def download_model_record_file(
+        self, record_id: str
+    ) -> Redirect:
+        try:
+            model_record = ModelRecord.get_by_id(id=record_id)
+            if model_record is None:
+                error_html = RESTAPIError(
+                    error="Model record not found",
+                    error_description="The model record with the given ID was not found"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            record_file = model_record.record_file
+            if record_file is None:
+                error_html = RESTAPIError(
+                    error="No record file found",
+                    error_description="The model record does not have an associated file"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            bucket_name = "gemini"
+            object_name = record_file
+            object_path = f"{bucket_name}/{object_name}"
+            return Redirect(path=f"/api/files/download/{object_path}")
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while downloading the model record file"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
     # Update Model Record
     @patch(path="/records/id/{record_id:str}")
     async def update_model_record(
