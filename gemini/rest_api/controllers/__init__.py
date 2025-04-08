@@ -16,6 +16,7 @@ from gemini.rest_api.controllers.site import SiteController
 from gemini.rest_api.controllers.trait_level import TraitLevelController
 from gemini.rest_api.controllers.trait import TraitController
 from gemini.rest_api.controllers.procedure import ProcedureController
+from gemini.rest_api.controllers.files import FileController
 
 controllers = {
     "cultivars": CultivarController,
@@ -36,5 +37,6 @@ controllers = {
     "sites": SiteController,
     "trait_levels": TraitLevelController,
     "traits": TraitController,
+    "files": FileController
 }
 

@@ -34,6 +34,7 @@ class RESTAPIError(RESTAPIBase):
 
     def to_html(self):
         return f"<h1>{self.error}</h1><p>{self.error_description}</p>"
+    
 
 # --------------------------------
 # Paginated Response
@@ -50,17 +51,19 @@ class PaginatedResponseBase(RESTAPIBase):
 # File Handling
 # --------------------------------
 
-class URLResponse(RESTAPIBase):
-    url: str
-
-class FileInformation(RESTAPIBase):
+class FileMetadata(RESTAPIBase):
     bucket_name: str
     object_name: str
     last_modified: datetime
     etag: str
     size: int
     content_type: str
-    version_id: Optional[str] = None
+
+class UploadFileRequest(RESTAPIBase):
+    file: UploadFile
+    bucket_name: Optional[str] = None
+    object_name: Optional[str] = None
+
 
 # --------------------------------
 # Experiment Classes

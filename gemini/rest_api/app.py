@@ -1,12 +1,11 @@
 from litestar import Litestar, Router, get
 from litestar.openapi.config import OpenAPIConfig
-from litestar.openapi.plugins import ScalarRenderPlugin, SwaggerRenderPlugin, RapidocRenderPlugin, RedocRenderPlugin, StoplightRenderPlugin
+from litestar.openapi.plugins import StoplightRenderPlugin
 from litestar import Litestar
 from litestar.config.cors import CORSConfig
 from gemini.rest_api.controllers import controllers
-from gemini.rest_api.file_handler import RESTAPIFileHandler
-
-import os
+# from gemini.rest_api.controllers.files import file_route_handlers
+from gemini.config.settings import GEMINISettings
 
 cors_config = CORSConfig(allow_origins=["*"])
 
@@ -26,6 +25,10 @@ def root_handler() -> dict:
         "email": "pghate@ucdavis.edu"
     }
 
+@get(path="/settings", sync_to_thread=False, tags=["GEMINI"])
+def settings_handler() -> dict:
+    return GEMINISettings().model_dump()
+
 routers = []
 for key, value in controllers.items():
     router = Router(
@@ -37,4 +40,4 @@ for key, value in controllers.items():
 
 
 # Entry point for the application
-app = Litestar(route_handlers=[root_handler] + routers, openapi_config=openapi_config, cors_config=cors_config)
+app = Litestar(route_handlers=[root_handler, settings_handler ] + routers, openapi_config=openapi_config, cors_config=cors_config)

@@ -24,6 +24,11 @@ services:
       - gemini_db_data:/bitnami/postgresql
     networks:
       - gemini_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gemini-db.rule=Host(`db.gemini.localhost`)"
+      - "traefik.http.services.gemini-db.loadbalancer.server.port=5432"
+      - "traefik.http.services.gemini-db.loadbalancer.server.scheme=http"
 
   storage:
     container_name: ${GEMINI_STORAGE_HOSTNAME}
@@ -48,6 +53,11 @@ services:
       - gemini_network
     depends_on:
       - db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gemini-storage.rule=Host(`storage.gemini.localhost`)"
+      - "traefik.http.services.gemini-storage.loadbalancer.server.port=9000"
+      - "traefik.http.services.gemini-storage.loadbalancer.server.scheme=http"
 
   storage-init:
     image: bitnami/minio-client:2024
@@ -66,6 +76,7 @@ services:
       - ../storage/scripts/init_minio.sh:/usr/local/bin/init_minio.sh
     entrypoint: >
       /bin/sh -c "sleep 10 && /usr/local/bin/init_minio.sh"
+
 
   logger:
     container_name: ${GEMINI_LOGGER_HOSTNAME}
@@ -96,6 +107,11 @@ services:
       retries: 3
     networks:
       - gemini_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gemini-logger.rule=Host(`logger.gemini.localhost`)"
+      - "traefik.http.services.gemini-logger.loadbalancer.server.port=6379"
+      - "traefik.http.services.gemini-logger.loadbalancer.server.scheme=http"
 
   rest-api:
     container_name: ${GEMINI_REST_API_HOSTNAME}
@@ -107,6 +123,9 @@ services:
     # image: ${GEMINI_REST_API_IMAGE_NAME}:latest
     ports:
       - "${GEMINI_REST_API_PORT}:7777"
+      - "5678:5678"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - "GEMINI_DB_URL=postgresql://${GEMINI_DB_USER}:${GEMINI_DB_PASSWORD}@${GEMINI_DB_HOSTNAME}:${GEMINI_DB_PORT}/${GEMINI_DB_NAME}"
       - "GEMINI_STORAGE_ACCESS_KEY=${GEMINI_STORAGE_ACCESS_KEY}"
@@ -116,7 +135,11 @@ services:
       - "GEMINI_STORAGE_API_PORT=${GEMINI_STORAGE_API_PORT}"
     networks:
       - gemini_network
-
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gemini-rest-api.rule=Host(`api.gemini.localhost`)"
+      - "traefik.http.services.gemini-rest-api.loadbalancer.server.port=7777"
+      - "traefik.http.services.gemini-rest-api.loadbalancer.server.scheme=http"
 
   scheduler-db:
     container_name: ${GEMINI_SCHEDULER_DB_HOSTNAME}
@@ -136,6 +159,11 @@ services:
       - gemini_scheduler_db_data:/bitnami/postgresql  # Use a separate volume for scheduler db
     networks:
       - gemini_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gemini-scheduler-db.rule=Host(`scheduler-db.gemini.localhost`)"
+      - "traefik.http.services.gemini-scheduler-db.loadbalancer.server.port=6432"
+      - "traefik.http.services.gemini-scheduler-db.loadbalancer.server.scheme=http"
 
 
   scheduler-server:
@@ -154,11 +182,35 @@ services:
       - "PREFECT_API_DATABASE_PASSWORD=${GEMINI_SCHEDULER_DB_PASSWORD}"  # Use the scheduler db password
       - "PREFECT_API_DATABASE_NAME=${GEMINI_SCHEDULER_DB_NAME}"  # Use the scheduler db name
       - "PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://${GEMINI_SCHEDULER_DB_USER}:${GEMINI_SCHEDULER_DB_PASSWORD}@${GEMINI_SCHEDULER_DB_HOSTNAME}:${GEMINI_SCHEDULER_DB_PORT}/${GEMINI_SCHEDULER_DB_NAME}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - scheduler-db
     networks:
       - gemini_network
-  
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gemini-scheduler-server.rule=Host(`scheduler.gemini.localhost`)"
+      - "traefik.http.services.gemini-scheduler-server.loadbalancer.server.port=4200"
+      - "traefik.http.services.gemini-scheduler-server.loadbalancer.server.scheme=http"
+
+  reverse-proxy:
+    container_name: ${GEMINI_REVERSE_PROXY_HOSTNAME}
+    hostname: ${GEMINI_REVERSE_PROXY_HOSTNAME}
+    restart: always
+    build:
+      context: ../../
+      dockerfile: ./gemini/reverse_proxy/Dockerfile
+    # image: traefik:v3.3  # Replaced with build context
+    command: --api.insecure=true --providers.docker
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - gemini_network
+
 networks:
   gemini_network:
     driver: bridge

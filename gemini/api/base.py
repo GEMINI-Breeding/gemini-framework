@@ -8,14 +8,13 @@ from uuid import UUID
 
 from gemini.storage.providers.minio_storage import MinioStorageProvider
 from gemini.storage.config.storage_config import MinioStorageConfig
-from gemini.config.settings import GEMINISettingsType
-from gemini.manager import GEMINIManager
+from gemini.manager import GEMINIManager, GEMINIComponentType
 
 from functools import cached_property
 from abc import ABC, abstractmethod
 
 manager = GEMINIManager()
-minio_storage_settings = manager.pipeline_settings.get_settings(GEMINISettingsType.STORAGE)
+minio_storage_settings = manager.get_component_settings(GEMINIComponentType.STORAGE)
 minio_storage_config = MinioStorageConfig(
     endpoint=f"{minio_storage_settings['GEMINI_STORAGE_HOSTNAME']}:{minio_storage_settings['GEMINI_STORAGE_PORT']}",
     access_key=minio_storage_settings['GEMINI_STORAGE_ACCESS_KEY'],

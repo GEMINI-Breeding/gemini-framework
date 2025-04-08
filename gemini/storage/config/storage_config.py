@@ -21,6 +21,7 @@ class StorageConfig(BaseModel):
         "extra": "forbid"  # Prevent additional attributes
     }
 
+
 class LocalStorageConfig(StorageConfig):
     """Configuration for local filesystem storage."""
     

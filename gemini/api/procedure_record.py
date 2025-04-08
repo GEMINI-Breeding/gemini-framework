@@ -119,7 +119,7 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
                 **record.to_dict()
             )
             record = record.model_dump()
-            record = cls._postprocess_record(record)
+            # record = cls._postprocess_record(record)
             record = cls.model_validate(record)
             return record if record else None
         except Exception as e:
@@ -240,7 +240,7 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
                     **record.to_dict()
                 )
                 record = record.model_dump()
-                record = cls._postprocess_record(record)
+                # record = cls._postprocess_record(record)
                 record = cls.model_validate(record)
                 yield record
         except Exception as e:
@@ -423,7 +423,8 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
             with open(absolute_file_path, "rb") as file:
                 uploaded_file_url = cls.minio_storage_provider.upload_file(
                     object_name=file_key,
-                    data_stream=file
+                    data_stream=file,
+                    bucket_name="gemini"
                 )
                 return uploaded_file_url
         except Exception as e: 
@@ -437,7 +438,8 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
             output_file_path = os.path.join(output_folder, record.record_file)
             downloaded_file_path = self.minio_storage_provider.download_file(
                 object_name=record.record_file,
-                file_path=output_file_path
+                file_path=output_file_path,
+                bucket_name="gemini"
             )
             return downloaded_file_path
         except Exception as e:
@@ -449,7 +451,7 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
             # Check if record_file is a file key or a file url
             if record_file_key.startswith("http"):
                 return record_file_key
-            file_url = cls.minio_storage_provider.get_download_url(object_name=record_file_key)
+            file_url = cls.minio_storage_provider.get_download_url(object_name=record_file_key, bucket_name="gemini")
             return file_url
         except Exception as e:
             raise e

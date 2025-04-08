@@ -320,6 +320,36 @@ class DatasetController(Controller):
             error_html = error_message.to_html()
             return Response(content=error_html, status_code=500)
         
+    # Download Dataset Record by ID
+    @get(path="/records/id/{record_id:str}/download")
+    async def download_dataset_record_by_id(
+        self, record_id: str
+    ) -> DatasetRecordOutput:
+        try:
+            dataset_record = DatasetRecord.get_by_id(id=record_id)
+            if dataset_record is None:
+                error_html = RESTAPIError(
+                    error="Dataset record not found",
+                    error_description="No dataset record was found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            record_file = dataset_record.record_file
+            if record_file is None:
+                error_html = RESTAPIError(
+                    error="Dataset record file not found",
+                    error_description="No dataset record file was found with the given ID"
+                ).to_html()
+                return Response(content=error_html, status_code=404)
+            # Redirect to link in record_file
+            return Response(content=record_file, status_code=302)
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving the dataset record file"
+            )
+            error_html = error_message.to_html()
+            return Response(content=error_html, status_code=500)
+
     # Update Dataset Record
     @patch(path="/records/id/{record_id:str}")
     async def update_dataset_record(

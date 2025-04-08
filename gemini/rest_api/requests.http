@@ -1,8 +1,36 @@
 @baseUrl = http://localhost:8000
-@apiUrl = http://localhost:8000/api
+@apiUrl = {{baseUrl}}/api/
 
 // ---- Check the API status ----
 GET {{baseUrl}}
+
+// ----------------------
+// ---- Files API ------
+// ----------------------
+
+### Upload a random file
+# @name upload_random_file
+POST {{apiUrl}}/files/upload
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="bucket_name"
+
+gemini
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="object_name"
+
+test/example.txt
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="example.txt" Content-Type: text/plain
+
+< ./example.txt
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Delete File
+# @name delete_file
+DELETE {{apiUrl}}/files/delete/gemini/test/example.txt
+
 
 // ----------------------
 // ---- Cultivar API ----
@@ -333,10 +361,15 @@ Content-Disposition: form-data; name="record_file"; filename="example.txt" Conte
 
 ###
 @createdDatasetRecordId = {{add_dataset_record.response.body.id}}
+@createdDatasetRecordFileKey = {{add_dataset_record.response.body.record_file}}
 
 ### Get a dataset record by ID
 # @name get_dataset_record_by_id
 GET {{apiUrl}}/datasets/records/id/{{createdDatasetRecordId}}
+
+### Download a dataset record file
+# @name download_dataset_record_file
+GET {{apiUrl}}/datasets/records/id/{{createdDatasetRecordId}}/download
 
 ### Update a dataset record
 # @name update_dataset_record
@@ -355,6 +388,13 @@ Content-Type: application/json
 # @name delete_dataset_record
 DELETE {{apiUrl}}/datasets/records/id/{{createdDatasetRecordId}}
 
+### Dataset Record File Metadata
+# @name get_dataset_record_file_metadata
+GET {{apiUrl}}/files/metadata/gemini/{{createdDatasetRecordFileKey}}
+
+### Get Dataset Record File
+# @name get_dataset_record_file
+GET {{apiUrl}}/files/download/gemini/{{createdDatasetRecordFileKey}}
 
 // ------------------------
 // ---- Experiment API ----

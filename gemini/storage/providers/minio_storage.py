@@ -7,7 +7,7 @@ from typing import BinaryIO, Optional, Union, Dict, Any
 from pathlib import Path
 from minio import Minio
 from minio.error import S3Error
-from urllib.parse import urlparse
+from urllib3.response import HTTPResponse
 
 from gemini.storage.interfaces.storage_provider import StorageProvider
 from gemini.storage.config.storage_config import MinioStorageConfig
@@ -121,6 +121,37 @@ class MinioStorageProvider(StorageProvider):
         except Exception as e:
             raise StorageUploadError(f"Unexpected error during upload: {e}")
 
+    def download_file_stream(
+        self,
+        object_name: str,
+        bucket_name: Optional[str] = None
+    ) -> HTTPResponse:
+        """Download a file as a stream from MinIO storage.
+        
+        Args:
+            object_name: Name/path of the object in storage
+            bucket_name: Name of the bucket
+        Returns:
+            HTTPResponse: Response object containing the file stream
+        """
+        try:
+            response = self.client.get_object(
+                bucket_name=self.bucket_name if bucket_name is None else bucket_name,
+                object_name=object_name
+            )
+            return response
+        except S3Error as e:
+            if 'NoSuchKey' in str(e):
+                raise StorageFileNotFoundError(f"File not found: {object_name}")
+            elif 'AccessDenied' in str(e):
+                raise StorageAuthError(f"Access denied while downloading file: {e}")
+            raise StorageDownloadError(f"Failed to download file: {e}")
+        except ConnectionError as e:
+            raise StorageConnectionError(f"Connection failed during download: {e}")
+        except Exception as e:
+            raise StorageDownloadError(f"Unexpected error during download: {e}")
+
+
     def download_file(
         self,
         object_name: str,
@@ -228,7 +259,7 @@ class MinioStorageProvider(StorageProvider):
                 expires=expires,
                 response_headers=response_headers
             )
-            
+        
             return url
             
         except S3Error as e:
@@ -339,5 +370,42 @@ class MinioStorageProvider(StorageProvider):
             raise StorageConnectionError(f"Connection failed while getting metadata: {e}")
         except Exception as e:
             raise StorageError(f"Unexpected error while getting metadata: {e}")
-        
 
+    def bucket_exists(self, bucket_name: str) -> bool:
+        """Check if a bucket exists in MinIO storage.
+        
+        Args:
+            bucket_name: Name of the bucket
+            
+        Returns:
+            bool: True if bucket exists
+            
+        Raises:
+            StorageConnectionError: If connection check fails
+        """
+        try:
+            return self.client.bucket_exists(bucket_name)
+        except S3Error:
+            return False
+        except ConnectionError as e:
+            raise StorageConnectionError(f"Connection failed while checking bucket: {e}")
+
+
+    def healthcheck(self) -> bool:
+        """Check the connection to the MinIO server and bucket accessibility.
+
+        Returns:
+            bool: True if the connection is successful and the bucket is accessible.
+
+        Raises:
+            StorageConnectionError: If the connection fails or the bucket is not accessible.
+        """
+        try:
+            # bucket_exists checks connection, authentication, and bucket presence
+            self.client.bucket_exists(self.bucket_name)
+            return True
+        except S3Error as e:
+            raise StorageConnectionError(f"MinIO healthcheck failed: {e}")
+        except Exception as e:
+            # Catch potential network errors or other unexpected issues
+            raise StorageConnectionError(f"Unexpected error during MinIO healthcheck: {e}")
