@@ -50,8 +50,8 @@ def clean(ctx: GEMINICLIContext):
 @click.pass_obj
 def reset(ctx: GEMINICLIContext):
     click.echo(click.style("Resetting GEMINI pipeline", fg="blue"))
+    ctx.manager.save_settings()
     ctx.manager.rebuild()
-    ctx.manager.start()
     click.echo(click.style("GEMINI pipeline reset", fg="blue"))
 
 @cli.command()

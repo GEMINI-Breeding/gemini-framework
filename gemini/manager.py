@@ -92,6 +92,9 @@ class GEMINIManager(BaseModel):
     
     def delete_settings(self) -> None:
         try:
+            if not os.path.exists(self.env_file_path):
+                print(f"Settings file {self.env_file_path} does not exist.")
+                return
             os.remove(self.env_file_path)
             print(f"Settings file {self.env_file_path} deleted.")
         except Exception as e:
@@ -111,7 +114,7 @@ class GEMINIManager(BaseModel):
     def rebuild(self) -> bool:
         try:
             subprocess.run(
-                ["docker", "compose", "-f", self.compose_file_path, "--env-file", self.env_file_path, "down", "--remove-orphans"],
+                ["docker", "compose", "-f", self.compose_file_path, "--env-file", self.env_file_path, "down", "--remove-orphans", "--volumes"],
                 check=True
             )
             subprocess.run(
@@ -174,16 +177,15 @@ class GEMINIManager(BaseModel):
             print(e)
             return False
 
-
-
     def get_component_settings(self, component_type: GEMINIComponentType) -> dict:
         current_settings = self.get_settings()
         match component_type:
             case GEMINIComponentType.META:
                 return {
                     "GEMINI_DEBUG": current_settings.GEMINI_DEBUG,
-                    "GEMINI_LOCAL": current_settings.GEMINI_LOCAL,
-                    "GEMINI_PUBLIC_DOMAIN": current_settings.GEMINI_PUBLIC_DOMAIN
+                    "GEMINI_TYPE": current_settings.GEMINI_TYPE,
+                    "GEMINI_PUBLIC_DOMAIN": current_settings.GEMINI_PUBLIC_DOMAIN,
+                    "GEMINI_PUBLIC_IP": current_settings.GEMINI_PUBLIC_IP
                 }
             case GEMINIComponentType.DB:
                 return {
@@ -191,7 +193,7 @@ class GEMINIManager(BaseModel):
                     "GEMINI_DB_IMAGE_NAME": current_settings.GEMINI_DB_IMAGE_NAME,
                     "GEMINI_DB_USER": current_settings.GEMINI_DB_USER,
                     "GEMINI_DB_PASSWORD": current_settings.GEMINI_DB_PASSWORD,
-                    "GEMINI_DB_HOSTNAME": current_settings.GEMINI_DB_HOSTNAME if not current_settings.GEMINI_LOCAL else "localhost",
+                    "GEMINI_DB_HOSTNAME": current_settings.GEMINI_DB_HOSTNAME,
                     "GEMINI_DB_NAME": current_settings.GEMINI_DB_NAME,
                     "GEMINI_DB_PORT": current_settings.GEMINI_DB_PORT
                 }
@@ -199,7 +201,7 @@ class GEMINIManager(BaseModel):
                 return {
                     "GEMINI_LOGGER_CONTAINER_NAME": current_settings.GEMINI_LOGGER_CONTAINER_NAME,
                     "GEMINI_LOGGER_IMAGE_NAME": current_settings.GEMINI_LOGGER_IMAGE_NAME,
-                    "GEMINI_LOGGER_HOSTNAME": current_settings.GEMINI_LOGGER_HOSTNAME if not current_settings.GEMINI_LOCAL else "localhost",
+                    "GEMINI_LOGGER_HOSTNAME": current_settings.GEMINI_LOGGER_HOSTNAME,
                     "GEMINI_LOGGER_PORT": current_settings.GEMINI_LOGGER_PORT,
                     "GEMINI_LOGGER_PASSWORD": current_settings.GEMINI_LOGGER_PASSWORD
                 }
@@ -207,7 +209,7 @@ class GEMINIManager(BaseModel):
                 return {
                     "GEMINI_STORAGE_CONTAINER_NAME": current_settings.GEMINI_STORAGE_CONTAINER_NAME,
                     "GEMINI_STORAGE_IMAGE_NAME": current_settings.GEMINI_STORAGE_IMAGE_NAME,
-                    "GEMINI_STORAGE_HOSTNAME": current_settings.GEMINI_STORAGE_HOSTNAME if not current_settings.GEMINI_LOCAL else "localhost",
+                    "GEMINI_STORAGE_HOSTNAME": current_settings.GEMINI_STORAGE_HOSTNAME,
                     "GEMINI_STORAGE_PORT": current_settings.GEMINI_STORAGE_PORT,
                     "GEMINI_STORAGE_API_PORT": current_settings.GEMINI_STORAGE_API_PORT,
                     "GEMINI_STORAGE_ROOT_USER": current_settings.GEMINI_STORAGE_ROOT_USER,
@@ -220,14 +222,14 @@ class GEMINIManager(BaseModel):
                 return {
                     "GEMINI_REST_API_CONTAINER_NAME": current_settings.GEMINI_REST_API_CONTAINER_NAME,
                     "GEMINI_REST_API_IMAGE_NAME": current_settings.GEMINI_REST_API_IMAGE_NAME,
-                    "GEMINI_REST_API_HOSTNAME": current_settings.GEMINI_REST_API_HOSTNAME if not current_settings.GEMINI_LOCAL else "localhost",
+                    "GEMINI_REST_API_HOSTNAME": current_settings.GEMINI_REST_API_HOSTNAME,
                     "GEMINI_REST_API_PORT": current_settings.GEMINI_REST_API_PORT
                 }
             case GEMINIComponentType.SCHEDULER_DB:
                 return {
                     "GEMINI_SCHEDULER_DB_CONTAINER_NAME": current_settings.GEMINI_SCHEDULER_DB_CONTAINER_NAME,
                     "GEMINI_SCHEDULER_DB_IMAGE_NAME": current_settings.GEMINI_SCHEDULER_DB_IMAGE_NAME,
-                    "GEMINI_SCHEDULER_DB_HOSTNAME": current_settings.GEMINI_SCHEDULER_DB_HOSTNAME if not current_settings.GEMINI_LOCAL else "localhost",
+                    "GEMINI_SCHEDULER_DB_HOSTNAME": current_settings.GEMINI_SCHEDULER_DB_HOSTNAME,
                     "GEMINI_SCHEDULER_DB_USER": current_settings.GEMINI_SCHEDULER_DB_USER,
                     "GEMINI_SCHEDULER_DB_PASSWORD": current_settings.GEMINI_SCHEDULER_DB_PASSWORD,
                     "GEMINI_SCHEDULER_DB_NAME": current_settings.GEMINI_SCHEDULER_DB_NAME,
@@ -237,8 +239,9 @@ class GEMINIManager(BaseModel):
                 return {
                     "GEMINI_SCHEDULER_SERVER_CONTAINER_NAME": current_settings.GEMINI_SCHEDULER_SERVER_CONTAINER_NAME,
                     "GEMINI_SCHEDULER_SERVER_IMAGE_NAME": current_settings.GEMINI_SCHEDULER_SERVER_IMAGE_NAME,
-                    "GEMINI_SCHEDULER_SERVER_HOSTNAME": current_settings.GEMINI_SCHEDULER_SERVER_HOSTNAME if not current_settings.GEMINI_LOCAL else "localhost",
+                    "GEMINI_SCHEDULER_SERVER_HOSTNAME": current_settings.GEMINI_SCHEDULER_SERVER_HOSTNAME,
                     "GEMINI_SCHEDULER_SERVER_PORT": current_settings.GEMINI_SCHEDULER_SERVER_PORT
                 }
             case _:
                 raise ValueError(f"Unknown settings type: {component_type}")
+

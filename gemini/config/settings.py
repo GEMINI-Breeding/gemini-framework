@@ -16,7 +16,7 @@ class GEMINISettings(BaseSettings):
 
     # Meta
     GEMINI_DEBUG : bool = False
-    GEMINI_LOCAL : bool = False
+    GEMINI_TYPE: str = "internal"
     GEMINI_PUBLIC_DOMAIN : str = ""
     GEMINI_PUBLIC_IP : str = ""
 
@@ -75,17 +75,35 @@ class GEMINISettings(BaseSettings):
     GEMINI_REVERSE_PROXY_HOSTNAME : str = "gemini-reverse-proxy"
 
     def model_post_init(self, __context: Any) -> None:
-        if self.GEMINI_LOCAL:
-            self.set_local()
+        self.apply_type(self.GEMINI_TYPE)
         return super().model_post_init(__context)
 
-    def set_local(self):
-        os.environ["GEMINI_LOCAL"] = "True"
-        os.environ["GEMINI_DB_HOSTNAME"] = "localhost"
-        os.environ["GEMINI_LOGGER_HOSTNAME"] = "localhost"
-        os.environ["GEMINI_STORAGE_HOSTNAME"] = "localhost"
-        os.environ["GEMINI_SCHEDULER_DB_HOSTNAME"] = "localhost"
-        os.environ["GEMINI_SCHEDULER_SERVER_HOSTNAME"] = "localhost"
+    def apply_type(self, gemini_type = "internal"):
+        match gemini_type:
+            case "internal":
+                os.environ["GEMINI_TYPE"] = "internal"
+                print("Internal Settings Applied since GEMINI_TYPE is set to internal")
+            case "public":
+                public_ip = self.GEMINI_PUBLIC_IP
+                public_domain = self.GEMINI_PUBLIC_DOMAIN
+                # If both are empty then ignore
+                if not public_ip and not public_domain:
+                    os.environ["GEMINI_TYPE"] = "internal"
+                    return
+                os.environ["GEMINI_TYPE"] = "public"
+                os.environ["GEMINI_PUBLIC_DOMAIN"] = self.GEMINI_PUBLIC_DOMAIN 
+                os.environ["GEMINI_PUBLIC_IP"] = self.GEMINI_PUBLIC_IP
+                print("Public Settings Applied since GEMINI_TYPE is set to public")
+            case "local":
+                os.environ["GEMINI_TYPE"] = "localhost"
+                os.environ["GEMINI_DB_HOSTNAME"] = "localhost"
+                os.environ["GEMINI_LOGGER_HOSTNAME"] = "localhost"
+                os.environ["GEMINI_STORAGE_HOSTNAME"] = "localhost"
+                os.environ["GEMINI_SCHEDULER_DB_HOSTNAME"] = "localhost"
+                os.environ["GEMINI_SCHEDULER_SERVER_HOSTNAME"] = "localhost"
+                os.environ["GEMINI_REST_API_HOSTNAME"] = "localhost"
+                print("Local Settings Applied since GEMINI_TYPE is set to local")
+
 
     def set_debug(self, debug: bool = True):
         os.environ["GEMINI_DEBUG"] = str(debug)

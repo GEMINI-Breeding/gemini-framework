@@ -451,7 +451,8 @@ VALUES
     (7, 'Calibration', '{"description": "Calibration Sensor"}'),
     (8, 'Depth', '{"description": "Depth Sensor"}'),
     (9, 'IMU', '{"description": "IMU Sensor"}'),
-    (10, 'Disparity', '{"description": "Disparity Maps Source"}');
+    (10, 'Disparity', '{"description": "Disparity Maps Source"}'),
+    (11, 'Confidence', '{"description": "Confidence Maps Source"}');
 
 -- Make sure the next ID is incremented from the last inserted value
 SELECT setval(pg_get_serial_sequence('gemini.sensor_types', 'id'), 10, true);

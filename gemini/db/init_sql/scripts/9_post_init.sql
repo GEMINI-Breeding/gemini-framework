@@ -7,6 +7,9 @@ REFRESH MATERIALIZED VIEW gemini.experiment_seasons_view;
 REFRESH MATERIALIZED VIEW gemini.experiment_sites_view;
 REFRESH MATERIALIZED VIEW gemini.experiment_traits_view;
 REFRESH MATERIALIZED VIEW gemini.experiment_sensors_view;
+
+REFRESH MATERIALIZED VIEW gemini.experiment_sensor_platforms_view;
+
 REFRESH MATERIALIZED VIEW gemini.experiment_models_view;
 REFRESH MATERIALIZED VIEW gemini.experiment_procedures_view;
 REFRESH MATERIALIZED VIEW gemini.experiment_cultivars_view;
