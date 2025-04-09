@@ -163,6 +163,7 @@ class AMIGAPhoneParser:
         flir_sensor = Sensor.get(sensor_name="AMIGA Phone Thermal Camera", experiment_name="GEMINI")
         rgb_sensor = Sensor.get(sensor_name="AMIGA Phone RGB Camera", experiment_name="GEMINI")
 
+
         # Add Data to these sensors
         for data_record in tqdm(data_map.values(), desc="Adding Data to Sensors"):
             timestamp = data_record['timestamp']
@@ -186,7 +187,7 @@ class AMIGAPhoneParser:
                     season_name=season,
                     record_file=metadata_file
                 )
-
+   
             if confidence_file and os.path.exists(confidence_file):
                 confidence_sensor.add_record(
                     timestamp=timestamp,

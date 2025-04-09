@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS gemini.dataset_records (
 ) USING columnar;
 
 
-ALTER TABLE gemini.dataset_records ADD CONSTRAINT dataset_records_unique UNIQUE NULLS DISTINCT (
+ALTER TABLE gemini.dataset_records ADD CONSTRAINT dataset_records_unique UNIQUE NULLS NOT DISTINCT (
     timestamp, 
     collection_date, 
     dataset_id, 
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS gemini.sensor_records (
     record_info JSONB NOT NULL DEFAULT '{}'
 );
 
-ALTER TABLE gemini.sensor_records ADD CONSTRAINT sensor_records_unique UNIQUE NULLS DISTINCT (
+ALTER TABLE gemini.sensor_records ADD CONSTRAINT sensor_records_unique UNIQUE NULLS NOT DISTINCT (
     timestamp, 
     collection_date, 
     sensor_id, 
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS gemini.trait_records (
     record_info JSONB NOT NULL DEFAULT '{}'
 ) USING columnar;
 
-ALTER TABLE gemini.trait_records ADD CONSTRAINT trait_records_unique UNIQUE NULLS DISTINCT (
+ALTER TABLE gemini.trait_records ADD CONSTRAINT trait_records_unique UNIQUE NULLS NOT DISTINCT (
     timestamp, 
     collection_date, 
     trait_id, 
@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS gemini.procedure_records (
     record_info JSONB NOT NULL DEFAULT '{}'
 ) USING columnar;
 
-ALTER TABLE gemini.procedure_records ADD CONSTRAINT procedure_records_unique UNIQUE NULLS DISTINCT (
+ALTER TABLE gemini.procedure_records ADD CONSTRAINT procedure_records_unique UNIQUE NULLS NOT DISTINCT (
     timestamp, 
     collection_date, 
     procedure_id, 
@@ -196,7 +196,7 @@ CREATE TABLE IF NOT EXISTS gemini.script_records (
     record_info JSONB NOT NULL DEFAULT '{}'
 ) USING columnar;
 
-ALTER TABLE gemini.script_records ADD CONSTRAINT script_records_unique UNIQUE NULLS DISTINCT (
+ALTER TABLE gemini.script_records ADD CONSTRAINT script_records_unique UNIQUE NULLS NOT DISTINCT (
     timestamp, 
     collection_date, 
     script_id, 
@@ -235,7 +235,7 @@ CREATE TABLE IF NOT EXISTS gemini.model_records (
     record_info JSONB NOT NULL DEFAULT '{}'
 ) USING columnar;
 
-ALTER TABLE gemini.model_records ADD CONSTRAINT model_records_unique UNIQUE NULLS DISTINCT (
+ALTER TABLE gemini.model_records ADD CONSTRAINT model_records_unique UNIQUE NULLS NOT DISTINCT (
     timestamp, 
     collection_date, 
     model_id, 

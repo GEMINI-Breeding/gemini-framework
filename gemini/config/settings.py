@@ -80,34 +80,39 @@ class GEMINISettings(BaseSettings):
 
     def apply_type(self, gemini_type = "internal"):
         match gemini_type:
-            case "internal":
-                os.environ["GEMINI_TYPE"] = "internal"
-                print("Internal Settings Applied since GEMINI_TYPE is set to internal")
             case "public":
-                public_ip = self.GEMINI_PUBLIC_IP
-                public_domain = self.GEMINI_PUBLIC_DOMAIN
-                # If both are empty then ignore
-                if not public_ip and not public_domain:
-                    os.environ["GEMINI_TYPE"] = "internal"
-                    return
-                os.environ["GEMINI_TYPE"] = "public"
-                os.environ["GEMINI_PUBLIC_DOMAIN"] = self.GEMINI_PUBLIC_DOMAIN 
-                os.environ["GEMINI_PUBLIC_IP"] = self.GEMINI_PUBLIC_IP
-                print("Public Settings Applied since GEMINI_TYPE is set to public")
+                self.set_public_ip(self.GEMINI_PUBLIC_IP)
+                self.set_public_domain(self.GEMINI_PUBLIC_DOMAIN)
             case "local":
-                os.environ["GEMINI_TYPE"] = "localhost"
-                os.environ["GEMINI_DB_HOSTNAME"] = "localhost"
-                os.environ["GEMINI_LOGGER_HOSTNAME"] = "localhost"
-                os.environ["GEMINI_STORAGE_HOSTNAME"] = "localhost"
-                os.environ["GEMINI_SCHEDULER_DB_HOSTNAME"] = "localhost"
-                os.environ["GEMINI_SCHEDULER_SERVER_HOSTNAME"] = "localhost"
-                os.environ["GEMINI_REST_API_HOSTNAME"] = "localhost"
-                print("Local Settings Applied since GEMINI_TYPE is set to local")
+                self.set_local()
 
 
     def set_debug(self, debug: bool = True):
         os.environ["GEMINI_DEBUG"] = str(debug)
-        print(f"Debug Settings Applied since GEMINI_DEBUG is set to {debug}")  
+
+    def set_public_domain(self, domain: str):
+        if os.environ.get("GEMINI_PUBLIC_DOMAIN") == domain:
+            return
+        os.environ["GEMINI_PUBLIC_DOMAIN"] = domain
+
+    def set_public_ip(self, ip: str):
+        if os.environ.get("GEMINI_PUBLIC_IP") == ip:
+            return
+        os.environ["GEMINI_PUBLIC_IP"] = ip
+        os.environ["GEMINI_DB_HOSTNAME"] = ip
+        os.environ["GEMINI_LOGGER_HOSTNAME"] = ip
+        os.environ["GEMINI_STORAGE_HOSTNAME"] = ip
+        os.environ["GEMINI_SCHEDULER_DB_HOSTNAME"] = ip
+        os.environ["GEMINI_SCHEDULER_SERVER_HOSTNAME"] = ip
+        os.environ["GEMINI_REST_API_HOSTNAME"] = ip
+
+    def set_local(self):
+        os.environ["GEMINI_DB_HOSTNAME"] = "localhost"
+        os.environ["GEMINI_LOGGER_HOSTNAME"] = "localhost"
+        os.environ["GEMINI_STORAGE_HOSTNAME"] = "localhost"
+        os.environ["GEMINI_SCHEDULER_DB_HOSTNAME"] = "localhost"
+        os.environ["GEMINI_SCHEDULER_SERVER_HOSTNAME"] = "localhost"
+        os.environ["GEMINI_REST_API_HOSTNAME"] = "localhost"
 
 
     @staticmethod
