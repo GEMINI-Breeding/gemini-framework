@@ -1,12 +1,12 @@
-# Use the official Traefik image as a base
-FROM traefik:v3.3
+# Use the official Caddy image
+FROM caddy:2.9.1
 
-# Expose the default ports used by Traefik
-# 80: Default HTTP port for web traffic
-# 8080: Default port for the Traefik API/Dashboard
-EXPOSE 80 8080
+# Copy the Caddyfile into the container
+COPY ./gemini/reverse_proxy/Caddyfile /etc/caddy/Caddyfile
 
-# Set the default command to run when the container starts
-# --api.insecure=true: Enables the API/Dashboard without authentication (use with caution)
-# --providers.docker: Enables Docker as a configuration provider
-CMD ["--api.insecure=true", "--providers.docker"]
+# Expose the default Caddy ports (80 for HTTP, 443 for HTTPS)
+EXPOSE 80
+EXPOSE 443
+
+# The default command for the Caddy image is `caddy run --config /etc/caddy/Caddyfile --adapter caddyfile`
+# No need to specify CMD unless overriding the default behavior.

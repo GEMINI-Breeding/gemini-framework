@@ -1,0 +1,23 @@
+# Caddyfile for Gemini services
+
+{
+	# Global options block (optional)
+	# Enable debug logging if needed
+	# debug
+}
+
+# Storage Console (MinIO UI)
+storage.{$GEMINI_PUBLIC_DOMAIN} {
+	reverse_proxy storage:{$GEMINI_STORAGE_API_PORT}
+}
+
+# REST API
+rest.{$GEMINI_PUBLIC_DOMAIN} {
+	reverse_proxy rest-api:{$GEMINI_REST_API_PORT}
+}
+
+# Scheduler Server (Prefect UI/API)
+scheduler.{$GEMINI_PUBLIC_DOMAIN} {
+	reverse_proxy scheduler-server:{$GEMINI_SCHEDULER_SERVER_PORT}
+}
+

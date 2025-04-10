@@ -71,7 +71,7 @@ class GEMINISettings(BaseSettings):
 
     # Reverse Proxy
     GEMINI_REVERSE_PROXY_CONTAINER_NAME : str = "gemini-reverse-proxy"
-    GEMINI_REVERSE_PROXY_IMAGE_NAME : str = "nginx:latest"
+    GEMINI_REVERSE_PROXY_IMAGE_NAME : str = "gemini/caddy-reverse-proxy"
     GEMINI_REVERSE_PROXY_HOSTNAME : str = "gemini-reverse-proxy"
 
     def model_post_init(self, __context: Any) -> None:

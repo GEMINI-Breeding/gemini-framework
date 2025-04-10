@@ -1,5 +1,5 @@
 from typing import Optional, List, Generator
-import os
+import os, mimetypes
 from tqdm import tqdm   
 from uuid import UUID
 
@@ -480,13 +480,22 @@ class SensorRecord(APIBase, FileHandlerMixin):
     @classmethod
     def _upload_file(cls, file_key: str, absolute_file_path: str) -> str:
         try:
-            with open(absolute_file_path, "rb") as file:
-                uploaded_file_url = cls.minio_storage_provider.upload_file(
-                    object_name=file_key,
-                    data_stream=file,
-                    bucket_name="gemini"
-                )
-                return uploaded_file_url
+            content_type, _ = mimetypes.guess_type(absolute_file_path)
+            uploaded_file_url = cls.minio_storage_provider.upload_file(
+                object_name=file_key,
+                input_file_path=absolute_file_path,
+                bucket_name="gemini",
+                content_type=content_type
+            )
+            return uploaded_file_url
+            # with open(absolute_file_path, "rb") as file:
+            #     uploaded_file_url = cls.minio_storage_provider.upload_file(
+            #         object_name=file_key,
+            #         data_stream=file,
+            #         bucket_name="gemini",
+            #         content_type=content_type
+            #     )
+            #     return uploaded_file_url
         except Exception as e: 
             raise e
         

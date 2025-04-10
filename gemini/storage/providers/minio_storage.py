@@ -70,7 +70,8 @@ class MinioStorageProvider(StorageProvider):
     def upload_file(
         self,
         object_name: str,
-        data_stream: BinaryIO,
+        data_stream: Optional[BinaryIO] = None,
+        input_file_path: Optional[Union[str, Path]] = None,
         content_type: Optional[str] = None,
         metadata: Optional[Dict[str, str]] = None,
         bucket_name: Optional[str] = None
@@ -91,27 +92,46 @@ class MinioStorageProvider(StorageProvider):
             StorageConnectionError: If connection fails
         """
         try:
-            # Get file size
-            data_stream.seek(0, os.SEEK_END)
-            file_size = data_stream.tell()
-            data_stream.seek(0)
-            
-            # Prepare metadata
+            target_bucket_name = bucket_name if bucket_name is not None else self.bucket_name
             tags = metadata.copy() if metadata else {}
             if content_type:
                 tags['Content-Type'] = content_type
             
-            # Upload file
-            self.client.put_object(
-                bucket_name=self.bucket_name if bucket_name is None else bucket_name,
-                object_name=object_name,
-                data=data_stream,
-                length=file_size,
-                content_type=content_type,
-                metadata=tags
-            )
-            
-            return self.get_download_url(object_name)
+            part_size = 5 * 1024 * 1024 # 5MB part size
+
+            if input_file_path:
+                input_file_path = Path(input_file_path)
+                self.client.fput_object(
+                    bucket_name=target_bucket_name,
+                    object_name=object_name,
+                    file_path=str(input_file_path),
+                    content_type=content_type,
+                    metadata=tags,
+                    part_size=part_size
+                )
+            elif data_stream:
+                # Ensure stream is at the beginning
+                data_stream.seek(0)
+                # Get file size by reading the whole stream (less efficient but necessary for put_object length)
+                # A more efficient approach might require knowing the size beforehand or using multipart upload without explicit length
+                data_stream.seek(0, os.SEEK_END)
+                file_size = data_stream.tell()
+                data_stream.seek(0)
+
+                self.client.put_object(
+                    bucket_name=target_bucket_name,
+                    object_name=object_name,
+                    data=data_stream,
+                    length=file_size, # MinIO requires length for streams
+                    content_type=content_type,
+                    metadata=tags,
+                    part_size=part_size
+                )
+            else:
+                 raise ValueError("Either data_stream or input_file_path must be provided")
+
+
+            return self.get_download_url(object_name, bucket_name=target_bucket_name)
             
         except S3Error as e:
             if 'AccessDenied' in str(e):
