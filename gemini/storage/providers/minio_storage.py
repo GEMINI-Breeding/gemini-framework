@@ -44,7 +44,7 @@ class MinioStorageProvider(StorageProvider):
                 region=config.region,
                 http_client=config.http_client
             )
-            self.client.trace_on(sys.stdout)
+            # self.client.trace_on(sys.stdout)
             self.bucket_name = config.bucket_name
         except Exception as e:
             raise StorageInitializationError(f"Failed to initialize MinIO client: {e}")

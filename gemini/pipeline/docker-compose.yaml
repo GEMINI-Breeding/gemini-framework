@@ -44,11 +44,11 @@ services:
     environment:
       - "MINIO_ROOT_USER=${GEMINI_STORAGE_ROOT_USER}"
       - "MINIO_ROOT_PASSWORD=${GEMINI_STORAGE_ROOT_PASSWORD}"
-      - "MINIO_SCHEME=http"
-      - "BITNAMI_DEBUG=true"
+      # - "MINIO_SCHEME=http"
+      # - "BITNAMI_DEBUG=true"
     volumes:
-      - gemini_storage_data:/bitnami/minio/data
-      - ../storage/scripts/healthcheck.sh:/usr/local/bin/healthcheck.sh
+      - gemini_storage_data:/data
+    command: server /data --console-address :9001
     networks:
       - gemini_network
     depends_on:
@@ -58,6 +58,36 @@ services:
       - "traefik.http.routers.gemini-storage.rule=Host(`storage.gemini.localhost`)"
       - "traefik.http.services.gemini-storage.loadbalancer.server.port=9000"
       - "traefik.http.services.gemini-storage.loadbalancer.server.scheme=http"
+    
+
+  # storage:
+  #   container_name: ${GEMINI_STORAGE_HOSTNAME}
+  #   hostname: ${GEMINI_STORAGE_HOSTNAME}
+  #   restart: always
+  #   build:
+  #     context: ../storage
+  #     dockerfile: Dockerfile
+  #   # image: ${GEMINI_STORAGE_IMAGE_NAME}:latest
+  #   ports:
+  #     - "${GEMINI_STORAGE_PORT}:9000"
+  #     - "${GEMINI_STORAGE_API_PORT}:9001"
+  #   environment:
+  #     - "MINIO_ROOT_USER=${GEMINI_STORAGE_ROOT_USER}"
+  #     - "MINIO_ROOT_PASSWORD=${GEMINI_STORAGE_ROOT_PASSWORD}"
+  #     - "MINIO_SCHEME=http"
+  #     # - "BITNAMI_DEBUG=true"
+  #   volumes:
+  #     - gemini_storage_data:/bitnami/minio/data
+  #     - ../storage/scripts/healthcheck.sh:/usr/local/bin/healthcheck.sh
+  #   networks:
+  #     - gemini_network
+  #   depends_on:
+  #     - db
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.gemini-storage.rule=Host(`storage.gemini.localhost`)"
+  #     - "traefik.http.services.gemini-storage.loadbalancer.server.port=9000"
+  #     - "traefik.http.services.gemini-storage.loadbalancer.server.scheme=http"
 
   storage-init:
     image: bitnami/minio-client:2024

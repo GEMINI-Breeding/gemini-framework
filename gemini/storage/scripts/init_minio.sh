@@ -85,10 +85,14 @@ fi
 
 
 # Set bucket to private
-echo "Setting bucket to private..."
-mc policy set download local/"${GEMINI_STORAGE_BUCKET_NAME}"
-mc policy set download local/"staged-downloads"
-mc policy set download local/"staged-uploads"
+# echo "Setting bucket to private..."
+# mc policy set download local/"${GEMINI_STORAGE_BUCKET_NAME}"
+# mc policy set download local/"staged-downloads"
+# mc policy set download local/"staged-uploads"
+
+mc anonymous set download local/"${GEMINI_STORAGE_BUCKET_NAME}"
+mc anonymous set download local/"staged-downloads"
+mc anonymous set download local/"staged-uploads"
 
 
 echo "MinIO initialization completed successfully"

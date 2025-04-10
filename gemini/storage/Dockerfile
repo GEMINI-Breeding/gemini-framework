@@ -1,1 +1,2 @@
-FROM bitnami/minio:2025.4.8
+FROM minio/minio:latest
+# FROM bitnami/minio:2025.4.8
