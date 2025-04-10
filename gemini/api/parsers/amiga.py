@@ -95,145 +95,182 @@ class AMIGAPhoneParser:
         year = path_elements[0].split('_')[1]
         site = path_elements[1]
         collection_date = path_elements[2]
-
-
-        print(f"Year: {year}, Site: {site}, Collection Date: {collection_date}")
         
-        # Create or get the GEMINI experiment
         data_map = {}
+        data_map['collection_date'] = collection_date
+        data_map['season'] = year
+        data_map['site'] = site
+        data_map['data'] = []
 
-        # Process Metadata
+        # Collect Metadata
         metadata_dir = os.path.join(data_directory, 'meta_json')
-        for metadata_file_name in tqdm(os.listdir(metadata_dir), desc="Processing Metadata"):
+        for metadata_file_name in tqdm(os.listdir(metadata_dir), desc="Collecting Metadata Files"):
+            if 'collection' in metadata_file_name:
+                continue
             metadata_file = os.path.join(metadata_dir, metadata_file_name)
             with open(metadata_file, 'r') as f:
                 metadata = f.read()
                 metadata = json.loads(metadata)
-                metadata_file_number = int(metadata_file_name.split('.')[0][-5:])
+                # metadata_file_number = int(metadata_file_name.split('.')[0][-5:])
                 timestamp = float(metadata['info']['epochTime'])
                 timestamp = datetime.fromtimestamp(timestamp)
-                data_map[metadata_file_number] = {
-                    'timestamp': timestamp,
-                    'metadata': metadata
-                }
-                data_map[metadata_file_number]['metadata_file'] = metadata_file
+                data_map['data'].append(
+                    {
 
-        # Process Confidence TIFF
+                        'timestamp': timestamp,
+                        'metadata': metadata,
+                        'metadata_file': metadata_file
+                    }
+                )
+
+        # Collect Confidence
         confidence_dir = os.path.join(data_directory, 'confidence_tiff')
-        for confidence_file_name in tqdm(os.listdir(confidence_dir), desc="Processing Confidence TIFF"):
+        for confidence_file_name in tqdm(os.listdir(confidence_dir), desc="Collecting Confidence Files"):
+            if 'collection' in confidence_file_name:
+                continue
             confidence_file = os.path.join(confidence_dir, confidence_file_name)
             confidence_file_number = int(confidence_file_name.split('.')[0][-5:])
-            if confidence_file_number in data_map:
-                data_map[confidence_file_number]['confidence_file'] = confidence_file
+            data_map['data'][confidence_file_number]['confidence_file'] = confidence_file
 
-        # Process Depth TIFF
+        # Collect Depth
         depth_dir = os.path.join(data_directory, 'depth_tiff')
-        for depth_file_name in tqdm(os.listdir(depth_dir), desc="Processing Depth TIFF"):
+        for depth_file_name in tqdm(os.listdir(depth_dir), desc="Collecting Depth Files"):
+            if 'collection' in depth_file_name:
+                continue
             depth_file = os.path.join(depth_dir, depth_file_name)
             depth_file_number = int(depth_file_name.split('.')[0][-5:])
-            if depth_file_number in data_map:
-                data_map[depth_file_number]['depth_file'] = depth_file
+            data_map['data'][depth_file_number]['depth_file'] = depth_file
 
-        # Process FLIR JPG
+        # Collect FLIR
         flir_dir = os.path.join(data_directory, 'flir_jpg')
-        for flir_file_name in tqdm(os.listdir(flir_dir), desc="Processing FLIR JPG"):
+        for flir_file_name in tqdm(os.listdir(flir_dir), desc="Collecting FLIR Files"):
+            if 'collection' in flir_file_name:
+                continue
             flir_file = os.path.join(flir_dir, flir_file_name)
             flir_file_number = int(flir_file_name.split('.')[0][-5:])
-            if flir_file_number in data_map:
-                data_map[flir_file_number]['flir_file'] = flir_file
+            data_map['data'][flir_file_number]['flir_file'] = flir_file
 
-        # Process RGB JPG
+        # Collect RGB
         rgb_jpg = os.path.join(data_directory, 'rgb_jpg')
-        for rgb_file_name in tqdm(os.listdir(rgb_jpg), desc="Processing RGB JPG"):
+        for rgb_file_name in tqdm(os.listdir(rgb_jpg), desc="Collecting RGB Files"):
+            if 'collection' in rgb_file_name:
+                continue
             rgb_file = os.path.join(rgb_jpg, rgb_file_name)
             rgb_file_number = int(rgb_file_name.split('.')[0][-5:])
-            if rgb_file_number in data_map:
-                data_map[rgb_file_number]['rgb_file'] = rgb_file
+            data_map['data'][rgb_file_number]['rgb_file'] = rgb_file
 
-        # For each datamap add collection_date, site and season
-        for dataset_number, dataset_info in data_map.items():
-            dataset_info['collection_date'] = collection_date
-            dataset_info['site'] = site
-            dataset_info['season'] = year
+        self.upload_metadata_files(data_map)
+        self.upload_confidence_files(data_map)
+        self.upload_depth_files(data_map)
+        self.upload_flir_files(data_map)
+        self.upload_rgb_files(data_map)
 
-        # Get Sensors
+
+    def upload_metadata_files(self, data_map: dict):
         metadata_sensor = Sensor.get(sensor_name="AMIGA Phone Camera Metadata", experiment_name="GEMINI")
+        data_records = data_map['data']
+        # Sort by timestamp key
+        data_records.sort(key=lambda x: x['timestamp'])
+        # Collect all timestamps
+        data_timestamps = [record['timestamp'] for record in data_records]
+        data_record_files = [record['metadata_file'] for record in data_records if 'metadata_file' in record]
+        experiment_name = self.gemini_experiment.experiment_name
+        season_name = data_map['season']
+        site_name = data_map['site']
+                
+        # Upload Data
+        metadata_sensor.add_records(
+            timestamps=data_timestamps,
+            collection_date=data_map['collection_date'],
+            experiment_name=experiment_name,
+            season_name=season_name,
+            site_name=site_name,
+            record_files=data_record_files
+        )
+
+    def upload_confidence_files(self, data_map: dict):
         confidence_sensor = Sensor.get(sensor_name="AMIGA Phone Confidence", experiment_name="GEMINI")
+        data_records = data_map['data']
+        # Sort by timestamp key
+        data_records.sort(key=lambda x: x['timestamp'])
+        data_timestamps =  [record['timestamp'] for record in data_records]
+        data_record_files = [record['confidence_file'] for record in data_records if 'confidence_file' in record]
+        experiment_name = self.gemini_experiment.experiment_name
+        season_name = data_map['season']
+        site_name = data_map['site']
+        
+        # Upload Data
+        confidence_sensor.add_records(
+            timestamps=data_timestamps,
+            collection_date=data_map['collection_date'],
+            experiment_name=experiment_name,
+            season_name=season_name,
+            site_name=site_name,
+            record_files=data_record_files
+        )
+
+    def upload_depth_files(self, data_map: dict):
         depth_sensor = Sensor.get(sensor_name="AMIGA Phone Depth Sensor", experiment_name="GEMINI")
+        data_records = data_map['data']
+        # Sort by timestamp key
+        data_records.sort(key=lambda x: x['timestamp'])
+        data_timestamps =  [record['timestamp'] for record in data_records]
+        data_record_files = [record['depth_file'] for record in data_records if 'depth_file' in record]
+        experiment_name = self.gemini_experiment.experiment_name
+        season_name = data_map['season']
+        site_name = data_map['site']
+        
+        # Upload Data
+        depth_sensor.add_records(
+            timestamps=data_timestamps,
+            collection_date=data_map['collection_date'],
+            experiment_name=experiment_name,
+            season_name=season_name,
+            site_name=site_name,
+            record_files=data_record_files
+        )
+
+    def upload_flir_files(self, data_map: dict):
         flir_sensor = Sensor.get(sensor_name="AMIGA Phone Thermal Camera", experiment_name="GEMINI")
+        data_records = data_map['data']
+        # Sort by timestamp key
+        data_records.sort(key=lambda x: x['timestamp'])
+        data_timestamps =  [record['timestamp'] for record in data_records]
+        data_record_files = [record['flir_file'] for record in data_records if 'flir_file' in record]
+        experiment_name = self.gemini_experiment.experiment_name
+        season_name = data_map['season']
+        site_name = data_map['site']
+        
+        # Upload Data
+        flir_sensor.add_records(
+            timestamps=data_timestamps,
+            collection_date=data_map['collection_date'],
+            experiment_name=experiment_name,
+            season_name=season_name,
+            site_name=site_name,
+            record_files=data_record_files
+        )
+
+    def upload_rgb_files(self, data_map: dict):
         rgb_sensor = Sensor.get(sensor_name="AMIGA Phone RGB Camera", experiment_name="GEMINI")
-
-
-        # Add Data to these sensors
-        for data_record in tqdm(data_map.values(), desc="Adding Data to Sensors"):
-            timestamp = data_record['timestamp']
-            collection_date = data_record['collection_date']
-            site = data_record['site']
-            season = data_record['season']
-
-            metadata_file = data_record.get('metadata_file', None)
-            confidence_file = data_record.get('confidence_file', None)
-            depth_file = data_record.get('depth_file', None)
-            flir_file = data_record.get('flir_file', None)
-            rgb_file = data_record.get('rgb_file', None)
-
-            # Check if all files are present
-            if metadata_file and os.path.exists(metadata_file):
-                metadata_sensor.add_record(
-                    timestamp=timestamp,
-                    collection_date=collection_date,
-                    experiment_name="GEMINI",
-                    site_name=site,
-                    season_name=season,
-                    record_file=metadata_file
-                )
-   
-            if confidence_file and os.path.exists(confidence_file):
-                confidence_sensor.add_record(
-                    timestamp=timestamp,
-                    collection_date=collection_date,
-                    experiment_name="GEMINI",
-                    site_name=site,
-                    season_name=season,
-                    record_file=confidence_file
-                )
-
-            if depth_file and os.path.exists(depth_file):
-                depth_sensor.add_record(
-                    timestamp=timestamp,
-                    collection_date=collection_date,
-                    experiment_name="GEMINI",
-                    site_name=site,
-                    season_name=season,
-                    record_file=depth_file
-                )
-
-            if flir_file and os.path.exists(flir_file):
-                flir_sensor.add_record(
-                    timestamp=timestamp,
-                    collection_date=collection_date,
-                    experiment_name="GEMINI",
-                    site_name=site,
-                    season_name=season,
-                    record_file=flir_file
-                )
-
-            if rgb_file and os.path.exists(rgb_file):
-                rgb_sensor.add_record(
-                    timestamp=timestamp,
-                    collection_date=collection_date,
-                    experiment_name="GEMINI",
-                    site_name=site,
-                    season_name=season,
-                    record_file=rgb_file
-                )
-
-
-
-
-
-
-
+        data_records = data_map['data']
+        # Sort by timestamp key
+        data_records.sort(key=lambda x: x['timestamp'])
+        data_timestamps =  [record['timestamp'] for record in data_records]
+        data_record_files = [record['rgb_file'] for record in data_records if 'rgb_file' in record]
+        experiment_name = self.gemini_experiment.experiment_name
+        season_name = data_map['season']
+        site_name = data_map['site']
+        
+        # Upload Data
+        rgb_sensor.add_records(
+            timestamps=data_timestamps,
+            collection_date=data_map['collection_date'],
+            experiment_name=experiment_name,
+            season_name=season_name,
+            site_name=site_name,
+            record_files=data_record_files
+        )
 
 if __name__ == "__main__":
     parser = AMIGAPhoneParser()

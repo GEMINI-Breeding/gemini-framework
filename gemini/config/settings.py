@@ -96,8 +96,6 @@ class GEMINISettings(BaseSettings):
         os.environ["GEMINI_PUBLIC_DOMAIN"] = domain
 
     def set_public_ip(self, ip: str):
-        if os.environ.get("GEMINI_PUBLIC_IP") == ip:
-            return
         os.environ["GEMINI_PUBLIC_IP"] = ip
         os.environ["GEMINI_DB_HOSTNAME"] = ip
         os.environ["GEMINI_LOGGER_HOSTNAME"] = ip

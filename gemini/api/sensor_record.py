@@ -1,5 +1,6 @@
 from typing import Optional, List, Generator
 import os
+from tqdm import tqdm   
 from uuid import UUID
 
 from gemini.api.types import ID
@@ -106,13 +107,15 @@ class SensorRecord(APIBase, FileHandlerMixin):
     def add(cls, records: List['SensorRecord']) -> tuple[bool, List[str]]:
         try:
             records = cls._verify_records(records)
-            records = [cls._preprocess_record(record) for record in records]
+            records = [cls._preprocess_record(record) for record in tqdm(records, desc="Preprocessing Records for Sensor: " + records[0].sensor_name)]
             records_to_insert = []
             for record in records:
                 record_to_insert = record.model_dump()
                 record_to_insert = {k:v for k, v in record_to_insert.items() if v is not None}
                 records_to_insert.append(record_to_insert)
+            print(f"Inserting Records for Sensor: {records[0].sensor_name}")
             inserted_record_ids = SensorRecordModel.insert_bulk('sensor_records_unique', records_to_insert)
+            print(f"Inserted {len(inserted_record_ids)} Records to Sensor: {records[0].sensor_name}")
             return True, inserted_record_ids
         except Exception as e:
             return False, []
