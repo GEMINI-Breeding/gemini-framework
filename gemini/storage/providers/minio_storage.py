@@ -1,7 +1,7 @@
 # gemini/storage/providers/minio_storage.py
 
 import os
-import hashlib
+import sys
 from datetime import datetime, timedelta
 from typing import BinaryIO, Optional, Union, Dict, Any
 from pathlib import Path
@@ -44,6 +44,7 @@ class MinioStorageProvider(StorageProvider):
                 region=config.region,
                 http_client=config.http_client
             )
+            self.client.trace_on(sys.stdout)
             self.bucket_name = config.bucket_name
         except Exception as e:
             raise StorageInitializationError(f"Failed to initialize MinIO client: {e}")

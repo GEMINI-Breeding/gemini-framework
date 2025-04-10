@@ -159,11 +159,11 @@ class AMIGAPhoneParser:
             rgb_file_number = int(rgb_file_name.split('.')[0][-5:])
             data_map['data'][rgb_file_number]['rgb_file'] = rgb_file
 
-        self.upload_metadata_files(data_map)
-        self.upload_confidence_files(data_map)
+        # self.upload_metadata_files(data_map)
+        # self.upload_confidence_files(data_map)
         self.upload_depth_files(data_map)
-        self.upload_flir_files(data_map)
-        self.upload_rgb_files(data_map)
+        # self.upload_flir_files(data_map)
+        # self.upload_rgb_files(data_map)
 
 
     def upload_metadata_files(self, data_map: dict):
@@ -272,9 +272,3 @@ class AMIGAPhoneParser:
             record_files=data_record_files
         )
 
-if __name__ == "__main__":
-    parser = AMIGAPhoneParser()
-    working_directory = '/mnt/d/Work/Data/'
-    os.chdir(working_directory)
-    data_directory = './Dataset_2024/Davis/2024-06-12/Amiga_Phone/Phone'
-    parser.parse(data_directory)

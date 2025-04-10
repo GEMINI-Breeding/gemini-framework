@@ -118,6 +118,7 @@ class SensorRecord(APIBase, FileHandlerMixin):
             print(f"Inserted {len(inserted_record_ids)} Records to Sensor: {records[0].sensor_name}")
             return True, inserted_record_ids
         except Exception as e:
+            print(f"Error inserting records: {e}")
             return False, []
 
 
