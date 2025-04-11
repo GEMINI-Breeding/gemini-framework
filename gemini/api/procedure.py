@@ -1,5 +1,6 @@
 from typing import Optional, List
 from uuid import UUID
+from tqdm import tqdm
 
 from pydantic import Field, AliasChoices
 from gemini.api.types import ID
@@ -214,9 +215,13 @@ class Procedure(APIBase):
             
             timestamp = timestamp if timestamp else datetime.now()
             collection_date = collection_date if collection_date else timestamp.date()
-            dataset_name = dataset_name if dataset_name else f"{self.procedure_name} Dataset"
             procedure_name = self.procedure_name
             procedure_id = self.id
+
+            if not dataset_name:
+                dataset_name = procedure_name.lower().replace(" ", "_")
+                dataset_name = dataset_name + f"_{collection_date}"
+                dataset_name = dataset_name + f"_{experiment_name}_{season_name}_{site_name}"
 
             procedure_record = ProcedureRecord(
                 timestamp=timestamp,
@@ -254,15 +259,17 @@ class Procedure(APIBase):
             
             if len(timestamps) == 0:
                 raise ValueError("Please provide at least one timestamp.")
-            
-            if len(timestamps) != len(procedure_data) or len(timestamps) != len(record_info) or len(timestamps) != len(record_files):
-                raise ValueError("All inputs must have the same length.")
-            
+        
+            if not dataset_name:
+                dataset_name = self.procedure_name.lower().replace(" ", "_")
+                dataset_name = dataset_name + f"_{collection_date}"
+                dataset_name = dataset_name + f"_{experiment_name}_{season_name}_{site_name}"
+
             collection_date = collection_date if collection_date else timestamps[0].date()
             procedure_records = []
             timestamps_length = len(timestamps)
 
-            for i in range(timestamps_length):
+            for i in tqdm(range(timestamps_length), desc="Arranging Records for Procedure: " + self.procedure_name):
                 procedure_record = ProcedureRecord(
                     timestamp=timestamps[i],
                     collection_date=collection_date,

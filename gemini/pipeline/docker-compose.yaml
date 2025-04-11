@@ -179,7 +179,7 @@ services:
       # Map variables from .env (read by docker-compose) to Caddy's expected env vars
       # Default if not set in .env
       - "GEMINI_PUBLIC_DOMAIN=${GEMINI_PUBLIC_DOMAIN:-docker.localhost}"
-      - "GEMINI_STORAGE_API_PORT=${GEMINI_STORAGE_API_PORT}"
+      - "GEMINI_STORAGE_API_PORT=${GEMINI_STORAGE_PORT}"
       - "GEMINI_REST_API_PORT=${GEMINI_REST_API_PORT}"
       - "GEMINI_SCHEDULER_SERVER_PORT=${GEMINI_SCHEDULER_SERVER_PORT}"
     networks:

@@ -1,5 +1,6 @@
 from typing import Optional, List, Generator
 from uuid import UUID
+from tqdm import tqdm
 
 from gemini.api.types import ID
 from pydantic import Field, AliasChoices
@@ -102,13 +103,15 @@ class TraitRecord(APIBase, FileHandlerMixin):
     def add(cls, records: List['TraitRecord']) -> tuple[bool, List[str]]:
         try:
             records = cls._verify_records(records)
-            records = [cls._preprocess_record(record) for record in records]
+            records = [cls._preprocess_record(record) for record in tqdm(records, desc="Preprocessing Records for Trait: " + records[0].trait_name)]
             records_to_insert = []
             for record in records:
                 record_to_insert = record.model_dump()
                 record_to_insert = {k: v for k, v in record_to_insert.items() if v is not None}
                 records_to_insert.append(record_to_insert)
+            print(f"Inserting Records for Trait: {records[0].trait_name}")
             inserted_record_ids = TraitRecordModel.insert_bulk('trait_records_unique', records_to_insert)
+            print(f"Inserted {len(inserted_record_ids)} Records for Trait: {records[0].trait_name}")
             return True, inserted_record_ids
         except Exception as e:
             return False, []

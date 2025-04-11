@@ -115,7 +115,7 @@ class SensorRecord(APIBase, FileHandlerMixin):
                 records_to_insert.append(record_to_insert)
             print(f"Inserting Records for Sensor: {records[0].sensor_name}")
             inserted_record_ids = SensorRecordModel.insert_bulk('sensor_records_unique', records_to_insert)
-            print(f"Inserted {len(inserted_record_ids)} Records to Sensor: {records[0].sensor_name}")
+            print(f"Inserted {len(inserted_record_ids)} Records for Sensor: {records[0].sensor_name}")
             return True, inserted_record_ids
         except Exception as e:
             print(f"Error inserting records: {e}")
@@ -152,7 +152,6 @@ class SensorRecord(APIBase, FileHandlerMixin):
                 **record.to_dict()
             )
             record = record.model_dump()
-            # record = cls._postprocess_record(record)
             record = cls.model_validate(record)
             return record if record else None
         except Exception as e:
@@ -488,14 +487,6 @@ class SensorRecord(APIBase, FileHandlerMixin):
                 content_type=content_type
             )
             return uploaded_file_url
-            # with open(absolute_file_path, "rb") as file:
-            #     uploaded_file_url = cls.minio_storage_provider.upload_file(
-            #         object_name=file_key,
-            #         data_stream=file,
-            #         bucket_name="gemini",
-            #         content_type=content_type
-            #     )
-            #     return uploaded_file_url
         except Exception as e: 
             raise e
         

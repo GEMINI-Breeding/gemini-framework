@@ -1,6 +1,7 @@
 from typing import Optional, List, Generator
 from uuid import UUID
-import os
+import os, mimetypes
+from tqdm import tqdm
 
 from gemini.api.types import ID
 from pydantic import Field, AliasChoices
@@ -156,13 +157,15 @@ class DatasetRecord(APIBase, FileHandlerMixin):
     def add(cls, records: List['DatasetRecord']) -> tuple[bool, List[str]]:
         try:
             records = cls._verify_records(records)
-            records = [cls._preprocess_record(record) for record in records]
+            records = [cls._preprocess_record(record) for record in tqdm(records, desc="Processing Records for Dataset: " + records[0].dataset_name)]
             records_to_insert = []
             for record in records:
                 record_to_insert = record.model_dump()
                 record_to_insert = {k: v for k, v in record_to_insert.items() if v is not None}
                 records_to_insert.append(record_to_insert)
+            print(f"Inserting Records for Dataset: {records[0].dataset_name}")
             inserted_record_ids = DatasetRecordModel.insert_bulk('dataset_records_unique', records_to_insert)
+            print(f"Inserted {len(inserted_record_ids)} Records for Dataset: {records[0].dataset_name}")
             return True, inserted_record_ids
         except Exception as e:
             return False, []
@@ -395,13 +398,14 @@ class DatasetRecord(APIBase, FileHandlerMixin):
     @classmethod
     def _upload_file(cls, file_key: str, absolute_file_path: str) -> str:
         try:
-            with open(absolute_file_path, "rb") as file:
-                uploaded_file_url = cls.minio_storage_provider.upload_file(
-                    object_name=file_key,
-                    data_stream=file,
-                    bucket_name="gemini"
-                )
-                return uploaded_file_url
+            content_type, _ = mimetypes.guess_type(absolute_file_path)
+            uploaded_file_url = cls.minio_storage_provider.upload_file(
+                object_name=file_key,
+                input_file_path=absolute_file_path,
+                bucket_name="gemini",
+                content_type=content_type
+            )
+            return uploaded_file_url
         except Exception as e: 
             raise e
 

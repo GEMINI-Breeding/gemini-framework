@@ -82,7 +82,7 @@ class GEMINISettings(BaseSettings):
         match gemini_type:
             case "public":
                 self.set_public_ip(self.GEMINI_PUBLIC_IP)
-                self.set_public_domain(self.GEMINI_PUBLIC_DOMAIN)
+                # self.set_public_domain(self.GEMINI_PUBLIC_DOMAIN)
             case "local":
                 self.set_local()
 
@@ -105,7 +105,8 @@ class GEMINISettings(BaseSettings):
         os.environ["GEMINI_PUBLIC_IP"] = ip
         os.environ["GEMINI_DB_HOSTNAME"] = ip
         os.environ["GEMINI_LOGGER_HOSTNAME"] = ip
-        os.environ["GEMINI_STORAGE_HOSTNAME"] = ip
+        os.environ["GEMINI_STORAGE_HOSTNAME"] = 'storage.geminiproject.systems'
+        # os.environ["GEMINI_STORAGE_HOSTNAME"] = 'storage.geminiproject.systems'
         os.environ["GEMINI_SCHEDULER_DB_HOSTNAME"] = ip
         os.environ["GEMINI_SCHEDULER_SERVER_HOSTNAME"] = ip
         os.environ["GEMINI_REST_API_HOSTNAME"] = ip

@@ -1,5 +1,6 @@
 from typing import Optional, List
 from uuid import UUID
+from tqdm import tqdm
 
 from pydantic import Field, AliasChoices
 from gemini.api.types import ID
@@ -216,9 +217,14 @@ class Trait(APIBase):
             
             timestamp = timestamp if timestamp else datetime.now()
             collection_date = collection_date if collection_date else timestamp.date()
-            dataset_name = dataset_name if dataset_name else f"{self.trait_name} Dataset"
             trait_name = self.trait_name
             trait_id = self.id
+
+            if not dataset_name:
+                dataset_name = self.trait_name.lower().replace(" ", "_")
+                dataset_name = dataset_name + f"_{collection_date}"
+                dataset_name = dataset_name + f"_{experiment_name}_{season_name}_{site_name}"
+
 
             trait_record = TraitRecord(
                 trait_id=trait_id,
@@ -262,23 +268,16 @@ class Trait(APIBase):
             if len(timestamps) == 0:
                 raise ValueError("At least one timestamp must be provided.")
             
-            if len(timestamps) != len(trait_values) or len(timestamps) != len(record_info):
-                raise ValueError("All input lists must have the same length.")
-            
-            if len(plot_numbers) != len(timestamps):
-                raise ValueError("Plot numbers list must have the same length as timestamps.")
-            
-            if len(plot_row_numbers) != len(timestamps):
-                raise ValueError("Plot row numbers list must have the same length as timestamps.")
-            
-            if len(plot_column_numbers) != len(timestamps):
-                raise ValueError("Plot column numbers list must have the same length as timestamps.")
-            
+            if not dataset_name:
+                dataset_name = self.dataset_name.lower().replace(" ", "_")
+                dataset_name = dataset_name + f"_{collection_date}"
+                dataset_name = dataset_name + f"_{experiment_name}_{season_name}_{site_name}"
+
             collection_date = collection_date if collection_date else timestamps[0].date()
             trait_records = []
             timestamps_length = len(timestamps)
 
-            for i in range(timestamps_length):
+            for i in tqdm(range(timestamps_length), desc="Adding Records for Trait: " + self.trait_name):
                 trait_record = TraitRecord(
                     trait_id=self.id,
                     trait_name=self.trait_name,
@@ -289,9 +288,9 @@ class Trait(APIBase):
                     experiment_name=experiment_name,
                     season_name=season_name,
                     site_name=site_name,
-                    plot_number=plot_numbers[i],
-                    plot_row_number=plot_row_numbers[i],
-                    plot_column_number=plot_column_numbers[i],
+                    plot_number=plot_numbers[i] if plot_numbers else None,
+                    plot_row_number=plot_row_numbers[i] if plot_row_numbers else None,
+                    plot_column_number=plot_column_numbers[i] if plot_column_numbers else None,
                     record_info=record_info[i] if record_info else {}
                 )
                 trait_records.append(trait_record)

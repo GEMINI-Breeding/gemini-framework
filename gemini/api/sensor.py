@@ -230,9 +230,13 @@ class Sensor(APIBase):
             
             timestamp = timestamp if timestamp else datetime.now()
             collection_date = collection_date if collection_date else timestamp.date()
-            dataset_name = dataset_name if dataset_name else f"{self.sensor_name} Dataset"
             sensor_name = self.sensor_name
             sensor_id = self.id
+
+            if not dataset_name:
+                dataset_name = sensor_name.lower().replace(" ", "_")
+                dataset_name = dataset_name + f"_{collection_date}"
+                dataset_name = dataset_name + f"_{experiment_name}_{season_name}_{site_name}"
 
             sensor_record = SensorRecord(
                 timestamp=timestamp,
@@ -286,7 +290,7 @@ class Sensor(APIBase):
             sensor_records = []
             timestamps_length = len(timestamps)
 
-            for i in tqdm(range(timestamps_length), desc="Arranging Records for Sensor: " + self.sensor_name + ":"):
+            for i in tqdm(range(timestamps_length), desc="Arranging Records for Sensor: " + self.sensor_name):
                 sensor_record = SensorRecord(
                     timestamp=timestamps[i],
                     collection_date=collection_date,

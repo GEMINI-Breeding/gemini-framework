@@ -1,5 +1,6 @@
 from typing import Optional, List
 from uuid import UUID
+from tqdm import tqdm
 
 from pydantic import Field, AliasChoices
 from gemini.api.types import ID
@@ -231,9 +232,13 @@ class Script(APIBase):
             
             timestamp = timestamp if timestamp else datetime.now()
             collection_date = collection_date if collection_date else timestamp.date()
-            dataset_name = dataset_name if dataset_name else f"{self.script_name} Dataset"
             script_name = self.script_name
             script_id = self.id
+
+            if not dataset_name:
+                dataset_name = script_name.lower().replace(" ", "_")
+                dataset_name = dataset_name + f"_{collection_date}"
+                dataset_name = dataset_name + f"_{experiment_name}_{season_name}_{site_name}"
 
             script_record = ScriptRecord(
                 timestamp=timestamp,
@@ -272,14 +277,17 @@ class Script(APIBase):
             if len(timestamps) == 0:
                 raise ValueError("At least one timestamp must be provided.")
             
-            if len(timestamps) != len(script_data) or len(timestamps) != len(record_info) or len(timestamps) != len(record_files):
-                raise ValueError("All input lists must have the same length.")
+            if not dataset_name:
+                dataset_name = self.script_name.lower().replace(" ", "_")
+                dataset_name = dataset_name + f"_{collection_date}"
+                dataset_name = dataset_name + f"_{experiment_name}_{season_name}_{site_name}"
+
             
             collection_date = collection_date if collection_date else timestamps[0].date()
             script_records = []
             timestamps_length = len(timestamps)
 
-            for i in range(timestamps_length):
+            for i in tqdm(range(timestamps_length), desc="Arranging Records for Script: " + self.script_name):
                 script_record = ScriptRecord(
                     timestamp=timestamps[i],
                     collection_date=collection_date,

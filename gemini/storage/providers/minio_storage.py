@@ -2,6 +2,7 @@
 
 import os
 import sys
+import time # Import time for sleep
 from datetime import datetime, timedelta
 from typing import BinaryIO, Optional, Union, Dict, Any
 from pathlib import Path
@@ -21,6 +22,7 @@ from gemini.storage.exceptions import (
     StorageConnectionError,
     StorageAuthError
 )
+
 
 class MinioStorageProvider(StorageProvider):
     """Provider for MinIO object storage."""
@@ -44,7 +46,6 @@ class MinioStorageProvider(StorageProvider):
                 region=config.region,
                 http_client=config.http_client
             )
-            # self.client.trace_on(sys.stdout)
             self.bucket_name = config.bucket_name
         except Exception as e:
             raise StorageInitializationError(f"Failed to initialize MinIO client: {e}")
@@ -90,57 +91,79 @@ class MinioStorageProvider(StorageProvider):
         Raises:
             StorageUploadError: If upload fails
             StorageConnectionError: If connection fails
+            StorageAuthError: If access is denied after retries
         """
-        try:
-            target_bucket_name = bucket_name if bucket_name is not None else self.bucket_name
-            tags = metadata.copy() if metadata else {}
-            if content_type:
-                tags['Content-Type'] = content_type
-            
-            part_size = 5 * 1024 * 1024 # 5MB part size
+        max_retries = 5
+        base_delay = 1.0 # seconds
 
-            if input_file_path:
-                input_file_path = Path(input_file_path)
-                self.client.fput_object(
-                    bucket_name=target_bucket_name,
-                    object_name=object_name,
-                    file_path=str(input_file_path),
-                    content_type=content_type,
-                    metadata=tags,
-                    part_size=part_size
-                )
-            elif data_stream:
-                # Ensure stream is at the beginning
-                data_stream.seek(0)
-                # Get file size by reading the whole stream (less efficient but necessary for put_object length)
-                # A more efficient approach might require knowing the size beforehand or using multipart upload without explicit length
-                data_stream.seek(0, os.SEEK_END)
-                file_size = data_stream.tell()
-                data_stream.seek(0)
+        for attempt in range(max_retries):
+            try:
+                target_bucket_name = bucket_name if bucket_name is not None else self.bucket_name
+                tags = metadata.copy() if metadata else {}
+                if content_type:
+                    tags['Content-Type'] = content_type
+                
+                # Note: part_size was removed in the base file content, keeping it removed here.
+                # part_size = 5 * 1024 * 1024 # 5MB part size
 
-                self.client.put_object(
-                    bucket_name=target_bucket_name,
-                    object_name=object_name,
-                    data=data_stream,
-                    length=file_size, # MinIO requires length for streams
-                    content_type=content_type,
-                    metadata=tags,
-                    part_size=part_size
-                )
-            else:
-                 raise ValueError("Either data_stream or input_file_path must be provided")
+                if input_file_path:
+                    input_file_path = Path(input_file_path)
+                    if not input_file_path.is_file():
+                         raise FileNotFoundError(f"Input file path not found: {input_file_path}")
+                    self.client.fput_object(
+                        bucket_name=target_bucket_name,
+                        object_name=object_name,
+                        file_path=str(input_file_path),
+                        content_type=content_type,
+                        metadata=tags,
+                        # part_size=part_size # Removed based on base file
+                    )
+                elif data_stream:
+                    # Ensure stream is at the beginning before each attempt
+                    current_pos = data_stream.tell()
+                    data_stream.seek(0)
+                    # Get file size - necessary for put_object
+                    data_stream.seek(0, os.SEEK_END)
+                    file_size = data_stream.tell()
+                    data_stream.seek(0) # Reset stream position for upload
 
+                    self.client.put_object(
+                        bucket_name=target_bucket_name,
+                        object_name=object_name,
+                        data=data_stream,
+                        length=file_size, # MinIO requires length for streams
+                        content_type=content_type,
+                        metadata=tags,
+                        # part_size=part_size # Removed based on base file
+                    )
+                    # Restore original stream position if needed after successful upload?
+                    # data_stream.seek(current_pos) # Maybe not necessary depending on caller
+                else:
+                     raise ValueError("Either data_stream or input_file_path must be provided")
 
-            return self.get_download_url(object_name, bucket_name=target_bucket_name)
-            
-        except S3Error as e:
-            if 'AccessDenied' in str(e):
-                raise StorageAuthError(f"Access denied while uploading file: {e}")
-            raise StorageUploadError(f"Failed to upload file: {e}")
-        except ConnectionError as e:
-            raise StorageConnectionError(f"Connection failed during upload: {e}")
-        except Exception as e:
-            raise StorageUploadError(f"Unexpected error during upload: {e}")
+                # If successful, get URL and return
+                return self.get_download_url(object_name, bucket_name=target_bucket_name)
+
+            except Exception as e: # Catch any exception for retry
+                if attempt == max_retries - 1: # Last attempt failed
+                    # Raise the specific storage exception based on e
+                    if isinstance(e, S3Error) and 'AccessDenied' in str(e):
+                         raise StorageAuthError(f"Access denied after {max_retries} attempts: {e}")
+                    elif isinstance(e, ConnectionError): # Catch direct ConnectionError if it occurs outside S3Error
+                         raise StorageConnectionError(f"Connection failed after {max_retries} attempts: {e}")
+                    elif isinstance(e, FileNotFoundError): # Don't retry if file not found
+                         raise StorageUploadError(f"Input file not found: {e}")
+                    elif isinstance(e, ValueError): # Don't retry on bad input
+                         raise e
+                    else: # General upload error (includes S3Error other than AccessDenied, and other Exceptions)
+                         raise StorageUploadError(f"Failed to upload file '{object_name}' after {max_retries} attempts: {e}")
+                else:
+                    # Wait before retrying
+                    delay = base_delay * (2 ** attempt) # Exponential backoff
+                    time.sleep(delay)
+
+        # Fallback if loop finishes without success or raising (should not happen with current logic)
+        raise StorageUploadError(f"Upload failed definitively for {object_name} after {max_retries} attempts.")
 
     def download_file_stream(
         self,

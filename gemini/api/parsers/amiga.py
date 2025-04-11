@@ -119,7 +119,7 @@ class AMIGAPhoneParser:
 
                         'timestamp': timestamp,
                         'metadata': metadata,
-                        'metadata_file': metadata_file
+                        'metadata_file': os.path.abspath(metadata_file)
                     }
                 )
 
@@ -139,7 +139,7 @@ class AMIGAPhoneParser:
                 continue
             depth_file = os.path.join(depth_dir, depth_file_name)
             depth_file_number = int(depth_file_name.split('.')[0][-5:])
-            data_map['data'][depth_file_number]['depth_file'] = depth_file
+            data_map['data'][depth_file_number]['depth_file'] = os.path.abspath(depth_file)
 
         # Collect FLIR
         flir_dir = os.path.join(data_directory, 'flir_jpg')
@@ -159,11 +159,11 @@ class AMIGAPhoneParser:
             rgb_file_number = int(rgb_file_name.split('.')[0][-5:])
             data_map['data'][rgb_file_number]['rgb_file'] = rgb_file
 
-        # self.upload_metadata_files(data_map)
-        # self.upload_confidence_files(data_map)
+        self.upload_metadata_files(data_map)
+        self.upload_confidence_files(data_map)
         self.upload_depth_files(data_map)
-        # self.upload_flir_files(data_map)
-        # self.upload_rgb_files(data_map)
+        self.upload_flir_files(data_map)
+        self.upload_rgb_files(data_map)
 
 
     def upload_metadata_files(self, data_map: dict):
@@ -212,44 +212,22 @@ class AMIGAPhoneParser:
     def upload_depth_files(self, data_map: dict):
         depth_sensor = Sensor.get(sensor_name="AMIGA Phone Depth Sensor", experiment_name="GEMINI")
         data_records = data_map['data']
-        # Sort by timestamp key
-        # data_records.sort(key=lambda x: x['timestamp'])
-        # data_timestamps =  [record['timestamp'] for record in data_records]
-        # data_record_files = [record['depth_file'] for record in data_records if 'depth_file' in record]
-        # experiment_name = self.gemini_experiment.experiment_name
-        # season_name = data_map['season']
-        # site_name = data_map['site']
-        
+        data_records.sort(key=lambda x: x['timestamp'])
+        data_timestamps =  [record['timestamp'] for record in data_records]
+        data_record_files = [record['depth_file'] for record in data_records if 'depth_file' in record]
+        experiment_name = self.gemini_experiment.experiment_name
+        season_name = data_map['season']
+        site_name = data_map['site']
 
-        for record in tqdm(data_records, desc="Uploading Depth Files"):
-            if 'depth_file' in record:
-                depth_sensor.add_record(
-                    timestamp=record['timestamp'],
-                    collection_date=data_map['collection_date'],
-                    experiment_name=self.gemini_experiment.experiment_name,
-                    season_name=data_map['season'],
-                    site_name=data_map['site'],
-                    record_file=record['depth_file']
-                )
-                # timestamp = record['timestamp']
-                # depth_sensor.add_records(
-                #     timestamps=[timestamp],
-                #     collection_date=data_map['collection_date'],
-                #     experiment_name=self.gemini_experiment.experiment_name,
-                #     season_name=data_map['season'],
-                #     site_name=data_map['site'],
-                #     record_files=[record['depth_file']]
-                # )
-
-        # # Upload Data
-        # depth_sensor.add_records(
-        #     timestamps=data_timestamps,
-        #     collection_date=data_map['collection_date'],
-        #     experiment_name=experiment_name,
-        #     season_name=season_name,
-        #     site_name=site_name,
-        #     record_files=data_record_files
-        # )
+        # Upload Data
+        depth_sensor.add_records(
+            timestamps=data_timestamps,
+            collection_date=data_map['collection_date'],
+            experiment_name=experiment_name,
+            season_name=season_name,
+            site_name=site_name,
+            record_files=data_record_files
+        )
 
     def upload_flir_files(self, data_map: dict):
         flir_sensor = Sensor.get(sensor_name="AMIGA Phone Thermal Camera", experiment_name="GEMINI")

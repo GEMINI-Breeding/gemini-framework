@@ -4,6 +4,7 @@ from typing import Dict, Type, Optional
 from gemini.storage.interfaces.storage_provider import StorageProvider
 from gemini.storage.providers.local_storage import LocalStorageProvider
 from gemini.storage.providers.minio_storage import MinioStorageProvider
+from gemini.storage.providers.s3_storage import S3StorageProvider # Import the new provider
 from gemini.storage.config.storage_config import (
     StorageConfig,
     LocalStorageConfig,
@@ -24,8 +25,8 @@ class StorageFactory:
     _providers: Dict[str, Type[StorageProvider]] = {
         'local': LocalStorageProvider,
         'minio': MinioStorageProvider,
+        's3': S3StorageProvider, # Register the S3 provider
         # Add more providers here as they're implemented
-        # 's3': S3StorageProvider,
         # 'azure': AzureStorageProvider,
     }
 

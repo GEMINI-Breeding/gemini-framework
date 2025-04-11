@@ -22,7 +22,7 @@
 # }
 
 storage.geminiproject.systems {
-	reverse_proxy storage:{$GEMINI_STORAGE_API_PORT}
+	reverse_proxy storage:{$GEMINI_STORAGE_PORT}
 }
 
 # REST API

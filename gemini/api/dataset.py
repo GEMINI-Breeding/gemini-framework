@@ -1,5 +1,6 @@
 from typing import Optional, List
 from uuid import UUID
+from tqdm import tqdm
 
 from pydantic import Field, AliasChoices
 from gemini.api.types import ID
@@ -221,17 +222,12 @@ class Dataset(APIBase):
             
             if len(timestamps) == 0:
                 raise ValueError("Please provide at least one timestamp.")
-
-            if len(timestamps) != len(dataset_data) or len(timestamps) != len(record_info) or len(timestamps) != len(record_files):
-                raise ValueError("All input lists must have the same length.")
             
             collection_date = collection_date if collection_date else timestamps[0].date()
-
             dataset_records = []
-
             timestamps_length = len(timestamps)
 
-            for i in range(timestamps_length):
+            for i in tqdm(range(timestamps_length), desc="Arranging Records for Sensor: " + self.dataset_name):
                 dataset_record = DatasetRecord(
                     timestamp=timestamps[i],
                     collection_date=collection_date,
@@ -245,7 +241,6 @@ class Dataset(APIBase):
                     record_info=record_info[i] if record_info else {}
                 )
                 dataset_records.append(dataset_record)
-
             success, inserted_record_ids = DatasetRecord.add(dataset_records)
             return success, inserted_record_ids
         except Exception as e:
