@@ -6,6 +6,7 @@ from litestar.response import Stream
 from litestar.enums import RequestEncodingType
 
 from urllib3.response import HTTPResponse
+from mimetypes import guess_type
 
 from gemini.rest_api.models import (
     RESTAPIError,
@@ -91,6 +92,7 @@ class FileController(Controller):
                 ).to_html()
                 return Response(content=error_html, status_code=404)
             object_name = '/'.join(file_path.split('/')[2:])
+            file_name = object_name.split('/')[-1]
             file_exists = minio_storage_provider.file_exists(
                 object_name=object_name,
                 bucket_name=bucket_name
@@ -106,7 +108,9 @@ class FileController(Controller):
                 bucket_name=bucket_name
             )
             return Stream(
-                content=file_stream.stream()
+                content=file_stream.stream(),
+                media_type=guess_type(file_name)[0] or "application/octet-stream",
+                headers={"Content-Disposition": f"attachment; filename={file_name}"}
             )
         except Exception as e:
             error_message = RESTAPIError(

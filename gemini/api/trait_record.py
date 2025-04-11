@@ -12,6 +12,7 @@ from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.trait_records import TraitRecordModel
 from gemini.db.models.views.trait_records_immv import TraitRecordsIMMVModel
 from gemini.db.models.views.validation_views import ValidTraitDatasetCombinationsViewModel
+from gemini.db.models.views.dataset_views import TraitDatasetsViewModel
 from gemini.db.models.views.plot_view import PlotViewModel
 from gemini.db.models.views.experiment_views import (
     ExperimentTraitsViewModel,
@@ -22,6 +23,7 @@ from gemini.db.models.views.experiment_views import (
 
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.datasets import DatasetModel
+from gemini.db.models.associations import TraitDatasetModel
 
 from datetime import date, datetime
 
@@ -382,7 +384,12 @@ class TraitRecord(APIBase, FileHandlerMixin):
                             experiment_name=record.experiment_name,
                             dataset_type=GEMINIDatasetType.Trait
                         )
+                        TraitDatasetModel.get_or_create(
+                            dataset_id=created_dataset.id,
+                            trait_id=trait.id
+                        )
                         ExperimentDatasetsViewModel.refresh()
+                        TraitDatasetsViewModel.refresh()
                         datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=created_dataset.dataset_name)
 
                 record.dataset_id = datasets[record.dataset_name].id

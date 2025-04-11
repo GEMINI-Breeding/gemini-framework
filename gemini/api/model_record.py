@@ -11,6 +11,7 @@ from gemini.db.models.models import ModelModel
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.model_records import ModelRecordModel
 from gemini.db.models.views.model_records_immv import ModelRecordsIMMVModel
+from gemini.db.models.views.dataset_views import ModelDatasetsViewModel
 from gemini.db.models.views.validation_views import ValidModelDatasetCombinationsViewModel
 from gemini.db.models.views.experiment_views import (
     ExperimentModelsViewModel,
@@ -21,6 +22,7 @@ from gemini.db.models.views.experiment_views import (
 
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.datasets import DatasetModel
+from gemini.db.models.associations import ModelDatasetModel
 
 from datetime import date, datetime
 
@@ -371,6 +373,11 @@ class ModelRecord(APIBase, FileHandlerMixin):
                             experiment_name=record.experiment_name,
                             dataset_type=GEMINIDatasetType.Model
                         )
+                        ModelDatasetModel.get_or_create(
+                            dataset_id=created_dataset.id,
+                            model_id=model.id
+                        )
+                        ModelDatasetsViewModel.refresh()
                         ExperimentDatasetsViewModel.refresh()
                         datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=created_dataset.dataset_name)
 

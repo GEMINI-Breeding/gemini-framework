@@ -171,6 +171,7 @@ class AMIGAPhoneParser:
         data_records = data_map['data']
         # Sort by timestamp key
         data_records.sort(key=lambda x: x['timestamp'])
+        data_records = data_records[:100]
         # Collect all timestamps
         data_timestamps = [record['timestamp'] for record in data_records]
         data_record_files = [record['metadata_file'] for record in data_records if 'metadata_file' in record]
@@ -193,6 +194,7 @@ class AMIGAPhoneParser:
         data_records = data_map['data']
         # Sort by timestamp key
         data_records.sort(key=lambda x: x['timestamp'])
+        data_records = data_records[:100]
         data_timestamps =  [record['timestamp'] for record in data_records]
         data_record_files = [record['confidence_file'] for record in data_records if 'confidence_file' in record]
         experiment_name = self.gemini_experiment.experiment_name
@@ -213,6 +215,7 @@ class AMIGAPhoneParser:
         depth_sensor = Sensor.get(sensor_name="AMIGA Phone Depth Sensor", experiment_name="GEMINI")
         data_records = data_map['data']
         data_records.sort(key=lambda x: x['timestamp'])
+        data_records = data_records[:100]
         data_timestamps =  [record['timestamp'] for record in data_records]
         data_record_files = [record['depth_file'] for record in data_records if 'depth_file' in record]
         experiment_name = self.gemini_experiment.experiment_name
@@ -234,6 +237,7 @@ class AMIGAPhoneParser:
         data_records = data_map['data']
         # Sort by timestamp key
         data_records.sort(key=lambda x: x['timestamp'])
+        data_records = data_records[:100]
         data_timestamps =  [record['timestamp'] for record in data_records]
         data_record_files = [record['flir_file'] for record in data_records if 'flir_file' in record]
         experiment_name = self.gemini_experiment.experiment_name
@@ -255,6 +259,7 @@ class AMIGAPhoneParser:
         data_records = data_map['data']
         # Sort by timestamp key
         data_records.sort(key=lambda x: x['timestamp'])
+        data_records = data_records[:100]
         data_timestamps =  [record['timestamp'] for record in data_records]
         data_record_files = [record['rgb_file'] for record in data_records if 'rgb_file' in record]
         experiment_name = self.gemini_experiment.experiment_name

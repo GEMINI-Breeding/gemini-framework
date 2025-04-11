@@ -91,33 +91,21 @@ class GEMINISettings(BaseSettings):
         os.environ["GEMINI_DEBUG"] = str(debug)
 
     def set_public_domain(self, domain: str):
-        if os.environ.get("GEMINI_PUBLIC_DOMAIN") == domain:
-            return
-        os.environ["GEMINI_PUBLIC_DOMAIN"] = domain
-        os.environ["GEMINI_DB_HOSTNAME"] = domain
-        os.environ["GEMINI_LOGGER_HOSTNAME"] = domain
-        os.environ["GEMINI_STORAGE_HOSTNAME"] = domain
-        os.environ["GEMINI_SCHEDULER_DB_HOSTNAME"] = domain
-        os.environ["GEMINI_SCHEDULER_SERVER_HOSTNAME"] = domain
-        os.environ["GEMINI_REST_API_HOSTNAME"] = domain
+        self.__set_hostnames(domain)
 
     def set_public_ip(self, ip: str):
-        os.environ["GEMINI_PUBLIC_IP"] = ip
-        os.environ["GEMINI_DB_HOSTNAME"] = ip
-        os.environ["GEMINI_LOGGER_HOSTNAME"] = ip
-        os.environ["GEMINI_STORAGE_HOSTNAME"] = 'storage.geminiproject.systems'
-        # os.environ["GEMINI_STORAGE_HOSTNAME"] = 'storage.geminiproject.systems'
-        os.environ["GEMINI_SCHEDULER_DB_HOSTNAME"] = ip
-        os.environ["GEMINI_SCHEDULER_SERVER_HOSTNAME"] = ip
-        os.environ["GEMINI_REST_API_HOSTNAME"] = ip
+        self.__set_hostnames(ip)
 
     def set_local(self):
-        os.environ["GEMINI_DB_HOSTNAME"] = "localhost"
-        os.environ["GEMINI_LOGGER_HOSTNAME"] = "localhost"
-        os.environ["GEMINI_STORAGE_HOSTNAME"] = "localhost"
-        os.environ["GEMINI_SCHEDULER_DB_HOSTNAME"] = "localhost"
-        os.environ["GEMINI_SCHEDULER_SERVER_HOSTNAME"] = "localhost"
-        os.environ["GEMINI_REST_API_HOSTNAME"] = "localhost"
+        self.__set_hostnames("localhost")
+
+    def __set_hostnames(self, hostname: str):
+        os.environ["GEMINI_DB_HOSTNAME"] = hostname
+        os.environ["GEMINI_LOGGER_HOSTNAME"] = hostname
+        os.environ["GEMINI_STORAGE_HOSTNAME"] = hostname
+        os.environ["GEMINI_SCHEDULER_DB_HOSTNAME"] = hostname
+        os.environ["GEMINI_SCHEDULER_SERVER_HOSTNAME"] = hostname
+        os.environ["GEMINI_REST_API_HOSTNAME"] = hostname
 
 
     @staticmethod

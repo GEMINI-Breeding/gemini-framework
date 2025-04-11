@@ -11,6 +11,7 @@ from gemini.db.models.scripts import ScriptModel
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.script_records import ScriptRecordModel
 from gemini.db.models.views.script_records_immv import ScriptRecordsIMMVModel
+from gemini.db.models.views.dataset_views import ScriptDatasetsViewModel
 from gemini.db.models.views.validation_views import ValidScriptDatasetCombinationsViewModel
 from gemini.db.models.views.experiment_views import (
     ExperimentScriptsViewModel,
@@ -21,6 +22,7 @@ from gemini.db.models.views.experiment_views import (
 
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.datasets import DatasetModel
+from gemini.db.models.associations import ScriptDatasetModel
 
 from datetime import date, datetime
 
@@ -364,6 +366,11 @@ class ScriptRecord(APIBase, FileHandlerMixin):
                             experiment_name=record.experiment_name,
                             dataset_type=GEMINIDatasetType.Script
                         )
+                        ScriptDatasetModel.get_or_create(
+                            dataset_id=created_dataset.id,
+                            script_id=script.id
+                        )
+                        ScriptDatasetsViewModel.refresh()
                         ExperimentDatasetsViewModel.refresh()
                         datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=created_dataset.dataset_name)
 

@@ -14,6 +14,7 @@ from gemini.db.models.columnar.sensor_records import SensorRecordModel
 from gemini.db.models.views.validation_views import ValidSensorDatasetCombinationsViewModel
 from gemini.db.models.views.sensor_records_immv import SensorRecordsIMMVModel
 from gemini.db.models.views.plot_view import PlotViewModel
+from gemini.db.models.views.dataset_views import SensorDatasetsViewModel
 from gemini.db.models.views.experiment_views import (
     ExperimentSensorsViewModel,
     ExperimentDatasetsViewModel,
@@ -23,6 +24,7 @@ from gemini.db.models.views.experiment_views import (
 
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.datasets import DatasetModel
+from gemini.db.models.associations import SensorDatasetModel
 
 from datetime import date, datetime
 
@@ -357,7 +359,12 @@ class SensorRecord(APIBase, FileHandlerMixin):
                             experiment_name=record.experiment_name,
                             dataset_type=GEMINIDatasetType.Sensor
                         )
+                        SensorDatasetModel.get_or_create(
+                            sensor_id=sensor.id,
+                            dataset_id=created_dataset.id
+                        )
                         ExperimentDatasetsViewModel.refresh()
+                        SensorDatasetsViewModel.refresh()
                         datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=created_dataset.dataset_name)
 
                 record.dataset_id = datasets[record.dataset_name].id

@@ -11,6 +11,7 @@ from gemini.db.models.procedures import ProcedureModel
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.procedure_records import ProcedureRecordModel
 from gemini.db.models.views.procedure_records_immv import ProcedureRecordsIMMVModel
+from gemini.db.models.views.dataset_views import ProcedureDatasetsViewModel
 from gemini.db.models.views.validation_views import ValidProcedureDatasetCombinationsViewModel
 from gemini.db.models.views.experiment_views import (
     ExperimentProceduresViewModel,
@@ -22,6 +23,7 @@ from gemini.db.models.views.experiment_views import (
 
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.datasets import DatasetModel
+from gemini.db.models.associations import ProcedureDatasetModel
 
 from datetime import date, datetime
 
@@ -367,6 +369,11 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
                             dataset_type=GEMINIDatasetType.Procedure
 
                         )
+                        ProcedureDatasetModel.get_or_create(
+                            dataset_id=created_dataset.id,
+                            procedure_id=procedure.id
+                        )
+                        ProcedureDatasetsViewModel.refresh()
                         ExperimentDatasetsViewModel.refresh()
                         datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=created_dataset.dataset_name)
 
