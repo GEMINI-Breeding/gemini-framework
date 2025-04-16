@@ -11,6 +11,10 @@ new_trait = Trait.create(
 )
 print(f"Created Trait: {new_trait}")
 
+# Check if Belongs to Experiment A
+belongs = new_trait.belongs_to_experiment("Experiment A")
+print(f"Belongs to Experiment A: {belongs}")
+
 # Get Trait with trait_name and experiment_name that do exist
 trait = Trait.get("Trait Test 1", "Experiment A")
 print(f"Got Trait: {trait}")

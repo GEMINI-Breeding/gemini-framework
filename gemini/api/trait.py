@@ -243,14 +243,49 @@ class Trait(APIBase):
         except Exception as e:
             raise e
         
-    def assign_experiment():
-        pass
+    def assign_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.")
+            if experiment.has_trait(self.trait_name):
+                raise Exception(f"Trait {self.trait_name} is already assigned to experiment {experiment_name}.")
+            ExperimentTraitModel.get_or_create(experiment_id=experiment.id, trait_id=self.id)
+            return True
+        except Exception as e:
+            raise e
 
-    def belongs_to_experiment():
-        pass
+    def belongs_to_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.")
+            belongs = Experiment.has_trait(trait_name=self.trait_name)
+            return belongs
+        except Exception as e:
+            raise e
 
-    def unassign_experiment():
-        pass
+    def unassign_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.")
+            if not experiment.has_trait(self.trait_name):
+                raise Exception(f"Trait {self.trait_name} is not assigned to experiment {experiment_name}.")
+            experiment_trait_instance = ExperimentTraitModel.get_by_parameters(
+                experiment_id=experiment.id,
+                trait_id=self.id
+            )
+            if not experiment_trait_instance:
+                raise Exception(f"Trait {self.trait_name} is not assigned to experiment {experiment_name}.")
+            is_deleted = ExperimentTraitModel.delete(experiment_trait_instance)
+            return is_deleted
+        except Exception as e:
+            raise e
+
 
     def get_experiments(self):
         try:

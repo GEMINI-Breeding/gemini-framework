@@ -1,11 +1,11 @@
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from sqlalchemy import UUID, JSON, String, Integer, DATE
 from sqlalchemy.dialects.postgresql import JSONB
-from gemini.db.core.base import MaterializedViewBaseModel
+from gemini.db.core.base import ViewBaseModel
 
 from datetime import date
 
-class SensorDatasetsViewModel(MaterializedViewBaseModel):
+class SensorDatasetsViewModel(ViewBaseModel):
 
     __tablename__ = 'sensor_datasets_view'
 
@@ -18,7 +18,7 @@ class SensorDatasetsViewModel(MaterializedViewBaseModel):
     dataset_type_id: Mapped[int] = mapped_column(Integer)
     sensor_dataset_info : Mapped[dict] = mapped_column(JSONB)
 
-class TraitDatasetsViewModel(MaterializedViewBaseModel):
+class TraitDatasetsViewModel(ViewBaseModel):
 
     __tablename__ = 'trait_datasets_view'
 
@@ -32,7 +32,7 @@ class TraitDatasetsViewModel(MaterializedViewBaseModel):
     trait_dataset_info : Mapped[dict] = mapped_column(JSONB)
 
 
-class ProcedureDatasetsViewModel(MaterializedViewBaseModel):
+class ProcedureDatasetsViewModel(ViewBaseModel):
     
     __tablename__ = 'procedure_datasets_view'
 
@@ -46,7 +46,7 @@ class ProcedureDatasetsViewModel(MaterializedViewBaseModel):
     procedure_dataset_info : Mapped[dict] = mapped_column(JSONB)
 
 
-class ScriptDatasetsViewModel(MaterializedViewBaseModel):
+class ScriptDatasetsViewModel(ViewBaseModel):
      
     __tablename__ = 'script_datasets_view'
 
@@ -61,7 +61,7 @@ class ScriptDatasetsViewModel(MaterializedViewBaseModel):
 
 
 
-class ModelDatasetsViewModel(MaterializedViewBaseModel):
+class ModelDatasetsViewModel(ViewBaseModel):
       
     __tablename__ = 'model_datasets_view'
 

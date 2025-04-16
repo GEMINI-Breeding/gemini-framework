@@ -208,7 +208,7 @@ JOIN gemini.cultivars AS c
 -------------------------------------------------------------------------------
 -- Materialized View for Plot Information
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.plot_view
+CREATE OR REPLACE VIEW IF gemini.plot_view
 USING columnar
 AS
 SELECT
@@ -233,7 +233,7 @@ FROM
 -------------------------------------------------------------------------------
 -- Materialized view that shows plot cultivar information
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.plot_cultivar_view
+CREATE OR REPLACE VIEW gemini.plot_cultivar_view
 USING columnar
 AS
 SELECT
@@ -253,7 +253,7 @@ FROM
 
 -------------------------------------------------------------------------------
 -- Materialized view that shows plant information
-CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.plant_view
+CREATE OR REPLACE VIEW gemini.plant_view
 USING columnar
 AS
 SELECT
@@ -288,7 +288,7 @@ FROM
 
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Seasons
-CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.experiment_seasons_view
+CREATE OR REPLACE VIEW gemini.experiment_seasons_view
 USING columnar
 AS
 SELECT
@@ -305,7 +305,7 @@ FROM
 
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Sites
-CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.experiment_sites_view
+CREATE OR REPLACE VIEW gemini.experiment_sites_view
 USING columnar
 AS
 SELECT
@@ -324,7 +324,7 @@ FROM
 
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Seasons
-CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.experiment_traits_view
+CREATE OR REPLACE VIEW gemini.experiment_traits_view
 USING columnar
 AS
 SELECT
@@ -343,7 +343,7 @@ FROM
 
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Sensor Platforms
-CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.experiment_sensor_platforms_view
+CREATE OR REPLACE VIEW gemini.experiment_sensor_platforms_view
 USING columnar
 AS
 SELECT
@@ -360,7 +360,7 @@ FROM
 
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Sensors
-CREATE MATERIALIZED VIEW gemini.experiment_sensors_view
+CREATE OR REPLACE VIEW gemini.experiment_sensors_view
 USING columnar
 AS
 SELECT
@@ -384,7 +384,7 @@ FROM
 
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Cultivars
-CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.experiment_cultivars_view
+CREATE OR REPLACE VIEW gemini.experiment_cultivars_view
 USING columnar
 AS
 SELECT
@@ -402,7 +402,7 @@ FROM
 
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Procedures
-CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.experiment_procedures_view
+CREATE OR REPLACE VIEW gemini.experiment_procedures_view
 USING columnar
 AS
 SELECT
@@ -419,7 +419,7 @@ FROM
 
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Scripts
-CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.experiment_scripts_view
+CREATE OR REPLACE VIEW gemini.experiment_scripts_view
 USING columnar
 AS
 SELECT
@@ -437,7 +437,7 @@ FROM
 
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Models
-CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.experiment_models_view
+CREATE OR REPLACE VIEW gemini.experiment_models_view
 USING columnar
 AS
 SELECT
@@ -454,7 +454,7 @@ FROM
 
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Datasets
-CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.experiment_datasets_view
+CREATE OR REPLACE VIEW gemini.experiment_datasets_view
 USING columnar
 AS
 SELECT
@@ -474,7 +474,7 @@ FROM
 -------------------------------------------------------------------------------
 -- Sensor Datasets View
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.sensor_datasets_view
+CREATE OR REPLACE VIEW gemini.sensor_datasets_view
 AS
 SELECT
     sd.sensor_id,
@@ -493,7 +493,7 @@ FROM
 -------------------------------------------------------------------------------
 -- Trait Datasets View
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.trait_datasets_view
+CREATE OR REPLACE VIEW gemini.trait_datasets_view
 AS
 SELECT
     td.trait_id,
@@ -513,7 +513,7 @@ FROM
 -------------------------------------------------------------------------------
 -- Procedure Datasets View
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.procedure_datasets_view
+CREATE OR REPLACE VIEW gemini.procedure_datasets_view
 AS
 SELECT
     pd.procedure_id,
@@ -548,7 +548,7 @@ FROM
 -------------------------------------------------------------------------------
 -- Script Datasets View
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.script_datasets_view
+CREATE OR REPLACE VIEW gemini.script_datasets_view
 AS
 SELECT
     sd.script_id,
@@ -585,7 +585,7 @@ FROM
 -------------------------------------------------------------------------------
 -- Model Datasets View
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.model_datasets_view
+CREATE OR REPLACE VIEW gemini.model_datasets_view
 AS
 SELECT
     md.model_id,

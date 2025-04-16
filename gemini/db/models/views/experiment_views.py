@@ -1,9 +1,9 @@
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from sqlalchemy import UUID, JSON, String, Integer
 from sqlalchemy.dialects.postgresql import JSONB
-from gemini.db.core.base import MaterializedViewBaseModel
+from gemini.db.core.base import ViewBaseModel
 
-class ExperimentSeasonsViewModel(MaterializedViewBaseModel):
+class ExperimentSeasonsViewModel(ViewBaseModel):
 
     __tablename__ = 'experiment_seasons_view'
 
@@ -15,7 +15,7 @@ class ExperimentSeasonsViewModel(MaterializedViewBaseModel):
     season_end_date : Mapped[str] = mapped_column(String)
     season_info : Mapped[dict] = mapped_column(JSONB)
 
-class ExperimentSitesViewModel(MaterializedViewBaseModel):
+class ExperimentSitesViewModel(ViewBaseModel):
 
     __tablename__ = 'experiment_sites_view'
 
@@ -29,7 +29,7 @@ class ExperimentSitesViewModel(MaterializedViewBaseModel):
     site_info : Mapped[dict] = mapped_column(JSONB)
 
 
-class ExperimentTraitsViewModel(MaterializedViewBaseModel):
+class ExperimentTraitsViewModel(ViewBaseModel):
 
     __tablename__ = 'experiment_traits_view'
 
@@ -44,7 +44,7 @@ class ExperimentTraitsViewModel(MaterializedViewBaseModel):
 
 
 
-class ExperimentSensorsViewModel(MaterializedViewBaseModel):
+class ExperimentSensorsViewModel(ViewBaseModel):
 
     __tablename__ = 'experiment_sensors_view'
 
@@ -61,7 +61,7 @@ class ExperimentSensorsViewModel(MaterializedViewBaseModel):
     sensor_platform_info : Mapped[dict] = mapped_column(JSONB)
 
 
-class ExperimentSensorPlatformsViewModel(MaterializedViewBaseModel):
+class ExperimentSensorPlatformsViewModel(ViewBaseModel):
 
     __tablename__ = 'experiment_sensor_platforms_view'
 
@@ -73,7 +73,7 @@ class ExperimentSensorPlatformsViewModel(MaterializedViewBaseModel):
     
 
 
-class ExperimentCultivarsViewModel(MaterializedViewBaseModel):
+class ExperimentCultivarsViewModel(ViewBaseModel):
 
     __tablename__ = 'experiment_cultivars_view'
 
@@ -87,7 +87,7 @@ class ExperimentCultivarsViewModel(MaterializedViewBaseModel):
 
 
 
-class ExperimentProceduresViewModel(MaterializedViewBaseModel):
+class ExperimentProceduresViewModel(ViewBaseModel):
 
     __tablename__ = 'experiment_procedures_view'
 
@@ -98,7 +98,7 @@ class ExperimentProceduresViewModel(MaterializedViewBaseModel):
     procedure_info : Mapped[dict] = mapped_column(JSONB)
 
 
-class ExperimentScriptsViewModel(MaterializedViewBaseModel):
+class ExperimentScriptsViewModel(ViewBaseModel):
 
     __tablename__ = 'experiment_scripts_view'
 
@@ -111,7 +111,7 @@ class ExperimentScriptsViewModel(MaterializedViewBaseModel):
     script_info : Mapped[dict] = mapped_column(JSONB)
 
 
-class ExperimentModelsViewModel(MaterializedViewBaseModel):
+class ExperimentModelsViewModel(ViewBaseModel):
 
     __tablename__ = 'experiment_models_view'
 
@@ -124,7 +124,7 @@ class ExperimentModelsViewModel(MaterializedViewBaseModel):
 
 
 
-class ExperimentDatasetsViewModel(MaterializedViewBaseModel):
+class ExperimentDatasetsViewModel(ViewBaseModel):
 
     __tablename__ = 'experiment_datasets_view'
 

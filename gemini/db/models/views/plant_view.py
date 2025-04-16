@@ -1,10 +1,10 @@
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from sqlalchemy import UUID, JSON, String, Integer
 from sqlalchemy.dialects.postgresql import JSONB
-from gemini.db.core.base import MaterializedViewBaseModel
+from gemini.db.core.base import ViewBaseModel
 
 
-class PlantViewModel(MaterializedViewBaseModel):
+class PlantViewModel(ViewBaseModel):
     
         __tablename__ = 'plant_view'
     
