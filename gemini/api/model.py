@@ -26,6 +26,17 @@ class Model(APIBase):
     model_info: Optional[dict] = None
 
     @classmethod
+    def exists(
+        cls,
+        model_name: str
+    ) -> bool:
+        try:
+            exists = ModelModel.exists(model_name=model_name)
+            return exists
+        except Exception as e:
+            raise e
+
+    @classmethod
     def create(
         cls,
         model_name: str,
@@ -71,7 +82,32 @@ class Model(APIBase):
         except Exception as e:
             raise e
         
-    
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            model = ModelModel.get(current_id)
+            model_info = model.model_info
+            if not model_info:
+                raise Exception("Model info is empty.")
+            return model_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, model_info: dict) -> "Model":
+        try:
+            current_id = self.id
+            model = ModelModel.get(current_id)
+            model = ModelModel.update(
+                model,
+                model_info=model_info
+            )
+            model = self.model_validate(model)
+            self.refresh()
+            return model
+        except Exception as e:
+            raise e
+
+            
     @classmethod
     def get_all(cls) -> List["Model"]:
         try:
@@ -323,5 +359,3 @@ class Model(APIBase):
             return records
         except Exception as e:
             raise e
-
-            

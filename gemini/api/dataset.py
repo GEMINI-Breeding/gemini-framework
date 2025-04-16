@@ -26,6 +26,17 @@ class Dataset(APIBase):
     dataset_type_id: int
 
     @classmethod
+    def exists(
+        cls,
+        dataset_name: str
+    ) -> bool:
+        try:
+            exists = DatasetModel.exists(dataset_name=dataset_name)
+            return exists
+        except Exception as e:
+            raise e
+
+    @classmethod
     def create(
         cls,
         dataset_name: str,
@@ -65,7 +76,32 @@ class Dataset(APIBase):
         except Exception as e:
             raise e
         
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            dataset = DatasetModel.get(current_id)
+            dataset_info = dataset.dataset_info
+            if not dataset_info:
+                raise Exception("Dataset info is empty.")
+            return dataset_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, dataset_info: dict) -> "Dataset":
+        try:
+            current_id = self.id
+            dataset = DatasetModel.get(current_id)
+            dataset = DatasetModel.update(
+                dataset,
+                dataset_info=dataset_info,
+            )
+            dataset = self.model_validate(dataset)
+            self.refresh()
+            return dataset
+        except Exception as e:
+            raise e
 
+  
     @classmethod
     def get_by_id(cls, id: UUID | int | str) -> "Dataset":
         try:
@@ -269,5 +305,3 @@ class Dataset(APIBase):
             return records
         except Exception as e:
             raise e
-
-  

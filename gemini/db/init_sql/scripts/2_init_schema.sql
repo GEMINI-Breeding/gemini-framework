@@ -455,7 +455,7 @@ VALUES
     (11, 'Confidence', '{"description": "Confidence Maps Source"}');
 
 -- Make sure the next ID is incremented from the last inserted value
-SELECT setval(pg_get_serial_sequence('gemini.sensor_types', 'id'), 10, true);
+SELECT setval(pg_get_serial_sequence('gemini.sensor_types', 'id'), 11, true);
 
 
 -- Insert Dataset Types

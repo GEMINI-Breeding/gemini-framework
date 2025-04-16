@@ -15,17 +15,15 @@ from gemini.api.trait_record import TraitRecord
 from gemini.rest_api.models import TraitInput, TraitOutput, TraitUpdate, JSONB, str_to_dict
 from gemini.rest_api.models import TraitRecordInput, TraitRecordOutput, TraitRecordUpdate, TraitLevelSearch
 from gemini.rest_api.models import RESTAPIError
-from gemini.rest_api.models import DatasetOutput, DatasetInput
+from gemini.rest_api.models import DatasetOutput
 from typing import List, Annotated, Optional
 
 from gemini.rest_api.models import (
     TraitRecordInput,
     TraitRecordOutput,
-    TraitRecordUpdate,
-    TraitRecordSearch
+    TraitRecordUpdate
 )
 
-from gemini.rest_api.file_handler import api_file_handler
 
 async def trait_records_bytes_generator(trait_record_generator: Generator[TraitOutput, None, None]) -> AsyncGenerator[bytes, None]:
     for record in trait_record_generator:

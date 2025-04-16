@@ -99,6 +99,16 @@ experiment.update(
 )
 print(f"Updated Experiment: {experiment}")
 
+# Set Experiment Info
+experiment.set_info(
+    experiment_info={"test": "test_set"},
+)
+print(f"Set Experiment Info: {experiment}")
+
+# Get Experiment Info
+experiment_info = experiment.get_info()
+print(f"Experiment Info: {experiment_info}")
+
 # Add a new season for the experiment
 new_season = experiment.create_season(
     season_name="Season Test 1",
@@ -108,6 +118,9 @@ new_season = experiment.create_season(
 )
 print(f"Created Season: {new_season}")
 
+has_season = experiment.has_season(new_season.season_name)
+print(f"Experiment has Season: {has_season}")
+
 # Add a new cultivar for the experiment
 new_cultivar = experiment.create_cultivar(
     cultivar_accession="Cultivar Test 1",
@@ -116,12 +129,18 @@ new_cultivar = experiment.create_cultivar(
 )
 print(f"Created Cultivar: {new_cultivar}")
 
+has_cultivar = experiment.has_cultivar(new_cultivar.cultivar_population, new_cultivar.cultivar_accession)
+print(f"Experiment has Cultivar: {has_cultivar}")
+
 # Add a new sensor platform for the experiment
 new_sensor_platform = experiment.create_platform(
     platform_name="Sensor Platform Test 1",
     platform_info={"test": "test"}
 )
 print(f"Created Sensor Platform: {new_sensor_platform}")
+
+has_sensor_platform = experiment.has_platform(new_sensor_platform.sensor_platform_name)
+print(f"Experiment has Sensor Platform: {has_sensor_platform}")
 
 # Add a new sensor for the experiment
 new_sensor = experiment.create_sensor(
@@ -134,6 +153,9 @@ new_sensor = experiment.create_sensor(
 )
 print(f"Created Sensor: {new_sensor}")
 
+has_sensor = experiment.has_sensor(new_sensor.sensor_name)
+print(f"Experiment has Sensor: {has_sensor}")
+
 # Add a new trait for the experiment
 new_trait = experiment.create_trait(
     trait_name="Trait Test 1",
@@ -144,6 +166,9 @@ new_trait = experiment.create_trait(
 )
 print(f"Created Trait: {new_trait}")
 
+has_trait = experiment.has_trait(new_trait.trait_name)
+print(f"Experiment has Trait: {has_trait}")
+
 # Add a new script for the experiment
 new_script = experiment.create_script(
     script_name="Script Test 1",
@@ -153,6 +178,9 @@ new_script = experiment.create_script(
 )
 print(f"Created Script: {new_script}")
 
+has_script = experiment.has_script(new_script.script_name)
+print(f"Experiment has Script: {has_script}")
+
 # Add a new procedure for the experiment
 new_procedure = experiment.create_procedure(
     procedure_name="Procedure Test 1",
@@ -160,14 +188,19 @@ new_procedure = experiment.create_procedure(
 )
 print(f"Created Procedure: {new_procedure}")
 
+has_procedure = experiment.has_procedure(new_procedure.procedure_name)
+print(f"Experiment has Procedure: {has_procedure}")
+
 # Add a new model for the experiment
 new_model = experiment.create_model(
     model_name="Model Test 1",
     model_info={"test": "test"},
     model_url="https://example.com/model",
 )
-print(f"Created Model: {new_model}")    
+print(f"Created Model: {new_model}")
 
+has_model = experiment.has_model(new_model.model_name)
+print(f"Experiment has Model: {has_model}")
 
 # Add a new Site
 new_site = experiment.create_site(
@@ -179,6 +212,9 @@ new_site = experiment.create_site(
 )
 print(f"Created Model: {new_model}")
 
+has_site = experiment.has_site(new_site.site_name)
+print(f"Experiment has Site: {has_site}")
+
 # Add a new dataset for the experiment
 new_dataset = experiment.create_dataset(
     dataset_name="Dataset Test 1",
@@ -187,6 +223,9 @@ new_dataset = experiment.create_dataset(
     collection_date="2023-10-01"
 )
 print(f"Created Dataset: {new_dataset}")
+
+has_dataset = experiment.has_dataset(new_dataset.dataset_name)
+print(f"Experiment has Dataset: {has_dataset}")
 
 # Delete the experiment
 is_deleted = experiment.delete()

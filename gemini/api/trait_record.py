@@ -51,6 +51,35 @@ class TraitRecord(APIBase, FileHandlerMixin):
     record_info: Optional[dict] = None
 
     @classmethod
+    def exists(
+        cls,
+        timestamp: datetime,
+        trait_name: str,
+        dataset_name: str,
+        experiment_name: str,
+        site_name: str,
+        season_name: str,
+        plot_number: int,
+        plot_row_number: int,
+        plot_column_number: int,
+    ) -> bool:
+        try:
+            exists = TraitRecordModel.exists(
+                timestamp=timestamp,
+                trait_name=trait_name,
+                dataset_name=dataset_name,
+                experiment_name=experiment_name,
+                site_name=site_name,
+                season_name=season_name,
+                plot_number=plot_number,
+                plot_row_number=plot_row_number,
+                plot_column_number=plot_column_number
+            )
+            return exists
+        except Exception as e:
+            raise e
+
+    @classmethod
     def create(
         cls,
         timestamp: datetime = datetime.now(),

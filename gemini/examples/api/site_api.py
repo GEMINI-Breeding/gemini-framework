@@ -43,6 +43,16 @@ site.update(
 )
 print(f"Updated Site: {site}")
 
+# Set Site Info
+site.set_info(
+    site_info={"test": "test_set"},
+)
+print(f"Set Site Info: {site}")
+
+# Get Site Info
+site_info = site.get_info()
+print(f"Site Info: {site_info}")
+
 # Delete the site
 is_deleted = new_site.delete()
 print(f"Deleted Site: {is_deleted}")

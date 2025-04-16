@@ -38,6 +38,16 @@ script.update(
 )
 print(f"Updated Script: {script}")
 
+# Set Script Info
+script.set_info(
+    script_info={"test": "test_set"},
+)
+print(f"Set Script Info: {script}")
+
+# Get Script Info
+script_info = script.get_info()
+print(f"Script Info: {script_info}")
+
 # Create 10 new script runs
 for i in range(10):
     script.create_run(

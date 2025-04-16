@@ -35,6 +35,11 @@ class APIBase(BaseModel):
 
     @classmethod
     @abstractmethod
+    def exists(cls, **kwargs) -> bool:
+        pass
+
+    @classmethod
+    @abstractmethod
     def create(cls, **kwargs):
         pass
 

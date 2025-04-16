@@ -46,6 +46,16 @@ dataset.update(
 )
 print(f"Updated Dataset: {dataset}")
 
+# Set Dataset Info
+dataset.set_info(
+    dataset_info={"test": "test_set"},
+)
+print(f"Set Dataset Info: {dataset}")
+
+# Get Dataset Info
+dataset_info = dataset.get_info()
+print(f"Dataset Info: {dataset_info}")
+
 # Delete the new dataset
 is_deleted = new_dataset.delete()
 print(f"Deleted Dataset: {is_deleted}")

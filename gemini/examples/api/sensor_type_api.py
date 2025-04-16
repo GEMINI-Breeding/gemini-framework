@@ -31,6 +31,16 @@ sensor_type.update(
 )
 print(f"Updated Sensor Type: {sensor_type}")
 
+# Set Sensor Type Info
+sensor_type.set_info(
+    sensor_type_info={"test": "test_set"},
+)
+print(f"Set Sensor Type Info: {sensor_type}")
+
+# Get Sensor Type Info
+sensor_type_info = sensor_type.get_info()
+print(f"Sensor Type Info: {sensor_type_info}")
+
 # Refresh the sensor type
 sensor_type.refresh()
 print(f"Refreshed Sensor Type: {sensor_type}")

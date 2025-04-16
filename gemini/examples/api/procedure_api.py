@@ -35,6 +35,15 @@ procedure.update(
     procedure_info={"test": "test_updated"},
 )
 
+# Set Procedure Info
+procedure.set_info(
+    procedure_info={"test": "test_set"},
+)
+
+# Get Procedure Info
+procedure_info = procedure.get_info()
+print(f"Procedure Info: {procedure_info}")
+
 # Create 10 new procedure runs
 for i in range(10):
     procedure.create_run(

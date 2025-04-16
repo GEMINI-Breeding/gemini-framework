@@ -38,6 +38,29 @@ class Plot(APIBase):
     experiment_name: Optional[str] = Field(None, exclude=True)
     season_name: Optional[str] = Field(None, exclude=True)
     site_name: Optional[str] = Field(None, exclude=True)
+
+    @classmethod
+    def exists(
+        cls,
+        plot_number: int,
+        plot_row_number: int,
+        plot_column_number: int,
+        experiment_name: str = None,
+        season_name: str = None,
+        site_name: str = None
+    ) -> bool:
+        try:
+            exists = PlotViewModel.exists(
+                plot_number=plot_number,
+                plot_row_number=plot_row_number,
+                plot_column_number=plot_column_number,
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name
+            )
+            return exists
+        except Exception as e:
+            raise e
     
     @classmethod
     def create(
@@ -101,6 +124,56 @@ class Plot(APIBase):
                     )
             plot = cls.model_validate(db_instance)
             return plot
+        except Exception as e:
+            raise e
+        
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            plot = PlotModel.get(current_id)
+            plot_info = plot.plot_info
+            if not plot_info:
+                raise Exception("Plot info is empty.")
+            return plot_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, plot_info: dict) -> "Plot":
+        try:
+            current_id = self.id
+            plot = PlotModel.get(current_id)
+            plot = PlotModel.update(
+                plot,
+                plot_info=plot_info
+            )
+            plot = self.model_validate(plot)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
+        
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            plot = PlotModel.get(current_id)
+            plot_info = plot.plot_info
+            if not plot_info:
+                raise Exception("Plot info is empty.")
+            return plot_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, plot_info: dict) -> "Plot":
+        try:
+            current_id = self.id
+            plot = PlotModel.get(current_id)
+            plot = PlotModel.update(
+                plot,
+                plot_info=plot_info
+            )
+            plot = self.model_validate(plot)
+            self.refresh()
+            return self
         except Exception as e:
             raise e
         
@@ -363,4 +436,3 @@ class Plot(APIBase):
             return plant
         except Exception as e:
             raise e
-        

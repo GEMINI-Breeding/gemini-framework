@@ -6,6 +6,7 @@ from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.db.models.model_runs import ModelRunModel
 from gemini.db.models.models import ModelModel
+from gemini.db.models.views.run_views import ModelRunsViewModel
 
 from datetime import date, datetime
 
@@ -15,6 +16,46 @@ class ModelRun(APIBase):
 
     model_id : UUID
     model_run_info: Optional[dict] = None
+
+    @classmethod
+    def exists(
+        cls,
+        model_name: str = None,
+        model_run_info: dict = None,
+    ) -> bool:
+        try:
+            exists = ModelRunsViewModel.exists(
+                model_name=model_name,
+                model_run_info=model_run_info
+            )
+            return exists
+        except Exception as e:
+            raise e
+        
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            model_run = ModelRunModel.get(current_id)
+            model_run_info = model_run.model_run_info
+            if not model_run_info:
+                raise Exception("ModelRun info is empty.")
+            return model_run_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, model_run_info: dict) -> "ModelRun":
+        try:
+            current_id = self.id
+            model_run = ModelRunModel.get(current_id)
+            model_run = ModelRunModel.update(
+                model_run,
+                model_run_info=model_run_info,
+            )
+            model_run = self.model_validate(model_run)
+            self.refresh()
+            return model_run
+        except Exception as e:
+            raise e
 
     @classmethod
     def create(

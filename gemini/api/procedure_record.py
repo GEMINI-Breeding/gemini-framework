@@ -47,6 +47,29 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
     record_info: Optional[dict] = None
 
     @classmethod
+    def exists(
+        cls,
+        timestamp: datetime,
+        dataset_name: str = None,
+        procedure_name: str = None,
+        experiment_name: str = None,
+        site_name: str = None,
+        season_name: str = None
+    ) -> bool:
+        try:
+            exists = ProcedureRecordModel.exists(
+                timestamp=timestamp,
+                dataset_name=dataset_name,
+                procedure_name=procedure_name,
+                experiment_name=experiment_name,
+                site_name=site_name,
+                season_name=season_name
+            )
+            return exists
+        except Exception as e:
+            raise e
+
+    @classmethod
     def create(
         cls,
         timestamp: datetime = datetime.now(),

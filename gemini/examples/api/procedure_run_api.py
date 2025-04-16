@@ -41,6 +41,16 @@ procedure_run.update(
 )
 print(f"Updated Procedure Run: {procedure_run}")
 
+# Set ProcedureRun Info
+procedure_run.set_info(
+    procedure_run_info={"test": "test_set"},
+)
+print(f"Set ProcedureRun Info: {procedure_run}")
+
+# Get ProcedureRun Info
+procedure_run_info = procedure_run.get_info()
+print(f"ProcedureRun Info: {procedure_run_info}")
+
 # Delete the procedure run
 is_deleted = procedure_run.delete()
 print(f"Deleted Procedure Run: {is_deleted}")

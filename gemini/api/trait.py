@@ -26,6 +26,42 @@ class Trait(APIBase):
     trait_metrics: Optional[dict] = None
 
     @classmethod
+    def exists(
+        cls,
+        trait_name: str
+    ) -> bool:
+        try:
+            exists = TraitModel.exists(trait_name=trait_name)
+            return exists
+        except Exception as e:
+            raise e
+        
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            trait = TraitModel.get(current_id)
+            trait_info = trait.trait_info
+            if not trait_info:
+                raise Exception("Trait info is empty.")
+            return trait_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, trait_info: dict) -> "Trait":
+        try:
+            current_id = self.id
+            trait = TraitModel.get(current_id)
+            trait = TraitModel.update(
+                trait,
+                trait_info=trait_info
+            )
+            trait = self.model_validate(trait)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
+
+    @classmethod
     def create(
         cls,
         trait_name: str,
@@ -153,7 +189,7 @@ class Trait(APIBase):
             TraitModel.delete(trait)
             return True
         except Exception as e:
-            raise e
+            return False
         
 
         
@@ -196,6 +232,36 @@ class Trait(APIBase):
             return dataset
         except Exception as e:
             raise e
+        
+    def has_dataset(self, dataset_name: str) -> bool:
+        try:
+            exists = TraitDatasetsViewModel.exists(
+                trait_id=self.id,
+                dataset_name=dataset_name
+            )
+            return exists
+        except Exception as e:
+            raise e
+        
+    def assign_experiment():
+        pass
+
+    def belongs_to_experiment():
+        pass
+
+    def unassign_experiment():
+        pass
+
+    def get_experiments(self):
+        try:
+            from gemini.api.experiment import Experiment
+            db_instance = TraitModel.get(self.id)
+            experiments = ExperimentTraitsViewModel.search(trait_id=db_instance.id)
+            experiments = [Experiment.model_validate(experiment) for experiment in experiments]
+            return experiments if experiments else None
+        except Exception as e:
+            raise e
+
 
     def add_record(
         self,
@@ -213,7 +279,7 @@ class Trait(APIBase):
     ) -> tuple[bool, List[str]]:
         try:
             if not experiment_name or not season_name or not site_name:
-                raise Exception("Experiment name, season name, and site name must be provided.")
+                raise ValueError("Experiment name, season name, and site name must be provided.")
             
             timestamp = timestamp if timestamp else datetime.now()
             collection_date = collection_date if collection_date else timestamp.date()
@@ -221,7 +287,7 @@ class Trait(APIBase):
             trait_id = self.id
 
             if not dataset_name:
-                dataset_name = self.trait_name.lower().replace(" ", "_")
+                dataset_name = trait_name.lower().replace(" ", "_")
                 dataset_name = dataset_name + f"_{collection_date}"
                 dataset_name = dataset_name + f"_{experiment_name}_{season_name}_{site_name}"
 
@@ -269,7 +335,7 @@ class Trait(APIBase):
                 raise ValueError("At least one timestamp must be provided.")
             
             if not dataset_name:
-                dataset_name = self.dataset_name.lower().replace(" ", "_")
+                dataset_name = self.trait_name.lower().replace(" ", "_")
                 dataset_name = dataset_name + f"_{collection_date}"
                 dataset_name = dataset_name + f"_{experiment_name}_{season_name}_{site_name}"
 
@@ -329,5 +395,3 @@ class Trait(APIBase):
             return records
         except Exception as e:
             raise e
-
-

@@ -39,6 +39,16 @@ sensor_platform.update(
 )
 print(f"Updated Sensor Platform: {sensor_platform}")
 
+# Set Sensor Platform Info
+sensor_platform.set_info(
+    sensor_platform_info={"test": "test_set"},
+)
+print(f"Set Sensor Platform Info: {sensor_platform}")
+
+# Get Sensor Platform Info
+sensor_platform_info = sensor_platform.get_info()
+print(f"Sensor Platform Info: {sensor_platform_info}")
+
 # Create a new sensor with experiment Experiment A
 new_sensor = sensor_platform.add_sensor(
     sensor_name = "Sensor Test 1",

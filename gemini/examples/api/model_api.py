@@ -38,6 +38,16 @@ model.update(
 )
 print(f"Updated Model: {model}")
 
+# Set Model Info
+model.set_info(
+    model_info={"test": "test_set"},
+)
+print(f"Set Model Info: {model}")
+
+# Get Model Info
+model_info = model.get_info()
+print(f"Model Info: {model_info}")
+
 # Create 10 new model runs
 for i in range(10):
     model.create_run(

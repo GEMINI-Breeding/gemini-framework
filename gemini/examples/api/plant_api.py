@@ -46,6 +46,16 @@ plant.update(
 )
 print(f"Updated Plant: {plant}")
 
+# Set Plant Info
+plant.set_info(
+    plant_info={"info": "info_set"}
+)
+print(f"Set Plant Info: {plant}")
+
+# Get Plant Info
+plant_info = plant.get_info()
+print(f"Plant Info: {plant_info}")
+
 # Refresh plant
 plant.refresh()
 print(f"Refreshed Plant: {plant}")

@@ -6,7 +6,7 @@ from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.db.models.procedure_runs import ProcedureRunModel
 from gemini.db.models.procedures import ProcedureModel
-
+from gemini.db.models.views.run_views import ProcedureRunsViewModel
 
 
 class ProcedureRun(APIBase):
@@ -15,6 +15,46 @@ class ProcedureRun(APIBase):
 
     procedure_id : UUID
     procedure_run_info: Optional[dict] = None
+
+    @classmethod
+    def exists(
+        cls,
+        procedure_name: str,
+        procedure_run_info: dict
+    ) -> bool:
+        try:
+            exists = ProcedureRunsViewModel.exists(
+                procedure_name=procedure_name,
+                procedure_run_info=procedure_run_info
+            )
+            return exists
+        except Exception as e:
+            raise e
+        
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            procedure_run = ProcedureRunModel.get(current_id)
+            procedure_run_info = procedure_run.procedure_run_info
+            if not procedure_run_info:
+                raise Exception("ProcedureRun info is empty.")
+            return procedure_run_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, procedure_run_info: dict) -> "ProcedureRun":
+        try:
+            current_id = self.id
+            procedure_run = ProcedureRunModel.get(current_id)
+            procedure_run = ProcedureRunModel.update(
+                procedure_run,
+                procedure_run_info=procedure_run_info
+            )
+            procedure_run = self.model_validate(procedure_run)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
 
     @classmethod
     def create(

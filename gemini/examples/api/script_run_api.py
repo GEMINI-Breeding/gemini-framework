@@ -41,6 +41,16 @@ script_run.update(
 )
 print(f"Updated Script Run: {script_run}")
 
+# Set ScriptRun Info
+script_run.set_info(
+    script_run_info={"test": "test_set"},
+)
+print(f"Set ScriptRun Info: {script_run}")
+
+# Get ScriptRun Info
+script_run_info = script_run.get_info()
+print(f"ScriptRun Info: {script_run_info}")
+
 # Delete the script run
 is_deleted = script_run.delete()
 print(f"Deleted Script Run: {is_deleted}")

@@ -15,6 +15,17 @@ class TraitLevel(APIBase):
     trait_level_info: Optional[dict] = None
 
     @classmethod
+    def exists(
+        cls,
+        trait_level_name: str
+    ) -> bool:
+        try:
+            exists = TraitLevelModel.exists(trait_level_name=trait_level_name)
+            return exists
+        except Exception as e:
+            raise e
+
+    @classmethod
     def create(
         cls,
         trait_level_name: str,
@@ -30,7 +41,32 @@ class TraitLevel(APIBase):
         except Exception as e:
             raise e
         
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            trait_level = TraitLevelModel.get(current_id)
+            trait_level_info = trait_level.trait_level_info
+            if not trait_level_info:
+                raise Exception("TraitLevel info is empty.")
+            return trait_level_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, trait_level_info: dict) -> "TraitLevel":
+        try:
+            current_id = self.id
+            trait_level = TraitLevelModel.get(current_id)
+            trait_level = TraitLevelModel.update(
+                trait_level,
+                trait_level_info=trait_level_info
+            )
+            trait_level = self.model_validate(trait_level)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
 
+        
     @classmethod
     def get(cls, trait_level_name: str) -> "TraitLevel":
         try:

@@ -27,7 +27,6 @@ from gemini.rest_api.models import (
     ModelRecordInput,
     ModelRecordOutput,
     ModelRecordUpdate,
-    ModelRecordSearch
 )
 
 from gemini.rest_api.file_handler import api_file_handler

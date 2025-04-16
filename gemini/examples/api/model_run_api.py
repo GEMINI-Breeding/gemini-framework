@@ -41,6 +41,15 @@ model_run.update(
 )
 print(f"Updated Model Run: {model_run}")
 
+# Set ModelRun Info
+model_run.set_info(
+    model_run_info={"test": "test_set"},
+)
+print(f"Set ModelRun Info: {model_run}")
+# Get ModelRun Info
+model_run_info = model_run.get_info()
+print(f"ModelRun Info: {model_run_info}")
+
 # Delete the model run
 is_deleted = model_run.delete()
 print(f"Deleted Model Run: {is_deleted}")

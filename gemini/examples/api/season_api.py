@@ -42,6 +42,16 @@ season.update(
 )
 print(f"Updated Season: {season}")
 
+# Set Season Info
+season.set_info(
+    season_info={"test": "test_set"},
+)
+print(f"Set Season Info: {season}")
+
+# Get Season Info
+season_info = season.get_info()
+print(f"Season Info: {season_info}")
+
 # Delete the season
 is_deleted = season.delete()
 print(f"Deleted Season: {is_deleted}")

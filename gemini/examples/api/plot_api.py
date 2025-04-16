@@ -97,6 +97,16 @@ plot.update(
 )
 print(f"Updated Plot: {plot}")
 
+# Set Plot Info
+plot.set_info(
+    plot_info={"test_info": "set_test_value"}
+)
+print(f"Set Plot Info: {plot}")
+
+# Get Plot Info
+plot_info = plot.get_info()
+print(f"Plot Info: {plot_info}")
+
 # Add a new cultivar
 experiment_cultivars = Experiment.get(experiment_name=valid_combinations[-1]['experiment_name']).get_cultivars()
 random_cultivar = choice(experiment_cultivars) if experiment_cultivars else None

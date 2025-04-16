@@ -112,6 +112,18 @@ record.update(
 )
 print(f"Updated Record: {record}")
 
+# Set Trait Record Info
+record.set_record_info(
+    record_info={
+        "test_info": "set_test_value"
+    },
+)
+print(f"Set Record Info: {record}")
+
+# Get Record Info
+record_info = record.get_record_info()
+print(f"Record Info: {record_info}")
+
 # Create a new experiment
 new_experiment_name = "Test Experiment B"
 new_season_name = "Test Season B"

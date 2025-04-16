@@ -18,6 +18,21 @@ class Cultivar(APIBase):
     cultivar_info: Optional[dict] = None
 
     @classmethod
+    def exists(
+        cls,
+        cultivar_population: str,
+        cultivar_accession: str
+    ) -> bool:
+        try:
+            exists = CultivarModel.exists(
+                cultivar_population=cultivar_population,
+                cultivar_accession=cultivar_accession
+            )
+            return exists
+        except Exception as e:
+            raise e
+
+    @classmethod
     def create(
         cls,
         cultivar_population: str,
@@ -142,7 +157,29 @@ class Cultivar(APIBase):
             return self
         except Exception as e:
             raise e
-    
+        
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            cultivar = CultivarModel.get(current_id)
+            cultivar_info = cultivar.cultivar_info
+            if not cultivar_info:
+                raise Exception("Cultivar info is empty.")
+            return cultivar_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, cultivar_info: dict) -> "Cultivar":
+        try:
+            current_id = self.id
+            cultivar = CultivarModel.get(current_id)
+            cultivar = CultivarModel.update(cultivar, cultivar_info=cultivar_info)
+            cultivar = self.model_validate(cultivar)
+            self.refresh()
+            return cultivar
+        except Exception as e:
+            raise e
+        
         
     @classmethod
     def get_population_accessions(cls, cultivar_population: str) -> List["Cultivar"]:

@@ -38,6 +38,15 @@ cultivar.update(
 )
 print(f"Updated Cultivar: {cultivar}")
 
+# Set Cultivar Info
+cultivar.set_info(
+    cultivar_info={"test": "test_set"},
+)
+
+# Get Cultivar Info
+cultivar_info = cultivar.get_info()
+print(f"Cultivar Info: {cultivar_info}")
+
 # Delete the new cultivar
 is_deleted = new_cultivar.delete()
 print(f"Deleted Cultivar: {is_deleted}")

@@ -6,6 +6,7 @@ from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.db.models.script_runs import ScriptRunModel
 from gemini.db.models.scripts import ScriptModel
+from gemini.db.models.views.run_views import ScriptRunsViewModel
 
 
 class ScriptRun(APIBase):
@@ -15,6 +16,46 @@ class ScriptRun(APIBase):
     script_id : UUID
     script_run_info: Optional[dict] = None
 
+    @classmethod
+    def exists(
+        cls,
+        script_name: str,
+        script_run_info: dict
+    ) -> bool:
+        try:
+            exists = ScriptRunsViewModel.exists(
+                script_name=script_name,
+                script_run_info=script_run_info
+            )
+            return exists
+        except Exception as e:
+            raise e
+        
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            script_run = ScriptRunModel.get(current_id)
+            script_run_info = script_run.script_run_info
+            if not script_run_info:
+                raise Exception("ScriptRun info is empty.")
+            return script_run_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, script_run_info: dict) -> "ScriptRun":
+        try:
+            current_id = self.id
+            script_run = ScriptRunModel.get(current_id)
+            script_run = ScriptRunModel.update(
+                script_run,
+                script_run_info=script_run_info
+            )
+            script_run = self.model_validate(script_run)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
+                    
     @classmethod
     def create(
         cls,
@@ -130,4 +171,3 @@ class ScriptRun(APIBase):
             return self
         except Exception as e:
             raise e
-                    

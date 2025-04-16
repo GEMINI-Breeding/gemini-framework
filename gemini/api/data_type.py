@@ -15,7 +15,18 @@ class DataType(APIBase):
 
     data_type_name: str
     data_type_info: Optional[dict] = None
-
+    
+    @classmethod
+    def exists(
+        cls,
+        data_type_name: str
+    ) -> bool:
+        try:
+            exists = DataTypeModel.exists(data_type_name=data_type_name)
+            return exists
+        except Exception as e:
+            raise e
+    
     @classmethod
     def create(
         cls,
@@ -122,6 +133,31 @@ class DataType(APIBase):
         except Exception as e:
             raise e
         
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            data_type = DataTypeModel.get(current_id)
+            data_type_info = data_type.data_type_info
+            if not data_type_info:
+                raise Exception("DataType info is empty.")
+            return data_type_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, data_type_info: dict) -> "DataType":
+        try:
+            current_id = self.id
+            data_type = DataTypeModel.get(current_id)
+            data_type = DataTypeModel.update(
+                data_type,
+                data_type_info=data_type_info,
+            )
+            data_type = self.model_validate(data_type)
+            self.refresh()
+            return data_type
+        except Exception as e:
+            raise e
+        
     def get_formats(self) -> List["DataFormat"]:
         try:
             db_instance = DataTypeModel.get(self.id)
@@ -151,4 +187,3 @@ class DataType(APIBase):
             return data_format
         except Exception as e:
             raise e
-        

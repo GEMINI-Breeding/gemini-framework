@@ -14,6 +14,42 @@ class DatasetType(APIBase):
     dataset_type_info: Optional[dict] = None
 
     @classmethod
+    def exists(
+        cls,
+        dataset_type_name: str
+    ) -> bool:
+        try:
+            exists = DatasetTypeModel.exists(dataset_type_name=dataset_type_name)
+            return exists
+        except Exception as e:
+            raise e
+        
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            dataset_type = DatasetTypeModel.get(current_id)
+            dataset_type_info = dataset_type.dataset_type_info
+            if not dataset_type_info:
+                raise Exception("DatasetType info is empty.")
+            return dataset_type_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, dataset_type_info: dict) -> "DatasetType":
+        try:
+            current_id = self.id
+            dataset_type = DatasetTypeModel.get(current_id)
+            dataset_type = DatasetTypeModel.update(
+                dataset_type,
+                dataset_type_info=dataset_type_info,
+            )
+            dataset_type = self.model_validate(dataset_type)
+            self.refresh()
+            return dataset_type
+        except Exception as e:
+            raise e
+
+    @classmethod
     def create(
         cls,
         dataset_type_name: str,

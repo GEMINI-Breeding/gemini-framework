@@ -42,6 +42,42 @@ class Experiment(APIBase):
     experiment_start_date: Optional[date] = None
     experiment_end_date: Optional[date] = None
 
+    @classmethod
+    def exists(
+        cls,
+        experiment_name: str
+    ) -> bool:
+        try:
+            exists = ExperimentModel.exists(experiment_name=experiment_name)
+            return exists
+        except Exception as e:
+            raise e
+        
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            experiment = ExperimentModel.get(current_id)
+            experiment_info = experiment.experiment_info
+            if not experiment_info:
+                raise Exception("Experiment info is empty.")
+            return experiment_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, experiment_info: dict) -> "Experiment":
+        try:
+            current_id = self.id
+            experiment = ExperimentModel.get(current_id)
+            experiment = ExperimentModel.update(
+                experiment,
+                experiment_info=experiment_info,
+            )
+            experiment = self.model_validate(experiment)
+            self.refresh()
+            return experiment
+        except Exception as e:
+            raise e
+
 
     @classmethod
     def create(
@@ -194,6 +230,18 @@ class Experiment(APIBase):
             return season
         except Exception as e:
             raise e
+        
+    def has_season(self, season_name: str) -> bool:
+        try:
+            current_id = self.id
+            experiment = ExperimentModel.get(current_id)
+            exists = ExperimentSeasonsViewModel.exists(
+                experiment_id=experiment.id,
+                season_name=season_name
+            )
+            return exists
+        except Exception as e:
+            raise e
 
     def get_sites(self) -> List[Site]:
         try:
@@ -224,6 +272,18 @@ class Experiment(APIBase):
             )
             self.refresh()
             return site
+        except Exception as e:
+            raise e
+        
+    def has_site(self, site_name: str) -> bool:
+        try:
+            current_id = self.id
+            experiment = ExperimentModel.get(current_id)
+            exists = ExperimentSitesViewModel.exists(
+                experiment_id=experiment.id,
+                site_name=site_name
+            )
+            return exists
         except Exception as e:
             raise e
         
@@ -260,6 +320,18 @@ class Experiment(APIBase):
         except Exception as e:
             raise e
         
+    def has_sensor(self, sensor_name: str) -> bool:
+        try:
+            current_id = self.id
+            experiment = ExperimentModel.get(current_id)
+            exists = ExperimentSensorsViewModel.exists(
+                experiment_id=experiment.id,
+                sensor_name=sensor_name
+            )
+            return exists
+        except Exception as e:
+            raise e
+        
     def get_cultivars(self) -> List[Cultivar]:
         try:
             experiment = ExperimentModel.get(self.id)
@@ -284,6 +356,19 @@ class Experiment(APIBase):
             )
             self.refresh()
             return cultivar
+        except Exception as e:
+            raise e
+        
+    def has_cultivar(self, cultivar_population: str, cultivar_accession: str) -> bool:
+        try:
+            current_id = self.id
+            experiment = ExperimentModel.get(current_id)
+            exists = ExperimentCultivarsViewModel.exists(
+                experiment_id=experiment.id,
+                cultivar_population=cultivar_population,
+                cultivar_accession=cultivar_accession
+            )
+            return exists
         except Exception as e:
             raise e
         
@@ -318,6 +403,18 @@ class Experiment(APIBase):
         except Exception as e:
             raise e
         
+    def has_trait(self, trait_name: str) -> bool:
+        try:
+            current_id = self.id
+            experiment = ExperimentModel.get(current_id)
+            exists = ExperimentTraitsViewModel.exists(
+                experiment_id=experiment.id,
+                trait_name=trait_name
+            )
+            return exists
+        except Exception as e:
+            raise e
+        
 
     def get_models(self) -> List[Model]:
         try:
@@ -343,6 +440,18 @@ class Experiment(APIBase):
             )
             self.refresh()
             return model
+        except Exception as e:
+            raise e
+        
+    def has_model(self, model_name: str) -> bool:
+        try:
+            current_id = self.id
+            experiment = ExperimentModel.get(current_id)
+            exists = ExperimentModelsViewModel.exists(
+                experiment_id=experiment.id,
+                model_name=model_name
+            )
+            return exists
         except Exception as e:
             raise e
         
@@ -372,6 +481,18 @@ class Experiment(APIBase):
         except Exception as e:
             raise e
         
+    def has_procedure(self, procedure_name: str) -> bool:
+        try:
+            current_id = self.id
+            experiment = ExperimentModel.get(current_id)
+            exists = ExperimentProceduresViewModel.exists(
+                experiment_id=experiment.id,
+                procedure_name=procedure_name
+            )
+            return exists
+        except Exception as e:
+            raise e
+
 
     def get_scripts(self) -> List[Script]:
         try:
@@ -402,6 +523,19 @@ class Experiment(APIBase):
         except Exception as e:
             raise e
         
+    
+    def has_script(self, script_name: str) -> bool:
+        try:
+            current_id = self.id
+            experiment = ExperimentModel.get(current_id)
+            exists = ExperimentScriptsViewModel.exists(
+                experiment_id=experiment.id,
+                script_name=script_name
+            )
+            return exists
+        except Exception as e:
+            raise e
+        
 
     def get_platforms(self) -> List[SensorPlatform]:
         try:
@@ -425,6 +559,21 @@ class Experiment(APIBase):
             )
             self.refresh()
             return sensor_platform
+        except Exception as e:
+            raise e
+        
+    def has_platform(
+        self,
+        platform_name: str
+    ) -> bool:
+        try:
+            current_id = self.id
+            experiment = ExperimentModel.get(current_id)
+            exists = ExperimentSensorPlatformsViewModel.exists(
+                experiment_id=experiment.id,
+                sensor_platform_name=platform_name
+            )
+            return exists
         except Exception as e:
             raise e
         
@@ -453,5 +602,17 @@ class Experiment(APIBase):
                 dataset_type=dataset_type
             )
             return dataset
+        except Exception as e:
+            raise e
+        
+    def has_dataset(self, dataset_name: str) -> bool:
+        try:
+            current_id = self.id
+            experiment = ExperimentModel.get(current_id)
+            exists = ExperimentDatasetsViewModel.exists(
+                experiment_id=experiment.id,
+                dataset_name=dataset_name
+            )
+            return exists
         except Exception as e:
             raise e

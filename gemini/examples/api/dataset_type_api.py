@@ -31,6 +31,16 @@ dataset_type.update(
 )
 print(f"Updated Dataset Type: {dataset_type}")
 
+# Set Dataset Type Info
+dataset_type.set_info(
+    dataset_type_info={"test": "test_set"},
+)
+print(f"Set Dataset Type Info: {dataset_type}")
+
+# Get Dataset Type Info
+dataset_type_info = dataset_type.get_info()
+print(f"Dataset Type Info: {dataset_type_info}")
+
 # Refresh the dataset type
 dataset_type.refresh()
 print(f"Refreshed Dataset Type: {dataset_type}")

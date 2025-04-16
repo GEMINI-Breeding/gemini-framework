@@ -39,6 +39,16 @@ data_type.update(
 )
 print(f"Updated Data Type: {data_type}")
 
+# Set Data Type Info
+data_type.set_info(
+    data_type_info={"test": "test_set"},
+)
+print(f"Set Data Type Info: {data_type}")
+
+# Get Data Type Info
+data_type_info = data_type.get_info()
+print(f"Data Type Info: {data_type_info}")
+
 # Refresh the data type
 data_type.refresh()
 print(f"Refreshed Data Type: {data_type}")

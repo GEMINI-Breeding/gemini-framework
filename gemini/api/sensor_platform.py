@@ -17,6 +17,16 @@ class SensorPlatform(APIBase):
     sensor_platform_name: str
     sensor_platform_info: Optional[dict] = None
 
+    @classmethod
+    def exists(
+        cls,
+        sensor_platform_name: str,
+    ) -> bool:
+        try:
+            exists = SensorPlatformModel.exists(sensor_platform_name=sensor_platform_name)
+            return exists
+        except Exception as e:
+            raise e
 
     @classmethod
     def create(
@@ -175,5 +185,28 @@ class SensorPlatform(APIBase):
             return sensor
         except Exception as e:
             raise e
-            
         
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            sensor_platform = SensorPlatformModel.get(current_id)
+            sensor_platform_info = sensor_platform.sensor_platform_info
+            if not sensor_platform_info:
+                raise Exception("SensorPlatform info is empty.")
+            return sensor_platform_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, sensor_platform_info: dict) -> "SensorPlatform":
+        try:
+            current_id = self.id
+            sensor_platform = SensorPlatformModel.get(current_id)
+            sensor_platform = SensorPlatformModel.update(
+                sensor_platform,
+                sensor_platform_info=sensor_platform_info
+            )
+            sensor_platform = self.model_validate(sensor_platform)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e

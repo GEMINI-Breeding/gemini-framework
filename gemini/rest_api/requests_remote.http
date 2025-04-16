@@ -46,6 +46,8 @@ GET {{apiUrl}}/sensor_platforms?experiment_name={{gemini_experiment_name}}&senso
 
 @gemini_amiga_platform = {{get_amiga_platform.response.body.$.0}}
 
+@gemini_amiga_platform_id = {{get_amiga_platform.response.body.$.0.id}}
+
 // ---- Get AMIGA Sensors
 ###
 # @name get_amiga_rgb_sensor
@@ -53,11 +55,15 @@ GET {{apiUrl}}/sensors?experiment_name={{gemini_experiment_name}}&sensor_platfor
 
 @gemini_amiga_rgb_sensor = {{get_amiga_rgb_sensor.response.body.$.0}}
 
+@gemini_amiga_rgb_sensor_id = {{get_amiga_rgb_sensor.response.body.$.0.id}}
+
 ###
 # @name get_amiga_flir_sensor
 GET {{apiUrl}}/sensors?experiment_name={{gemini_experiment_name}}&sensor_platform_name={{amiga_platform_name}}&sensor_name={{amiga_flir_sensor_name}}
 
 @gemini_amiga_flir_sensor = {{get_amiga_flir_sensor.response.body.$.0}}
+
+@gemini_amiga_flir_sensor_id = {{get_amiga_flir_sensor.response.body.$.0.id}}
 
 ###
 # @name get_amiga_confidence_sensor
@@ -65,11 +71,15 @@ GET {{apiUrl}}/sensors?experiment_name={{gemini_experiment_name}}&sensor_platfor
 
 @gemini_amiga_confidence_sensor = {{get_amiga_confidence_sensor.response.body.$.0}}
 
+@gemini_amiga_confidence_sensor_id = {{get_amiga_confidence_sensor.response.body.$.0.id}}
+
 ###
 # @name get_amiga_depth_sensor
 GET {{apiUrl}}/sensors?experiment_name={{gemini_experiment_name}}&sensor_platform_name={{amiga_platform_name}}&sensor_name={{amiga_depth_sensor_name}}
 
 @gemini_amiga_depth_sensor = {{get_amiga_depth_sensor.response.body.$.0}}
+
+@gemini_amiga_depth_sensor_id = {{get_amiga_depth_sensor.response.body.$.0.id}}
 
 ###
 # @name get_amiga_metadata_sensor
@@ -77,7 +87,67 @@ GET {{apiUrl}}/sensors?experiment_name={{gemini_experiment_name}}&sensor_platfor
 
 @gemini_amiga_metadata_sensor = {{get_amiga_metadata_sensor.response.body.$.0}}
 
+@gemini_amiga_metadata_sensor_id = {{get_amiga_metadata_sensor.response.body.$.0.id}}
+
 // ---- Get AMIGA Sensor Data ----
 ###
+# @name get_amiga_rgb_sensor_by_id
+GET {{apiUrl}}/sensors/id/{{gemini_amiga_rgb_sensor_id}}
+
+###
+# @name get_amiga_flir_sensor_by_id
+GET {{apiUrl}}/sensors/id/{{gemini_amiga_flir_sensor_id}}
+
+###
+# @name get_amiga_confidence_sensor_by_id
+GET {{apiUrl}}/sensors/id/{{gemini_amiga_confidence_sensor_id}}
+
+###
+# @name get_amiga_depth_sensor_by_id
+GET {{apiUrl}}/sensors/id/{{gemini_amiga_depth_sensor_id}}
+
+###
+# @name get_amiga_metadata_sensor_by_id
+GET {{apiUrl}}/sensors/id/{{gemini_amiga_metadata_sensor_id}}
+
+
+###
+# @name get_amiga_rgb_sensor_datasets
+GET {{apiUrl}}/sensors/id/{{gemini_amiga_rgb_sensor_id}}/datasets
+
+###
 # @name get_amiga_rgb_sensor_data
-GET {{apiUrl}}/sensors/id/{{gemini_amiga_metadata_sensor.id}}
+GET {{apiUrl}}/sensors/id/{{gemini_amiga_rgb_sensor_id}}/records?experiment_name={{gemini_experiment_name}}&season_name={{gemini_season_name}}&site_name={{gemini_site_name}}
+
+###
+# @name get_amiga_flir_sensor_datasets
+GET {{apiUrl}}/sensors/id/{{gemini_amiga_flir_sensor_id}}/datasets
+
+###
+# @name get_amiga_flir_sensor_data
+GET {{apiUrl}}/sensors/id/{{gemini_amiga_flir_sensor_id}}/records?experiment_name={{gemini_experiment_name}}&season_name={{gemini_season_name}}&site_name={{gemini_site_name}}
+
+###
+# @name get_amiga_confidence_sensor_datasets
+GET {{apiUrl}}/sensors/id/{{gemini_amiga_confidence_sensor_id}}/datasets
+
+###
+# @name get_amiga_confidence_sensor_data
+GET {{apiUrl}}/sensors/id/{{gemini_amiga_confidence_sensor_id}}/records?experiment_name={{gemini_experiment_name}}&season_name={{gemini_season_name}}&site_name={{gemini_site_name}}
+
+###
+# @name get_amiga_depth_sensor_datasets
+GET {{apiUrl}}/sensors/id/{{gemini_amiga_depth_sensor_id}}/datasets
+
+###
+# @name get_amiga_depth_sensor_data
+GET {{apiUrl}}/sensors/id/{{gemini_amiga_depth_sensor_id}}/records?experiment_name={{gemini_experiment_name}}&season_name={{gemini_season_name}}&site_name={{gemini_site_name}}
+
+###
+# @name get_amiga_metadata_sensor_datasets
+GET {{apiUrl}}/sensors/id/{{gemini_amiga_metadata_sensor_id}}/datasets
+
+###
+# @name get_amiga_metadata_sensor_data
+GET {{apiUrl}}/sensors/id/{{gemini_amiga_metadata_sensor_id}}/records?experiment_name={{gemini_experiment_name}}&season_name={{gemini_season_name}}&site_name={{gemini_site_name}}
+

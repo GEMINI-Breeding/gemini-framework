@@ -25,6 +25,17 @@ class Procedure(APIBase):
     procedure_info: Optional[dict] = None
 
     @classmethod
+    def exists(
+        cls,
+        procedure_name: str
+    ) -> bool:
+        try:
+            exists = ProcedureModel.exists(procedure_name=procedure_name)
+            return exists
+        except Exception as e:
+            raise e
+
+    @classmethod
     def create(
         cls,
         procedure_name: str,
@@ -78,7 +89,32 @@ class Procedure(APIBase):
         except Exception as e:
             raise e
         
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            procedure = ProcedureModel.get(current_id)
+            procedure_info = procedure.procedure_info
+            if not procedure_info:
+                raise Exception("Procedure info is empty.")
+            return procedure_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, procedure_info: dict) -> "Procedure":
+        try:
+            current_id = self.id
+            procedure = ProcedureModel.get(current_id)
+            procedure = ProcedureModel.update(
+                procedure,
+                procedure_info=procedure_info
+            )
+            procedure = self.model_validate(procedure)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
 
+      
     @classmethod
     def search(
         cls, 
@@ -288,7 +324,7 @@ class Procedure(APIBase):
             success, inserted_record_ids = ProcedureRecord.add(procedure_records)
             return success, inserted_record_ids
         except Exception as e:
-            raise e
+            return False, []
         
     def get_records(
         self,
@@ -313,5 +349,3 @@ class Procedure(APIBase):
             return records
         except Exception as e:
             raise e
-
-      

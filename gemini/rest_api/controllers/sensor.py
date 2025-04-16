@@ -20,7 +20,6 @@ from typing import List, Annotated, Optional
 from gemini.rest_api.models import (
     SensorRecordInput,
     SensorRecordOutput,
-    SensorRecordSearch,
     SensorRecordUpdate
 )
 

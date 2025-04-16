@@ -28,6 +28,42 @@ class Sensor(APIBase):
     sensor_info: Optional[dict] = None
 
     @classmethod
+    def exists(
+        cls,
+        sensor_name: str
+    ) -> bool:
+        try:
+            exists = SensorModel.exists(sensor_name=sensor_name)
+            return exists
+        except Exception as e:
+            raise e
+        
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            sensor = SensorModel.get(current_id)
+            sensor_info = sensor.sensor_info
+            if not sensor_info:
+                raise Exception("Sensor info is empty.")
+            return sensor_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, sensor_info: dict) -> "Sensor":
+        try:
+            current_id = self.id
+            sensor = SensorModel.get(current_id)
+            sensor = SensorModel.update(
+                sensor,
+                sensor_info=sensor_info
+            )
+            sensor = self.model_validate(sensor)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
+            
+    @classmethod
     def create(
         cls,
         sensor_name: str,
@@ -165,7 +201,7 @@ class Sensor(APIBase):
             SensorModel.delete(sensor)
             return True
         except Exception as e:
-            raise e
+            return False
         
 
     def refresh(self) -> "Sensor":

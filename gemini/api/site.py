@@ -20,6 +20,17 @@ class Site(APIBase):
     site_info: Optional[dict] = None
 
     @classmethod
+    def exists(
+        cls,
+        site_name: str
+    ) -> bool:
+        try:
+            exists = SiteModel.exists(site_name=site_name)
+            return exists
+        except Exception as e:
+            raise e
+
+    @classmethod
     def create(
         cls,
         site_name: str,
@@ -158,4 +169,27 @@ class Site(APIBase):
         except Exception as e:
             raise e
 
-
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            site = SiteModel.get(current_id)
+            site_info = site.site_info
+            if not site_info:
+                raise Exception("Site info is empty.")
+            return site_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, site_info: dict) -> "Site":
+        try:
+            current_id = self.id
+            site = SiteModel.get(current_id)
+            site = SiteModel.update(
+                site,
+                site_info=site_info
+            )
+            site = self.model_validate(site)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e

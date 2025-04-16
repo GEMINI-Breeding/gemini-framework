@@ -11,8 +11,8 @@ from gemini.api.dataset import Dataset, GEMINIDatasetType
 from gemini.db.models.scripts import ScriptModel
 from gemini.db.models.script_runs import ScriptRunModel
 from gemini.db.models.experiments import ExperimentModel
-from gemini.db.models.views.experiment_views import ExperimentScriptsViewModel
 from gemini.db.models.associations import ExperimentScriptModel, ScriptDatasetModel
+from gemini.db.models.views.experiment_views import ExperimentScriptsViewModel
 from gemini.db.models.views.dataset_views import ScriptDatasetsViewModel
 from datetime import date, datetime
 
@@ -25,6 +25,17 @@ class Script(APIBase):
     script_url: Optional[str] = None
     script_extension: Optional[str] = None
     script_info: Optional[dict] = None
+
+    @classmethod
+    def exists(
+        cls,
+        script_name: str
+    ) -> bool:
+        try:
+            exists = ScriptModel.exists(script_name=script_name)
+            return exists
+        except Exception as e:
+            raise e
 
 
     @classmethod
@@ -50,6 +61,31 @@ class Script(APIBase):
 
             script = cls.model_validate(db_instance)
             return script if script else None
+        except Exception as e:
+            raise e
+        
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            script = ScriptModel.get(current_id)
+            script_info = script.script_info
+            if not script_info:
+                raise Exception("Script info is empty.")
+            return script_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, script_info: dict) -> "Script":
+        try:
+            current_id = self.id
+            script = ScriptModel.get(current_id)
+            script = ScriptModel.update(
+                script,
+                script_info=script_info
+            )
+            script = self.model_validate(script)
+            self.refresh()
+            return self
         except Exception as e:
             raise e
         
@@ -331,4 +367,3 @@ class Script(APIBase):
             return records
         except Exception as e:
             raise e
-        

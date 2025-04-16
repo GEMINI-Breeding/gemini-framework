@@ -15,6 +15,17 @@ class DataFormat(APIBase):
     data_format_info: Optional[dict] = None
 
     @classmethod
+    def exists(
+        cls,
+        dataformat_name: str
+    ) -> bool:
+        try:
+            exists = DataFormatModel.exists(data_format_name=dataformat_name)
+            return exists
+        except Exception as e:
+            raise e
+
+    @classmethod
     def create(
         cls,
         data_format_name: str,
@@ -32,7 +43,32 @@ class DataFormat(APIBase):
         except Exception as e:
             raise e
         
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            data_format = DataFormatModel.get(current_id)
+            data_format_info = data_format.data_format_info
+            if not data_format_info:
+                raise Exception("DataFormat info is empty.")
+            return data_format_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, data_format_info: dict) -> "DataFormat":
+        try:
+            current_id = self.id
+            data_format = DataFormatModel.get(current_id)
+            data_format = DataFormatModel.update(
+                data_format,
+                data_format_info=data_format_info,
+            )
+            data_format = self.model_validate(data_format)
+            self.refresh()
+            return data_format
+        except Exception as e:
+            raise e
 
+    
     @classmethod
     def get(cls, data_format_name: str) -> "DataFormat":
         try:

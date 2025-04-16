@@ -20,6 +20,31 @@ class Plant(APIBase):
     cultivar_id: UUID 
 
     @classmethod
+    def exists(
+        cls,
+        plot_id: UUID,
+        plant_number: int,
+        cultivar_accession: str,
+        cultivar_population: str,
+        experiment_name: str,
+        season_name: str,
+        site_name: str,
+    ) -> bool:
+        try:
+            exists = PlantViewModel.exists(
+                plot_id=plot_id,
+                plant_number=plant_number,
+                cultivar_accession=cultivar_accession,
+                cultivar_population=cultivar_population,
+                experiment_name=experiment_name,
+                season_name=season_name,
+                site_name=site_name,
+            )
+            return exists
+        except Exception as e:
+            raise e
+
+    @classmethod
     def create(
         cls,
         plot_id: UUID,
@@ -46,7 +71,32 @@ class Plant(APIBase):
         except Exception as e:
             raise e
         
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            plant = PlantModel.get(current_id)
+            plant_info = plant.plant_info
+            if not plant_info:
+                raise Exception("Plant info is empty.")
+            return plant_info
+        except Exception as e:
+            raise e
+        
+    def set_info(self, plant_info: dict) -> "Plant":
+        try:
+            current_id = self.id
+            plant = PlantModel.get(current_id)
+            plant = PlantModel.update(
+                plant,
+                plant_info=plant_info
+            )
+            plant = self.model_validate(plant)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e
 
+    
     @classmethod
     def get(cls, plot_id: UUID, plant_number: int) -> "Plant":
         try:
@@ -185,5 +235,3 @@ class Plant(APIBase):
             return self
         except Exception as e:
             raise e
-
-    

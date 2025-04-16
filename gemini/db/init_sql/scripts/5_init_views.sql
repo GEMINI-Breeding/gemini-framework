@@ -530,6 +530,22 @@ FROM
     JOIN gemini.datasets d ON pd.dataset_id = d.id;
 
 -------------------------------------------------------------------------------
+-- Procedure Runs View
+
+CREATE OR REPLACE VIEW gemini.procedure_runs_view
+AS
+SELECT
+    pr.id AS procedure_run_id,
+    pr.procedure_id AS procedure_id,
+    p.procedure_name AS procedure_name,
+    p.procedure_info AS procedure_info,
+    pr.procedure_run_info AS procedure_run_info
+FROM
+    gemini.procedure_runs pr
+    JOIN gemini.procedures p ON pr.procedure_id = p.id;
+
+
+-------------------------------------------------------------------------------
 -- Script Datasets View
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS gemini.script_datasets_view
@@ -547,6 +563,23 @@ FROM
     gemini.script_datasets sd
     JOIN gemini.scripts s ON sd.script_id = s.id
     JOIN gemini.datasets d ON sd.dataset_id = d.id;
+
+------------------------------------------------------------------------------
+-- Script Runs View
+
+CREATE OR REPLACE VIEW gemini.script_runs_view
+AS
+SELECT
+    sr.id AS script_run_id,
+    sr.script_id AS script_id,
+    s.script_name AS script_name,
+    s.script_url AS script_url,
+    s.script_extension AS script_extension,
+    s.script_info AS script_info,
+    sr.script_run_info AS script_run_info
+FROM
+    gemini.script_runs sr
+    JOIN gemini.scripts s ON sr.script_id = s.id;
 
 
 -------------------------------------------------------------------------------
@@ -567,6 +600,23 @@ FROM
     gemini.model_datasets md
     JOIN gemini.models m ON md.model_id = m.id
     JOIN gemini.datasets d ON md.dataset_id = d.id;
+
+
+-----------------------------------------------------------------------------------
+-- Model Runs View
+
+CREATE OR REPLACE VIEW gemini.model_runs_view
+AS
+SELECT
+    mr.id AS model_run_id,
+    mr.model_id AS model_id,
+    m.model_name AS model_name,
+    m.model_url AS model_url,
+    m.model_info AS model_info,
+    mr.model_run_info AS model_run_info
+FROM
+    gemini.model_runs mr
+    JOIN gemini.models m ON mr.model_id = m.id;
 
     
 -------------------------------------------------------------------------------

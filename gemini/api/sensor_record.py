@@ -24,7 +24,13 @@ from gemini.db.models.views.experiment_views import (
 
 from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.datasets import DatasetModel
-from gemini.db.models.associations import SensorDatasetModel
+from gemini.db.models.associations import (
+    SensorDatasetModel,
+    ExperimentDatasetModel,
+    ExperimentSensorModel,
+    ExperimentSiteModel,
+
+)
 
 from datetime import date, datetime
 
@@ -51,6 +57,36 @@ class SensorRecord(APIBase, FileHandlerMixin):
     plot_column_number: Optional[int] = None
     record_file: Optional[str] = None
     record_info: Optional[dict] = None
+
+    @classmethod
+    def exists(
+        cls,
+        timestamp: datetime,
+        dataset_name: str,
+        sensor_name: str,
+        experiment_name: str,
+        site_name: str,
+        season_name: str,
+        plot_number: int,
+        plot_row_number: int,
+        plot_column_number: int
+    ) -> bool:
+        try:
+            exists = SensorRecordModel.exists(
+                timestamp=timestamp,
+                dataset_name=dataset_name,
+                sensor_name=sensor_name,
+                experiment_name=experiment_name,
+                site_name=site_name,
+                season_name=season_name,
+                plot_number=plot_number,
+                plot_row_number=plot_row_number,
+                plot_column_number=plot_column_number
+            )
+            return exists
+        except Exception as e:
+            raise e
+
 
     @classmethod
     def create(
@@ -108,7 +144,7 @@ class SensorRecord(APIBase, FileHandlerMixin):
     @classmethod
     def add(cls, records: List['SensorRecord']) -> tuple[bool, List[str]]:
         try:
-            records = cls._verify_records(records)
+            # records = cls._verify_records(records)
             records = [cls._preprocess_record(record) for record in tqdm(records, desc="Preprocessing Records for Sensor: " + records[0].sensor_name)]
             records_to_insert = []
             for record in records:
@@ -318,95 +354,246 @@ class SensorRecord(APIBase, FileHandlerMixin):
         except Exception as e:
             raise e
 
-    @classmethod
-    def _verify_records(cls, records: List['SensorRecord']) -> List['SensorRecord']:
-        try:
 
-            # Refresh all the views
-            ExperimentSensorsViewModel.refresh()
-            ExperimentDatasetsViewModel.refresh()
-            ExperimentSitesViewModel.refresh()
-            ExperimentSeasonsViewModel.refresh()
-            PlotViewModel.refresh()
+    # @classmethod
+    # def _verify_sensors(cls, records: List['SensorRecord']) -> dict:
+    #     try:
+    #     #     Experi
+    #     #     sensors = {}
+    #     #     for record in records:
+    #     #         if record.sensor_name in sensors:
+    #     #             continue
+    #     #         if not SensorModel.exists(sensor_name=record.sensor_name) and
+    #     # #     sensors = {}
+    #     #     for record in records:
+    #     #         # Check if sensor_name is already in the dictionary
+    #     #         if record.sensor_name in sensors:
+    #     #             continue
+    #     #         # Check if sensor_name exists in the database
+    #     #         if not SensorModel.exists(sensor_name=record.sensor_name):
+    #     #             raise ValueError(f"Sensor {record.sensor_name} does not exist in the database.")
+    #     #         # If it exists, get the sensor and add it to the dictionary
+    #     #         else:
+    #     #             sensors[record.sensor_name] = SensorModel.get_by_parameters(sensor_name=record.sensor_name)
+    #     #         record.sensor_id = sensors[record.sensor_name].id
+    #     #     return sensors
+    #     # except Exception as e:
+    #     #     raise e
 
-            # Verify the records
-            sensor = None
-            datasets = {}
-            experiments = {}
-            sites = {}
-            seasons = {}
+    # @classmethod
+    # def _verify_datasets(cls, records: List['SensorRecord']) -> dict:
+    #     try:
+    #         datasets = {}
+    #         for record in records:
+    #             # Check if dataset_name is already in the dictionary
+    #             if record.dataset_name in datasets:
+    #                 continue
+    #             # Check if dataset_name exists in the database
+    #             if not DatasetModel.exists(dataset_name=record.dataset_name):
+    #                 created_dataset = Dataset.create(
+    #                     dataset_name=record.dataset_name,
+    #                     dataset_type=GEMINIDatasetType.Sensor,
+    #                     collection_date=record.collection_date,
+    #                     experiment_name=record.experiment_name
+    #                 )
+    #                 datasets[record.dataset_name] = created_dataset
+    #                 SensorDatasetModel.get_or_create(
+    #                     sensor_id=record.sensor_id,
+    #                     dataset_id=created_dataset.id
+    #                 )
+    #             # If it exists, get the dataset and add it to the dictionary
+    #             else:
+    #                 datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=record.dataset_name)
+    #             record.dataset_id = datasets[record.dataset_name].id
+    #         return datasets
+    #     except Exception as e:
+    #         raise e
 
-            for record in records:
-                if not record.timestamp:
-                    raise ValueError("Timestamp is required.")
-                if not record.collection_date:
-                    record.collection_date = record.timestamp.date()
-
-                if sensor and record.sensor_name != sensor.sensor_name:
-                    raise ValueError("All records must have the same sensor name.")
-                
-                if not sensor and SensorModel.exists(sensor_name=record.sensor_name):
-                    sensor = SensorModel.get_by_parameters(sensor_name=record.sensor_name)
-
-                record.sensor_id = sensor.id
-
-                if record.dataset_name not in datasets: 
-                    if DatasetModel.exists(dataset_name=record.dataset_name):
-                        datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=record.dataset_name)
-                    else:
-                        created_dataset = Dataset.create(
-                            dataset_name=record.dataset_name,
-                            experiment_name=record.experiment_name,
-                            dataset_type=GEMINIDatasetType.Sensor
-                        )
-                        SensorDatasetModel.get_or_create(
-                            sensor_id=sensor.id,
-                            dataset_id=created_dataset.id
-                        )
-                        ExperimentDatasetsViewModel.refresh()
-                        SensorDatasetsViewModel.refresh()
-                        datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=created_dataset.dataset_name)
-
-                record.dataset_id = datasets[record.dataset_name].id
-
-                if record.experiment_name not in experiments and ExperimentDatasetsViewModel.exists(experiment_name=record.experiment_name, dataset_name=record.dataset_name):
-                    experiments[record.experiment_name] = ExperimentDatasetsViewModel.get_by_parameters(experiment_name=record.experiment_name, dataset_name=record.dataset_name)
         
-                record.experiment_id = experiments[record.experiment_name].experiment_id
+    # @classmethod
+    # def _verify_experiments(cls, records: List['SensorRecord']) -> dict:
+    #     try:
+    #         experiments = {}
+    #         for record in records:
+    #             # Check if experiment_name is already in the dictionary
+    #             if record.experiment_name in experiments:
+    #                 continue
+    #             # Check if experiment_name exists in the database
+    #             if not ExperimentModel.exists(experiment_name=record.experiment_name):
+    #                 raise ValueError(f"Experiment {record.experiment_name} does not exist in the database.")
+    #             # If it exists, get the experiment and add it to the dictionary
+    #             else:
+    #                 experiments[record.experiment_name] = ExperimentModel.get_by_parameters(experiment_name=record.experiment_name)
+    #             record.experiment_id = experiments[record.experiment_name].id
+    #         return experiments
+    #     except Exception as e:
+    #         raise e
 
-                if record.site_name not in sites and ExperimentSitesViewModel.exists(experiment_id=record.experiment_id, site_name=record.site_name):
-                    sites[record.site_name] = ExperimentSitesViewModel.get_by_parameters(experiment_id=record.experiment_id, site_name=record.site_name)
+        
+    # @classmethod
+    # def _verify_sites(cls, records: List['SensorRecord']) -> dict:
+    #     try:
+    #         sites = {}
+    #         for record in records:
+    #             # Check if site_name is already in the dictionary
+    #             if record.site_name in sites:
+    #                 continue
+    #             # Check if site_name exists in the database
+    #             if not ExperimentSitesViewModel.exists(experiment_id=record.experiment_id, site_name=record.site_name):
+    #                 raise ValueError(f"Site {record.site_name} does not exist in the database.")
+    #             # If it exists, get the site and add it to the dictionary
+    #             else:
+    #                 sites[record.site_name] = ExperimentSitesViewModel.get_by_parameters(experiment_id=record.experiment_id, site_name=record.site_name)
+    #             record.site_id = sites[record.site_name].site_id
+    #     except Exception as e:
+    #         raise e
 
-                record.site_id = sites[record.site_name].site_id
+    
+    # @classmethod
+    # def _verify_seasons(cls, records: List['SensorRecord']) -> dict:
+    #     try:
+    #         seasons = {}
+    #         for record in records:
+    #             if record.season_name in seasons:
+    #                 continue
+    #             if not ExperimentSeasonsViewModel.exists(experiment_id=record.experiment_id, season_name=record.season_name):
+    #                 raise ValueError(f"Season {record.season_name} does not exist in the database.")
+    #             else:
+    #                 seasons[record.season_name] = ExperimentSeasonsViewModel.get_by_parameters(experiment_id=record.experiment_id, season_name=record.season_name)
+    #             record.season_id = seasons[record.season_name].season_id
+    #     except Exception as e:
+    #         raise e
 
-                if record.season_name not in seasons and ExperimentSeasonsViewModel.exists(experiment_id=record.experiment_id, season_name=record.season_name):
-                    seasons[record.season_name] = ExperimentSeasonsViewModel.get_by_parameters(experiment_id=record.experiment_id, season_name=record.season_name)
 
-                record.season_id = seasons[record.season_name].season_id
+    # @classmethod
+    # def _verify_plots(cls, records: List['SensorRecord']) -> dict:
+    #     try:
+    #         plots = {}
+    #         for record in records:
+    #             if record.plot_number in plots:
+    #                 continue
+    #             if not PlotViewModel.exists(experiment_name=record.experiment_name, site_name=record.site_name, season_name=record.season_name, plot_number=record.plot_number):
+    #                 # Create a new plot
+    #                 new_plot = Plot.create(
+    #                     plot_number=record.plot_number,
+    #                     plot_row_number=record.plot_row_number,
+    #                     plot_column_number=record.plot_column_number,
+    #                     experiment_name=record.experiment_name,
+    #                     site_name=record.site_name,
+    #                     season_name=record.season_name
+    #                 )
+    #                 plots[record.plot_number] = new_plot
+    #             else:
+    #                 # Get the existing plot
+    #                 plots[record.plot_number] = PlotViewModel.get_by_parameters(
+    #                     experiment_id=record.experiment_id,
+    #                     site_id=record.site_id,
+    #                     season_id=record.season_id,
+    #                     plot_number=record.plot_number
+    #                 )
+    #             record.plot_id = plots[record.plot_number].id
+    #             record.plot_number = plots[record.plot_number].plot_number
+    #             record.plot_row_number = plots[record.plot_number].plot_row_number
+    #             record.plot_column_number = plots[record.plot_number].plot_column_number
+    #         return plots
+    #     except Exception as e:
+    #         raise e
 
-                if record.plot_number and record.plot_row_number and record.plot_column_number:
-                    plot = PlotViewModel.get_by_parameters(
-                        experiment_id=record.experiment_id,
-                        site_id=record.site_id,
-                        season_id=record.season_id,
-                        plot_number=record.plot_number,
-                        plot_row_number=record.plot_row_number,
-                        plot_column_number=record.plot_column_number
-                    )
-                    record.plot_id = plot.plot_id if plot else None
-                    if not plot:
-                        plot = Plot.create(
-                            plot_number=record.plot_number,
-                            plot_row_number=record.plot_row_number,
-                            plot_column_number=record.plot_column_number,
-                            experiment_name=record.experiment_name,
-                            site_name=record.site_name,
-                            season_name=record.season_name
-                        )
-                        record.plot_id = plot.id
-            return records
-        except Exception as e:
-            raise e
+
+    # @classmethod
+    # def _verify_records(cls, records: List['SensorRecord']) -> List['SensorRecord']:
+    #     try:
+
+
+            
+        
+
+
+    #         # # Refresh all the views
+    #         # ExperimentSensorsViewModel.refresh()
+    #         # ExperimentDatasetsViewModel.refresh()
+    #         # ExperimentSitesViewModel.refresh()
+    #         # ExperimentSeasonsViewModel.refresh()
+    #         # PlotViewModel.refresh()
+
+    #         # # Verify the records
+    #         # sensor = None
+    #         # datasets = {}
+    #         # experiments = {}
+    #         # sites = {}
+    #         # seasons = {}
+
+    #         # for record in records:
+    #         #     if not record.timestamp:
+    #         #         raise ValueError("Timestamp is required.")
+    #         #     if not record.collection_date:
+    #         #         record.collection_date = record.timestamp.date()
+
+    #         #     if sensor and record.sensor_name != sensor.sensor_name:
+    #         #         raise ValueError("All records must have the same sensor name.")
+                
+    #         #     if not sensor and SensorModel.exists(sensor_name=record.sensor_name):
+    #         #         sensor = SensorModel.get_by_parameters(sensor_name=record.sensor_name)
+
+    #         #     record.sensor_id = sensor.id
+
+    #         #     if record.dataset_name not in datasets: 
+    #         #         if DatasetModel.exists(dataset_name=record.dataset_name):
+    #         #             datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=record.dataset_name)
+    #         #         else:
+    #         #             created_dataset = Dataset.create(
+    #         #                 dataset_name=record.dataset_name,
+    #         #                 experiment_name=record.experiment_name,
+    #         #                 dataset_type=GEMINIDatasetType.Sensor
+    #         #             )
+    #         #             SensorDatasetModel.get_or_create(
+    #         #                 sensor_id=sensor.id,
+    #         #                 dataset_id=created_dataset.id
+    #         #             )
+    #         #             ExperimentDatasetsViewModel.refresh()
+    #         #             SensorDatasetsViewModel.refresh()
+    #         #             datasets[record.dataset_name] = DatasetModel.get_by_parameters(dataset_name=created_dataset.dataset_name)
+
+    #         #     record.dataset_id = datasets[record.dataset_name].id
+
+    #         #     if record.experiment_name not in experiments and ExperimentDatasetsViewModel.exists(experiment_name=record.experiment_name, dataset_name=record.dataset_name):
+    #         #         experiments[record.experiment_name] = ExperimentDatasetsViewModel.get_by_parameters(experiment_name=record.experiment_name, dataset_name=record.dataset_name)
+        
+    #         #     record.experiment_id = experiments[record.experiment_name].experiment_id
+
+    #         #     if record.site_name not in sites and ExperimentSitesViewModel.exists(experiment_id=record.experiment_id, site_name=record.site_name):
+    #         #         sites[record.site_name] = ExperimentSitesViewModel.get_by_parameters(experiment_id=record.experiment_id, site_name=record.site_name)
+
+    #         #     record.site_id = sites[record.site_name].site_id
+
+    #         #     if record.season_name not in seasons and ExperimentSeasonsViewModel.exists(experiment_id=record.experiment_id, season_name=record.season_name):
+    #         #         seasons[record.season_name] = ExperimentSeasonsViewModel.get_by_parameters(experiment_id=record.experiment_id, season_name=record.season_name)
+
+    #         #     record.season_id = seasons[record.season_name].season_id
+
+    #         #     if record.plot_number and record.plot_row_number and record.plot_column_number:
+    #         #         plot = PlotViewModel.get_by_parameters(
+    #         #             experiment_id=record.experiment_id,
+    #         #             site_id=record.site_id,
+    #         #             season_id=record.season_id,
+    #         #             plot_number=record.plot_number,
+    #         #             plot_row_number=record.plot_row_number,
+    #         #             plot_column_number=record.plot_column_number
+    #         #         )
+    #         #         record.plot_id = plot.plot_id if plot else None
+    #         #         if not plot:
+    #         #             plot = Plot.create(
+    #         #                 plot_number=record.plot_number,
+    #         #                 plot_row_number=record.plot_row_number,
+    #         #                 plot_column_number=record.plot_column_number,
+    #         #                 experiment_name=record.experiment_name,
+    #         #                 site_name=record.site_name,
+    #         #                 season_name=record.season_name
+    #         #             )
+    #         #             record.plot_id = plot.id
+    #         # return records
+    #     except Exception as e:
+    #         raise e
 
 
 

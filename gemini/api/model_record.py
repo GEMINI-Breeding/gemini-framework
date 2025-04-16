@@ -47,6 +47,30 @@ class ModelRecord(APIBase, FileHandlerMixin):
     record_info: Optional[dict] = None
 
     @classmethod
+    def exists(
+        cls,
+        timestamp: datetime,
+        dataset_name: str,
+        model_name: str,
+        experiment_name: str,
+        site_name: str,
+        season_name: str,
+    ) -> bool:
+        try:
+            exists = ModelRecordModel.exists(
+                timestamp=timestamp,
+                dataset_name=dataset_name,
+                model_name=model_name,
+                experiment_name=experiment_name,
+                site_name=site_name,
+                season_name=season_name
+            )
+            return exists
+        except Exception as e:
+            raise e
+        
+
+    @classmethod
     def create(
         cls,
         timestamp: datetime = datetime.now(),

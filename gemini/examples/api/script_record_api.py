@@ -98,6 +98,18 @@ record.update(
     },
 )
 
+# Set Script Record Info
+record.set_record_info(
+    record_info={
+        "test_info": "test_set"
+    }
+)
+print(f"Set Record Info: {record}")
+
+# Get Script Record Info
+record_info = record.get_record_info()
+print(f"Script Record Info: {record_info}")
+
 # Create new experiment
 new_experiment_name = "Test Experiment B"
 new_season_name = "Test Season B"

@@ -20,6 +20,21 @@ class Season(APIBase):
     experiment_id: Optional[ID] = None
 
     @classmethod
+    def exists(
+        cls,
+        season_name: str,
+        experiment_name: str,
+    ) -> bool:
+        try:
+            exists = ExperimentSeasonsViewModel.exists(
+                season_name=season_name,
+                experiment_name=experiment_name,
+            )
+            return exists
+        except Exception as e:
+            raise e
+
+    @classmethod
     def create(
         cls,
         season_name: str,
@@ -152,11 +167,28 @@ class Season(APIBase):
         except Exception as e:
             raise e
         
-    
 
-    
+    def get_info(self) -> dict:
+        try:
+            current_id = self.id
+            season = SeasonModel.get(current_id)
+            season_info = season.season_info
+            if not season_info:
+                raise Exception("Season info is empty.")
+            return season_info
+        except Exception as e:
+            raise e
         
-
-        
-
-        
+    def set_info(self, season_info: dict) -> "Season":
+        try:
+            current_id = self.id
+            season = SeasonModel.get(current_id)
+            season = SeasonModel.update(
+                season,
+                season_info=season_info
+            )
+            season = self.model_validate(season)
+            self.refresh()
+            return self
+        except Exception as e:
+            raise e

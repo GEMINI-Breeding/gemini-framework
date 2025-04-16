@@ -36,6 +36,16 @@ trait_level.update(
 )
 print(f"Updated Trait Level: {trait_level}")
 
+# Set Trait Level Info
+trait_level.set_info(
+    trait_level_info={"test": "test_set"},
+)
+print(f"Set Trait Level Info: {trait_level}")
+
+# Get Trait Level Info
+trait_level_info = trait_level.get_info()
+print(f"Trait Level Info: {trait_level_info}")
+
 # Delete the trait level
 is_deleted = new_trait_level.delete()
 print(f"Deleted Trait Level: {is_deleted}")

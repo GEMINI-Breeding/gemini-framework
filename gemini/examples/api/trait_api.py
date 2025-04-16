@@ -43,6 +43,16 @@ trait.update(
 )
 print(f"Updated Trait: {trait}")
 
+# Set Trait Info
+trait.set_info(
+    trait_info={"test": "test_set"},
+)
+print(f"Set Trait Info: {trait}")
+
+# Get Trait Info
+trait_info = trait.get_info()
+print(f"Trait Info: {trait_info}")
+
 # Create a dataset for the trait
 dataset = trait.create_dataset(
     dataset_name="Dataset Test 1",
@@ -57,6 +67,12 @@ datasets = trait.get_datasets()
 print(f"All Datasets:")
 for dataset in datasets:
     print(dataset)
+
+# Get all experiments associated with the trait
+experiments = trait.get_experiments()
+print(f"All Experiments:")
+for experiment in experiments:
+    print(experiment)
 
 # Delete the trait
 is_deleted = new_trait.delete()

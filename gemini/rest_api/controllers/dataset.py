@@ -24,7 +24,6 @@ from gemini.rest_api.models import (
     DatasetRecordInput,
     DatasetRecordOutput,
     DatasetRecordUpdate,
-    DatasetRecordSearch
 )
 
 from gemini.rest_api.file_handler import api_file_handler

@@ -34,6 +34,15 @@ data_format.update(
 )
 print(f"Updated Data Format: {data_format}")
 
+data_format.set_info(
+    data_format_info={"test": "test_set"},
+)
+print(f"Set Data Format Info: {data_format}")
+
+# Get Data Format Info
+data_format_info = data_format.get_info()
+print(f"Data Format Info: {data_format_info}")
+
 # Refresh the data format
 data_format = data_format.refresh()
 print(f"Refreshed Data Format: {data_format}")

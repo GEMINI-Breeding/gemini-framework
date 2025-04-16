@@ -73,6 +73,18 @@ record = results[0]
 record_by_id = DatasetRecord.get_by_id(record.id)
 print(f"Record By ID: {record_by_id}")
 
+# Set Record Info
+record.set_record_info(
+    record_info={
+        "test_info": "test_value_updated"
+    },
+)
+print(f"Set Record Info: {record}")
+
+# Get Record Info
+record_info = record.get_record_info()
+print(f"Record Info: {record_info}")
+
 # Refresh the record
 record.refresh()
 print(f"Refreshed Record: {record}")
