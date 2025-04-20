@@ -9,7 +9,6 @@ from gemini.api.dataset import Dataset
 from gemini.api.trait_record import TraitRecord
 from gemini.api.enums import GEMINITraitLevel, GEMINIDatasetType
 from gemini.db.models.traits import TraitModel
-from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.views.experiment_views import ExperimentTraitsViewModel
 from gemini.db.models.views.dataset_views import TraitDatasetsViewModel
 from gemini.db.models.associations import ExperimentTraitModel, TraitDatasetModel
@@ -80,13 +79,9 @@ class Trait(APIBase):
                 trait_metrics=trait_metrics,
                 trait_info=trait_info,
             )
-
-            if experiment_name:
-                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-                if db_experiment:
-                    ExperimentTraitModel.get_or_create(experiment_id=db_experiment.id, trait_id=trait.id)
-
             trait = cls.model_validate(trait)
+            if experiment_name:
+                trait.assign_experiment(experiment_name)
             return trait
         except Exception as e:
             raise e
@@ -250,11 +245,12 @@ class Trait(APIBase):
             if not experiment:
                 raise Exception(f"Experiment {experiment_name} does not exist.")
             if experiment.has_trait(self.trait_name):
-                raise Exception(f"Trait {self.trait_name} is already assigned to experiment {experiment_name}.")
+                print(f"Trait {self.trait_name} is already assigned to experiment {experiment_name}.")
+                return True
             ExperimentTraitModel.get_or_create(experiment_id=experiment.id, trait_id=self.id)
             return True
         except Exception as e:
-            raise e
+            return False
 
     def belongs_to_experiment(self, experiment_name: str) -> bool:
         try:
@@ -262,10 +258,10 @@ class Trait(APIBase):
             experiment = Experiment.get(experiment_name)
             if not experiment:
                 raise Exception(f"Experiment {experiment_name} does not exist.")
-            belongs = Experiment.has_trait(trait_name=self.trait_name)
+            belongs = experiment.has_trait(trait_name=self.trait_name)
             return belongs
         except Exception as e:
-            raise e
+            return False
 
     def unassign_experiment(self, experiment_name: str) -> bool:
         try:
@@ -274,7 +270,8 @@ class Trait(APIBase):
             if not experiment:
                 raise Exception(f"Experiment {experiment_name} does not exist.")
             if not experiment.has_trait(self.trait_name):
-                raise Exception(f"Trait {self.trait_name} is not assigned to experiment {experiment_name}.")
+                print(f"Trait {self.trait_name} is not assigned to experiment {experiment_name}.")
+                return False
             experiment_trait_instance = ExperimentTraitModel.get_by_parameters(
                 experiment_id=experiment.id,
                 trait_id=self.id
@@ -284,7 +281,7 @@ class Trait(APIBase):
             is_deleted = ExperimentTraitModel.delete(experiment_trait_instance)
             return is_deleted
         except Exception as e:
-            raise e
+            return False
 
 
     def get_experiments(self):

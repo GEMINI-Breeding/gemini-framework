@@ -10,6 +10,28 @@ new_sensor_platform = SensorPlatform.create(
 )
 print(f"Created Sensor Platform: {new_sensor_platform}")
 
+# Assign the sensor platform to Experiment B
+new_sensor_platform.assign_experiment("Experiment B")
+print(f"Assigned Sensor Platform to Experiment B: {new_sensor_platform}")
+
+# Get all Experiments for the sensor platform
+experiments = new_sensor_platform.get_experiments()
+print(f"All Experiments:")
+for experiment in experiments:
+    print(experiment)
+
+# Check if the sensor platform belongs to Experiment B
+belongs = new_sensor_platform.belongs_to_experiment("Experiment B")
+print(f"Sensor Platform belongs to Experiment B: {belongs}")
+
+# Remove the sensor platform from Experiment B
+new_sensor_platform.unassign_experiment("Experiment B")
+print(f"Removed Sensor Platform from Experiment B: {new_sensor_platform}")
+
+# Check if it belongs to Experiment B
+belongs = new_sensor_platform.belongs_to_experiment("Experiment B")
+print(f"Sensor Platform belongs to Experiment B: {belongs}")
+
 # Get Sensor Platform with sensor_platform_name and experiment_name that do exist
 sensor_platform = SensorPlatform.get("Sensor Platform Test 1", "Experiment A")
 print(f"Got Sensor Platform: {sensor_platform}")

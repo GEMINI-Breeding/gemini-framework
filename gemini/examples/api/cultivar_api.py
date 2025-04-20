@@ -9,9 +9,35 @@ new_cultivar = Cultivar.create(
 )
 print(f"Created Cultivar: {new_cultivar}")
 
+# Check if created cultivar exists
+exists = Cultivar.exists(
+    cultivar_population="Cultivar Test 1",
+    cultivar_accession="Accession A",
+)
+print(f"Cultivar exists: {exists}")
+
+# Check a cultivar that does not exist
+exists = Cultivar.exists(
+    cultivar_population="Nonexistent Cultivar",
+    cultivar_accession="Nonexistent Accession",
+)
+print(f"Nonexistent Cultivar exists: {exists}")
+
 # Get Cultivar with cultivar_population and cultivar_accession that do exist
 cultivar = Cultivar.get("Cultivar Test 1", "Accession A")
 print(f"Got Cultivar: {cultivar}")
+
+# Add to Experiment B
+cultivar.assign_experiment("Experiment B")
+print(f"Added Cultivar to Experiment B: {cultivar}")
+
+# Check if it belongs to Experiment B
+belongs = cultivar.belongs_to_experiment("Experiment B")
+print(f"Belongs to Experiment B: {belongs}")
+
+# Remove from Experiment B
+cultivar.unassign_experiment("Experiment B")
+print(f"Removed Cultivar from Experiment B: {cultivar}")
 
 # Get Cultivar by ID
 cultivar = Cultivar.get_by_id(new_cultivar.id)

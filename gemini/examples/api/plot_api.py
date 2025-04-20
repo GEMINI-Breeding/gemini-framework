@@ -67,6 +67,28 @@ plot = Plot.get(
 )
 print(f"Plot: {plot}")
 
+# Check if the plot exists
+exists = Plot.exists(
+    plot_number=plot.plot_number,
+    plot_row_number=plot.plot_row_number,
+    plot_column_number=plot.plot_column_number,
+    experiment_name=valid_combinations[-1]['experiment_name'],
+    site_name=valid_combinations[-1]['site_name'],
+    season_name=valid_combinations[-1]['season_name'],
+)
+print(f"Plot exists: {exists}")
+
+# Check a nonexistent plot
+nonexistent_exists = Plot.exists(
+    plot_number=99999,
+    plot_row_number=9999,
+    plot_column_number=9999,
+    experiment_name=valid_combinations[-1]['experiment_name'],
+    site_name=valid_combinations[-1]['site_name'],
+    season_name=valid_combinations[-1]['season_name'],
+)
+print(f"Nonexistent Plot exists: {nonexistent_exists}")
+
 # Get Plot by ID
 plot_by_id = Plot.get_by_id(plot.id)
 print(f"Plot by ID: {plot_by_id}")

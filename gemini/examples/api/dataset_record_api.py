@@ -66,8 +66,18 @@ search_results = DatasetRecord.search(
 results = [record for record in search_results]
 print(f"Number of Records Found: {len(results)}")
 
-# Get one dataset record
+# Ge    t one dataset record
 record = results[0]
+
+# Check if dataset record exists
+exists = DatasetRecord.exists(
+    timestamp=record.timestamp,
+    dataset_name=dataset.dataset_name,
+    experiment_name=record.experiment_name,
+    season_name=record.season_name,
+    site_name=record.site_name
+)
+print(f"Dataset Record exists: {exists}")
 
 # Get By ID
 record_by_id = DatasetRecord.get_by_id(record.id)

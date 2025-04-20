@@ -208,8 +208,7 @@ JOIN gemini.cultivars AS c
 -------------------------------------------------------------------------------
 -- Materialized View for Plot Information
 
-CREATE OR REPLACE VIEW IF gemini.plot_view
-USING columnar
+CREATE OR REPLACE VIEW gemini.plot_view
 AS
 SELECT
     p.id AS plot_id,
@@ -234,7 +233,6 @@ FROM
 -- Materialized view that shows plot cultivar information
 
 CREATE OR REPLACE VIEW gemini.plot_cultivar_view
-USING columnar
 AS
 SELECT
     p.id AS plot_id,
@@ -254,7 +252,6 @@ FROM
 -------------------------------------------------------------------------------
 -- Materialized view that shows plant information
 CREATE OR REPLACE VIEW gemini.plant_view
-USING columnar
 AS
 SELECT
     p.id AS plant_id,
@@ -289,7 +286,6 @@ FROM
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Seasons
 CREATE OR REPLACE VIEW gemini.experiment_seasons_view
-USING columnar
 AS
 SELECT
     e.id AS experiment_id,
@@ -306,7 +302,6 @@ FROM
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Sites
 CREATE OR REPLACE VIEW gemini.experiment_sites_view
-USING columnar
 AS
 SELECT
     e.id AS experiment_id,
@@ -325,7 +320,6 @@ FROM
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Seasons
 CREATE OR REPLACE VIEW gemini.experiment_traits_view
-USING columnar
 AS
 SELECT
     e.id AS experiment_id,
@@ -344,7 +338,6 @@ FROM
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Sensor Platforms
 CREATE OR REPLACE VIEW gemini.experiment_sensor_platforms_view
-USING columnar
 AS
 SELECT
     e.id AS experiment_id,
@@ -361,7 +354,6 @@ FROM
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Sensors
 CREATE OR REPLACE VIEW gemini.experiment_sensors_view
-USING columnar
 AS
 SELECT
     e.id AS experiment_id,
@@ -385,7 +377,6 @@ FROM
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Cultivars
 CREATE OR REPLACE VIEW gemini.experiment_cultivars_view
-USING columnar
 AS
 SELECT
     e.id AS experiment_id,
@@ -403,7 +394,6 @@ FROM
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Procedures
 CREATE OR REPLACE VIEW gemini.experiment_procedures_view
-USING columnar
 AS
 SELECT
     e.id AS experiment_id,
@@ -420,7 +410,6 @@ FROM
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Scripts
 CREATE OR REPLACE VIEW gemini.experiment_scripts_view
-USING columnar
 AS
 SELECT
     e.id AS experiment_id,
@@ -438,7 +427,6 @@ FROM
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Models
 CREATE OR REPLACE VIEW gemini.experiment_models_view
-USING columnar
 AS
 SELECT
     e.id AS experiment_id,
@@ -455,7 +443,6 @@ FROM
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Datasets
 CREATE OR REPLACE VIEW gemini.experiment_datasets_view
-USING columnar
 AS
 SELECT
     e.id AS experiment_id,

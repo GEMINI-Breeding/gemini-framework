@@ -5,7 +5,6 @@ from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.db.models.cultivars import CultivarModel
-from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.associations import ExperimentCultivarModel
 from gemini.db.models.views.experiment_views import ExperimentCultivarsViewModel
 
@@ -46,11 +45,9 @@ class Cultivar(APIBase):
                 cultivar_accession=cultivar_accession,
                 cultivar_info=cultivar_info,
             )
-            if experiment_name:
-                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-                if db_experiment:
-                    ExperimentCultivarModel.get_or_create(experiment_id=db_experiment.id, cultivar_id=db_instance.id)
             cultivar = cls.model_validate(db_instance)
+            if experiment_name:
+                cultivar.assign_experiment(experiment_name=experiment_name)
             return cultivar
 
         except Exception as e:
@@ -179,7 +176,83 @@ class Cultivar(APIBase):
             return cultivar
         except Exception as e:
             raise e
-        
+    
+    def get_plots():
+        pass
+
+    def assign_plot():
+        pass
+
+    def belongs_to_plot():
+        pass
+
+    def unassign_plot():
+        pass
+
+    def get_experiments(self):
+        try:
+            from gemini.api.experiment import Experiment
+            db_instance = CultivarModel.get(self.id)
+            experiments = ExperimentCultivarsViewModel.search(cultivar_id=db_instance.id)
+            experiments = [Experiment.model_validate(experiment) for experiment in experiments]
+            return experiments if experiments else None
+        except Exception as e:
+            raise e
+
+    def assign_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.")
+            if experiment.has_cultivar(cultivar_accession=self.cultivar_accession, cultivar_population=self.cultivar_population):
+                print(f"Cultivar {self.cultivar_accession} and {self.cultivar_population} already assigned to experiment {experiment_name}.")
+                return True
+            ExperimentCultivarModel.get_or_create(
+                experiment_id=experiment.id,
+                cultivar_id=self.id
+            )
+            return True
+        except Exception as e:
+            return False
+
+
+    def belongs_to_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.")
+            belongs = experiment.has_cultivar(
+                cultivar_accession=self.cultivar_accession,
+                cultivar_population=self.cultivar_population
+            )
+            return belongs
+        except Exception as e:
+            return False
+
+    def unassign_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.")
+            if not experiment.has_cultivar(
+                cultivar_accession=self.cultivar_accession,
+                cultivar_population=self.cultivar_population
+            ):
+                print(f"Cultivar {self.cultivar_accession} and {self.cultivar_population} not assigned to experiment {experiment_name}.")
+                return False
+            experiment_cultivar_instance = ExperimentCultivarModel.get_by_parameters(
+                experiment_id=experiment.id,
+                cultivar_id=self.id
+            )
+            if not experiment_cultivar_instance:
+                raise Exception(f"Cultivar {self.cultivar_accession} and {self.cultivar_population} not assigned to experiment {experiment_name}.")
+            is_deleted = ExperimentCultivarModel.delete(experiment_cultivar_instance)
+            return is_deleted
+        except Exception as e:
+            return False
         
     @classmethod
     def get_population_accessions(cls, cultivar_population: str) -> List["Cultivar"]:

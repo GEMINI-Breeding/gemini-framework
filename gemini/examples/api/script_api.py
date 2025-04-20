@@ -72,6 +72,10 @@ dataset = script.create_dataset(
 )
 print(f"Created Dataset: {dataset}")
 
+# Check script has_dataset
+has_dataset = script.has_dataset("Dataset Test 1")
+print(f"Script has Dataset Test 1: {has_dataset}")
+
 # Get all datasets for the script
 script_datasets = script.get_datasets()
 print(f"All Script Datasets:")

@@ -225,6 +225,15 @@ class Script(APIBase):
         except Exception as e:
             raise e
         
+    def has_dataset(self, dataset_name: str) -> bool:
+        try:
+            exists = ScriptDatasetsViewModel.exists(
+                script_id=self.id,
+                dataset_name=dataset_name
+            )
+            return exists
+        except Exception as e:
+            raise e
 
     
     def get_runs(self) -> List[ScriptRun]:

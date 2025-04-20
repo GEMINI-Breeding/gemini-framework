@@ -10,7 +10,6 @@ from gemini.api.procedure_run import ProcedureRun
 from gemini.api.procedure_record import ProcedureRecord
 from gemini.db.models.procedures import ProcedureModel
 from gemini.db.models.procedure_runs import ProcedureRunModel
-from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.associations import ExperimentProcedureModel, ProcedureDatasetModel
 from gemini.db.models.views.experiment_views import ExperimentProceduresViewModel
 from gemini.db.models.views.dataset_views import ProcedureDatasetsViewModel
@@ -34,6 +33,79 @@ class Procedure(APIBase):
             return exists
         except Exception as e:
             raise e
+        
+    def get_experiments(self):
+        try:
+            from gemini.api.experiment import Experiment
+            db_instance = ProcedureModel.get(self.id)
+            experiments = ExperimentProceduresViewModel.search(procedure_id=db_instance.id)
+            experiments = [Experiment.model_validate(experiment) for experiment in experiments]
+            return experiments if experiments else None
+        except Exception as e:
+            raise e
+
+    def assign_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.")
+            
+            # Check if already assigned
+            existing_assignment = ExperimentProcedureModel.get_by_parameters(
+                experiment_id=experiment.id,
+                procedure_id=self.id
+            )
+            if existing_assignment:
+                print(f"Procedure {self.procedure_name} already assigned to experiment {experiment_name}.")
+                return True
+
+            ExperimentProcedureModel.get_or_create(
+                experiment_id=experiment.id,
+                procedure_id=self.id
+            )
+            return True
+        except Exception as e:
+            print(f"Error assigning experiment: {e}")
+            return False
+
+    def belongs_to_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.") 
+            
+            assignment = ExperimentProcedureModel.get_by_parameters(
+                experiment_id=experiment.id,
+                procedure_id=self.id
+            )
+            return assignment is not None
+        except Exception as e:
+            print(f"Error checking experiment membership: {e}")
+            return False
+
+    def unassign_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.")
+
+            assignment = ExperimentProcedureModel.get_by_parameters(
+                experiment_id=experiment.id,
+                procedure_id=self.id
+            )
+
+            if not assignment:
+                print(f"Procedure {self.procedure_name} not assigned to experiment {experiment_name}.")
+                return False # Indicate it wasn't assigned to begin with
+
+            is_deleted = ExperimentProcedureModel.delete(assignment)
+            return is_deleted
+        except Exception as e:
+            print(f"Error unassigning experiment: {e}")
+            return False
 
     @classmethod
     def create(
@@ -47,13 +119,9 @@ class Procedure(APIBase):
                 procedure_name=procedure_name,
                 procedure_info=procedure_info,
             )
-
-            if experiment_name:
-                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-                if db_experiment:
-                    ExperimentProcedureModel.get_or_create(experiment_id=db_experiment.id, procedure_id=db_instance.id)
-
             procedure = cls.model_validate(db_instance)
+            if experiment_name:
+                procedure.assign_experiment(experiment_name)
             return procedure
 
         except Exception as e:
@@ -206,6 +274,17 @@ class Procedure(APIBase):
             )
             ProcedureDatasetModel.get_or_create(procedure_id=self.id, dataset_id=dataset.id)
             return dataset
+        except Exception as e:
+            raise e
+        
+
+    def has_dataset(self, dataset_name: str) -> bool:
+        try:
+            exists = ProcedureDatasetsViewModel.exists(
+                procedure_id=self.id,
+                dataset_name=dataset_name
+            )
+            return exists
         except Exception as e:
             raise e
 

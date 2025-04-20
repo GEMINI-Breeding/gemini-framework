@@ -10,6 +10,36 @@ new_dataset = Dataset.create(
 )
 print(f"Created Dataset: {new_dataset}")
 
+# Check if dataset exists
+exists = Dataset.exists(
+    dataset_name="Dataset Test 1",
+)
+print(f"Dataset exists: {exists}")
+
+# Check a dataset that does not exist
+exists = Dataset.exists(
+    dataset_name="Nonexistent Dataset",
+)
+print(f"Nonexistent Dataset exists: {exists}")
+
+# Assign the dataset to Experiment B
+new_dataset.assign_experiment("Experiment B")
+print(f"Assigned Dataset to Experiment B: {new_dataset}")
+
+# Get all Experiments for the dataset
+experiments = new_dataset.get_experiments()
+print(f"All Experiments:")
+for experiment in experiments:
+    print(experiment)
+
+# Check if the dataset belongs to Experiment B
+belongs = new_dataset.belongs_to_experiment("Experiment B")
+print(f"Dataset belongs to Experiment B: {belongs}")
+
+# Remove the dataset from Experiment B
+new_dataset.unassign_experiment("Experiment B")
+print(f"Removed Dataset from Experiment B: {new_dataset}")
+
 # Get Dataset with dataset_name that does exist
 dataset = Dataset.get("Dataset Test 1")
 print(f"Got Dataset: {dataset}")

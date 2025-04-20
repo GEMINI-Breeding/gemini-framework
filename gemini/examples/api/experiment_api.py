@@ -7,6 +7,14 @@ from gemini.api.trait import GEMINITraitLevel
 experiment = Experiment.get("Experiment A")
 print(f"Got Experiment: {experiment}")
 
+# Check if Experiment A exists
+exists = Experiment.exists("Experiment A")
+print(f"Experiment A exists: {exists}")
+
+# Check if Experiment Nonexistent exists
+exists = Experiment.exists("Nonexistent Experiment")
+print(f"Nonexistent Experiment exists: {exists}")
+
 # Get Experiment Seasons
 experiment_seasons = experiment.get_seasons()
 print(f"Experiment Seasons:")

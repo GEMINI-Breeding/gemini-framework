@@ -10,7 +10,6 @@ from gemini.api.dataset_type import DatasetType
 from gemini.api.dataset_record import DatasetRecord
 from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.dataset_types import DatasetTypeModel
-from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.associations import ExperimentDatasetModel
 from gemini.db.models.views.experiment_views import ExperimentDatasetsViewModel
 
@@ -54,12 +53,9 @@ class Dataset(APIBase):
                 dataset_info=dataset_info,
                 dataset_type_id=dataset_type_id,
             )
-            if experiment_name:
-                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-                if db_experiment:
-                    ExperimentDatasetModel.get_or_create(experiment_id=db_experiment.id, dataset_id=db_instance.id)
-
             dataset = cls.model_validate(db_instance)
+            if experiment_name:
+                dataset.assign_experiment(experiment_name=experiment_name)
             return dataset
         except Exception as e:
             raise e
@@ -202,6 +198,61 @@ class Dataset(APIBase):
         except Exception as e:
             raise e
 
+
+    def get_experiments(self):
+        try:
+            from gemini.api.experiment import Experiment
+            db_instance = DatasetModel.get(self.id)
+            experiments = ExperimentDatasetsViewModel.search(dataset_id=db_instance.id)
+            experiments = [Experiment.model_validate(experiment) for experiment in experiments]
+            return experiments if experiments else None
+        except Exception as e:
+            raise e
+        
+    def assign_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.")
+            if experiment.has_dataset(self.dataset_name):
+                print(f"Dataset {self.dataset_name} already exists in experiment {experiment_name}.")
+                return True
+            ExperimentDatasetModel.get_or_create(experiment_id=experiment.id, dataset_id=self.id)
+            return True
+        except Exception as e:
+            return False
+        
+    def belongs_to_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.")
+            belongs = experiment.has_dataset(self.dataset_name)
+            return belongs
+        except Exception as e:
+            return False
+        
+    def unassign_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.")
+            if not experiment.has_dataset(self.dataset_name):
+                print(f"Dataset {self.dataset_name} does not exist in experiment {experiment_name}.")
+                return False
+            experiment_dataset_instance = ExperimentDatasetModel.get_by_parameters(
+                experiment_id=experiment.id,
+                dataset_id=self.id
+            )
+            if not experiment_dataset_instance:
+                raise Exception(f"ExperimentDataset instance not found for dataset {self.dataset_name} in experiment {experiment_name}.")
+            is_deleted = ExperimentDatasetModel.delete(experiment_dataset_instance)
+            return is_deleted
+        except Exception as e:
+            return False
 
     def add_record(
         self,

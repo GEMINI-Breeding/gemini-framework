@@ -12,6 +12,28 @@ new_sensor = Sensor.create(
 )
 print(f"Created Sensor: {new_sensor}")
 
+# Assign the sensor to Experiment B
+new_sensor.assign_experiment("Experiment B")
+print(f"Assigned Sensor to Experiment B: {new_sensor}")
+
+# Get all Experiments for the sensor
+experiments = new_sensor.get_experiments()
+print(f"All Experiments:")
+for experiment in experiments:
+    print(experiment)
+
+# Check if the sensor belongs to Experiment B
+belongs = new_sensor.belongs_to_experiment("Experiment B")
+print(f"Sensor belongs to Experiment B: {belongs}")
+
+# Remove the sensor from Experiment B
+new_sensor.unassign_experiment("Experiment B")
+print(f"Removed Sensor from Experiment B: {new_sensor}")
+
+# Check if it belongs to Experiment B
+belongs = new_sensor.belongs_to_experiment("Experiment B")
+print(f"Sensor belongs to Experiment B: {belongs}")
+
 # Get Sensor with sensor_name and experiment_name that do exist
 sensor = Sensor.get("Sensor Test 1", "Experiment A")
 print(f"Got Sensor: {sensor}")
@@ -62,6 +84,10 @@ dataset = sensor.create_dataset(
     experiment_name="Experiment A"
 )
 print(f"Created Dataset: {dataset}")
+
+# Check sensor has_dataset
+has_dataset = sensor.has_dataset("Dataset Test 1")
+print(f"Sensor has Dataset Test 1: {has_dataset}")
 
 # Get all datasets for the sensor
 datasets = sensor.get_datasets()

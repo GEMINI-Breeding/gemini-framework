@@ -11,6 +11,28 @@ new_site = Site.create(
 )
 print(f"Created Site: {new_site}")
 
+# Assign the site to Experiment B
+new_site.assign_experiment("Experiment B")
+print(f"Assigned Site to Experiment B: {new_site}")
+
+# Get all Experiments for the site
+experiments = new_site.get_experiments()
+print(f"All Experiments:")
+for experiment in experiments:
+    print(experiment)
+
+# Check if the site belongs to Experiment B
+belongs = new_site.belongs_to_experiment("Experiment B")
+print(f"Site belongs to Experiment B: {belongs}")
+
+# Remove the site from Experiment B
+new_site.unassign_experiment("Experiment B")
+print(f"Removed Site from Experiment B: {new_site}")
+
+# Check if it belongs to Experiment B
+belongs = new_site.belongs_to_experiment("Experiment B")
+print(f"Site belongs to Experiment B: {belongs}")
+
 # Get Site with site_name and experiment_name that do exist
 site = Site.get("Site Test 1", "Experiment A")
 print(f"Got Site: {site}")

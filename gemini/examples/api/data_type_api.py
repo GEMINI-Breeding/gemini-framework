@@ -6,6 +6,18 @@ new_data_type = DataType.create(
     data_type_info={"test": "test"},
 )
 
+# Check if created data type exists
+exists = DataType.exists(
+    data_type_name="Data Type Test 1",
+)
+print(f"Data Type exists: {exists}")
+
+# Check a data type that does not exist
+exists = DataType.exists(
+    data_type_name="Nonexistent Data Type",
+)
+print(f"Nonexistent Data Type exists: {exists}")
+
 # Get Data Type with data_type_name that does exist
 data_type = DataType.get("Data Type Test 1")
 print(f"Got Data Type: {data_type}")

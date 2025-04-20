@@ -9,6 +9,38 @@ model = Model.create(
 )
 print(f"Created Model: {model}")
 
+# Check if created model exists
+exists = Model.exists(model_name="Model Test 1")
+print(f"Model exists: {exists}")
+
+# Check a model that does not exist
+exists = Model.exists(model_name="Nonexistent Model")
+print(f"Nonexistent Model exists: {exists}")
+    
+
+# Assign the model to Experiment B
+model.assign_experiment("Experiment B")
+print(f"Assigned Model to Experiment B: {model}")
+
+# Get all Experiments for the model
+experiments = model.get_experiments()
+print(f"All Experiments:")
+for experiment in experiments:
+    print(experiment)
+
+# Check if the model belongs to Experiment B
+belongs = model.belongs_to_experiment("Experiment B")
+print(f"Model belongs to Experiment B: {belongs}")
+
+# Remove the model from Experiment B
+model.unassign_experiment("Experiment B")
+print(f"Removed Model from Experiment B: {model}")
+
+# Check if it belongs to Experiment B
+belongs = model.belongs_to_experiment("Experiment B")
+print(f"Model belongs to Experiment B: {belongs}")
+
+
 # Get Model with model_name that does exist
 model = Model.get("Model Test 1")
 print(f"Got Model: {model}")
@@ -71,6 +103,10 @@ dataset = model.create_dataset(
     experiment_name="Experiment A"
 )
 print(f"Created Dataset: {dataset}")
+
+# Check if has_dataset for the model
+has_dataset = model.has_dataset("Dataset Test 1")
+print(f"Model has Dataset Test 1: {has_dataset}")
 
 # Get all datasets for the model
 model_datasets = model.get_datasets()

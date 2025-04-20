@@ -8,6 +8,18 @@ new_data_format = DataFormat.create(
 )
 print(f"Created Data Format: {new_data_format}")
 
+# Check if created data format exists
+exists = DataFormat.exists(
+    data_format_name="Data Format Test 1",
+)
+print(f"Data Format exists: {exists}")
+
+# Check a data format that does not exist
+exists = DataFormat.exists(
+    data_format_name="Nonexistent Data Format",
+)
+print(f"Nonexistent Data Format exists: {exists}")
+
 # Get Data Format with data_format_name that does exist
 data_format = DataFormat.get("Data Format Test 1")
 print(f"Got Data Format: {data_format}")

@@ -33,6 +33,46 @@ class Season(APIBase):
             return exists
         except Exception as e:
             raise e
+        
+    def get_experiment(self):
+        try:
+            from gemini.api.experiment import Experiment
+            if not self.experiment_id:
+                return None
+            
+            experiment = Experiment.get_by_id(self.experiment_id)
+            if not experiment:
+                raise Exception(f"Experiment with ID {self.experiment_id} does not exist.")
+            return experiment
+        except Exception as e:
+            raise e
+
+    def assign_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            
+            if self.experiment_id:
+                current_experiment = Experiment.get_by_id(self.experiment_id)
+                if current_experiment and current_experiment.experiment_name != experiment_name:
+                    print(f"Season {self.season_name} is already assigned to experiment {current_experiment.experiment_name}. Cannot reassign.")
+                    return False
+                elif current_experiment and current_experiment.experiment_name == experiment_name:
+                     print(f"Season {self.season_name} is already assigned to experiment {experiment_name}.")
+                     return True # Already assigned to the correct one
+
+            # Get the target experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.")
+
+            # Update the season's experiment_id
+            db_instance = SeasonModel.get(self.id)
+            SeasonModel.update(db_instance, experiment_id=experiment.id)
+            self.refresh() # Update the current instance
+            return True
+        except Exception as e:
+            print(f"Error assigning experiment: {e}")
+            return False
 
     @classmethod
     def create(
@@ -51,13 +91,9 @@ class Season(APIBase):
                 season_info=season_info,
             )
 
-            if experiment_name:
-                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-                if db_experiment:
-                    SeasonModel.update(db_instance, experiment_id=db_experiment.id)
-            
-
             season = cls.model_validate(db_instance)
+            if experiment_name:
+                season.assign_experiment(experiment_name)
             return season
         except Exception as e:
             raise e

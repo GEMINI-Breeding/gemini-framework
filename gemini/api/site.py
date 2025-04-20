@@ -29,6 +29,79 @@ class Site(APIBase):
             return exists
         except Exception as e:
             raise e
+        
+    def get_experiments(self):
+        try:
+            from gemini.api.experiment import Experiment
+            db_instance = SiteModel.get(self.id)
+            experiments = ExperimentSitesViewModel.search(site_id=db_instance.id)
+            experiments = [Experiment.model_validate(experiment) for experiment in experiments]
+            return experiments if experiments else None
+        except Exception as e:
+            raise e
+
+    def assign_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.")
+            
+            # Check if already assigned
+            existing_assignment = ExperimentSiteModel.get_by_parameters(
+                experiment_id=experiment.id,
+                site_id=self.id
+            )
+            if existing_assignment:
+                print(f"Site {self.site_name} already assigned to experiment {experiment_name}.")
+                return True
+
+            ExperimentSiteModel.get_or_create(
+                experiment_id=experiment.id,
+                site_id=self.id
+            )
+            return True
+        except Exception as e:
+            print(f"Error assigning experiment: {e}")
+            return False
+
+    def belongs_to_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.") 
+            
+            assignment = ExperimentSiteModel.get_by_parameters(
+                experiment_id=experiment.id,
+                site_id=self.id
+            )
+            return assignment is not None
+        except Exception as e:
+            print(f"Error checking experiment membership: {e}")
+            return False
+
+    def unassign_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.")
+
+            assignment = ExperimentSiteModel.get_by_parameters(
+                experiment_id=experiment.id,
+                site_id=self.id
+            )
+
+            if not assignment:
+                print(f"Site {self.site_name} not assigned to experiment {experiment_name}.")
+                return False # Indicate it wasn't assigned to begin with
+
+            is_deleted = ExperimentSiteModel.delete(assignment)
+            return is_deleted
+        except Exception as e:
+            print(f"Error unassigning experiment: {e}")
+            return False
 
     @classmethod
     def create(
@@ -48,13 +121,9 @@ class Site(APIBase):
                 site_country=site_country,
                 site_info=site_info,
             )
-
-            if experiment_name:
-                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-                if db_experiment:
-                    ExperimentSiteModel.get_or_create(experiment_id=db_experiment.id, site_id=db_instance.id)
-
             site = cls.model_validate(db_instance)
+            if experiment_name:
+                site.assign_experiment(experiment_name)
             return site
         except Exception as e:
             raise e

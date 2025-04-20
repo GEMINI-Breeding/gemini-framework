@@ -11,6 +11,14 @@ new_season = Season.create(
 )
 print(f"Created Season: {new_season}")
 
+# Get Experiment
+experiment = new_season.get_experiment()
+print(f"Got Experiment: {experiment}")
+
+# Assign the season to Experiment B
+new_season.assign_experiment("Experiment B")
+print(f"Assigned Season to Experiment B: {new_season}")
+
 # Get Season with season_name and experiment_name that do exist
 season = Season.get("Season Test C", "Experiment A")
 print(f"Got Season: {season}")

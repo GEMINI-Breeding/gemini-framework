@@ -6,6 +6,18 @@ new_dataset_type = DatasetType.create(
     dataset_type_info={"test": "test"},
 )
 
+# Check if created dataset type exists
+exists = DatasetType.exists(
+    dataset_type_name="Dataset Type Test 1",
+)
+print(f"Dataset Type exists: {exists}")
+
+# Check a dataset type that does not exist
+exists = DatasetType.exists(
+    dataset_type_name="Nonexistent Dataset Type",
+)
+print(f"Nonexistent Dataset Type exists: {exists}")
+
 # Get Dataset Type with dataset_type_name that does exist
 dataset_type = DatasetType.get("Dataset Type Test 1")
 print(f"Got Dataset Type: {dataset_type}")

@@ -12,6 +12,20 @@ model_run = ModelRun.create(
 )
 print(f"Created Model Run: {model_run}")
 
+# Check if created model run exists
+exists = ModelRun.exists(
+    model_run_info={"test": "test"},
+    model_name=model.model_name
+)
+print(f"Model Run exists: {exists}")
+
+# Check a model run that does not exist
+exists = ModelRun.exists(
+    model_run_info={"test": "nonexistent"},
+    model_name=model.model_name
+)
+print(f"Nonexistent Model Run exists: {exists}")
+
 # Get ModelRun with model_run_info that does exist
 model_run = ModelRun.get({"test": "test"}, model_name=model.model_name)
 print(f"Got ModelRun: {model_run}")

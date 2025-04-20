@@ -9,6 +9,42 @@ new_procedure = Procedure.create(
 )
 print(f"Created Procedure: {new_procedure}")
 
+# Check if created procedure exists
+exists = Procedure.exists(
+    procedure_name="Procedure Test 1",
+)
+print(f"Procedure exists: {exists}")
+
+# Check a procedure that does not exist
+exists = Procedure.exists(
+    procedure_name="Nonexistent Procedure",
+)
+print(f"Nonexistent Procedure exists: {exists}")
+
+# Assign the procedure to Experiment B
+new_procedure.assign_experiment("Experiment B")
+print(f"Assigned Procedure to Experiment B: {new_procedure}")
+
+# Get all Experiments for the procedure
+experiments = new_procedure.get_experiments()
+print(f"All Experiments:")
+for experiment in experiments:
+    print(experiment)
+
+# Check if the procedure belongs to Experiment B
+belongs = new_procedure.belongs_to_experiment("Experiment B")
+print(f"Procedure belongs to Experiment B: {belongs}")
+
+# Remove the procedure from Experiment B
+new_procedure.unassign_experiment("Experiment B")
+print(f"Removed Procedure from Experiment B: {new_procedure}")
+
+# Check if it belongs to Experiment B
+belongs = new_procedure.belongs_to_experiment("Experiment B")
+print(f"Procedure belongs to Experiment B: {belongs}")
+
+
+
 # Get Procedure with procedure_name and experiment_name that do exist
 procedure = Procedure.get("Procedure Test 1", "Experiment A")
 
@@ -67,6 +103,10 @@ dataset = procedure.create_dataset(
     experiment_name="Experiment A",
 )
 print(f"Created Dataset: {dataset}")
+
+# Check if has_dataset for the procedure
+has_dataset = procedure.has_dataset("Dataset Test 1")
+print(f"Procedure has Dataset Test 1: {has_dataset}")
 
 # Get all datasets for the procedure
 procedure_datasets = procedure.get_datasets()

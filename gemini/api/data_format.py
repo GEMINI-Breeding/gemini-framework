@@ -17,10 +17,10 @@ class DataFormat(APIBase):
     @classmethod
     def exists(
         cls,
-        dataformat_name: str
+        data_format_name: str
     ) -> bool:
         try:
-            exists = DataFormatModel.exists(data_format_name=dataformat_name)
+            exists = DataFormatModel.exists(data_format_name=data_format_name)
             return exists
         except Exception as e:
             raise e

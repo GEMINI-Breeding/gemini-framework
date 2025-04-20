@@ -15,9 +15,18 @@ print(f"Created Trait: {new_trait}")
 belongs = new_trait.belongs_to_experiment("Experiment A")
 print(f"Belongs to Experiment A: {belongs}")
 
+
 # Get Trait with trait_name and experiment_name that do exist
 trait = Trait.get("Trait Test 1", "Experiment A")
 print(f"Got Trait: {trait}")
+
+# Add Trait to Experiment B
+trait.assign_experiment("Experiment B")
+print(f"Added Trait to Experiment B: {trait}")
+
+# Remove Trait from Experiment B
+trait.unassign_experiment("Experiment B")
+print(f"Removed Trait from Experiment B: {trait}")
 
 # Get Trait by ID
 trait = Trait.get_by_id(new_trait.id)
@@ -65,6 +74,10 @@ dataset = trait.create_dataset(
     experiment_name="Experiment A"
 )
 print(f"Created Dataset: {dataset}")
+
+# Check if has_dataset for the trait
+has_dataset = trait.has_dataset("Dataset Test 1")
+print(f"Trait has Dataset Test 1: {has_dataset}")
 
 # Get all datasets for the trait
 datasets = trait.get_datasets()

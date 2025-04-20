@@ -10,7 +10,6 @@ from gemini.api.model_run import ModelRun
 from gemini.api.model_record import ModelRecord
 from gemini.db.models.models import ModelModel
 from gemini.db.models.model_runs import ModelRunModel
-from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.associations import ExperimentModelModel, ModelDatasetModel
 from gemini.db.models.views.experiment_views import ExperimentModelsViewModel
 from gemini.db.models.views.dataset_views import ModelDatasetsViewModel
@@ -35,6 +34,79 @@ class Model(APIBase):
             return exists
         except Exception as e:
             raise e
+        
+    def get_experiments(self):
+        try:
+            from gemini.api.experiment import Experiment
+            db_instance = ModelModel.get(self.id)
+            experiments = ExperimentModelsViewModel.search(model_id=db_instance.id)
+            experiments = [Experiment.model_validate(experiment) for experiment in experiments]
+            return experiments if experiments else None
+        except Exception as e:
+            raise e
+
+    def assign_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.")
+            
+            # Check if already assigned
+            existing_assignment = ExperimentModelModel.get_by_parameters(
+                experiment_id=experiment.id,
+                model_id=self.id
+            )
+            if existing_assignment:
+                print(f"Model {self.model_name} already assigned to experiment {experiment_name}.")
+                return True
+
+            ExperimentModelModel.get_or_create(
+                experiment_id=experiment.id,
+                model_id=self.id
+            )
+            return True
+        except Exception as e:
+            print(f"Error assigning experiment: {e}")
+            return False
+
+    def belongs_to_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.") 
+            
+            assignment = ExperimentModelModel.get_by_parameters(
+                experiment_id=experiment.id,
+                model_id=self.id
+            )
+            return assignment is not None
+        except Exception as e:
+            print(f"Error checking experiment membership: {e}")
+            return False
+
+    def unassign_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.")
+
+            assignment = ExperimentModelModel.get_by_parameters(
+                experiment_id=experiment.id,
+                model_id=self.id
+            )
+
+            if not assignment:
+                print(f"Model {self.model_name} not assigned to experiment {experiment_name}.")
+                return False # Indicate it wasn't assigned to begin with
+
+            is_deleted = ExperimentModelModel.delete(assignment)
+            return is_deleted
+        except Exception as e:
+            print(f"Error unassigning experiment: {e}")
+            return False
 
     @classmethod
     def create(
@@ -50,13 +122,9 @@ class Model(APIBase):
                 model_url=model_url,
                 model_info=model_info,
             )
-
-            if experiment_name:
-                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-                if db_experiment:
-                    ExperimentModelModel.get_or_create(experiment_id=db_experiment.id, model_id=db_instance.id)
-
             model = cls.model_validate(db_instance)
+            if experiment_name:
+                model.assign_experiment(experiment_name)
             return model
         except Exception as e:
             raise e
@@ -217,6 +285,16 @@ class Model(APIBase):
         except Exception as e:
             raise e
         
+    def has_dataset(self, dataset_name: str) -> bool:
+        try:
+            exists = ModelDatasetsViewModel.exists(
+                model_id=self.id,
+                dataset_name=dataset_name
+            )
+            return exists
+        except Exception as e:
+            raise e
+
 
     def get_runs(self) -> List[ModelRun]:
         try:

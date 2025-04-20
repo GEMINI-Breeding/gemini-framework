@@ -9,9 +9,7 @@ from gemini.api.sensor_record import SensorRecord
 from gemini.api.dataset import Dataset, GEMINIDatasetType
 from gemini.api.enums import GEMINISensorType, GEMINIDataType, GEMINIDataFormat
 from gemini.db.models.sensors import SensorModel
-from gemini.db.models.sensor_types import SensorTypeModel
 from gemini.db.models.sensor_platforms import SensorPlatformModel
-from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.views.experiment_views import ExperimentSensorsViewModel
 from gemini.db.models.associations import ExperimentSensorModel, SensorPlatformSensorModel, SensorDatasetModel
 from gemini.db.models.views.dataset_views import SensorDatasetsViewModel
@@ -87,17 +85,14 @@ class Sensor(APIBase):
                 sensor_info=sensor_info,
             )
 
-            if experiment_name:
-                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-                if db_experiment:
-                    ExperimentSensorModel.get_or_create(experiment_id=db_experiment.id, sensor_id=db_instance.id)
-
             if sensor_platform_name:
                 db_sensor_platform = SensorPlatformModel.get_by_parameters(sensor_platform_name=sensor_platform_name)
                 if db_sensor_platform:
                     SensorPlatformSensorModel.get_or_create(sensor_id=db_instance.id, sensor_platform_id=db_sensor_platform.id)
 
             sensor = cls.model_validate(db_instance)
+            if experiment_name:
+                sensor.assign_experiment(experiment_name)
             return sensor
         except Exception as e:
             raise e
@@ -244,6 +239,16 @@ class Sensor(APIBase):
             return dataset 
         except Exception as e:
             raise e
+
+    def has_dataset(self, dataset_name: str) -> bool:
+        try:
+            exists = SensorDatasetsViewModel.exists(
+                dataset_name=dataset_name,
+                sensor_id=self.id
+            )
+            return exists
+        except Exception as e:
+            raise e
         
     def add_record(
         self,
@@ -379,3 +384,76 @@ class Sensor(APIBase):
             return records
         except Exception as e:
             raise e
+        
+    def get_experiments(self):
+        try:
+            from gemini.api.experiment import Experiment
+            db_instance = SensorModel.get(self.id)
+            experiments = ExperimentSensorsViewModel.search(sensor_id=db_instance.id)
+            experiments = [Experiment.model_validate(experiment) for experiment in experiments]
+            return experiments if experiments else None
+        except Exception as e:
+            raise e
+
+    def assign_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.")
+            
+            # Check if already assigned
+            existing_assignment = ExperimentSensorModel.get_by_parameters(
+                experiment_id=experiment.id,
+                sensor_id=self.id
+            )
+            if existing_assignment:
+                print(f"Sensor {self.sensor_name} already assigned to experiment {experiment_name}.")
+                return True
+
+            ExperimentSensorModel.get_or_create(
+                experiment_id=experiment.id,
+                sensor_id=self.id
+            )
+            return True
+        except Exception as e:
+            print(f"Error assigning experiment: {e}")
+            return False
+
+    def belongs_to_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.") 
+            
+            assignment = ExperimentSensorModel.get_by_parameters(
+                experiment_id=experiment.id,
+                sensor_id=self.id
+            )
+            return assignment is not None
+        except Exception as e:
+            print(f"Error checking experiment membership: {e}")
+            return False
+
+    def unassign_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                raise Exception(f"Experiment {experiment_name} does not exist.")
+
+            assignment = ExperimentSensorModel.get_by_parameters(
+                experiment_id=experiment.id,
+                sensor_id=self.id
+            )
+
+            if not assignment:
+                print(f"Sensor {self.sensor_name} not assigned to experiment {experiment_name}.")
+                return False # Indicate it wasn't assigned to begin with
+
+            is_deleted = ExperimentSensorModel.delete(assignment)
+            return is_deleted
+        except Exception as e:
+            print(f"Error unassigning experiment: {e}")
+            return False
