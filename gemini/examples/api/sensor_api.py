@@ -1,101 +1,61 @@
 from gemini.api.sensor import Sensor
-from gemini.api.enums import GEMINIDataFormat, GEMINIDataType, GEMINISensorType
+from gemini.api.sensor import GEMINISensorType, GEMINIDataType, GEMINIDataFormat
 
+# Create a new Sensor for Experiment A
 new_sensor = Sensor.create(
-    sensor_name="Sensor Test 1",
-    sensor_info={"test": "test"},
+    sensor_name="Sensor A",
     sensor_type=GEMINISensorType.Calibration,
-    sensor_data_type=GEMINIDataType.Image,
-    sensor_data_format=GEMINIDataFormat.PNG,
+    sensor_data_format=GEMINIDataFormat.CSV,
+    sensor_data_type=GEMINIDataType.Text,
+    sensor_info={"test": "test"},
     experiment_name="Experiment A",
-    sensor_platform_name="Platform A",
+    sensor_platform_name="Platform A"
 )
-print(f"Created Sensor: {new_sensor}")
-
-# Assign the sensor to Experiment B
-new_sensor.assign_experiment("Experiment B")
-print(f"Assigned Sensor to Experiment B: {new_sensor}")
-
-# Get all Experiments for the sensor
-experiments = new_sensor.get_experiments()
-print(f"All Experiments:")
-for experiment in experiments:
-    print(experiment)
-
-# Check if the sensor belongs to Experiment B
-belongs = new_sensor.belongs_to_experiment("Experiment B")
-print(f"Sensor belongs to Experiment B: {belongs}")
-
-# Remove the sensor from Experiment B
-new_sensor.unassign_experiment("Experiment B")
-print(f"Removed Sensor from Experiment B: {new_sensor}")
-
-# Check if it belongs to Experiment B
-belongs = new_sensor.belongs_to_experiment("Experiment B")
-print(f"Sensor belongs to Experiment B: {belongs}")
-
-# Get Sensor with sensor_name and experiment_name that do exist
-sensor = Sensor.get("Sensor Test 1", "Experiment A")
-print(f"Got Sensor: {sensor}")
+print(f"Created New Sensor: {new_sensor}")
 
 # Get Sensor by ID
-sensor = Sensor.get_by_id(new_sensor.id)
-print(f"Got Sensor by ID: {sensor}")
+sensor_by_id = Sensor.get_by_id(new_sensor.id)
+print(f"Got Sensor by ID: {sensor_by_id}")
 
-# Get all sensors
+# Get Sensor by Name
+sensor_by_name = Sensor.get(sensor_name=new_sensor.sensor_name)
+print(f"Got Sensor by Name: {sensor_by_name}")
+
+# Get all Sensors
 all_sensors = Sensor.get_all()
-print(f"All Sensors:")
 for sensor in all_sensors:
-    print(sensor)
+    print(f"Sensor: {sensor}")
 
-# Search for sensors
-searched_sensors = Sensor.search(experiment_name="Experiment A")
-length_searched_sensors = len(searched_sensors)
-print(f"Found {length_searched_sensors} sensors in Experiment A")
+# Search for Sensors by Name
+search_results = Sensor.search(sensor_name="Sensor A")
+for result in search_results:
+    print(f"Search Result: {result}")
 
-# Refresh the sensor
-sensor.refresh()
-print(f"Refreshed Sensor: {sensor}")
-
-# Update the sensor
-sensor.update(
-    sensor_info={"test": "test_updated"},
-    sensor_type=GEMINISensorType.Default,
-    sensor_data_type=GEMINIDataType.Default,
-    sensor_data_format=GEMINIDataFormat.Default
+# Update Sensor
+sensor_by_name.update(
+    sensor_data_format=GEMINIDataFormat.JSON,
+    sensor_info={"updated": "info"}
 )
-print(f"Updated Sensor: {sensor}")
+print(f"Updated Sensor: {sensor_by_name}")
+
+# Refresh Sensor
+sensor_by_name.refresh()
+print(f"Refreshed Sensor: {sensor_by_name}")
 
 # Set Sensor Info
-sensor.set_info(
-    sensor_info={"test": "test_set"},
+sensor_by_name.set_info(
+    sensor_info={"new": "info"}
 )
-print(f"Set Sensor Info: {sensor}")
+print(f"Set Sensor Info: {sensor_by_name.get_info()}")
 
-# Get Sensor Info
-sensor_info = sensor.get_info()
-print(f"Sensor Info: {sensor_info}")
+# Check if Sensor Exists
+exists = Sensor.exists(sensor_name="Sensor A")
+print(f"Does Sensor Exist? {exists}")
 
-# Create a dataset for the sensor
-dataset = sensor.create_dataset(
-    dataset_name="Dataset Test 1",
-    dataset_info={"test": "test"},
-    collection_date="2023-10-01",
-    experiment_name="Experiment A"
-)
-print(f"Created Dataset: {dataset}")
-
-# Check sensor has_dataset
-has_dataset = sensor.has_dataset("Dataset Test 1")
-print(f"Sensor has Dataset Test 1: {has_dataset}")
-
-# Get all datasets for the sensor
-datasets = sensor.get_datasets()
-print(f"All Datasets:")
-for dataset in datasets:
-    print(dataset)
-
-#  Delete the sensor
-is_deleted = new_sensor.delete()
+# Delete Sensor
+is_deleted = sensor_by_name.delete()
 print(f"Deleted Sensor: {is_deleted}")
 
+# Check if Sensor Exists after Deletion
+exists_after_deletion = Sensor.exists(sensor_name="Sensor A")
+print(f"Does Sensor Exist after Deletion? {exists_after_deletion}")

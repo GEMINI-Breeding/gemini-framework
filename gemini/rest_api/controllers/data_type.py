@@ -9,7 +9,6 @@ from gemini.rest_api.models import (
     DataTypeOutput,
     DataTypeUpdate,
     DataFormatOutput,
-    DataFormatInput,
     RESTAPIError, 
     JSONB, 
     str_to_dict
@@ -25,19 +24,18 @@ class DataTypeController(Controller):
         try:
             data_types = DataType.get_all()
             if data_types is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No data types found",
                     error_description="No data types were found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return data_types
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving all data types"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
 
     # Get Data Types
     @get()
@@ -54,19 +52,18 @@ class DataTypeController(Controller):
                 data_type_info=data_type_info
             )
             if data_types is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No data types found",
                     error_description="No data types were found with the given search criteria"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return data_types
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving data types"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Get Data Type by ID
     @get(path="/id/{data_type_id:int}")
@@ -76,19 +73,18 @@ class DataTypeController(Controller):
         try:
             data_type = DataType.get_by_id(id=data_type_id)
             if data_type is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Data type not found",
                     error_description="The data type with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return data_type
         except Exception as e:
-            error_message = RESTAPIError(
+            error= RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the data type"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Create a new Data Type
     @post()
@@ -101,19 +97,18 @@ class DataTypeController(Controller):
                 data_type_info=data.data_type_info
             )
             if data_type is None:
-                error_html = RESTAPIError(
+                error= RESTAPIError(
                     error="Data type not created",
                     error_description="The data type was not created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return data_type
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the data type"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Update Data Type
@@ -124,29 +119,28 @@ class DataTypeController(Controller):
         try:
             data_type = DataType.get_by_id(id=data_type_id)
             if data_type is None:
-                error_html = RESTAPIError(
+                error= RESTAPIError(
                     error="Data type not found",
                     error_description="The data type with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             data_type = data_type.update(
                 data_type_name=data.data_type_name,
                 data_type_info=data.data_type_info
             )
             if data_type is None:
-                error_html = RESTAPIError(
+                error= RESTAPIError(
                     error="Data type update failed",
                     error_description="The data type was not updated"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return data_type
         except Exception as e:
-            error_message = RESTAPIError(
+            error= RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while updating the data type"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Delete Data Type
     @delete(path="/id/{data_type_id:int}")
@@ -156,86 +150,53 @@ class DataTypeController(Controller):
         try:
             data_type = DataType.get_by_id(id=data_type_id)
             if data_type is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Data type not found",
                     error_description="The data type with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             is_deleted = data_type.delete()
             if not is_deleted:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Data type not deleted",
                     error_description="The data type could not be deleted"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return None
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while deleting the data type"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
-    # Get Formats
-    @get(path="/id/{data_type_id:int}/formats")
-    async def get_data_type_formats(
-        self, data_type_id: int
+
+    # Get associated Data Formats
+    @get(path="/id/{data_type_id:int}/data_formats")
+    async def get_associated_data_formats(
+        cls, data_type_id: int
     ) -> List[DataFormatOutput]:
         try:
             data_type = DataType.get_by_id(id=data_type_id)
             if data_type is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Data type not found",
                     error_description="The data type with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            data_formats = data_type.get_formats()
+                )
+                return Response(content=error, status_code=404)
+            data_formats = data_type.get_associated_data_formats()
             if data_formats is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No data formats found",
                     error_description="No data formats were found for the given data type"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return data_formats
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
-                error_description="An error occurred while retrieving data formats"
+                error_description="An error occurred while retrieving associated data formats"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
-    # Add Format
-    @post(path="/id/{data_type_id:int}/formats")
-    async def add_data_type_format(
-        self, data_type_id: int, data: Annotated[DataFormatInput, Body]
-    ) -> DataFormatOutput:
-        try:
-            data_type = DataType.get_by_id(id=data_type_id)
-            if data_type is None:
-                error_html = RESTAPIError(
-                    error="Data type not found",
-                    error_description="The data type with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            data_format = data_type.create_format(
-                data_format_name=data.data_format_name,
-                data_format_mime_type=data.data_format_mime_type,
-                data_format_info=data.data_format_info
-            )
-            if data_format is None:
-                error_html = RESTAPIError(
-                    error="Data format not created",
-                    error_description="The data format was not created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
-            return data_format
-        except Exception as e:
-            error_message = RESTAPIError(
-                error=str(e),
-                error_description="An error occurred while creating the data format"
-            )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
-            
+    

@@ -59,18 +59,18 @@ class ProcedureController(Controller):
         try:
             procedures = Procedure.get_all()
             if procedures is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No Procedures Found",
                     error_description="No procedures found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return procedures
         except Exception as e:
-            error_html = RESTAPIError(
+            error = RESTAPIError(
                 error="Internal Server Error",
                 error_description=str(e)
-            ).to_html()
-            return Response(content=error_html, status_code=500)
+            )
+            return Response(content=error, status_code=500)
 
     # Get Procedures
     @get()
@@ -90,18 +90,18 @@ class ProcedureController(Controller):
                 experiment_name=experiment_name
             )
             if procedures is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No Procedures Found",
                     error_description="No procedures found with the given search parameters"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return procedures
         except Exception as e:
-            error_html = RESTAPIError(
+            error = RESTAPIError(
                 error="Internal Server Error",
                 error_description=str(e)
-            ).to_html()
-            return Response(content=error_html, status_code=500)
+            )
+            return Response(content=error, status_code=500)
         
 
     # Get Procedure by ID
@@ -112,18 +112,18 @@ class ProcedureController(Controller):
         try:
             procedure = Procedure.get_by_id(id=procedure_id)
             if procedure is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Not Found",
                     error_description="No procedure found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return procedure
         except Exception as e:
-            error_html = RESTAPIError(
+            error = RESTAPIError(
                 error="Internal Server Error",
                 error_description=str(e)
-            ).to_html()
-            return Response(content=error_html, status_code=500)
+            )
+            return Response(content=error, status_code=500)
         
 
     # Create Procedure
@@ -139,18 +139,18 @@ class ProcedureController(Controller):
                 experiment_name=data.experiment_name
             )
             if procedure is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Creation Failed",
                     error_description="Failed to create the procedure"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return procedure
         except Exception as e:
-            error_html = RESTAPIError(
+            error = RESTAPIError(
                 error="Internal Server Error",
                 error_description=str(e)
-            ).to_html()
-            return Response(content=error_html, status_code=500)
+            )
+            return Response(content=error, status_code=500)
         
     # Update Procedure
     @patch(path="/id/{procedure_id:str}")
@@ -162,28 +162,28 @@ class ProcedureController(Controller):
         try:
             procedure = Procedure.get_by_id(id=procedure_id)
             if procedure is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Not Found",
                     error_description="No procedure found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             procedure = procedure.update(
                 procedure_name=data.procedure_name,
                 procedure_info=data.procedure_info
             )
             if not procedure:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Update Failed",
                     error_description="Failed to update the procedure"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return procedure
         except Exception as e:
-            error_html = RESTAPIError(
+            error = RESTAPIError(
                 error="Internal Server Error",
                 error_description=str(e)
-            ).to_html()
-            return Response(content=error_html, status_code=500)
+            )
+            return Response(content=error, status_code=500)
         
 
     # Delete Procedure
@@ -194,25 +194,25 @@ class ProcedureController(Controller):
         try:
             procedure = Procedure.get_by_id(id=procedure_id)
             if procedure is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Not Found",
                     error_description="No procedure found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             is_deleted = procedure.delete()
             if not is_deleted:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Deletion Failed",
                     error_description="Failed to delete the procedure"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return None
         except Exception as e:
-            error_html = RESTAPIError(
+            error = RESTAPIError(
                 error="Internal Server Error",
                 error_description=str(e)
-            ).to_html()
-            return Response(content=error_html, status_code=500)
+            )
+            return Response(content=error, status_code=500)
         
     # Get Procedure Runs
     @get(path="/id/{procedure_id:str}/runs")
@@ -222,27 +222,55 @@ class ProcedureController(Controller):
         try:
             procedure = Procedure.get_by_id(id=procedure_id)
             if procedure is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Not Found",
                     error_description="No procedure found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            runs = procedure.get_runs()
+                )
+                return Response(content=error, status_code=404)
+            runs = procedure.get_associated_runs()
             if runs is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No Procedure Runs Found",
                     error_description="No runs found for the given procedure"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return runs
         except Exception as e:
-            error_html = RESTAPIError(
+            error = RESTAPIError(
                 error="Internal Server Error",
                 error_description=str(e)
-            ).to_html()
-            return Response(content=error_html, status_code=500)
+            )
+            return Response(content=error, status_code=500)
         
     
+    # Get Procedure Experiments
+    @get(path="/id/{procedure_id:str}/experiments")
+    async def get_procedure_experiments(
+        self, procedure_id: str
+    ) -> List[str]:
+        try:
+            procedure = Procedure.get_by_id(id=procedure_id)
+            if procedure is None:
+                error = RESTAPIError(
+                    error="Procedure Not Found",
+                    error_description="No procedure found with the given ID"
+                )
+                return Response(content=error, status_code=404)
+            experiments = procedure.get_associated_experiments()
+            if experiments is None:
+                error = RESTAPIError(
+                    error="No Procedure Experiments Found",
+                    error_description="No experiments found for the given procedure"
+                )
+                return Response(content=error, status_code=404)
+            return experiments
+        except Exception as e:
+            error = RESTAPIError(
+                error="Internal Server Error",
+                error_description=str(e)
+            )
+            return Response(content=error, status_code=500)
+
     # Get Procedure Datasets
     @get(path="/id/{procedure_id:str}/datasets")
     async def get_procedure_datasets(
@@ -251,25 +279,25 @@ class ProcedureController(Controller):
         try:
             procedure = Procedure.get_by_id(id=procedure_id)
             if procedure is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Not Found",
                     error_description="No procedure found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            datasets = procedure.get_datasets()
+                )
+                return Response(content=error, status_code=404)
+            datasets = procedure.get_associated_datasets()
             if datasets is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No Procedure Datasets Found",
                     error_description="No datasets found for the given procedure"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return datasets
         except Exception as e:
-            error_html = RESTAPIError(
+            error = RESTAPIError(
                 error="Internal Server Error",
                 error_description=str(e)
-            ).to_html()
-            return Response(content=error_html, status_code=500)
+            )
+            return Response(content=error, status_code=500)
         
     # Create Procedure Run
     @post(path="/id/{procedure_id:str}/runs")
@@ -281,25 +309,25 @@ class ProcedureController(Controller):
         try:
             procedure = Procedure.get_by_id(id=procedure_id)
             if procedure is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Not Found",
                     error_description="No procedure found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            run = procedure.create_run(procedure_run_info=data.procedure_run_info)
+                )
+                return Response(content=error, status_code=404)
+            run = procedure.create_new_run(procedure_run_info=data.procedure_run_info)
             if run is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Run Creation Failed",
                     error_description="Failed to create the procedure run"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return run
         except Exception as e:
-            error_html = RESTAPIError(
+            error = RESTAPIError(
                 error="Internal Server Error",
                 error_description=str(e)
-            ).to_html()
-            return Response(content=error_html, status_code=500)
+            )
+            return Response(content=error, status_code=500)
         
     # Create Procedure Dataset
     @post(path="/id/{procedure_id:str}/datasets")
@@ -311,30 +339,30 @@ class ProcedureController(Controller):
         try:
             procedure = Procedure.get_by_id(id=procedure_id)
             if procedure is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Not Found",
                     error_description="No procedure found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            dataset = procedure.create_dataset(
+                )
+                return Response(content=error, status_code=404)
+            dataset = procedure.create_new_dataset(
                 dataset_name=data.dataset_name,
                 dataset_info=data.dataset_info,
                 collection_date=data.collection_date,
                 experiment_name=data.experiment_name
             )
             if dataset is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Dataset Creation Failed",
                     error_description="Failed to create the procedure dataset"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return dataset
         except Exception as e:
-            error_html = RESTAPIError(
+            error = RESTAPIError(
                 error="Internal Server Error",
                 error_description=str(e)
-            ).to_html()
-            return Response(content=error_html, status_code=500)
+            )
+            return Response(content=error, status_code=500)
         
     # Add a Procedure Record
     @post(path="/id/{procedure_id:str}/records")
@@ -346,15 +374,15 @@ class ProcedureController(Controller):
         try:
             procedure = Procedure.get_by_id(id=procedure_id)
             if procedure is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Not Found",
                     error_description="No procedure found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             if data.record_file:
                 record_file_path = await api_file_handler.create_file(data.record_file)
 
-            add_success, inserted_record_ids = procedure.add_record(
+            add_success, inserted_record_ids = procedure.insert_record(
                 timestamp=data.timestamp,
                 collection_date=data.collection_date,
                 procedure_data=data.procedure_data,
@@ -366,26 +394,26 @@ class ProcedureController(Controller):
                 record_info=data.record_info
             )
             if not add_success:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Record Addition Failed",
                     error_description="Failed to add the procedure record"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             inserted_record_id = inserted_record_ids[0]
             inserted_procedure_record = ProcedureRecord.get_by_id(id=inserted_record_id)
             if inserted_procedure_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Record Not Found",
                     error_description="No procedure record found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return inserted_procedure_record
         except Exception as e:
-            error_html = RESTAPIError(
+            error = RESTAPIError(
                 error="Internal Server Error",
                 error_description=str(e)
-            ).to_html()
-            return Response(content=error_html, status_code=500)
+            )
+            return Response(content=error, status_code=500)
         
     # Get Procedure Records
     @get(path="/id/{procedure_id:str}/records")
@@ -400,12 +428,12 @@ class ProcedureController(Controller):
         try:
             procedure = Procedure.get_by_id(id=procedure_id)
             if procedure is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Not Found",
                     error_description="No procedure found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            records = procedure.get_records(
+                )
+                return Response(content=error, status_code=404)
+            records = procedure.search_records(
                 collection_date=collection_date,
                 experiment_name=experiment_name,
                 season_name=season_name,
@@ -413,11 +441,11 @@ class ProcedureController(Controller):
             )
             return Stream(procedure_records_bytes_generator(records), media_type="application/ndjson")
         except Exception as e:
-            error_html = RESTAPIError(
+            error = RESTAPIError(
                 error="Internal Server Error",
                 error_description=str(e)
-            ).to_html()
-            return Response(content=error_html, status_code=500)
+            )
+            return Response(content=error, status_code=500)
         
     # Get Procedure Record by ID
     @get(path="/records/id/{procedure_record_id:str}")
@@ -427,18 +455,18 @@ class ProcedureController(Controller):
         try:
             record = ProcedureRecord.get_by_id(id=procedure_record_id)
             if record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Record Not Found",
                     error_description="No procedure record found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return record
         except Exception as e:
-            error_html = RESTAPIError(
+            error = RESTAPIError(
                 error="Internal Server Error",
                 error_description=str(e)
-            ).to_html()
-            return Response(content=error_html, status_code=500)
+            )
+            return Response(content=error, status_code=500)
         
     # Get Procedure Record File
     @get(path="/records/id/{record_id:str}/download")
@@ -448,28 +476,28 @@ class ProcedureController(Controller):
         try:
             procedure_record = ProcedureRecord.get_by_id(id=record_id)
             if procedure_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Record Not Found",
                     error_description="No procedure record found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             record_file = procedure_record.record_file
             if record_file is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Record File Not Found",
                     error_description="No file associated with the procedure record"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             bucket_name = "gemini"
             object_name = record_file
             object_path = f"{bucket_name}/{object_name}"
             return Redirect(path=f"/api/files/download/{object_path}")
         except Exception as e:
-            error_html = RESTAPIError(
+            error = RESTAPIError(
                 error="Internal Server Error",
                 error_description=str(e)
-            ).to_html()
-            return Response(content=error_html, status_code=500)
+            )
+            return Response(content=error, status_code=500)
     
             
     # Update Procedure Record
@@ -482,28 +510,28 @@ class ProcedureController(Controller):
         try:
             procedure_record = ProcedureRecord.get_by_id(id=procedure_record_id)
             if procedure_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Record Not Found",
                     error_description="No procedure record found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             procedure_record = procedure_record.update(
                 procedure_data=data.procedure_data,
                 record_info=data.record_info
             )
             if not procedure_record:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Record Update Failed",
                     error_description="Failed to update the procedure record"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return procedure_record
         except Exception as e:
-            error_html = RESTAPIError(
+            error = RESTAPIError(
                 error="Internal Server Error",
                 error_description=str(e)
-            ).to_html()
-            return Response(content=error_html, status_code=500)
+            )
+            return Response(content=error, status_code=500)
         
     # Delete Procedure Record
     @delete(path="/records/id/{procedure_record_id:str}")
@@ -513,22 +541,22 @@ class ProcedureController(Controller):
         try:
             procedure_record = ProcedureRecord.get_by_id(id=procedure_record_id)
             if procedure_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Record Not Found",
                     error_description="No procedure record found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             is_deleted = procedure_record.delete()
             if not is_deleted:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure Record Deletion Failed",
                     error_description="Failed to delete the procedure record"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return None
         except Exception as e:
-            error_html = RESTAPIError(
+            error = RESTAPIError(
                 error="Internal Server Error",
                 error_description=str(e)
-            ).to_html()
-            return Response(content=error_html, status_code=500)
+            )
+            return Response(content=error, status_code=500)

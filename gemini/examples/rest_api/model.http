@@ -1,0 +1,164 @@
+@baseUrl = http://localhost:8000
+@apiUrl = {{baseUrl}}/api/models
+
+### Get all models
+# @name GetAllModels
+GET {{apiUrl}}/all
+
+### Get a specific model
+# @name GetModel
+GET {{apiUrl}}/?model_name=Model+A
+
+### Select a model
+@modelId = {{GetModel.response.body.$.0.id}}
+
+### Select a model by ID
+# @name GetModelById
+GET {{apiUrl}}/id/{{modelId}}
+
+### Get all associated datasets by model ID
+# @name GetDatasetsByModelId
+GET {{apiUrl}}/id/{{modelId}}/datasets
+
+### Create a new model dataset
+# @name CreateModelDataset
+POST {{apiUrl}}/id/{{modelId}}/datasets
+Content-Type: application/json
+
+{
+    "dataset_name": "Test Model Dataset",
+    "dataset_info": {
+        "dataset_description": "Test Description",
+        "dataset_notes": "Test Notes"
+    },
+    "collection_date": "2021-01-01",
+    "experiment_name": "Experiment B"
+}
+
+### Get all associated experiments by model ID
+# @name GetExperimentsByModelId
+GET {{apiUrl}}/id/{{modelId}}/experiments
+
+
+### Get all associated runs by model ID
+# @name GetRunsByModelId
+GET {{apiUrl}}/id/{{modelId}}/runs
+
+### Create a new model run
+# @name CreateModelRun
+POST {{apiUrl}}/id/{{modelId}}/runs
+Content-Type: application/json
+
+{
+    "model_run_info": {
+        "model_run_description": "Test Description",
+        "model_run_notes": "Test Notes"
+    }
+}
+
+### Create a new model
+# @name CreateModel
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+    "model_name": "Test Model",
+    "model_url": "http://test.com",
+    "model_info": {
+        "model_description": "Test Description",
+        "model_notes": "Test Notes"
+    },
+    "experiment_name": "Experiment A"
+}
+
+###
+@createdModelId = {{CreateModel.response.body.id}}
+
+### Update a model
+# @name UpdateModel
+PATCH {{apiUrl}}/id/{{createdModelId}}
+Content-Type: application/json
+
+{
+    "model_name": "Updated Test Model",
+    "model_url": "http://updated.com",
+    "model_info": {
+        "model_description": "Updated Description",
+        "model_notes": "Updated Notes"
+    },
+    "experiment_name": "Experiment A"
+}
+
+### Delete a model
+# @name DeleteModel
+DELETE {{apiUrl}}/id/{{createdModelId}}
+
+### Search Model Records
+# @name SearchModelRecords
+GET {{apiUrl}}/id/{{modelId}}/records
+
+### Add a model record
+# @name AddModelRecord
+POST {{apiUrl}}/id/{{modelId}}/records
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="timestamp"
+
+2021-01-01T00:00:00Z
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="model_data"
+
+{"data": "test"}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="experiment_name"
+
+Experiment A
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="season_name"
+
+Season 1A
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="site_name"
+
+Site A1
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="record_file"; filename="example.txt" Content-Type: text/plain
+
+< ./example.txt
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="record_info"
+
+{"record_description": "Test Description", "record_notes": "Test Notes"}
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+@createdModelRecordId = {{AddModelRecord.response.body.id}}
+
+@createdModelRecordFileKey = {{AddModelRecord.response.body.record_file}}
+
+### Get a model record by ID
+# @name GetModelRecordById
+GET {{apiUrl}}/records/id/{{createdModelRecordId}}
+
+### Update a model record
+# @name UpdateModelRecord
+PATCH  {{apiUrl}}/records/id/{{createdModelRecordId}}
+Content-Type: application/json
+
+{
+    "model_data": {"data": "test updated"},
+    "record_info": {
+        "record_description": "Test Description A",
+        "record_notes": "Test Notes A"
+    }
+}
+
+### Delete a model record
+# @name DeleteModelRecord
+DELETE {{apiUrl}}/records/id/{{createdModelRecordId}}
+
+### Get Model Record File
+# @name DownloadModelRecordFile
+GET {{apiUrl}}/records/id/{{createdModelRecordId}}/download
+

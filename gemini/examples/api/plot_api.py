@@ -1,109 +1,45 @@
 from gemini.api.plot import Plot
-from gemini.api.cultivar import Cultivar
-from gemini.api.experiment import Experiment
-from gemini.api.season import Season
-from gemini.api.site import Site
 
-from random import choice
-from tqdm import tqdm
-
-valid_combinations = Plot.get_valid_combinations()
-print(f"Valid Combinations: {valid_combinations}")
-
-# Remove valid_combinations with experiment_name GEMINI
-valid_combinations = [combination for combination in valid_combinations if combination['experiment_name'] != 'GEMINI']
-
-
-starting_plot_number = 10000
-starting_plot_row_number = 1000
-starting_plot_column_number = 1000
-
-all_cultivars = Cultivar.get_all()
-print(f"Number of Cultivars: {len(all_cultivars)}")
-
-created_plots = []
-
-# For each combination create 10 plots
-for valid_combination in tqdm(valid_combinations, desc="Creating Plots", unit="combination"):
-    experiment_name = valid_combination['experiment_name']
-    site_name = valid_combination['site_name']
-    season_name = valid_combination['season_name']
-    plot_info = {
-        "test_info": "test_value"
-    }
-    plot_geometry_info = {
-        "geometry": "geometry_value"
-    }
-
-    # Randomly select a cultivar
-    experiment_cultivars = Experiment.get(experiment_name=experiment_name).get_cultivars()
-    random_cultivar = choice(experiment_cultivars) if experiment_cultivars else None
-
-    for i in range(10):
-        new_plot = Plot.create(
-            experiment_name=experiment_name,
-            site_name=site_name,
-            season_name=season_name,
-            plot_number=starting_plot_number + i,
-            plot_row_number=starting_plot_row_number + i,
-            plot_column_number=starting_plot_column_number + i,
-            plot_info=plot_info,
-            plot_geometry_info=plot_geometry_info,
-            cultivar_accession=random_cultivar.cultivar_accession if random_cultivar else None,
-            cultivar_population=random_cultivar.cultivar_population if random_cultivar else None,
-        )
-        created_plots.append(new_plot)
-
-print(f"Created Plots: {created_plots}")
-
-# Get a plot based on some valid combination and number
-plot = Plot.get(
-    plot_number = 10005,
-    plot_row_number = 1005,
-    plot_column_number= 1005,
-    experiment_name=valid_combinations[-1]['experiment_name'],
-    site_name=valid_combinations[-1]['site_name'],
-    season_name=valid_combinations[-1]['season_name']
+# Create a new plot
+new_plot = Plot.create(
+    plot_number=1000,
+    plot_row_number=1,
+    plot_column_number=1,
+    plot_info={"test": "test"},
+    plot_geometry_info={"test": "test"},
+    experiment_name="Experiment A",
+    season_name="Season 1A",
+    site_name="Site A1",
+    cultivar_accession="Accession A1",
+    cultivar_population="Population A"
 )
-print(f"Plot: {plot}")
-
-# Check if the plot exists
-exists = Plot.exists(
-    plot_number=plot.plot_number,
-    plot_row_number=plot.plot_row_number,
-    plot_column_number=plot.plot_column_number,
-    experiment_name=valid_combinations[-1]['experiment_name'],
-    site_name=valid_combinations[-1]['site_name'],
-    season_name=valid_combinations[-1]['season_name'],
-)
-print(f"Plot exists: {exists}")
-
-# Check a nonexistent plot
-nonexistent_exists = Plot.exists(
-    plot_number=99999,
-    plot_row_number=9999,
-    plot_column_number=9999,
-    experiment_name=valid_combinations[-1]['experiment_name'],
-    site_name=valid_combinations[-1]['site_name'],
-    season_name=valid_combinations[-1]['season_name'],
-)
-print(f"Nonexistent Plot exists: {nonexistent_exists}")
+print(f"Created New Plot: {new_plot}")
 
 # Get Plot by ID
-plot_by_id = Plot.get_by_id(plot.id)
-print(f"Plot by ID: {plot_by_id}")
+plot_by_id = Plot.get_by_id(new_plot.id)
+print(f"Got Plot by ID: {plot_by_id}")
+
+# Get Plot
+plot = Plot.get(
+    plot_number=new_plot.plot_number,
+    plot_row_number=new_plot.plot_row_number,
+    plot_column_number=new_plot.plot_column_number,
+    experiment_name="Experiment A",
+    season_name="Season 1A",
+    site_name="Site A1"
+)
+print(f"Got Plot: {plot}")
 
 # Get all plots
 all_plots = Plot.get_all()
-print(f"Length of all plots: {len(all_plots)}")
+print(f"All Plots:")
+for p in all_plots[:10]:  # Limit to first 10 plots for display
+    print(p)
 
-# Search for plots
-searched_plots = Plot.search(
-    experiment_name=valid_combinations[-1]['experiment_name'],
-    site_name=valid_combinations[-1]['site_name'],
-    season_name=valid_combinations[-1]['season_name'],
-)
-print(f"Length of searched plots: {len(searched_plots)}")
+# Search for plots in Experiment A
+searched_plots = Plot.search(experiment_name="Experiment A")
+length_searched_plots = len(searched_plots)
+print(f"Found {length_searched_plots} plots in Experiment A")
 
 # Refresh the plot
 plot.refresh()
@@ -111,69 +47,41 @@ print(f"Refreshed Plot: {plot}")
 
 # Update the plot
 plot.update(
-    plot_number=20000,
-    plot_row_number=2000,
-    plot_column_number=2000,
-    plot_info={"test_info": "updated_test_value"},
-    plot_geometry_info={"geometry": "updated_geometry_value"},
+    plot_number=2000,
+    plot_row_number=2,
+    plot_column_number=2,
+    plot_info={"updated": "info"},
+    plot_geometry_info={"updated": "info"}
 )
 print(f"Updated Plot: {plot}")
 
 # Set Plot Info
-plot.set_info(
-    plot_info={"test_info": "set_test_value"}
+plot.set_info(plot_info={"new": "info"})
+print(f"Set Plot Info: {plot.get_info()}")
+
+# Check if the plot exists
+exists = Plot.exists(
+    plot_number=2000,
+    plot_row_number=2,
+    plot_column_number=2,
+    experiment_name="Experiment A",
+    season_name="Season 1A",
+    site_name="Site A1"
 )
-print(f"Set Plot Info: {plot}")
+print(f"Plot exists: {exists}")
 
-# Get Plot Info
-plot_info = plot.get_info()
-print(f"Plot Info: {plot_info}")
-
-# Add a new cultivar
-experiment_cultivars = Experiment.get(experiment_name=valid_combinations[-1]['experiment_name']).get_cultivars()
-random_cultivar = choice(experiment_cultivars) if experiment_cultivars else None
-plot.add_cultivar(
-    cultivar_accession=random_cultivar.cultivar_accession if random_cultivar else None,
-    cultivar_population=random_cultivar.cultivar_population if random_cultivar else None,
-    cultivar_info={"test_info": "test_value"}
-)
-
-# Get cultivar from plot
-cultivars = plot.get_cultivars()
-print(f"Cultivars from Plot: {cultivars}")
-
-# Get another valid combination
-valid_combination = Plot.get_valid_combinations()[0]
-new_experiment_name = valid_combination['experiment_name']
-new_site_name = valid_combination['site_name']
-new_season_name = valid_combination['season_name']
-
-# Update the plot with a new valid combination
-plot.set_experiment(experiment_name=new_experiment_name)
-plot.set_site(site_name=new_site_name)
-plot.set_season(experiment_name=new_experiment_name, season_name=new_season_name)
-print(f"Updated Plot with new valid combination: {plot}")
-
-# Get new experiment's cultivars
-new_experiment_cultivars = Experiment.get(experiment_name=new_experiment_name).get_cultivars()
-
-# Add 5 plants
-for i in range(5):
-    plot.add_plant(
-        plant_number=starting_plot_number + i,
-        cultivar_accession=new_experiment_cultivars[i % len(new_experiment_cultivars)].cultivar_accession,
-        cultivar_population=new_experiment_cultivars[i % len(new_experiment_cultivars)].cultivar_population,
-        plant_info={"test_info": "test_value"}
-    )
-print(f"Added Plants to Plot: {plot}")
-
-# Get Plants
-plants = plot.get_plants()
-print(f"Plants from Plot: {plants}")
-
-# Delete the plot
-is_deleted = plot.delete()
+# Delete the created plot
+is_deleted = new_plot.delete()
 print(f"Deleted Plot: {is_deleted}")
 
-
+# Check if the plot exists after deletion
+exists_after_deletion = Plot.exists(
+    plot_number=2000,
+    plot_row_number=2,
+    plot_column_number=2,
+    experiment_name="Experiment A",
+    season_name="Season 1A",
+    site_name="Site A1"
+)
+print(f"Plot exists after deletion: {exists_after_deletion}")
 

@@ -58,19 +58,18 @@ class ModelController(Controller):
         try:
             models = Model.get_all()
             if models is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No models found",
                     error_description="No models were found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return models
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving all models"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
 
     # Get Models
     @get()
@@ -91,19 +90,18 @@ class ModelController(Controller):
                 experiment_name=experiment_name
             )
             if models is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No models found",
                     error_description="No models were found with the given search criteria"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return models
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving models"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Get Model by ID
     @get(path="/id/{model_id:str}")
@@ -113,19 +111,18 @@ class ModelController(Controller):
         try:
             model = Model.get_by_id(id=model_id)
             if model is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model not found",
                     error_description="The model with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return model
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the model"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
     
     # Create a new Model
     @post()
@@ -140,19 +137,18 @@ class ModelController(Controller):
                 experiment_name=data.experiment_name
             )
             if model is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model not created",
                     error_description="The model could not be created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return model
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the model"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Update Model
     @patch(path="/id/{model_id:str}")
@@ -164,30 +160,29 @@ class ModelController(Controller):
         try:
             model = Model.get_by_id(id=model_id)
             if model is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model not found",
                     error_description="The model with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             model = model.update(
                 model_name=data.model_name,
                 model_url=data.model_url,
                 model_info=data.model_info
             )
             if model is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model not updated",
                     error_description="The model could not be updated"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return model
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while updating the model"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Delete Model
     @delete(path="/id/{model_id:str}")
@@ -197,27 +192,54 @@ class ModelController(Controller):
         try:
             model = Model.get_by_id(id=model_id)
             if model is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model not found",
                     error_description="The model with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             is_deleted = model.delete()
             if not is_deleted:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model not deleted",
                     error_description="The model could not be deleted"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return None
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while deleting the model"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
+
+    # Get Model Experiments
+    @get(path="/id/{model_id:str}/experiments")
+    async def get_model_experiments(
+        self, model_id: str
+    ) -> List[str]:
+        try:
+            model = Model.get_by_id(id=model_id)
+            if model is None:
+                error = RESTAPIError(
+                    error="Model not found",
+                    error_description="The model with the given ID was not found"
+                )
+                return Response(content=error, status_code=404)
+            experiments = model.get_associated_experiments()
+            if experiments is None:
+                error = RESTAPIError(
+                    error="No model experiments found",
+                    error_description="No model experiments were found for the given model"
+                )
+                return Response(content=error, status_code=404)
+            return experiments
+        except Exception as e:
+            error = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving model experiments"
+            )
+            return Response(content=error, status_code=500)
 
     # Get Model Runs
     @get(path="/id/{model_id:str}/runs")
@@ -227,26 +249,25 @@ class ModelController(Controller):
         try:
             model = Model.get_by_id(id=model_id)
             if model is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model not found",
                     error_description="The model with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            model_runs = model.get_runs()
+                )
+                return Response(content=error, status_code=404)
+            model_runs = model.get_associated_runs()
             if model_runs is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No model runs found",
                     error_description="No model runs were found for the given model"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return model_runs
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving model runs"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Get Model Datasets
     @get(path="/id/{model_id:str}/datasets")
@@ -256,26 +277,25 @@ class ModelController(Controller):
         try:
             model = Model.get_by_id(id=model_id)
             if model is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model not found",
                     error_description="The model with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            model_datasets = model.get_datasets()
+                )
+                return Response(content=error, status_code=404)
+            model_datasets = model.get_associated_datasets()
             if model_datasets is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No model datasets found",
                     error_description="No model datasets were found for the given model"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return model_datasets
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving model datasets"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Create Model Run
     @post(path="/id/{model_id:str}/runs")
@@ -287,26 +307,25 @@ class ModelController(Controller):
         try:
             model = Model.get_by_id(id=model_id)
             if model is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model not found",
                     error_description="The model with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            model_run = model.create_run(model_run_info=data.model_run_info)
+                )
+                return Response(content=error, status_code=404)
+            model_run = model.create_new_run(model_run_info=data.model_run_info)
             if model_run is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model run not created",
                     error_description="The model run could not be created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return model_run
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the model run"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Create Model Dataset
     @post(path="/id/{model_id:str}/datasets")
@@ -318,31 +337,30 @@ class ModelController(Controller):
         try:
             model = Model.get_by_id(id=model_id)
             if model is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model not found",
                     error_description="The model with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            dataset = model.create_dataset(
+                )
+                return Response(content=error, status_code=404)
+            dataset = model.create_new_dataset(
                 dataset_name=data.dataset_name,
                 dataset_info=data.dataset_info,
                 collection_date=data.collection_date,
                 experiment_name=data.experiment_name
             )
             if dataset is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Dataset not created",
                     error_description="The dataset could not be created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return dataset
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the dataset"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Add a Model Record
     @post(path="/id/{model_id:str}/records")
@@ -354,16 +372,16 @@ class ModelController(Controller):
         try:
             model = Model.get_by_id(id=model_id)
             if model is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model not found",
                     error_description="The model with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             
             if data.record_file:
                 record_file_path = await api_file_handler.create_file(data.record_file)
 
-            add_success, inserted_record_ids = model.add_record(
+            add_success, inserted_record_ids = model.insert_record(
                 timestamp=data.timestamp,
                 collection_date=data.collection_date,
                 model_data=data.model_data,
@@ -375,27 +393,26 @@ class ModelController(Controller):
                 record_info=data.record_info
             )
             if not add_success:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model record not added",
                     error_description="The model record could not be added"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             inserted_record_id = inserted_record_ids[0]
             inserted_model_record = ModelRecord.get_by_id(id=inserted_record_id)
             if inserted_model_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model record not found",
                     error_description="The model record with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return inserted_model_record
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while adding the model record"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
             
 
     # Search Model Records
@@ -411,12 +428,12 @@ class ModelController(Controller):
         try:
             model = Model.get_by_id(id=model_id)
             if model is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model not found",
                     error_description="The model with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            model_records = model.get_records(
+                )
+                return Response(content=error, status_code=404)
+            model_records = model.search_records(
                 collection_date=collection_date,
                 experiment_name=experiment_name,
                 season_name=season_name,
@@ -424,12 +441,11 @@ class ModelController(Controller):
             )
             return Stream(model_records_bytes_generator(model_records), media_type="application/ndjson")
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving model records"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Get Model Record by ID
@@ -440,19 +456,18 @@ class ModelController(Controller):
         try:
             model_record = ModelRecord.get_by_id(id=record_id)
             if model_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model record not found",
                     error_description="The model record with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return model_record
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the model record"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Download Model Record File
     @get(path="/records/id/{record_id:str}/download")
@@ -462,29 +477,28 @@ class ModelController(Controller):
         try:
             model_record = ModelRecord.get_by_id(id=record_id)
             if model_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model record not found",
                     error_description="The model record with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             record_file = model_record.record_file
             if record_file is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No record file found",
                     error_description="The model record does not have an associated file"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             bucket_name = "gemini"
             object_name = record_file
             object_path = f"{bucket_name}/{object_name}"
             return Redirect(path=f"/api/files/download/{object_path}")
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while downloading the model record file"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
 
     # Update Model Record
     @patch(path="/records/id/{record_id:str}")
@@ -496,29 +510,28 @@ class ModelController(Controller):
         try:
             model_record = ModelRecord.get_by_id(id=record_id)
             if model_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model record not found",
                     error_description="The model record with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             model_record = model_record.update(
                 model_data=data.model_data,
                 record_info=data.record_info
             )
             if model_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model record not updated",
                     error_description="The model record could not be updated"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return model_record
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while updating the model record"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Delete Model Record
     @delete(path="/records/id/{record_id:str}")
@@ -528,25 +541,24 @@ class ModelController(Controller):
         try:
             model_record = ModelRecord.get_by_id(id=record_id)
             if model_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model record not found",
                     error_description="The model record with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             is_deleted = model_record.delete()
             if not is_deleted:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model record not deleted",
                     error_description="The model record could not be deleted"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return None
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while deleting the model record"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     

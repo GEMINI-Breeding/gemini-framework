@@ -341,7 +341,20 @@ class MinioStorageProvider(StorageProvider):
                 recursive=recursive
             )
             return [obj.object_name for obj in objects]
-            
+            # object_metadata = []
+            # for obj in objects:
+            #     # Convert to dict for easier handling
+            #     obj_info = {
+            #         'bucket_name': obj.bucket_name,
+            #         'object_name': obj.object_name,
+            #         'size': obj.size,
+            #         'last_modified': obj.last_modified,
+            #         'etag': obj.etag,
+            #         'content_type': obj.content_type,
+            #         'metadata': obj.metadata
+            #     }
+            #     object_metadata.append(obj_info)
+            # return object_metadata
         except S3Error as e:
             if 'AccessDenied' in str(e):
                 raise StorageAuthError(f"Access denied while listing files: {e}")

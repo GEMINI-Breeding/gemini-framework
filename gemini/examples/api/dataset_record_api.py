@@ -1,129 +1,84 @@
 from gemini.api.dataset_record import DatasetRecord
-from gemini.api.dataset import Dataset
-from gemini.api.experiment import Experiment
 from datetime import datetime, timedelta
+from random import randint
 
-# Create a new dataset for Experiment A
-dataset = Dataset.create(
-    dataset_name="Test Dataset A",
-    dataset_info={
-        "test_info": "test_value"
-    },
+timestamp = datetime(1994, 10, 1, 12, 0, 0)  # Fixed timestamp for consistency
+timestamp = timestamp + timedelta(hours=randint(0, 23), minutes=randint(0, 59))  # Randomize time within the day
+
+# Create a new Dataset Record for Dataset A, with Experiment A, Site A1 and Season 1A
+new_dataset_record = DatasetRecord.create(
+    timestamp=timestamp,
+    collection_date=timestamp.date(),
+    dataset_name="Dataset A",
+    dataset_data={"key": "value"},
+    experiment_name="Experiment A",
+    site_name="Site A1",
+    season_name="Season 1A",
+    record_info={"test": "test"},
+    insert_on_create=True
+)
+print(f"Created Dataset Record: {new_dataset_record}")
+
+# Get Dataset Record by ID
+dataset_record_by_id = DatasetRecord.get_by_id(new_dataset_record.id)
+print(f"Dataset Record by ID: {dataset_record_by_id}")
+
+# Get Dataset Record
+dataset_record_by_name = DatasetRecord.get(
+    timestamp=new_dataset_record.timestamp,
+    dataset_name="Dataset A",
+    experiment_name="Experiment A",
+    site_name="Site A1",
+    season_name="Season 1A"
+)
+print(f"Dataset Record by Name: {dataset_record_by_name}")
+
+# Get all Dataset Records limit by 10
+dataset_records = DatasetRecord.get_all(limit=10)
+print(f"Dataset Records (limit 10):")
+for record in dataset_records:
+    print(record)
+
+# Search Dataset Records
+searched_records = DatasetRecord.search(
     experiment_name="Experiment A"
 )
-print(f"Created Dataset: {dataset}")
+searched_records = list(searched_records)  # Convert to list to evaluate the generator
+print(f"Found {len(searched_records)} records in Experiment A:")
 
-# Starting timestamp for the records
-starting_timestamp = datetime.strptime("2021-01-01 00:00:00", "%Y-%m-%d %H:%M:%S")
-records_to_add = []
-
-# Get valid combinations for the dataset
-valid_combinations = DatasetRecord.get_valid_combinations(dataset_name=dataset.dataset_name)
-print(f"Valid Combinations: {valid_combinations}")
-print(f"Number of Valid Combinations: {len(valid_combinations)}")
-
-# For each valid combination, add records
-for valid_combination in valid_combinations:
-    experiment_name = valid_combination['experiment_name']
-    site_name = valid_combination['site_name']
-    season_name = valid_combination['season_name']
-    record_info = {
-        "test_info": "test_value"
-    }
-    for i in range(10):
-        timestamp = starting_timestamp + timedelta(minutes=i)
-        record_info = {
-            "test_info": f"test_value_{i}"
-        }
-        new_dataset_record = DatasetRecord.create(
-            dataset_name=dataset.dataset_name,
-            experiment_name=experiment_name,
-            site_name=site_name,
-            season_name=season_name,
-            record_info=record_info,
-            dataset_data={
-                "data": f"test_data_{i}"
-            },
-            timestamp=timestamp
-        )
-        records_to_add.append(new_dataset_record)
-        print(f"Created Dataset Record: {new_dataset_record}")
-    
-    # Increase the starting timestamp for the next combination
-    starting_timestamp += timedelta(days=1)
-
-insert_success = DatasetRecord.add(records=records_to_add)
-print(f"Insert Success: {insert_success}")
-
-# Search for the dataset records
-one_combination = valid_combinations[0]
-search_results = DatasetRecord.search(
-    experiment_name=one_combination['experiment_name'],
-    site_name=one_combination['site_name'],
-    season_name=one_combination['season_name'],
-    dataset_name=dataset.dataset_name
+# Update the newly created Dataset Record
+updated_record = new_dataset_record.update(
+    dataset_data={"key": "new_value"},
+    record_info={"test": "test_updated"}
 )
-results = [record for record in search_results]
-print(f"Number of Records Found: {len(results)}")
+print(f"Updated Dataset Record: {updated_record}")
 
-# Ge    t one dataset record
-record = results[0]
+# Set Dataset Record Info
+updated_record.set_info(
+    record_info={"test": "test_set_info"}
+)
+print(f"Dataset Record Info set: {updated_record.get_info()}")
 
-# Check if dataset record exists
+# Check if Dataset Record exists
 exists = DatasetRecord.exists(
-    timestamp=record.timestamp,
-    dataset_name=dataset.dataset_name,
-    experiment_name=record.experiment_name,
-    season_name=record.season_name,
-    site_name=record.site_name
+    timestamp=new_dataset_record.timestamp,
+    dataset_name="Dataset A",
+    experiment_name="Experiment A",
+    site_name="Site A1",
+    season_name="Season 1A"
 )
-print(f"Dataset Record exists: {exists}")
+print(f"Does Dataset Record exist? {exists}")
 
-# Get By ID
-record_by_id = DatasetRecord.get_by_id(record.id)
-print(f"Record By ID: {record_by_id}")
+# Delete Dataset Record
+is_deleted = new_dataset_record.delete()
+print(f"Dataset Record deleted: {is_deleted}")
 
-# Set Record Info
-record.set_record_info(
-    record_info={
-        "test_info": "test_value_updated"
-    },
+# Check if Dataset Record exists after deletion
+exists_after_deletion = DatasetRecord.exists(
+    timestamp=new_dataset_record.timestamp,
+    dataset_name="Dataset A",
+    experiment_name="Experiment A",
+    site_name="Site A1",
+    season_name="Season 1A"
 )
-print(f"Set Record Info: {record}")
-
-# Get Record Info
-record_info = record.get_record_info()
-print(f"Record Info: {record_info}")
-
-# Refresh the record
-record.refresh()
-print(f"Refreshed Record: {record}")
-
-# Update the record
-record.update(
-    dataset_data={
-        "updated_data": "updated_value"
-    },
-    record_info={
-        "test_info": "updated_test_value"
-    },
-)
-
-# Create new experiment
-new_experiment_name = "Test Experiment B"
-new_season_name = "Test Season B"
-new_site_name = "Test Site B"
-
-new_experiment = Experiment.create(experiment_name=new_experiment_name)
-new_season = new_experiment.create_season(season_name=new_season_name)
-new_site = new_experiment.create_site(site_name=new_site_name)
-
-# Update the script record with new experiment, season and site
-record.set_experiment(experiment_name=new_experiment_name)
-record.set_season(season_name=new_season_name)
-record.set_site(site_name=new_site_name)
-print(f"Updated Record with new Experiment, Site, Season: {record}")
-
-# Delete the script record
-is_deleted = record.delete()
-print(f"Deleted Record: {is_deleted}")
+print(f"Does Dataset Record exist after deletion? {exists_after_deletion}")

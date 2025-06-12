@@ -89,19 +89,18 @@ class ExperimentController(Controller):
         try:
             experiments = Experiment.get_all()
             if experiments is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No experiments found",
                     error_description="No experiments were found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return experiments
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving all experiments"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
 
     # Get Experiments
     @get()
@@ -124,19 +123,18 @@ class ExperimentController(Controller):
                 experiment_end_date=experiment_end_date
             )
             if experiments is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No experiments found",
                     error_description="No experiments were found with the given search criteria"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return experiments
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving experiments"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     
     # Get Experiment by ID
@@ -147,19 +145,18 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return experiment
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the experiment"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Create Experiment
@@ -175,19 +172,18 @@ class ExperimentController(Controller):
                 experiment_end_date=data.experiment_end_date,
             )
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not created",
                     error_description="The experiment could not be created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return experiment
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the experiment"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Update Existing Experiment
@@ -198,11 +194,11 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error_ = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             experiment = experiment.update(
                 experiment_name=data.experiment_name,
                 experiment_info=data.experiment_info,
@@ -211,12 +207,11 @@ class ExperimentController(Controller):
             )
             return experiment
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while updating the experiment"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Delete Experiment
@@ -227,19 +222,18 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             experiment.delete()
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while deleting the experiment"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
     
     # Get Experiment Seasons
     @get(path="/id/{experiment_id:str}/seasons")
@@ -249,26 +243,25 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            seasons = experiment.get_seasons()
+                )
+                return Response(content=error, status_code=404)
+            seasons = experiment.get_associated_seasons()
             if seasons is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No seasons found",
                     error_description="No seasons were found for the given experiment"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return seasons
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the experiment seasons"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Create Season for Experiment
@@ -279,31 +272,30 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            season = experiment.create_season(
+                )
+                return Response(content=error, status_code=404)
+            season = experiment.create_new_season(
                 season_name=data.season_name,
                 season_info=data.season_info,
                 season_start_date=data.season_start_date,
                 season_end_date=data.season_end_date
             )
             if not season:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Season not created",
                     error_description="The season could not be created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return season
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the experiment season"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Get Experiment Sites
@@ -314,26 +306,25 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            sites = experiment.get_sites()
+                )
+                return Response(content=error, status_code=404)
+            sites = experiment.get_associated_sites()
             if sites is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No sites found",
                     error_description="No sites were found for the given experiment"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return sites
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the experiment sites"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Create Site for Experiment
@@ -344,12 +335,12 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            site = experiment.create_site(
+                )
+                return Response(content=error, status_code=404)
+            site = experiment.create_new_site(
                 site_name=data.site_name,
                 site_info=data.site_info,
                 site_city=data.site_city,
@@ -357,19 +348,18 @@ class ExperimentController(Controller):
                 site_country=data.site_country
             )
             if not site:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Site not created",
                     error_description="The site could not be created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return site
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the experiment site"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Get Experiment Cultivars
@@ -380,26 +370,25 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
                 ).to_html()
-                return Response(content=error_html, status_code=404)
-            cultivars = experiment.get_cultivars()
+                return Response(content=error, status_code=404)
+            cultivars = experiment.get_associated_cultivars()
             if cultivars is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No cultivars found",
                     error_description="No cultivars were found for the given experiment"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return cultivars
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the experiment cultivars"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
 
     
     # Create Cultivar for Experiment
@@ -410,30 +399,29 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            cultivar = experiment.create_cultivar(
+                )
+                return Response(content=error, status_code=404)
+            cultivar = experiment.create_new_cultivar(
                 cultivar_population=data.cultivar_population,
                 cultivar_accession=data.cultivar_accession,
                 cultivar_info=data.cultivar_info
             )
             if not cultivar:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Cultivar not created",
                     error_description="The cultivar could not be created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return cultivar
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the experiment cultivar"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Get Experiment Sensor Platforms
@@ -444,26 +432,25 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            sensor_platforms = experiment.get_platforms()
+                )
+                return Response(content=error, status_code=404)
+            sensor_platforms = experiment.get_associated_sensor_platforms()
             if sensor_platforms is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No sensor platforms found",
                     error_description="No sensor platforms were found for the given experiment"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return sensor_platforms
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the experiment sensor platforms"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Create Sensor Platform for Experiment
@@ -474,29 +461,28 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            sensor_platform = experiment.create_platform(
-                platform_name=data.sensor_platform_name,
-                platform_info=data.sensor_platform_info,
+                )
+                return Response(content=error, status_code=404)
+            sensor_platform = experiment.create_new_sensor_platform(
+                sensor_platform_name=data.sensor_platform_name,
+                sensor_platform_info=data.sensor_platform_info,
             )
             if not sensor_platform:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Sensor Platform not created",
                     error_description="The sensor platform could not be created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return sensor_platform
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the experiment sensor platform"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Get Experiment Traits
@@ -507,26 +493,25 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            traits = experiment.get_traits()
+                )
+                return Response(content=error, status_code=404)
+            traits = experiment.get_associated_traits()
             if traits is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No traits found",
                     error_description="No traits were found for the given experiment"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return traits
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the experiment traits"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Create Trait for Experiment
     @post(path="/id/{experiment_id:str}/traits")
@@ -536,12 +521,12 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            trait = experiment.create_trait(
+                )
+                return Response(content=error, status_code=404)
+            trait = experiment.create_new_trait(
                 trait_name=data.trait_name,
                 trait_units=data.trait_units,
                 trait_level=GEMINITraitLevel(data.trait_level_id),
@@ -549,19 +534,18 @@ class ExperimentController(Controller):
                 trait_metrics=data.trait_metrics
             )
             if not trait:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Trait not created",
                     error_description="The trait could not be created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return trait
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the experiment trait"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Get Experiment Sensors
@@ -572,26 +556,25 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            sensors = experiment.get_sensors()
+                )
+                return Response(content=error, status_code=404)
+            sensors = experiment.get_associated_sensors()
             if sensors is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No sensors found",
                     error_description="No sensors were found for the given experiment"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return sensors
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the experiment sensors"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Create Sensor for Experiment
     @post(path="/id/{experiment_id:str}/sensors")
@@ -601,12 +584,12 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            sensor = experiment.create_sensor(
+                )
+                return Response(content=error, status_code=404)
+            sensor = experiment.create_new_sensor(
                 sensor_name=data.sensor_name,
                 sensor_data_type=GEMINIDataType(data.sensor_data_type_id),
                 sensor_data_format=GEMINIDataFormat(data.sensor_data_format_id),
@@ -615,19 +598,18 @@ class ExperimentController(Controller):
                 sensor_platform_name=data.sensor_platform_name
             )
             if not sensor:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Sensor not created",
                     error_description="The sensor could not be created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return sensor
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the experiment sensor"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Get Experiment Scripts
@@ -638,26 +620,25 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            scripts = experiment.get_scripts()
+                )
+                return Response(content=error, status_code=404)
+            scripts = experiment.get_associated_scripts()
             if scripts is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No scripts found",
                     error_description="No scripts were found for the given experiment"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return scripts
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the experiment scripts"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Create Experiment Script
@@ -668,31 +649,30 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            script = experiment.create_script(
+                )
+                return Response(content=error, status_code=404)
+            script = experiment.create_new_script(
                 script_name=data.script_name,
                 script_extension=data.script_extension,
                 script_url=data.script_url,
                 script_info=data.script_info
             )
             if not script:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script not created",
                     error_description="The script could not be created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return script
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the experiment script"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Get Experiment Procedures
@@ -703,26 +683,25 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            procedures = experiment.get_procedures()
+                )
+                return Response(content=error, status_code=404)
+            procedures = experiment.get_associated_procedures()
             if procedures is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No procedures found",
                     error_description="No procedures were found for the given experiment"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return procedures
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the experiment procedures"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Create Experiment Procedure
@@ -733,29 +712,28 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            procedure = experiment.create_procedure(
+                )
+                return Response(content=error, status_code=404)
+            procedure = experiment.create_new_procedure(
                 procedure_name=data.procedure_name,
                 procedure_info=data.procedure_info,
             )
             if not procedure:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Procedure not created",
                     error_description="The procedure could not be created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return procedure
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the experiment procedure"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Get Experiment Models
@@ -766,26 +744,25 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            models = experiment.get_models()
+                )
+                return Response(content=error, status_code=404)
+            models = experiment.get_associated_models()
             if models is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No models found",
                     error_description="No models were found for the given experiment"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return models
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the experiment models"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Create Experiment Model
@@ -796,30 +773,29 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            model = experiment.create_model(
+                )
+                return Response(content=error, status_code=404)
+            model = experiment.create_new_model(
                 model_name=data.model_name,
                 model_info=data.model_info,
                 model_url=data.model_url
             )
             if not model:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Model not created",
                     error_description="The model could not be created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return model
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the experiment model"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Get Experiment Datasets
@@ -830,26 +806,25 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
                     error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            datasets = experiment.get_datasets()
+                )
+                return Response(content=error, status_code=404)
+            datasets = experiment.get_associated_datasets()
             if datasets is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No datasets found",
                     error_description="No datasets were found for the given experiment"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return datasets
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the experiment datasets"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Create Dataset for Experiment
@@ -860,31 +835,30 @@ class ExperimentController(Controller):
         try:
             experiment = Experiment.get_by_id(id=experiment_id)
             if experiment is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Experiment not found",
-                    error_description="No experiment was found with the given ID"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            dataset = experiment.create_dataset(
+                    error_descripion="No experiment was found with the given ID"
+                )
+                return Response(content=error, status_code=404)
+            dataset = experiment.create_new_dataset(
                 dataset_name=data.dataset_name,
                 dataset_info=data.dataset_info,
                 dataset_type=GEMINIDatasetType(data.dataset_type_id),
                 collection_date=data.collection_date
             )
             if not dataset:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Dataset not created",
                     error_description="The dataset could not be created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return dataset
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the experiment dataset"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
             
         
 

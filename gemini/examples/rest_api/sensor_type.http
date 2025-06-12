@@ -1,0 +1,50 @@
+@baseUrl = http://localhost:8000
+@apiUrl = {{baseUrl}}/api/sensor_types
+
+### Get all sensor types
+# @name GetAllSensorTypes
+GET {{apiUrl}}/all
+
+### Get a specific sensor type
+# @name GetSensorType
+GET {{apiUrl}}/?sensor_type_name=RGB
+
+### Select a sensor type
+@sensorTypeId = {{GetSensorType.response.body.$.0.id}}
+
+### Select a sensor type by ID
+# @name GetSensorTypeById
+GET {{apiUrl}}/id/{{sensorTypeId}}
+
+### Create a new sensor type
+# @name CreateSensorType
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+    "sensor_type_name": "Test Sensor Type",
+    "sensor_type_info": {
+        "sensor_type_description": "Test Description",
+        "sensor_type_notes": "Test Notes"
+    }
+}
+
+###
+@createdSensorTypeId = {{CreateSensorType.response.body.id}}
+
+### Update a sensor type
+# @name UpdateSensorType
+PATCH {{apiUrl}}/id/{{createdSensorTypeId}}
+Content-Type: application/json
+
+{
+    "sensor_type_name": "Updated Test Sensor Type",
+    "sensor_type_info": {
+        "sensor_type_description": "Updated Description",
+        "sensor_type_notes": "Updated Notes"
+    }
+}
+
+### Delete a sensor type
+# @name DeleteSensorType
+DELETE {{apiUrl}}/id/{{createdSensorTypeId}}

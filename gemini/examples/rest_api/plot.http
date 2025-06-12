@@ -1,0 +1,75 @@
+@baseUrl = http://localhost:8000
+@apiUrl = {{baseUrl}}/api/plots
+
+### Get all plots
+# @name GetAllPlots
+GET {{apiUrl}}/all
+
+### Get a specific plot
+# @name GetPlot
+GET {{apiUrl}}/?experiment_name=Experiment+A
+
+### Select a plot
+@plotId = {{GetPlot.response.body.$.0.id}}
+
+### Select a plot by ID
+# @name GetPlotById
+GET {{apiUrl}}/id/{{plotId}}
+
+### Get all associated cultivars by plot ID
+# @name GetCultivarsByPlotId
+GET {{apiUrl}}/id/{{plotId}}/cultivars
+
+### Get associated experiment by plot ID
+# @name GetExperimentByPlotId
+GET {{apiUrl}}/id/{{plotId}}/experiment
+
+### Get associated season by plot ID
+# @name GetSeasonByPlotId
+GET {{apiUrl}}/id/{{plotId}}/season
+
+### Get associated site by plot ID
+# @name GetSiteByPlotId
+GET {{apiUrl}}/id/{{plotId}}/site
+
+### Create a new plot
+# @name CreatePlot
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+    "plot_number": 55,
+    "plot_row_number": 55,
+    "plot_column_number": 55,
+    "plot_info": {
+        "plot_description": "Test Description",
+        "plot_notes": "Test Notes"
+    },
+    "cultivar_accession": "Accession A1",
+    "cultivar_population": "Population A",
+    "experiment_name": "Experiment A",
+    "season_name": "Season 1A",
+    "site_name": "Site A1"
+}
+
+###
+@createdPlotId = {{CreatePlot.response.body.id}}
+
+### Update a plot
+# @name UpdatePlot
+PATCH {{apiUrl}}/id/{{createdPlotId}}
+Content-Type: application/json
+
+{
+    "plot_number": 56,
+    "plot_row_number": 56,
+    "plot_column_number": 56,
+    "plot_info": {
+        "plot_description": "Updated Description",
+        "plot_notes": "Updated Notes"
+    }
+}
+
+### Delete a plot
+# @name DeletePlot
+DELETE {{apiUrl}}/id/{{createdPlotId}}

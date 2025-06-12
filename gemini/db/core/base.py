@@ -22,6 +22,7 @@ db_engine = DatabaseEngine(db_config)
 
 
 class BaseModel(DeclarativeBase, SerializeMixin):
+
     __abstract__ = True
     metadata = metadata_obj
 
@@ -31,11 +32,9 @@ class BaseModel(DeclarativeBase, SerializeMixin):
         global db_engine
         db_engine = engine
 
+
     @classmethod
     def unique_fields(cls):
-        """
-        Get the unique fields of the class.
-        """
         unique_fields = []
         for constraint in cls.__table__.constraints:
             if isinstance(constraint, UniqueConstraint):
@@ -45,11 +44,9 @@ class BaseModel(DeclarativeBase, SerializeMixin):
 
         return unique_fields
     
+
     @classmethod
     def validate_fields(cls, **kwargs):
-        """
-        Validate the fields of the class.
-        """
         # Remove None values from the kwargs
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
         # Remove empty dicts from the kwargs
@@ -59,22 +56,18 @@ class BaseModel(DeclarativeBase, SerializeMixin):
         kwargs = {k: v for k, v in kwargs.items() if k in columns}
         return kwargs
     
+
     @classmethod
     def create(cls, **kwargs):
-        """
-        Create a new instance of the class.
-        """
         kwargs = cls.validate_fields(**kwargs)
         instance = cls(**kwargs)
         with db_engine.get_session() as session:
             session.add(instance)
         return instance
     
+
     @classmethod
     def exists(cls, **kwargs):
-        """
-        Check if an instance of the class exists.
-        """
         kwargs = cls.validate_fields(**kwargs)
         if kwargs == {}:
             return False
@@ -83,32 +76,25 @@ class BaseModel(DeclarativeBase, SerializeMixin):
             return True
         return False
 
+
     @classmethod
     def all(cls):
-        """
-        Get all instances of the class.
-        """
         query = select(cls)
         with db_engine.get_session() as session:
             result = session.execute(query).scalars().all()
         return result
     
+
     @classmethod
     def get(cls, id):
-        """
-        Get an instance of the class by ID.
-        """
         query = select(cls).where(cls.id == id)
         with db_engine.get_session() as session:
             result = session.execute(query).scalar_one_or_none()
         return result
     
+
     @classmethod
     def get_by_parameters(cls, **kwargs):
-        """
-        Get instances of the class by multiple
-        parameters.
-        """
         query = select(cls)
         kwargs = cls.validate_fields(**kwargs)
         if kwargs == {}:
@@ -118,32 +104,43 @@ class BaseModel(DeclarativeBase, SerializeMixin):
             if isinstance(attribute.type, JSON):
                 query = query.where(attribute.contains(value))
             elif isinstance(attribute.type, TIMESTAMP):
-                query = query.where(attribute >= value)
+                query = query.where(attribute == value)
             else:
                 query = query.where(attribute == value)
         with db_engine.get_session() as session:
             result = session.execute(query).scalars().first()
         return result
     
+
     @classmethod
     def update(cls, instance, **kwargs):
-        """
-        Update an instance of the class.
-        """
         with db_engine.get_session() as session:
             kwargs = cls.validate_fields(**kwargs)
             for key, value in kwargs.items():
                 setattr(instance, key, value)
             session.add(instance)
         return instance
-
+    
+    @classmethod
+    def get_or_update(cls, instance, **kwargs):
+        unique_fields = cls.unique_fields()
+        kwargs = cls.validate_fields(**kwargs)
+        unique_kwargs = {key: value for key, value in kwargs.items() if key in unique_fields}
+        if unique_kwargs == {}:
+            return instance
+        existing_instance = cls.get_by_parameters(**unique_kwargs)
+        if existing_instance:
+            return existing_instance
+        # If no existing instance found, update the current instance
+        if not instance:
+            instance = cls(**kwargs)
+        else:
+            # Update the existing instance with new values
+            instance = cls.update(instance, **kwargs)
 
 
     @classmethod
     def get_or_create(cls, **kwargs):
-        """
-        Get an existing instance or create a new one.
-        """
         unique_fields = cls.unique_fields()
         kwargs = cls.validate_fields(**kwargs)
         unique_kwargs = {key: value for key, value in kwargs.items() if key in unique_fields}
@@ -158,22 +155,19 @@ class BaseModel(DeclarativeBase, SerializeMixin):
         
     @classmethod
     def delete(cls, instance):
-        """
-        Delete an instance of the class.
-        """
-        with db_engine.get_session() as session:
-            session.delete(instance)
-        return True
+        try:
+            with db_engine.get_session() as session:
+                session.delete(instance)
+            return True
+        except Exception as e:
+            print(f"Error deleting instance: {e}")
+            return False
     
-
-
     @classmethod
     def get_model_from_table_name(cls, table_name):
-        """
-        Get the model by table name
-        """
         return cls.metadata.tables[f"{cls.metadata.schema}.{table_name}"]
         
+
     @classmethod
     def insert_bulk(cls, constraint, data):
         with db_engine.get_session() as session:
@@ -182,7 +176,6 @@ class BaseModel(DeclarativeBase, SerializeMixin):
             inserted_records = session.execute(stmt, data, execution_options={"populate_existing": True})
             inserted_ids = [record.id for record in inserted_records]
             return inserted_ids
-        
         
         
     @classmethod
@@ -203,6 +196,17 @@ class BaseModel(DeclarativeBase, SerializeMixin):
             session.execute(stmt)
             return True
         
+    @classmethod
+    def update_parameter(cls, instance, parameter_name, parameter_value):
+        # Check if parameter_name is a valid column in the table
+        if parameter_name not in cls.__table__.columns:
+            raise ValueError(f"{parameter_name} is not a valid column in {cls.__tablename__}")
+        with db_engine.get_session() as session:
+            # Update the parameter value
+            setattr(instance, parameter_name, parameter_value)
+            session.add(instance)
+        return instance
+        
         
     @classmethod
     def update_or_create(cls, constraint, **kwargs):
@@ -219,8 +223,7 @@ class BaseModel(DeclarativeBase, SerializeMixin):
             instance = cls.create(**kwargs)
             return instance
         
-        
-        
+
     @classmethod
     def search(cls, **kwargs):
         with db_engine.get_session() as session:
@@ -239,6 +242,7 @@ class BaseModel(DeclarativeBase, SerializeMixin):
             result = session.execute(query).scalars().all()
         return result
         
+
     @classmethod
     def paginate(cls, order_by, page_number, page_limit, **kwargs):
         with db_engine.get_session() as session:
@@ -262,6 +266,7 @@ class BaseModel(DeclarativeBase, SerializeMixin):
             query_result = query.all()
         return number_of_records, number_of_pages, query_result
     
+
     @classmethod
     def stream(cls, **kwargs):
         query = select(cls)
@@ -307,11 +312,14 @@ class BaseModel(DeclarativeBase, SerializeMixin):
 
 
 class ViewBaseModel(BaseModel):
+
     __abstract__ = True
+
 
 class MaterializedViewBaseModel(BaseModel):
 
     __abstract__ = True
+
 
     @classmethod
     def refresh(cls):
@@ -319,31 +327,37 @@ class MaterializedViewBaseModel(BaseModel):
             query = text(f"REFRESH MATERIALIZED VIEW {cls.__table__.name}")
             session.execute(query)
         
+
     @classmethod
     def get(cls):
         cls.refresh()
         return super().get()
     
+
     @classmethod
     def all(cls):
         cls.refresh()
         return super().all()
     
+
     @classmethod
     def get_by_parameters(cls, **kwargs):
         cls.refresh()
         return super().get_by_parameters(**kwargs)
     
+
     @classmethod
     def search(cls, **kwargs):
         cls.refresh()
         return super().search(**kwargs)
     
+
     @classmethod
     def paginate(cls, order_by, page_number, page_limit, **kwargs):
         cls.refresh()
         return super().paginate(order_by, page_number, page_limit, **kwargs)
     
+
     @classmethod
     def stream(cls, **kwargs):
         cls.refresh()
@@ -353,6 +367,7 @@ class ColumnarBaseModel(BaseModel):
 
     __abstract__ = True
     
+
     @classmethod
     def all(cls, limit=100):
         query = select(cls).limit(limit)

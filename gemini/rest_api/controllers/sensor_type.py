@@ -16,11 +16,11 @@ class SensorTypeController(Controller):
         try:
             sensor_types = SensorType.get_all()
             if sensor_types is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No sensor types found",
                     error_description="No sensor types were found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return sensor_types
         except Exception as e:
             error_message = RESTAPIError(
@@ -47,19 +47,18 @@ class SensorTypeController(Controller):
             )
 
             if sensor_types is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No sensor types found",
                     error_description="No sensor types were found with the given search criteria"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return sensor_types
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving sensor types"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
         
     # Get Sensor Type by ID
     @get(path="/id/{sensor_type_id:int}")
@@ -69,19 +68,18 @@ class SensorTypeController(Controller):
             try:
                 sensor_type = SensorType.get_by_id(id=sensor_type_id)
                 if sensor_type is None:
-                    error_html = RESTAPIError(
+                    error = RESTAPIError(
                         error="Sensor type not found",
                         error_description="The sensor type with the given ID was not found"
-                    ).to_html()
-                    return Response(content=error_html, status_code=404)
+                    )
+                    return Response(content=error, status_code=404)
                 return sensor_type
             except Exception as e:
                 error_message = RESTAPIError(
                     error=str(e),
                     error_description="An error occurred while retrieving sensor type"
                 )
-                error_html = error_message.to_html()
-                return Response(content=error_html, status_code=500)
+                return Response(content=error_message, status_code=500)
             
     # Create a new Sensor Type
     @post()
@@ -95,19 +93,18 @@ class SensorTypeController(Controller):
                 sensor_type_info=data.sensor_type_info
             )
             if sensor_type is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Sensor type not created",
                     error_description="The sensor type was not created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return sensor_type
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating sensor type"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
 
     # Update a Sensor Type
     @patch(path="/id/{sensor_type_id:int}")
@@ -119,29 +116,28 @@ class SensorTypeController(Controller):
         try:
             sensor_type = SensorType.get_by_id(id=sensor_type_id)
             if sensor_type is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Sensor type not found",
                     error_description="The sensor type with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             sensor_type = sensor_type.update(
                 sensor_type_name=data.sensor_type_name,
                 sensor_type_info=data.sensor_type_info
             )
             if sensor_type is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Sensor type not updated",
                     error_description="The sensor type was not updated"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return sensor_type
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while updating sensor type"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
         
     # Delete a Sensor Type
     @delete(path="/id/{sensor_type_id:int}")
@@ -152,25 +148,23 @@ class SensorTypeController(Controller):
         try:
             sensor_type = SensorType.get_by_id(id=sensor_type_id)
             if sensor_type is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Sensor type not found",
                     error_description="The sensor type with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             is_deleted = sensor_type.delete()
             if not is_deleted:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Sensor type not deleted",
                     error_description="The sensor type was not deleted"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return None
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while deleting sensor type"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
-        
+            return Response(content=error_message, status_code=500)
     

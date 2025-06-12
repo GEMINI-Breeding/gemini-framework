@@ -1,87 +1,67 @@
 from gemini.api.script import Script
-from gemini.api.experiment import Experiment
 
-# Create a new script with experiment Experiment A
+# Create a new script for Experiment A
 new_script = Script.create(
     script_name="Script Test 1",
+    script_url="https://example.com/script_test_1",
+    script_extension="py",
     script_info={"test": "test"},
     experiment_name="Experiment A"
 )
-print(f"Created Script: {new_script}")
-
-# Get Script with script_name and experiment_name that do exist
-script = Script.get("Script Test 1", "Experiment A")
-print(f"Got Script: {script}")
+print(f"Created New Script: {new_script}")
 
 # Get Script by ID
-script = Script.get_by_id(new_script.id)
-print(f"Got Script by ID: {script}")
+script_from_id = Script.get(new_script.id)
+print(f"Got Script from ID: {script_from_id}")
+
+# Get Script by Name
+script_from_name = Script.get(script_name="Script Test 1")
+print(f"Got Script from Name: {script_from_name}")
 
 # Get all scripts
 all_scripts = Script.get_all()
-print(f"All Scripts:")
 for script in all_scripts:
-    print(script)
+    print(f"Script: {script}")
 
-# Search for scripts
-searched_scripts = Script.search(experiment_name="Experiment A")
-length_searched_scripts = len(searched_scripts)
-print(f"Found {length_searched_scripts} scripts in Experiment A")
+# Search for scripts by name
+search_results = Script.search(script_name="Script Test 1")
+for result in search_results:
+    print(f"Search Result: {result}")
 
-# Refresh the script
-script = script.refresh()
-print(f"Refreshed Script: {script}")
-
-# Update the script
-script.update(
-    script_info={"test": "test_updated"},
+# Update Script
+script_from_name.update(
+    script_url="https://example.com/updated_script_test_1",
+    script_info={"updated": "info"}
 )
-print(f"Updated Script: {script}")
+print(f"Updated Script: {script_from_name}")
+
+# Refresh Script
+script_from_name.refresh()
+print(f"Refreshed Script: {script_from_name}")
 
 # Set Script Info
-script.set_info(
-    script_info={"test": "test_set"},
+script_from_name.set_info(
+    script_info={"new": "info"}
 )
-print(f"Set Script Info: {script}")
+print(f"Set Script Info: {script_from_name.get_info()}")
 
-# Get Script Info
-script_info = script.get_info()
-print(f"Script Info: {script_info}")
+# Check if Script Exists
+exists = Script.exists(script_name="Script Test 1")
+print(f"Does Script Exist? {exists}")
 
-# Create 10 new script runs
-for i in range(10):
-    script.create_run(
-        script_run_info={
-            "test_info": f"test_value_{i}"
-        }
-    )
-    print(f"Created Script Run {i + 1}")
-
-# Get all runs for the script
-script_runs = script.get_runs()
-print(f"All Script Runs:")
-for script_run in script_runs:
-    print(script_run)
-
-# Create a Dataset for the script
-dataset = script.create_dataset(
-    dataset_name="Dataset Test 1",
-    dataset_info={"test": "test"},
-    collection_date="2023-10-01",
-    experiment_name="Experiment A",
-)
-print(f"Created Dataset: {dataset}")
-
-# Check script has_dataset
-has_dataset = script.has_dataset("Dataset Test 1")
-print(f"Script has Dataset Test 1: {has_dataset}")
-
-# Get all datasets for the script
-script_datasets = script.get_datasets()
-print(f"All Script Datasets:")
-for script_dataset in script_datasets:
-    print(script_dataset)
-
-# Delete the script
-is_deleted = script.delete()
+# Delete Script
+is_deleted = script_from_name.delete()
 print(f"Deleted Script: {is_deleted}")
+
+# Check if Script Exists after Deletion
+exists_after_deletion = Script.exists(script_name="Script Test 1")
+print(f"Does Script Exist after Deletion? {exists_after_deletion}")
+
+# Delete Script
+is_deleted = new_script.delete()
+print(f"Deleted Script: {is_deleted}")
+
+# Check if Script Exists after Deletion
+exists_after_deletion = Script.exists(script_name="Script Test 1")
+print(f"Does Script Exist after Deletion? {exists_after_deletion}")
+

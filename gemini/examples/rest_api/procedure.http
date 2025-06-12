@@ -1,0 +1,160 @@
+@baseUrl = http://localhost:8000
+@apiUrl = {{baseUrl}}/api/procedures
+
+### Get all procedures
+# @name GetAllProcedures
+GET {{apiUrl}}/all
+
+### Get a specific procedure
+# @name GetProcedure
+GET {{apiUrl}}/?procedure_name=Procedure+A
+
+### Select a procedure
+@procedureId = {{GetProcedure.response.body.$.0.id}}
+
+### Select a procedure by ID
+# @name GetProcedureById
+GET {{apiUrl}}/id/{{procedureId}}
+
+### Get all associated experiments by procedure ID
+# @name GetExperimentsByProcedureId
+GET {{apiUrl}}/id/{{procedureId}}/experiments
+
+### Get all associated datasets by procedure ID
+# @name GetDatasetsByProcedureId
+GET {{apiUrl}}/id/{{procedureId}}/datasets
+
+### Create a new procedure dataset
+# @name CreateProcedureDataset
+POST {{apiUrl}}/id/{{procedureId}}/datasets
+Content-Type: application/json
+
+{
+    "dataset_name": "Test Procedure Dataset",
+    "dataset_info": {
+        "dataset_description": "Test Description",
+        "dataset_notes": "Test Notes"
+    },
+    "collection_date": "2021-01-01",
+    "experiment_name": "Experiment B"
+}
+
+### Get all associated runs by procedure ID
+# @name GetRunsByProcedureId
+GET {{apiUrl}}/id/{{procedureId}}/runs
+
+### Create a new procedure run
+# @name CreateProcedureRun
+POST {{apiUrl}}/id/{{procedureId}}/runs
+Content-Type: application/json
+
+{
+    "procedure_run_info": {
+        "procedure_run_description": "Test Description",
+        "procedure_run_notes": "Test Notes"
+    }
+}
+
+### Create a new procedure
+# @name CreateProcedure
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+    "procedure_name": "Test Procedure",
+    "procedure_info": {
+        "procedure_description": "Test Description",
+        "procedure_notes": "Test Notes"
+    },
+    "experiment_name": "Experiment A"
+}
+
+###
+@createdProcedureId = {{CreateProcedure.response.body.id}}
+
+### Update a procedure
+# @name UpdateProcedure
+PATCH {{apiUrl}}/id/{{createdProcedureId}}
+Content-Type: application/json
+
+{
+    "procedure_name": "Updated Test Procedure",
+    "procedure_info": {
+        "procedure_description": "Updated Description",
+        "procedure_notes": "Updated Notes"
+    },
+    "experiment_name": "Experiment A"
+}
+
+### Delete a procedure
+# @name DeleteProcedure
+DELETE {{apiUrl}}/id/{{createdProcedureId}}
+
+### Search procedure records
+# @name SearchProcedureRecords
+GET {{apiUrl}}/id/{{procedureId}}/records
+
+### Add a procedure record
+# @name AddProcedureRecord
+POST {{apiUrl}}/id/{{procedureId}}/records
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="timestamp"
+
+2021-01-01T00:00:00Z
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="procedure_data"
+
+{"data": "test"}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="experiment_name"
+
+Experiment A
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="season_name"
+
+Season 1A
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="site_name"
+
+Site A1
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="record_file"; filename="example.txt" Content-Type: text/plain
+
+< ./example.txt
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="record_info"
+
+{"record_description": "Test Description", "record_notes": "Test Notes"}
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+@createdProcedureRecordId = {{AddProcedureRecord.response.body.id}}
+
+@createdProcedureRecordFileKey = {{AddProcedureRecord.response.body.record_file}}
+
+### Get a procedure record by ID
+# @name GetProcedureRecordById
+GET {{apiUrl}}/records/id/{{createdProcedureRecordId}}
+
+### Update a procedure record
+# @name UpdateProcedureRecord
+PATCH  {{apiUrl}}/records/id/{{createdProcedureRecordId}}
+Content-Type: application/json
+
+{
+    "procedure_data": {"data": "test updated"},
+    "record_info": {
+        "record_description": "Test Description A",
+        "record_notes": "Test Notes A"
+    }
+}
+
+### Delete a procedure record
+# @name DeleteProcedureRecord
+DELETE {{apiUrl}}/records/id/{{createdProcedureRecordId}}
+
+### Get Procedure Record File
+# @name DownloadProcedureRecordFile
+GET {{apiUrl}}/records/id/{{createdProcedureRecordId}}/download

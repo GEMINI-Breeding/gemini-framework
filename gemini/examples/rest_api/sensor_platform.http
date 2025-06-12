@@ -1,0 +1,60 @@
+@baseUrl = http://localhost:8000
+@apiUrl = {{baseUrl}}/api/sensor_platforms
+
+### Get all sensor platforms
+# @name GetAllSensorPlatforms
+GET {{apiUrl}}/all
+
+### Get a specific sensor platform
+# @name GetSensorPlatform
+GET {{apiUrl}}/?experiment_name=Experiment+A
+
+### Select a sensor platform
+@sensorPlatformId = {{GetSensorPlatform.response.body.$.0.id}}
+
+### Select a sensor platform by ID
+# @name GetSensorPlatformById
+GET {{apiUrl}}/id/{{sensorPlatformId}}
+
+### Get Associated Experiments by Sensor Platform ID
+# @name GetExperimentsBySensorPlatformId
+GET {{apiUrl}}/id/{{sensorPlatformId}}/experiments
+
+### Get Associated Sensors by Sensor Platform ID
+# @name GetSensorsBySensorPlatformId
+GET {{apiUrl}}/id/{{sensorPlatformId}}/sensors
+
+### Create a new sensor platform
+# @name CreateSensorPlatform
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+    "sensor_platform_name": "Test Sensor Platform",
+    "sensor_platform_info": {
+        "sensor_platform_description": "Test Description",
+        "sensor_platform_notes": "Test Notes"
+    },
+    "experiment_name": "Experiment B"
+}
+
+###
+@createdSensorPlatformId = {{CreateSensorPlatform.response.body.id}}
+
+### Update a sensor platform
+# @name UpdateSensorPlatform
+PATCH {{apiUrl}}/id/{{createdSensorPlatformId}}
+Content-Type: application/json
+
+{
+    "sensor_platform_name": "Updated Test Sensor Platform",
+    "sensor_platform_info": {
+        "sensor_platform_description": "Updated Description",
+        "sensor_platform_notes": "Updated Notes"
+    }
+}
+
+### Delete a sensor platform
+# @name DeleteSensorPlatform
+DELETE {{apiUrl}}/id/{{createdSensorPlatformId}}
+

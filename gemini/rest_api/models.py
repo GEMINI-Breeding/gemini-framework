@@ -57,7 +57,7 @@ class FileMetadata(RESTAPIBase):
     last_modified: datetime
     etag: str
     size: int
-    content_type: str
+    content_type: Optional[str] = None
 
 class UploadFileRequest(RESTAPIBase):
     file: UploadFile
@@ -350,24 +350,32 @@ class ModelRunOutput(RESTAPIBase):
 # --------------------------------
 
 class PlantInput(RESTAPIBase):
-    plot_id: ID
     plant_number: int
     plant_info: Optional[JSONB] = {}
     cultivar_accession: Optional[str] = None
     cultivar_population: Optional[str] = None
+    experiment_name: Optional[str] = None
+    season_name: Optional[str] = None
+    site_name: Optional[str] = None
+    plot_number: Optional[int] = None
+    plot_row_number: Optional[int] = None
+    plot_column_number: Optional[int] = None
+
 
 class PlantUpdate(RESTAPIBase):
     plant_number: Optional[int] = None
     plant_info: Optional[JSONB] = None
 
 class PlantSearch(RESTAPIBase):
-    plot_id: Optional[ID] = None
     plant_number: Optional[int] = None
     cultivar_accession: Optional[str] = None
     cultivar_population: Optional[str] = None
     experiment_name: Optional[str] = None
     season_name: Optional[str] = None
     site_name: Optional[str] = None
+    plot_number: Optional[int] = None
+    plot_row_number: Optional[int] = None
+    plot_column_number: Optional[int] = None
 
 class PlantOutput(RESTAPIBase):
     id: Optional[ID] = None

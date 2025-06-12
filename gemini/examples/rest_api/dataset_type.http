@@ -1,0 +1,50 @@
+@baseUrl = http://localhost:8000
+@apiUrl = {{baseUrl}}/api/dataset_types
+
+### Get all dataset types
+# @name GetAllDatasetTypes
+GET {{apiUrl}}/all
+
+### Get a specific dataset type
+# @name GetDatasetType
+GET {{apiUrl}}/?dataset_type_name=Sensor
+
+### Select a dataset type
+@datasetTypeId = {{GetDatasetType.response.body.$.0.id}}
+
+### Select a dataset type by ID
+# @name GetDatasetTypeById
+GET {{apiUrl}}/id/{{datasetTypeId}}
+
+### Create a new dataset type
+# @name CreateDatasetType
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+    "dataset_type_name": "Test Dataset Type",
+    "dataset_type_info": {
+        "dataset_type_description": "Test Description",
+        "dataset_type_notes": "Test Notes"
+    }
+}
+
+###
+@createdDatasetTypeId = {{CreateDatasetType.response.body.id}}
+
+### Update a dataset type
+# @name UpdateDatasetType
+PATCH {{apiUrl}}/id/{{createdDatasetTypeId}}
+Content-Type: application/json
+
+{
+    "dataset_type_name": "Updated Test Dataset Type",
+    "dataset_type_info": {
+        "dataset_type_description": "Updated Description",
+        "dataset_type_notes": "Updated Notes"
+    }
+}
+
+### Delete a dataset type
+# @name DeleteDatasetType
+DELETE {{apiUrl}}/id/{{createdDatasetTypeId}}

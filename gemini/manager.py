@@ -114,7 +114,7 @@ class GEMINIManager(BaseModel):
     def rebuild(self) -> bool:
         try:
             subprocess.run(
-                ["docker", "compose", "-f", self.compose_file_path, "--env-file", self.env_file_path, "down", "--remove-orphans", "--volumes", "--rmi","local"],
+                ["docker", "compose", "-f", self.compose_file_path, "--env-file", self.env_file_path, "down", "--remove-orphans", "--volumes"],
                 check=True
             )
             subprocess.run(

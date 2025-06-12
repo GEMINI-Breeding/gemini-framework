@@ -1,0 +1,150 @@
+@baseUrl = http://localhost:8000
+@apiUrl = {{baseUrl}}/api/sensors
+
+### Get all sensors
+# @name GetAllSensors
+GET {{apiUrl}}/all
+
+### Get a specific sensor
+# @name GetSensor
+GET {{apiUrl}}/?experiment_name=Experiment+A
+
+### Select a sensor
+@sensorId = {{GetSensor.response.body.$.0.id}}
+
+### Select a sensor by ID
+# @name GetSensorById
+GET {{apiUrl}}/id/{{sensorId}}
+
+### Get Associated Experiments by Sensor ID
+# @name GetExperimentsBySensorId
+GET {{apiUrl}}/id/{{sensorId}}/experiments
+
+### Get Associated Datasets by Sensor ID
+# @name GetDatasetsBySensorId
+GET {{apiUrl}}/id/{{sensorId}}/datasets
+
+### Get Associated Sensor Platforms by Sensor ID
+# @name GetSensorPlatformsBySensorId
+GET {{apiUrl}}/id/{{sensorId}}/sensor_platforms
+
+### Create a new sensor
+# @name CreateSensor
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+    "sensor_name": "Test Sensor",
+    "sensor_info": {
+        "sensor_description": "Test Description",
+        "sensor_notes": "Test Notes"
+    },
+    "sensor_type_id": 1,
+    "sensor_data_format_id": 1,
+    "sensor_data_type_id": 1,
+    "experiment_name": "Experiment B"
+}
+
+###
+@createdSensorId = {{CreateSensor.response.body.id}}
+
+### Update a sensor
+# @name UpdateSensor
+PATCH {{apiUrl}}/id/{{createdSensorId}}
+Content-Type: application/json
+
+{
+    "sensor_name": "Updated Test Sensor",
+    "sensor_info": {
+        "sensor_description": "Updated Description",
+        "sensor_notes": "Updated Notes"
+    },
+    "sensor_type_id": 1,
+    "sensor_data_format_id": 1,
+    "sensor_data_type_id": 1
+}
+
+### Delete a sensor
+# @name DeleteSensor
+DELETE {{apiUrl}}/id/{{createdSensorId}}
+
+### Search Sensor Data
+# @name SearchSensorData
+GET {{apiUrl}}/id/{{sensorId}}/records
+
+### Create Sensor Record
+# @name CreateSensorRecord
+POST {{apiUrl}}/id/{{sensorId}}/records
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="timestamp"
+
+2021-01-01T00:00:00Z
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="sensor_data"
+
+{"data": "test"}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="experiment_name"
+
+Experiment A
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="season_name"
+
+Season 1A
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="site_name"
+
+Site A1
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="plot_number"
+
+1
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="plot_row_number"
+
+1
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="plot_column_number"
+
+1
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="record_file"; filename="example.txt" Content-Type: text/plain
+
+< ./example.txt
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+Content-Disposition: form-data; name="record_info"
+
+{"record_description": "Test Description", "record_notes": "Test Notes"}
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+@createdSensorRecordId = {{CreateSensorRecord.response.body.id}}
+
+@createdSensorRecordFileKey = {{CreateSensorRecord.response.body.record_file}}
+
+### Get a sensor record by ID
+# @name GetSensorRecordById
+GET {{apiUrl}}/records/id/{{createdSensorRecordId}}
+
+### Update a sensor record
+# @name UpdateSensorRecord
+PATCH {{apiUrl}}/records/id/{{createdSensorRecordId}}
+Content-Type: application/json
+
+{
+    "sensor_data": {"data": "test updated"},
+    "record_info": {
+        "record_description": "Test Description A",
+        "record_notes": "Test Notes A"
+    }
+}
+
+### Delete a sensor record
+# @name DeleteSensorRecord
+DELETE {{apiUrl}}/records/id/{{createdSensorRecordId}}
+
+### Download Sensor Record File
+# @name DownloadSensorRecordFile
+GET {{apiUrl}}/records/id/{{createdSensorRecordId}}/download

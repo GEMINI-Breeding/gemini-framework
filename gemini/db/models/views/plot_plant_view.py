@@ -20,3 +20,4 @@ class PlotPlantViewModel(ViewBaseModel):
     cultivar_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     cultivar_accession: Mapped[str] = mapped_column(String, primary_key=True)
     cultivar_population: Mapped[str] = mapped_column(String, primary_key=True)
+    cultivar_info: Mapped[dict] = mapped_column(JSONB)

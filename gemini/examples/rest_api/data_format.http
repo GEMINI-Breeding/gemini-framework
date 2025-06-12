@@ -1,0 +1,57 @@
+@baseUrl = http://localhost:8000
+@apiUrl = {{baseUrl}}/api/data_formats
+
+### Get all data formats
+# @name GetAllDataFormats
+GET {{apiUrl}}/all
+
+### Get a specific data format
+# @name GetDataFormat
+GET {{apiUrl}}/?data_format_name=JPEG
+
+### Select a data format
+@dataFormatId = {{GetDataFormat.response.body.$.0.id}}
+
+### Select a data format by ID
+# @name GetDataFormatById
+GET {{apiUrl}}/id/{{dataFormatId}}
+
+### Get all associated datatypes by data format ID
+# @name GetDatatypesByDataFormatId
+GET {{apiUrl}}/id/{{dataFormatId}}/data_types
+
+### Create a new data format
+# @name CreateDataFormat
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+    "data_format_name": "TEST",
+    "data_format_mime_type": "application/test",
+    "data_format_info": {
+        "data_format_description": "Test Description",
+        "data_format_notes": "Test Notes"
+    }
+}
+
+###
+@createdDataFormatId = {{CreateDataFormat.response.body.id}}
+
+### Update a data format
+# @name UpdateDataFormat
+PATCH {{apiUrl}}/id/{{createdDataFormatId}}
+Content-Type: application/json
+
+{
+    "data_format_name": "Updated Test",
+    "data_format_mime_type": "application/updated-test",
+    "data_format_info": {
+        "data_format_description": "Updated Description",
+        "data_format_notes": "Updated Notes"
+    }
+}
+
+### Delete a data format
+# @name DeleteDataFormat
+DELETE {{apiUrl}}/id/{{createdDataFormatId}}
+

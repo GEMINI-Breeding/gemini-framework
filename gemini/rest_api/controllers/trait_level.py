@@ -16,20 +16,19 @@ class TraitLevelController(Controller):
         try:
             trait_levels = TraitLevel.get_all()
             if trait_levels is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No trait levels found",
                     error_description="No trait levels were found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return trait_levels
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving all trait levels"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
-
+            return Response(content=error, status_code=500)
+        
     # Get all Trait Levels
     @get()
     async def get_trait_levels(
@@ -47,19 +46,18 @@ class TraitLevelController(Controller):
             )
 
             if trait_levels is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No trait levels found",
                     error_description="No trait levels were found with the given search criteria"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return trait_levels
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving trait levels"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
 
     # Get Trait Level by ID
     @get(path="/id/{trait_level_id:int}")
@@ -69,19 +67,18 @@ class TraitLevelController(Controller):
         try:
             trait_level = TraitLevel.get_by_id(id=trait_level_id)
             if trait_level is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Trait level not found",
                     error_description="The trait level with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return trait_level
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving trait levels"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
 
     # Create Trait Level
     @post()
@@ -95,19 +92,18 @@ class TraitLevelController(Controller):
                 trait_level_info=data.trait_level_info
             )
             if trait_level is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="An error occurred while creating trait level",
                     error_description="An error occurred while creating trait level"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return trait_level
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating trait level"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
         
     # Update Trait Level
     @patch(path="/id/{trait_level_id:int}")
@@ -119,29 +115,28 @@ class TraitLevelController(Controller):
         try:
             trait_level = TraitLevel.get_by_id(id=trait_level_id)
             if trait_level is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Trait level not found",
                     error_description="The trait level with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             trait_level = trait_level.update(
                 trait_level_name=data.trait_level_name,
                 trait_level_info=data.trait_level_info
             )
             if trait_level is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="An error occurred while updating trait level",
                     error_description="An error occurred while updating trait level"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return trait_level
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while updating trait level"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
         
     # Delete Trait Level
     @delete(path="/id/{trait_level_id:int}")
@@ -151,24 +146,22 @@ class TraitLevelController(Controller):
         try:
             trait_level = TraitLevel.get_by_id(id=trait_level_id)
             if trait_level is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Trait level not found",
                     error_description="The trait level with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             is_deleted = trait_level.delete()
             if not is_deleted:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Failed to delete trait level",
                     error_description="The trait level could not be deleted"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return None
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while deleting trait level"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
-        
+            return Response(content=error_message, status_code=500)

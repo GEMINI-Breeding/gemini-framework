@@ -9,6 +9,9 @@ class ExperimentSeasonsViewModel(ViewBaseModel):
 
     experiment_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     experiment_name : Mapped[str] = mapped_column(String)
+    experiment_info : Mapped[dict] = mapped_column(JSONB)
+    experiment_start_date : Mapped[str] = mapped_column(String)
+    experiment_end_date : Mapped[str] = mapped_column(String)
     season_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     season_name : Mapped[str] = mapped_column(String)
     season_start_date : Mapped[str] = mapped_column(String)
@@ -21,6 +24,9 @@ class ExperimentSitesViewModel(ViewBaseModel):
 
     experiment_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     experiment_name : Mapped[str] = mapped_column(String)
+    experiment_info : Mapped[dict] = mapped_column(JSONB)
+    experiment_start_date : Mapped[str] = mapped_column(String)
+    experiment_end_date : Mapped[str] = mapped_column(String)
     site_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     site_name : Mapped[str] = mapped_column(String)
     site_city : Mapped[str] = mapped_column(String)
@@ -35,6 +41,9 @@ class ExperimentTraitsViewModel(ViewBaseModel):
 
     experiment_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     experiment_name : Mapped[str] = mapped_column(String)
+    experiment_info : Mapped[dict] = mapped_column(JSONB)
+    experiment_start_date : Mapped[str] = mapped_column(String)
+    experiment_end_date : Mapped[str] = mapped_column(String)
     trait_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     trait_name : Mapped[str] = mapped_column(String)
     trait_units : Mapped[str] = mapped_column(String)
@@ -50,15 +59,16 @@ class ExperimentSensorsViewModel(ViewBaseModel):
 
     experiment_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     experiment_name : Mapped[str] = mapped_column(String)
+    experiment_info : Mapped[dict] = mapped_column(JSONB)
+    experiment_start_date : Mapped[str] = mapped_column(String)
+    experiment_end_date : Mapped[str] = mapped_column(String)
     sensor_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     sensor_name : Mapped[str] = mapped_column(String)
     sensor_type_id : Mapped[int] = mapped_column(Integer)
     sensor_data_type_id : Mapped[int] = mapped_column(Integer)
     sensor_data_format_id : Mapped[int] = mapped_column(Integer)
     sensor_info : Mapped[dict] = mapped_column(JSONB)
-    sensor_platform_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
-    sensor_platform_name : Mapped[str] = mapped_column(String)
-    sensor_platform_info : Mapped[dict] = mapped_column(JSONB)
+
 
 
 class ExperimentSensorPlatformsViewModel(ViewBaseModel):
@@ -67,6 +77,9 @@ class ExperimentSensorPlatformsViewModel(ViewBaseModel):
 
     experiment_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     experiment_name : Mapped[str] = mapped_column(String)
+    experiment_info : Mapped[dict] = mapped_column(JSONB)
+    experiment_start_date : Mapped[str] = mapped_column(String)
+    experiment_end_date : Mapped[str] = mapped_column(String)
     sensor_platform_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     sensor_platform_name : Mapped[str] = mapped_column(String)
     sensor_platform_info : Mapped[dict] = mapped_column(JSONB)
@@ -79,6 +92,9 @@ class ExperimentCultivarsViewModel(ViewBaseModel):
 
     experiment_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     experiment_name : Mapped[str] = mapped_column(String)
+    experiment_info : Mapped[dict] = mapped_column(JSONB)
+    experiment_start_date : Mapped[str] = mapped_column(String)
+    experiment_end_date : Mapped[str] = mapped_column(String)
     cultivar_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     cultivar_accession : Mapped[str] = mapped_column(String)
     cultivar_population : Mapped[str] = mapped_column(String)
@@ -93,6 +109,9 @@ class ExperimentProceduresViewModel(ViewBaseModel):
 
     experiment_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     experiment_name : Mapped[str] = mapped_column(String)
+    experiment_info : Mapped[dict] = mapped_column(JSONB)
+    experiment_start_date : Mapped[str] = mapped_column(String)
+    experiment_end_date : Mapped[str] = mapped_column(String)
     procedure_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     procedure_name : Mapped[str] = mapped_column(String)
     procedure_info : Mapped[dict] = mapped_column(JSONB)
@@ -104,6 +123,9 @@ class ExperimentScriptsViewModel(ViewBaseModel):
 
     experiment_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     experiment_name : Mapped[str] = mapped_column(String)
+    experiment_info : Mapped[dict] = mapped_column(JSONB)
+    experiment_start_date : Mapped[str] = mapped_column(String)
+    experiment_end_date : Mapped[str] = mapped_column(String)
     script_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     script_name : Mapped[str] = mapped_column(String)
     script_url : Mapped[str] = mapped_column(String)
@@ -117,6 +139,9 @@ class ExperimentModelsViewModel(ViewBaseModel):
 
     experiment_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     experiment_name : Mapped[str] = mapped_column(String)
+    experiment_info : Mapped[dict] = mapped_column(JSONB)
+    experiment_start_date : Mapped[str] = mapped_column(String)
+    experiment_end_date : Mapped[str] = mapped_column(String)
     model_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     model_name : Mapped[str] = mapped_column(String)
     model_url : Mapped[str] = mapped_column(String)
@@ -130,6 +155,9 @@ class ExperimentDatasetsViewModel(ViewBaseModel):
 
     experiment_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     experiment_name : Mapped[str] = mapped_column(String)
+    experiment_info : Mapped[dict] = mapped_column(JSONB)
+    experiment_start_date : Mapped[str] = mapped_column(String)
+    experiment_end_date : Mapped[str] = mapped_column(String)
     dataset_id : Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     collection_date : Mapped[str] = mapped_column(String)
     dataset_name : Mapped[str] = mapped_column(String)

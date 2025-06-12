@@ -1,83 +1,61 @@
 from gemini.api.site import Site
 
-# Create a new site with experiment Experiment A
+# Create a new Site for Experiment A
 new_site = Site.create(
-    site_name="Site Test 1",
-    site_city="City A",
-    site_state="State A",
-    site_country="Country A",
+    site_name="Site X",
+    site_city="City X",
+    site_state="State X",
+    site_country="Country X",
     site_info={"test": "test"},
     experiment_name="Experiment A"
 )
-print(f"Created Site: {new_site}")
-
-# Assign the site to Experiment B
-new_site.assign_experiment("Experiment B")
-print(f"Assigned Site to Experiment B: {new_site}")
-
-# Get all Experiments for the site
-experiments = new_site.get_experiments()
-print(f"All Experiments:")
-for experiment in experiments:
-    print(experiment)
-
-# Check if the site belongs to Experiment B
-belongs = new_site.belongs_to_experiment("Experiment B")
-print(f"Site belongs to Experiment B: {belongs}")
-
-# Remove the site from Experiment B
-new_site.unassign_experiment("Experiment B")
-print(f"Removed Site from Experiment B: {new_site}")
-
-# Check if it belongs to Experiment B
-belongs = new_site.belongs_to_experiment("Experiment B")
-print(f"Site belongs to Experiment B: {belongs}")
-
-# Get Site with site_name and experiment_name that do exist
-site = Site.get("Site Test 1", "Experiment A")
-print(f"Got Site: {site}")
+print(f"Created New Site: {new_site}")
 
 # Get Site by ID
-site = Site.get_by_id(new_site.id)
-print(f"Got Site by ID: {site}")
+site_by_id = Site.get_by_id(new_site.id)
+print(f"Site by ID: {site_by_id}")
+
+# Get Site by Name
+site_by_name = Site.get(site_name="Site X")
+print(f"Site by Name: {site_by_name}")
 
 # Get all sites
 all_sites = Site.get_all()
-print(f"All Sites:")
 for site in all_sites:
-    print(site)
+    print(f"Site: {site}")
 
-# Search for sites
-searched_sites = Site.search(experiment_name="Experiment A")
-length_searched_sites = len(searched_sites)
-print(f"Found {length_searched_sites} sites in Experiment A")
+# Search for sites by name
+search_results = Site.search(site_name="Site X")
+for result in search_results:
+    print(f"Search Result: {result}")
 
-# Refresh the site
-site.refresh()
-print(f"Refreshed Site: {site}")
-
-# Update the site
-site.update(
-    site_info={"test": "test_updated"},
-    site_city="City B",
-    site_state="State B",
-    site_country="Country B",
+# Update Site
+site_by_name.update(
+    site_city="Updated City",
+    site_state="Updated State",
+    site_country="Updated Country",
+    site_info={"updated": "info"}
 )
-print(f"Updated Site: {site}")
+print(f"Updated Site: {site_by_name}")
+
+# Refresh Site
+site_by_name.refresh()
+print(f"Refreshed Site: {site_by_name}")
 
 # Set Site Info
-site.set_info(
-    site_info={"test": "test_set"},
+site_by_name.set_info(
+    site_info={"new": "info"}
 )
-print(f"Set Site Info: {site}")
+print(f"Set Site Info: {site_by_name.get_info()}")
 
-# Get Site Info
-site_info = site.get_info()
-print(f"Site Info: {site_info}")
+# Check if Site Exists before deletion
+exists = Site.exists(site_name="Site X")
+print(f"Site exists: {exists}")
 
-# Delete the site
-is_deleted = new_site.delete()
+# Delete Site
+is_deleted = site_by_name.delete()
 print(f"Deleted Site: {is_deleted}")
 
-
-
+# Check if Site Exists after deletion
+exists_after_deletion = Site.exists(site_name="Site X")
+print(f"Site exists after deletion: {exists_after_deletion}")

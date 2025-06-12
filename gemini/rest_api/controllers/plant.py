@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from gemini.api.plant import Plant
 from gemini.rest_api.models import PlantInput, PlantOutput, PlantUpdate, RESTAPIError, JSONB, str_to_dict
-from gemini.rest_api.models import CultivarOutput 
+from gemini.rest_api.models import CultivarOutput, PlotOutput 
 from typing import List, Annotated, Optional
 
 class PlantCultivarInput(BaseModel):
@@ -23,26 +23,27 @@ class PlantController(Controller):
         try:
             plants = Plant.get_all()
             if plants is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No plants found",
                     error_description="No plants were found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return plants
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving all plants"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
 
     # Get all Plants
     @get()
     async def get_plants(
         self,
-        plot_id: Optional[str] = None,
         plant_number: Optional[int] = None,
+        plot_number: Optional[int] = None,
+        plot_row_number: Optional[int] = None,
+        plot_column_number: Optional[int] = None,
         cultivar_accession: Optional[str] = None,
         cultivar_population: Optional[str] = None,
         experiment_name: Optional[str] = None,
@@ -55,30 +56,30 @@ class PlantController(Controller):
                 plant_info = str_to_dict(plant_info)
 
             plants = Plant.search(
-                plot_id=plot_id,
                 plant_number=plant_number,
                 cultivar_accession=cultivar_accession,
                 cultivar_population=cultivar_population,
                 experiment_name=experiment_name,
                 season_name=season_name,
                 site_name=site_name,
-                plant_info=plant_info
+                plot_number=plot_number,
+                plot_row_number=plot_row_number,
+                plot_column_number=plot_column_number,
             )
 
             if plants is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No plants found",
                     error_description="No plants were found with the given search criteria"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return plants
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving plants"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Get Plant by ID
     @get(path="/id/{plant_id:str}")
@@ -88,19 +89,18 @@ class PlantController(Controller):
         try:
             plant = Plant.get_by_id(id=plant_id)
             if plant is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Plant not found",
                     error_description="The plant with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return plant
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the plant"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Create a new Plant
     @post()
@@ -113,26 +113,30 @@ class PlantController(Controller):
                 data.plant_info = str_to_dict(data.plant_info)
 
             plant = Plant.create(
-                plot_id=data.plot_id,
                 plant_number=data.plant_number,
                 plant_info=data.plant_info,
                 cultivar_accession=data.cultivar_accession,
-                cultivar_population=data.cultivar_population
+                cultivar_population=data.cultivar_population,
+                experiment_name=data.experiment_name,
+                season_name=data.season_name,
+                site_name=data.site_name,
+                plot_number=data.plot_number,
+                plot_row_number=data.plot_row_number,
+                plot_column_number=data.plot_column_number
             )
             if plant is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Plant not created",
                     error_description="The plant could not be created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return plant
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the plant"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Update a Plant
     @patch(path="/id/{plant_id:str}")
@@ -144,29 +148,28 @@ class PlantController(Controller):
         try:
             plant = Plant.get_by_id(id=plant_id)
             if plant is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Plant not found",
                     error_description="The plant with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             plant = plant.update(
                 plant_number=data.plant_number,
                 plant_info=data.plant_info,
             )
             if plant is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Plant not updated",
                     error_description="The plant could not be updated"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return plant
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while updating the plant"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Delete a Plant
     @delete(path="/id/{plant_id:str}")
@@ -177,26 +180,25 @@ class PlantController(Controller):
         try:
             plant = Plant.get_by_id(id=plant_id)
             if plant is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Plant not found",
                     error_description="The plant with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             is_deleted = plant.delete()
             if not is_deleted:
                 error_html = RESTAPIError(
                     error="Failed to delete plant",
                     error_description="The plant could not be deleted"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return None
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while deleting the plant"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Get Plant Cultivar
     @get(path="/id/{plant_id:str}/cultivar")
@@ -207,61 +209,54 @@ class PlantController(Controller):
         try:
             plant = Plant.get_by_id(id=plant_id)
             if plant is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Plant not found",
                     error_description="The plant with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            cultivar = plant.get_cultivar()
+                )
+                return Response(content=error, status_code=404)
+            cultivar = plant.get_associated_cultivar()
             if cultivar is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Cultivar not found",
                     error_description="The cultivar for the given plant was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return cultivar
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the cultivar"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
-    # Set Plant Cultivar
-    @post(path="/id/{plant_id:str}/cultivar")
-    async def set_plant_cultivar(
+    # Get Associated Plots
+    @get(path="/id/{plant_id:str}/plot")
+    async def get_associated_plot(
         self,
-        plant_id: str,
-        data: Annotated[PlantCultivarInput, Body]
-    ) -> PlantOutput:
+        plant_id: str
+    ) -> List[PlotOutput]:
         try:
             plant = Plant.get_by_id(id=plant_id)
             if plant is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Plant not found",
                     error_description="The plant with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            plant = plant.set_cultivar(
-                cultivar_accession=data.cultivar_accession,
-                cultivar_population=data.cultivar_population
-            )
-            if plant is None:
-                error_html = RESTAPIError(
-                    error="Cultivar not set",
-                    error_description="The cultivar could not be set"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
-            return plant
+                )
+                return Response(content=error, status_code=404)
+            plots = plant.get_associated_plot()
+            if plots is None:
+                error = RESTAPIError(
+                    error="No plots found",
+                    error_description="No plots were found associated with the given plant"
+                )
+                return Response(content=error, status_code=404)
+            return plots
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
-                error_description="An error occurred while setting the cultivar"
+                error_description="An error occurred while retrieving the associated plots"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
-    
+            return Response(content=error, status_code=500)
 
 
 

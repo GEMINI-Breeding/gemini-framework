@@ -1,0 +1,50 @@
+@baseUrl = http://localhost:8000
+@apiUrl = {{baseUrl}}/api/trait_levels
+
+### Get all trait levels
+# @name GetAllTraitLevels
+GET {{apiUrl}}/all
+
+### Get a specific trait level
+# @name GetTraitLevel
+GET {{apiUrl}}/?trait_level_name=Plant
+
+### Select a trait level
+@traitLevelId = {{GetTraitLevel.response.body.$.0.id}}
+
+### Select a trait level by ID
+# @name GetTraitLevelById
+GET {{apiUrl}}/id/{{traitLevelId}}
+
+### Create a new trait level
+# @name CreateTraitLevel
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+    "trait_level_name": "Test Trait Level",
+    "trait_level_info": {
+        "trait_level_description": "Test Description",
+        "trait_level_notes": "Test Notes"
+    }
+}
+
+###
+@createdTraitLevelId = {{CreateTraitLevel.response.body.id}}
+
+### Update a trait level
+# @name UpdateTraitLevel
+PATCH {{apiUrl}}/id/{{createdTraitLevelId}}
+Content-Type: application/json
+
+{
+    "trait_level_name": "Updated Test Trait Level",
+    "trait_level_info": {
+        "trait_level_description": "Updated Description",
+        "trait_level_notes": "Updated Notes"
+    }
+}
+
+### Delete a trait level
+# @name DeleteTraitLevel
+DELETE {{apiUrl}}/id/{{createdTraitLevelId}}

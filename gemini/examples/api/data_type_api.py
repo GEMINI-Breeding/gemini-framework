@@ -2,84 +2,58 @@ from gemini.api.data_type import DataType
 
 # Create a new data type
 new_data_type = DataType.create(
-    data_type_name="Data Type Test 1",
-    data_type_info={"test": "test"},
+    data_type_name="Test Data Type",
+    data_type_info={
+        "description": "This is a test data type for API demonstration.",
+        "version": "1.0",
+    }
 )
-
-# Check if created data type exists
-exists = DataType.exists(
-    data_type_name="Data Type Test 1",
-)
-print(f"Data Type exists: {exists}")
-
-# Check a data type that does not exist
-exists = DataType.exists(
-    data_type_name="Nonexistent Data Type",
-)
-print(f"Nonexistent Data Type exists: {exists}")
-
-# Get Data Type with data_type_name that does exist
-data_type = DataType.get("Data Type Test 1")
-print(f"Got Data Type: {data_type}")
+print(f"Created new data type: {new_data_type}")
 
 # Get Data Type by ID
-data_type = DataType.get_by_id(new_data_type.id)
-print(f"Got Data Type by ID: {data_type}")
+data_type_by_id = DataType.get_by_id(new_data_type.id)
+print(f"Data Type by ID: {data_type_by_id}")
 
-# Get all data types
+# Get Data Type by Name
+data_type_by_name = DataType.get(data_type_name="Test Data Type")
+print(f"Data Type by Name: {data_type_by_name}")
+
+# Get all Data Types
 all_data_types = DataType.get_all()
-print(f"All Data Types:")
 for data_type in all_data_types:
     print(data_type)
 
-# Select first data type
-first_data_type = all_data_types[0]
+# Search Data Types
+search_results = DataType.search(data_type_name="Test Data Type")
+for result in search_results:
+    print(f"Search Result: {result}")
 
-# Print all formats of the first data type
-print(f"All Formats of the first Data Type:")
-for data_format in first_data_type.get_formats():
-    print(data_format)
-
-# Search for data types
-searched_data_types = DataType.search(data_type_name="Data Type Test 1")
-length_searched_data_types = len(searched_data_types)
-print(f"Found {length_searched_data_types} data types")
-
-# Update the data type
-data_type.update(
-    data_type_info={"test": "test_updated"},
+# Update Data Type
+data_type = data_type.update(
+    data_type_info={
+        "description": "Updated test data type for API demonstration.",
+        "version": "1.1",
+    }
 )
 print(f"Updated Data Type: {data_type}")
 
 # Set Data Type Info
 data_type.set_info(
-    data_type_info={"test": "test_set"},
+    data_type_info={
+        "description": "New test data type for API demonstration.",
+        "version": "2.0",
+    }
 )
-print(f"Set Data Type Info: {data_type}")
+print(f"Data Type Info set: {data_type.get_info()}")
 
-# Get Data Type Info
-data_type_info = data_type.get_info()
-print(f"Data Type Info: {data_type_info}")
+# Check if Data Type exists
+data_type_exists = DataType.exists(data_type_name="Test Data Type")
+print(f"Does Data Type exist? {data_type_exists}")
 
-# Refresh the data type
-data_type.refresh()
-print(f"Refreshed Data Type: {data_type}")
+# Delete Data Type
+data_type.delete()
+print(f"Data Type deleted: {data_type}")
 
-# Add a new format to the data type
-new_data_format = new_data_type.create_format(
-    data_format_name="Data Format Test K",
-    data_format_mime_type="application/json",
-    data_format_info={"test": "test"},
-)
-
-# Get the formats
-data_formats = new_data_type.get_formats()
-print(f"Data Formats:")
-for data_format in data_formats:
-    print(data_format)
-
-# Delete the new data type
-is_deleted = new_data_type.delete()
-print(f"Deleted Data Type: {is_deleted}")
-
-
+# Check if Data Type exists after deletion
+data_type_exists_after_deletion = DataType.exists(data_type_name="Test Data Type")
+print(f"Does Data Type exist after deletion? {data_type_exists_after_deletion}")

@@ -48,19 +48,18 @@ class TraitController(Controller):
         try:
             traits = Trait.get_all()
             if traits is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No traits found",
                     error_description="No traits were found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return traits
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving all traits"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
 
     # Get Traits
     @get()
@@ -88,19 +87,18 @@ class TraitController(Controller):
                 experiment_name=experiment_name
             )
             if traits is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No traits found",
                     error_description="No traits were found with the given search criteria"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return traits
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving traits"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
         
     # Get Trait by ID
     @get(path="/id/{trait_id:str}")
@@ -110,19 +108,18 @@ class TraitController(Controller):
         try:
             trait = Trait.get_by_id(id=trait_id)
             if trait is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Trait not found",
                     error_description="The trait with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return trait
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving trait"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
         
     # Create Trait
     @post()
@@ -140,19 +137,18 @@ class TraitController(Controller):
                 experiment_name=data.experiment_name,
             )
             if trait is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="An error occurred while creating trait",
                     error_description="An error occurred while creating trait"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return trait
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating trait"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
         
     # Update Trait
     @patch(path="/id/{trait_id:str}")
@@ -164,11 +160,11 @@ class TraitController(Controller):
         try:
             trait = Trait.get_by_id(id=trait_id)
             if trait is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Trait not found",
                     error_description="The trait with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             trait = trait.update(
                 trait_name=data.trait_name,
                 trait_units=data.trait_units,
@@ -177,19 +173,18 @@ class TraitController(Controller):
                 trait_metrics=data.trait_metrics,
             )
             if trait is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="An error occurred while updating trait",
                     error_description="An error occurred while updating trait"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return trait
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while updating trait"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
         
     # Delete Trait
     @delete(path="/id/{trait_id:str}")
@@ -199,27 +194,54 @@ class TraitController(Controller):
         try:
             trait = Trait.get_by_id(id=trait_id)
             if trait is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Trait not found",
                     error_description="The trait with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             is_deleted = trait.delete()
             if not is_deleted:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Failed to delete trait",
                     error_description="The trait was not deleted"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return None
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while deleting trait"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
         
+    # Get Trait Experiments
+    @get(path="/id/{trait_id:str}/experiments")
+    async def get_trait_experiments(
+        self, trait_id: str
+    ) -> List[str]:
+        try:
+            trait = Trait.get_by_id(id=trait_id)
+            if trait is None:
+                error = RESTAPIError(
+                    error="Trait not found",
+                    error_description="The trait with the given ID was not found"
+                )
+                return Response(content=error, status_code=404)
+            experiments = trait.get_associated_experiments()
+            if experiments is None:
+                error = RESTAPIError(
+                    error="No experiments found",
+                    error_description="No experiments were found for the given trait"
+                )
+                return Response(content=error, status_code=404)
+            return experiments
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving trait experiments"
+            )
+            return Response(content=error_message, status_code=500)
+
     # Get Trait Datasets
     @get(path="/id/{trait_id:str}/datasets")
     async def get_trait_datasets(
@@ -228,62 +250,25 @@ class TraitController(Controller):
         try:
             trait = Trait.get_by_id(id=trait_id)
             if trait is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Trait not found",
                     error_description="The trait with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            datasets = trait.get_datasets()
+                )
+                return Response(content=error, status_code=404)
+            datasets = trait.get_associated_datasets()
             if datasets is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No datasets found",
                     error_description="No datasets were found for the given trait"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return datasets
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving trait datasets"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
-        
-    # Create Trait Dataset
-    @post(path="/id/{trait_id:str}/datasets")
-    async def create_trait_dataset(
-        self,
-        trait_id: str,
-        data: Annotated[TraitDatasetInput, Body]
-    ) -> DatasetOutput:
-        try:
-            trait = Trait.get_by_id(id=trait_id)
-            if trait is None:
-                error_html = RESTAPIError(
-                    error="Trait not found",
-                    error_description="The trait with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            dataset = trait.create_dataset(
-                dataset_name=data.dataset_name,
-                dataset_info=data.dataset_info,
-                collection_date=data.collection_date,
-                experiment_name=data.experiment_name,
-            )
-            if dataset is None:
-                error_html = RESTAPIError(
-                    error="An error occurred while creating dataset",
-                    error_description="An error occurred while creating dataset"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
-            return dataset
-        except Exception as e:
-            error_message = RESTAPIError(
-                error=str(e),
-                error_description="An error occurred while creating dataset"
-            )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
         
     # Add Trait Record
     @post(path="/id/{trait_id:str}/records")
@@ -295,13 +280,13 @@ class TraitController(Controller):
         try:
             trait = Trait.get_by_id(id=trait_id)
             if trait is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Trait not found",
                     error_description="The trait with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
 
-            add_success, inserted_record_ids = trait.add_record(
+            add_success, inserted_record_ids = trait.insert_record(
                 timestamp=data.timestamp,
                 collection_date=data.collection_date,
                 trait_value=data.trait_value,
@@ -315,27 +300,26 @@ class TraitController(Controller):
                 record_info=data.record_info
             )
             if not add_success:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Failed to add trait record",
                     error_description="The trait record was not added"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             inserted_record_id = inserted_record_ids[0]
             inserted_trait_record = TraitRecord.get_by_id(id=inserted_record_id)
             if inserted_trait_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Trait record not found",
                     error_description="The trait record with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return inserted_trait_record
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while adding trait record"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
 
     # Search Trait Records
     @get(path="/id/{trait_id:str}/records")
@@ -353,12 +337,12 @@ class TraitController(Controller):
         try:
             trait = Trait.get_by_id(id=trait_id)
             if trait is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Trait not found",
                     error_description="The trait with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            trait_records = trait.get_records(
+                )
+                return Response(content=error, status_code=404)
+            trait_records = trait.search_records(
                 experiment_name=experiment_name,
                 season_name=season_name,
                 site_name=site_name,
@@ -373,8 +357,7 @@ class TraitController(Controller):
                 error=str(e),
                 error_description="An error occurred while retrieving trait records"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
         
     # Get Trait Record by ID
     @get(path="/records/id/{trait_record_id:str}")
@@ -384,19 +367,18 @@ class TraitController(Controller):
         try:
             trait_record = TraitRecord.get_by_id(id=trait_record_id)
             if trait_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Trait record not found",
                     error_description="The trait record with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return trait_record
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving trait record"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
         
     # Update Trait Record
     @patch(path="/records/id/{trait_record_id:str}")
@@ -408,29 +390,28 @@ class TraitController(Controller):
         try:
             trait_record = TraitRecord.get_by_id(id=trait_record_id)
             if trait_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Trait record not found",
                     error_description="The trait record with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             trait_record = trait_record.update(
                 trait_value=data.trait_value,
                 record_info=data.record_info,
             )
             if trait_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="An error occurred while updating trait record",
                     error_description="An error occurred while updating trait record"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return trait_record
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while updating trait record"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
         
     # Delete Trait Record
     @delete(path="/records/id/{trait_record_id:str}")
@@ -440,23 +421,22 @@ class TraitController(Controller):
         try:
             trait_record = TraitRecord.get_by_id(id=trait_record_id)
             if trait_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Trait record not found",
                     error_description="The trait record with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             is_deleted = trait_record.delete()
             if not is_deleted:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Failed to delete trait record",
                     error_description="The trait record was not deleted"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return None
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while deleting trait record"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)

@@ -5,6 +5,7 @@ from litestar.controller import Controller
 
 from gemini.api.site import Site
 from gemini.rest_api.models import SiteInput, SiteOutput, RESTAPIError, SiteUpdate, str_to_dict, JSONB
+from gemini.rest_api.models import ExperimentOutput, PlotOutput
 
 from typing import List, Annotated, Optional
 
@@ -16,19 +17,18 @@ class SiteController(Controller):
         try:
             sites = Site.get_all()
             if sites is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No sites found",
                     error_description="No sites were found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return sites
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving all sites"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
 
     # Get Sites
     @get()
@@ -54,19 +54,18 @@ class SiteController(Controller):
                 experiment_name=experiment_name
             )
             if sites is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No sites found",
                     error_description="No sites were found with the given search criteria"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return sites
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving sites"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
         
     # Get Site by ID
     @get(path="/id/{site_id:str}")
@@ -76,19 +75,18 @@ class SiteController(Controller):
         try:
             site = Site.get_by_id(id=site_id)
             if site is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Site not found",
                     error_description="The site with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return site
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the site"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
         
     # Create Site
     @post()
@@ -106,19 +104,18 @@ class SiteController(Controller):
                 experiment_name=data.experiment_name
             )
             if site is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Site not created",
                     error_description="The site was not created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return site
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the site"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
 
 
     # Update Site
@@ -131,11 +128,11 @@ class SiteController(Controller):
         try:
             site = Site.get_by_id(id=site_id)
             if site is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Site not found",
                     error_description="The site with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             site = site.update(
                 site_name=data.site_name,
                 site_city=data.site_city,
@@ -149,8 +146,7 @@ class SiteController(Controller):
                 error=str(e),
                 error_description="An error occurred while updating the site"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
         
     # Delete Site
     @delete(path="/id/{site_id:str}")
@@ -160,23 +156,79 @@ class SiteController(Controller):
         try:
             site = Site.get_by_id(id=site_id)
             if site is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Site not found",
                     error_description="The site with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             is_deleted = site.delete()
             if not is_deleted:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Failed to delete site",
                     error_description="The site could not be deleted"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while deleting the site"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
         
+
+    # Get Associated Experiments
+    @get(path="/id/{site_id:str}/experiments")
+    async def get_experiments_by_site_id(
+        self, site_id: str
+    ) -> List[ExperimentOutput]:
+        try:
+            site = Site.get_by_id(id=site_id)
+            if site is None:
+                error = RESTAPIError(
+                    error="Site not found",
+                    error_description="The site with the given ID was not found"
+                )
+                return Response(content=error, status_code=404)
+            experiments = site.get_associated_experiments()
+            if experiments is None:
+                error = RESTAPIError(
+                    error="No experiments found",
+                    error_description="No experiments were found for the given site ID"
+                )
+                return Response(content=error, status_code=404)
+            return experiments
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving experiments for the site"
+            )
+            return Response(content=error_message, status_code=500)
+        
+    # Get Associated Plots
+    @get(path="/id/{site_id:str}/plots")
+    async def get_plots_by_site_id(
+        self, site_id: str
+    ) -> List[PlotOutput]:
+        try:
+            site = Site.get_by_id(id=site_id)
+            if site is None:
+                error = RESTAPIError(
+                    error="Site not found",
+                    error_description="The site with the given ID was not found"
+                )
+                return Response(content=error, status_code=404)
+            plots = site.get_associated_plots()
+            if plots is None:
+                error = RESTAPIError(
+                    error="No plots found",
+                    error_description="No plots were found for the given site ID"
+                )
+                return Response(content=error, status_code=404)
+            return plots
+        except Exception as e:
+            error_message = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving plots for the site"
+            )
+            return Response(content=error_message, status_code=500)
+

@@ -79,6 +79,7 @@ class GEMINISensorType(Enum):
   Depth = 8
   IMU = 9
   Disparity = 10
+  Confidence = 11
 
 from enum import Enum
 

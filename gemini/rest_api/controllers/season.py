@@ -7,7 +7,8 @@ from gemini.api.season import Season
 from gemini.rest_api.models import ( 
     SeasonInput, 
     SeasonOutput, 
-    SeasonUpdate, 
+    SeasonUpdate,
+    ExperimentOutput, 
     RESTAPIError, 
     JSONB, 
     str_to_dict
@@ -23,19 +24,18 @@ class SeasonController(Controller):
         try:
             seasons = Season.get_all()
             if seasons is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No seasons found",
                     error_description="No seasons were found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return seasons
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving all seasons"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
 
     # Get Seasons
     @get()
@@ -59,19 +59,18 @@ class SeasonController(Controller):
                 experiment_name=experiment_name,
             )
             if seasons is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No seasons found",
                     error_description="No seasons were found with the given search criteria"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return seasons
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving seasons"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Get Season by ID
     @get(path="/id/{season_id:str}")
@@ -81,19 +80,18 @@ class SeasonController(Controller):
         try:
             season = Season.get_by_id(id=season_id)
             if season is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Season not found",
                     error_description="The season with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return season
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the season"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Create Season
     @post()
@@ -110,19 +108,18 @@ class SeasonController(Controller):
                 experiment_name=data.experiment_name,
             )
             if season is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Season not created",
                     error_description="The season could not be created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return season
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the season"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
 
     # Update Season
     @patch(path="/id/{season_id:str}")
@@ -132,33 +129,33 @@ class SeasonController(Controller):
         data: Annotated[SeasonUpdate, Body]
     ) -> SeasonOutput:
         try:
-            season = Season.get_by_id(id=season_id)
-            if season is None:
-                error_html = RESTAPIError(
+            season_obj = Season.get_by_id(id=season_id) # Renamed to avoid conflict
+            if season_obj is None:
+                error = RESTAPIError(
                     error="Season not found",
                     error_description="The season with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            season = season.update(
+                )
+                return Response(content=error, status_code=404)
+            
+            updated_season = season_obj.update( # Use a different variable for the result of update
                 season_name=data.season_name,
                 season_info=data.season_info,
                 season_start_date=data.season_start_date,
                 season_end_date=data.season_end_date
             )
-            if season is None:
-                error_html = RESTAPIError(
+            if updated_season is None:
+                error = RESTAPIError(
                     error="Season not updated",
                     error_description="The season could not be updated"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
-            return season
+                )
+                return Response(content=error, status_code=500)
+            return updated_season
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while updating the season"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Delete Season
     @delete(path="/id/{season_id:str}")
@@ -168,23 +165,55 @@ class SeasonController(Controller):
         try:
             season = Season.get_by_id(id=season_id)
             if season is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Season not found",
                     error_description="The season with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             is_deleted = season.delete()
             if not is_deleted:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Season not deleted",
                     error_description="The season could not be deleted"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
+            # Successful deletion implies a 204 No Content or similar, 
+            # so no explicit return is needed if the framework handles it.
+            # If a specific Response is needed for success, it would be added here.
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while deleting the season"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
+        
+    # Get Associated Experiment
+    @get(path="/id/{season_id:str}/experiment")
+    async def get_associated_experiment(
+        self, season_id: str
+    ) -> ExperimentOutput:
+        try:
+            season = Season.get_by_id(id=season_id)
+            if season is None:
+                error = RESTAPIError(
+                    error="Season not found",
+                    error_description="The season with the given ID was not found"
+                )
+                return Response(content=error, status_code=404)
+            experiment = season.get_associated_experiment()
+            if experiment is None:
+                error = RESTAPIError(
+                    error="Experiment not found",
+                    error_description="The associated experiment was not found"
+                )
+                return Response(content=error, status_code=404)
+            return experiment
+        except Exception as e:
+            error = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving the associated experiment"
+            )
+            return Response(content=error, status_code=500)
+        
+
     

@@ -8,7 +8,8 @@ from gemini.api.data_format import DataFormat
 from gemini.rest_api.models import (
     DataFormatInput, 
     DataFormatOutput,
-    DataFormatUpdate, 
+    DataFormatUpdate,
+    DataTypeOutput, 
     RESTAPIError, 
     JSONB, 
     str_to_dict
@@ -25,19 +26,18 @@ class DataFormatController(Controller):
         try:
             data_formats = DataFormat.get_all()
             if data_formats is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No data formats found",
-                    error_description="No data formats were found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                    error_description="No data formats were found in the database"
+                )
+                return Response(content=error, status_code=404)
             return data_formats
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving all data formats"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
 
     # Get Data Formats
     @get()
@@ -57,19 +57,18 @@ class DataFormatController(Controller):
                 data_format_info=data_format_info
             )
             if data_formats is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No data formats found",
                     error_description="No data formats were found with the given search criteria"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return data_formats
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving data formats"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
 
     # Get Data Format by ID
     @get(path="/id/{data_format_id:int}")
@@ -79,19 +78,19 @@ class DataFormatController(Controller):
         try:
             data_format = DataFormat.get_by_id(id=data_format_id)
             if data_format is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Data format not found",
                     error_description="The data format with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return data_format
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the data format"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
+
         
     # Create a new Data Format
     @post()
@@ -105,19 +104,18 @@ class DataFormatController(Controller):
                 data_format_info=data.data_format_info
             )
             if data_format is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Data format not created",
                     error_description="The data format could not be created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return data_format
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the data format"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Update Data Format
     @patch(path="/id/{data_format_id:int}")
@@ -139,19 +137,18 @@ class DataFormatController(Controller):
                 data_format_info=data.data_format_info
             )
             if data_format is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Data format not updated",
                     error_description="The data format could not be updated"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return data_format
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while updating the data format"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Delete Data Format
     @delete(path="/id/{data_format_id:int}")
@@ -161,24 +158,55 @@ class DataFormatController(Controller):
         try:
             data_format = DataFormat.get_by_id(id=data_format_id)
             if data_format is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Data format not found",
                     error_description="The data format with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             is_deleted = data_format.delete()
             if not is_deleted:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Data Format deletion failed",
                     error_description="The data format could not be deleted"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return None
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while deleting the data format"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
+
+
+    # Get Associated Data Types
+    @get(path="/id/{data_format_id:int}/data_types")
+    async def get_associated_data_types(
+        cls, data_format_id: int
+    ) -> List[DataTypeOutput]:
+        try:
+            data_format = DataFormat.get_by_id(id=data_format_id)
+            if data_format is None:
+                error = RESTAPIError(
+                    error="Data format not found",
+                    error_description="The data format with the given ID was not found"
+                )
+                return Response(content=error, status_code=404)
+            data_types = data_format.get_associated_data_types()
+            if data_types is None:
+                error = RESTAPIError(
+                    error="No associated data types found",
+                    error_description="No associated data types were found for the given data format"
+                )
+                return Response(content=error, status_code=404)
+            return data_types
+        except Exception as e:
+            error = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving associated data types"
+            )
+            return Response(content=error, status_code=500)
+
+
+
  

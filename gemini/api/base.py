@@ -85,30 +85,40 @@ class FileHandlerMixin(BaseModel):
 
     @classmethod
     @abstractmethod
-    def _preprocess_record(cls, record: 'APIBase') -> 'APIBase':
+    def process_record(cls, record: 'APIBase') -> 'APIBase':
         pass
-
+    
     @classmethod
     @abstractmethod
-    def _postprocess_record(cls, record: dict) -> dict:
+    def create_file_uri(cls, record_file_key: str) -> str:
         pass
 
-    @classmethod
-    @abstractmethod
-    def _upload_file(cls, file_key: str, absolute_file_path: str) -> str:
-        pass
+    # @classmethod
+    # @abstractmethod
+    # def _preprocess_record(cls, record: 'APIBase') -> 'APIBase':
+    #     pass
 
-    @abstractmethod
-    def _download_file(self, output_folder: str) -> str:
-        pass
+    # @classmethod
+    # @abstractmethod
+    # def _postprocess_record(cls, record: dict) -> dict:
+    #     pass
 
-    @abstractmethod
-    def _get_file_download_url(self, record_file_key: str) -> str:
-        pass
+    # @classmethod
+    # @abstractmethod
+    # def _upload_file(cls, file_key: str, absolute_file_path: str) -> str:
+    #     pass
 
-    @classmethod
-    @abstractmethod
-    def _create_file_uri(cls, record: 'APIBase') -> str:
-        pass
+    # @abstractmethod
+    # def _download_file(self, output_folder: str) -> str:
+    #     pass
+
+    # @abstractmethod
+    # def _get_file_download_url(self, record_file_key: str) -> str:
+    #     pass
+
+    # @classmethod
+    # @abstractmethod
+    # def _create_file_uri(cls, record: 'APIBase') -> str:
+    #     pass
 
         

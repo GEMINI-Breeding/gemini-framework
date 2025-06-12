@@ -1,0 +1,210 @@
+@baseUrl = http://localhost:8000
+@apiUrl = {{baseUrl}}/api/experiments
+
+### Get all experiments
+# @name GetAllExperiments
+GET {{apiUrl}}/all
+
+### Get a specific experiment
+# @name GetExperiment
+GET {{apiUrl}}/?experiment_name=Experiment+A
+
+### Select an experiment
+@experimentId = {{GetExperiment.response.body.$.0.id}}
+
+### Select an experiment by ID
+# @name GetExperimentById
+GET {{apiUrl}}/id/{{experimentId}}
+
+### Get all associated seasons by experiment ID
+# @name GetSeasonsByExperimentId
+GET {{apiUrl}}/id/{{experimentId}}/seasons
+
+### Create a new season for an experiment
+# @name CreateExperimentSeason
+POST {{apiUrl}}/id/{{experimentId}}/seasons
+Content-Type: application/json
+
+{
+    "season_name": "Test Season A",
+    "season_info": {
+        "season_description": "Test Description A",
+        "season_notes": "Test Notes A"
+    },
+    "season_start_date": "2021-01-01",
+    "season_end_date": "2021-12-31"
+}
+
+### Get all associated sites by experiment ID
+# @name GetSitesByExperimentId
+GET {{apiUrl}}/id/{{experimentId}}/sites
+
+### Create a new site for an experiment
+# @name CreateExperimentSite
+POST {{apiUrl}}/id/{{experimentId}}/sites
+Content-Type: application/json
+
+{
+    "site_name": "Test Site A",
+    "site_city": "Test City A",
+    "site_state": "Test State A",
+    "site_country": "Test Country A",
+    "site_info": {
+        "site_description": "Test Description A",
+        "site_notes": "Test Notes A"
+    }
+}
+
+### Get all associated cultivars by experiment ID
+# @name GetCultivarsByExperimentId
+GET {{apiUrl}}/id/{{experimentId}}/cultivars
+
+### Create a new cultivar for an experiment
+# @name CreateExperimentCultivar
+POST {{apiUrl}}/id/{{experimentId}}/cultivars
+Content-Type: application/json
+
+{
+    "cultivar_accession": "Test Accession A",
+    "cultivar_population": "Test Population A",
+    "cultivar_info": {
+        "cultivar_name": "Test Cultivar A",
+        "cultivar_description": "Test Description A",
+        "cultivar_origin": "Test Origin A",
+        "cultivar_usage": "Test Usage A",
+        "cultivar_notes": "Test Notes A"
+    }
+}
+
+### Get all associated sensor platforms by experiment ID
+# @name GetSensorPlatformsByExperimentId
+GET {{apiUrl}}/id/{{experimentId}}/sensor_platforms
+
+### Create a new sensor platform for an experiment
+# @name CreateExperimentSensorPlatform
+POST {{apiUrl}}/id/{{experimentId}}/sensor_platforms
+Content-Type: application/json
+
+{
+    "sensor_platform_name": "Test Sensor Platform A",
+    "sensor_platform_info": {
+        "sensor_platform_description": "Test Description A",
+        "sensor_platform_notes": "Test Notes A"
+    }
+}
+
+### Get all associated sensors by experiment ID
+# @name GetSensorsByExperimentId
+GET {{apiUrl}}/id/{{experimentId}}/sensors
+
+### Create a new sensor for an experiment
+# @name CreateExperimentSensor
+POST {{apiUrl}}/id/{{experimentId}}/sensors
+Content-Type: application/json
+
+{
+    "sensor_name": "Test Sensor A",
+    "sensor_info": {
+        "sensor_description": "Test Description A",
+        "sensor_notes": "Test Notes A"
+    },
+    "sensor_type_id": 1,
+    "sensor_data_format_id": 1,
+    "sensor_data_type_id": 1
+}
+
+### Get all associated traits by experiment ID
+# @name GetTraitsByExperimentId
+GET {{apiUrl}}/id/{{experimentId}}/traits
+
+### Create a new trait for an experiment
+# @name CreateExperimentTrait
+POST {{apiUrl}}/id/{{experimentId}}/traits
+Content-Type: application/json
+
+{
+    "trait_name": "Test Trait A",
+    "trait_info": {
+        "trait_description": "Test Description A",
+        "trait_notes": "Test Notes A"
+    },
+    "trait_level_id": 1,
+    "trait_metrics": {
+        "trait_metric_name": "Test Metric A",
+        "trait_metric_description": "Test Description A",
+        "trait_metric_notes": "Test Notes A"
+    },
+    "trait_units": "Test Units A"
+}
+
+### Get all associated scripts by experiment ID
+# @name GetScriptsByExperimentId
+GET {{apiUrl}}/id/{{experimentId}}/scripts
+
+### Create a new script for an experiment
+# @name CreateExperimentScript
+POST {{apiUrl}}/id/{{experimentId}}/scripts
+Content-Type: application/json
+
+{
+    "script_name": "Test Script A",
+    "script_url": "http://test.com",
+    "script_info": {
+        "script_description": "Test Description A",
+        "script_notes": "Test Notes A"
+    }
+}
+
+### Get all associated procedures by experiment ID
+# @name GetProceduresByExperimentId
+GET {{apiUrl}}/id/{{experimentId}}/procedures
+
+### Create a new procedure for an experiment
+# @name CreateExperimentProcedure
+POST {{apiUrl}}/id/{{experimentId}}/procedures
+Content-Type: application/json
+
+{
+    "procedure_name": "Test Procedure A",
+    "procedure_info": {
+        "procedure_description": "Test Description A",
+        "procedure_notes": "Test Notes A"
+    }
+}
+
+### Get all associated models by experiment ID
+# @name GetModelsByExperimentId
+GET {{apiUrl}}/id/{{experimentId}}/models
+
+### Create a new model for an experiment
+# @name CreateExperimentModel
+POST {{apiUrl}}/id/{{experimentId}}/models
+Content-Type: application/json
+
+{
+    "model_name": "Test Model A",
+    "model_url": "http://test.com",
+    "model_info": {
+        "model_description": "Test Description A",
+        "model_notes": "Test Notes A"
+    }
+}
+
+### Get all associated datasets by experiment ID
+# @name GetDatasetsByExperimentId
+GET {{apiUrl}}/id/{{experimentId}}/datasets
+
+### Create a new dataset for an experiment
+# @name CreateExperimentDataset
+POST {{apiUrl}}/id/{{experimentId}}/datasets
+Content-Type: application/json
+
+{
+    "dataset_name": "Test Dataset A",
+    "dataset_type_id": 1,
+    "dataset_info": {
+        "dataset_description": "Test Description A",
+        "dataset_notes": "Test Notes A"
+    },
+    "collection_date": "2021-01-01"
+}

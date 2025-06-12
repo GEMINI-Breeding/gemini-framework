@@ -1,0 +1,56 @@
+@baseUrl = http://localhost:8000
+@apiUrl = {{baseUrl}}/api/seasons
+
+### Get all seasons
+# @name GetAllSeasons
+GET {{apiUrl}}/all
+
+### Get a specific season
+# @name GetSeason
+GET {{apiUrl}}/?experiment_name=Experiment+A
+
+### Select a season
+@seasonId = {{GetSeason.response.body.$.0.id}}
+
+### Select a season by ID
+# @name GetSeasonById
+GET {{apiUrl}}/id/{{seasonId}}
+
+### Get Associated Experiments by Season ID
+# @name GetExperimentsBySeasonId
+GET {{apiUrl}}/id/{{seasonId}}/experiment
+
+### Create a new season
+# @name CreateSeason
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+    "season_name": "Test Season",
+    "season_info": {
+        "season_description": "Test Description",
+        "season_notes": "Test Notes"
+    },
+    "season_start_date": "2021-01-01",
+    "season_end_date": "2021-12-31",
+    "experiment_name": "Experiment B"
+}
+
+### Update a season
+# @name UpdateSeason
+PATCH {{apiUrl}}/id/{{seasonId}}
+Content-Type: application/json
+
+{
+    "season_name": "Updated Test Season",
+    "season_info": {
+        "season_description": "Updated Description",
+        "season_notes": "Updated Notes"
+    },
+    "season_start_date": "2021-01-01",
+    "season_end_date": "2021-12-31"
+}
+
+### Delete a season
+# @name DeleteSeason
+DELETE {{apiUrl}}/id/{{seasonId}}

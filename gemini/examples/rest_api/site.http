@@ -1,0 +1,68 @@
+@baseUrl = http://localhost:8000
+@apiUrl = {{baseUrl}}/api/sites
+
+### Get all sites
+# @name GetAllSites
+GET {{apiUrl}}/all
+
+### Get a specific site
+# @name GetSite
+GET {{apiUrl}}/?experiment_name=Experiment+A
+
+### Select a site
+@siteId = {{GetSite.response.body.$.0.id}}
+
+### Select a site by ID
+# @name GetSiteById
+GET {{apiUrl}}/id/{{siteId}}
+
+### Get Associated Experiments by Site ID
+# @name GetExperimentsBySiteId
+GET {{apiUrl}}/id/{{siteId}}/experiments
+
+### Get Associated Plots by Site ID
+# @name GetPlotsBySiteId
+GET {{apiUrl}}/id/{{siteId}}/plots
+
+### Create a new site
+# @name CreateSite
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+    "site_name": "Test Site",
+    "site_city": "Test City",
+    "site_state": "Test State",
+    "site_country": "Test Country",
+    "site_info": {
+        "site_description": "Test Description",
+        "site_notes": "Test Notes"
+    },
+    "experiment_name": "Experiment B"
+}
+
+###
+@createdSiteId = {{CreateSite.response.body.id}}
+
+### Update a site
+# @name UpdateSite
+PATCH {{apiUrl}}/id/{{createdSiteId}}
+Content-Type: application/json
+
+{
+    "site_name": "Updated Test Site",
+    "site_city": "Updated City",
+    "site_state": "Updated State",
+    "site_country": "Updated Country",
+    "site_info": {
+        "site_description": "Updated Description",
+        "site_notes": "Updated Notes"
+    },
+    "experiment_name": "Experiment B"
+}
+
+### Delete a site
+# @name DeleteSite
+DELETE {{apiUrl}}/id/{{createdSiteId}}
+
+

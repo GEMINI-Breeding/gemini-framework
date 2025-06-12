@@ -1,0 +1,29 @@
+@baseUrl = http://localhost:8000
+@apiUrl = {{baseUrl}}/api/files
+
+### Upload a file
+# @name UploadFile
+POST {{apiUrl}}/upload
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="bucket_name"
+
+gemini
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="object_name"
+
+test/example.txt
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="example.txt" Content-Type: text/plain
+
+< ./example.txt
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Get File Metadata
+# @name GetFileMetadata
+GET {{apiUrl}}/metadata/gemini/test/example.txt
+
+### Download a file
+# @name DownloadFile
+GET {{apiUrl}}/download/gemini/test/example.txt

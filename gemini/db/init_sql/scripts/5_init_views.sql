@@ -3,6 +3,23 @@
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
+-- Datatype Format View
+CREATE OR REPLACE VIEW gemini.datatype_formats_view AS
+SELECT
+    dtf.data_type_id AS data_type_id,
+    dt.data_type_name AS data_type_name,
+    dt.data_type_info AS data_type_info,
+    dtf.data_format_id AS data_format_id,
+    df.data_format_name AS data_format_name,
+    df.data_format_mime_type AS data_format_mime_type,
+    df.data_format_info AS data_format_info
+FROM
+    gemini.data_type_formats dtf
+JOIN gemini.data_types dt ON dtf.data_type_id = dt.id
+JOIN gemini.data_formats df ON dtf.data_format_id = df.id;
+
+
+-------------------------------------------------------------------------------
 -- View for plot entity combinations
 CREATE OR REPLACE VIEW gemini.valid_plot_combinations_view AS
 SELECT
@@ -192,18 +209,18 @@ SELECT
     p.plot_column_number,
     p.plot_geometry_info,
     p.plot_info,
-    pl.id as plant_id,  
+    pl.id as plant_id,
     pl.plant_number,
     pl.plant_info,
     pl.cultivar_id,
     c.cultivar_accession,
-    c.cultivar_population
+    c.cultivar_population,
+    c.cultivar_info
 FROM gemini.plots AS p
-JOIN gemini.plants AS pl
+LEFT JOIN gemini.plants AS pl
     ON p.id = pl.plot_id
-JOIN gemini.cultivars AS c
+LEFT JOIN gemini.cultivars AS c
     ON pl.cultivar_id = c.id;
-
 
 -------------------------------------------------------------------------------
 -- Materialized View for Plot Information
@@ -225,9 +242,9 @@ SELECT
     p.plot_info
 FROM
     gemini.plots p
-    JOIN gemini.experiments e ON p.experiment_id = e.id
-    JOIN gemini.seasons s ON p.season_id = s.id
-    JOIN gemini.sites si ON p.site_id = si.id;
+LEFT JOIN gemini.experiments e ON p.experiment_id = e.id
+LEFT JOIN gemini.seasons s ON p.season_id = s.id
+LEFT JOIN gemini.sites si ON p.site_id = si.id;
 
 -------------------------------------------------------------------------------
 -- Materialized view that shows plot cultivar information
@@ -235,22 +252,31 @@ FROM
 CREATE OR REPLACE VIEW gemini.plot_cultivar_view
 AS
 SELECT
-    p.id AS plot_id,
-    p.plot_number AS plot_number,
-    p.plot_row_number AS plot_row_number,
-    p.plot_column_number AS plot_column_number,
-    p.plot_info AS plot_info,
+    pv.plot_id AS plot_id,
+    pv.plot_number AS plot_number,
+    pv.plot_row_number AS plot_row_number,
+    pv.plot_column_number AS plot_column_number,
+    pv.plot_info AS plot_info,
+    pv.plot_geometry_info AS plot_geometry_info,
+    pv.experiment_id AS experiment_id,
+    pv.experiment_name AS experiment_name,
+    pv.season_id AS season_id,
+    pv.season_name AS season_name,
+    pv.site_id AS site_id,
+    pv.site_name AS site_name,
     c.id AS cultivar_id,
-    c.cultivar_accession,
-    c.cultivar_population
+    c.cultivar_accession AS cultivar_accession,
+    c.cultivar_population AS cultivar_population,
+    c.cultivar_info AS cultivar_info
 FROM
-    gemini.plots p
-    JOIN gemini.plot_cultivars pc ON p.id = pc.plot_id
-    JOIN gemini.cultivars c ON pc.cultivar_id = c.id;
+    gemini.plot_view pv
+LEFT JOIN gemini.plot_cultivars pc ON pv.plot_id = pc.plot_id
+LEFT JOIN gemini.cultivars c ON pc.cultivar_id = c.id;
 
 
 -------------------------------------------------------------------------------
 -- Materialized view that shows plant information
+
 CREATE OR REPLACE VIEW gemini.plant_view
 AS
 SELECT
@@ -259,28 +285,25 @@ SELECT
     p.plant_number AS plant_number,
     p.plant_info AS plant_info,
     p.cultivar_id AS cultivar_id,
-    c.cultivar_accession AS cultivar_accession,
-    c.cultivar_population AS cultivar_population,
-    pl.plot_number AS plot_number,
-    pl.plot_row_number AS plot_row_number,
-    pl.plot_column_number AS plot_column_number,
-    pl.plot_info AS plot_info,
-    pl.plot_geometry_info AS plot_geometry_info,
-    pl.experiment_id AS experiment_id,
-    e.experiment_name AS experiment_name,
-    s.id AS season_id,
-    s.season_name AS season_name,
-    si.id AS site_id,
-    si.site_name AS site_name
-FROM
+    ppv.cultivar_accession AS cultivar_accession,
+    ppv.cultivar_population AS cultivar_population,
+    ppv.cultivar_info AS cultivar_info,
+    pv.plot_number AS plot_number,
+    pv.plot_row_number AS plot_row_number,
+    pv.plot_column_number AS plot_column_number,
+    pv.plot_info AS plot_info,
+    pv.plot_geometry_info AS plot_geometry_info,
+    pv.experiment_id AS experiment_id,
+    pv.experiment_name AS experiment_name,
+    pv.season_id AS season_id,
+    pv.season_name AS season_name,
+    pv.site_id AS site_id,
+    pv.site_name AS site_name
+FROM 
     gemini.plants p
-    JOIN gemini.plot_cultivars pc ON p.plot_id = pc.plot_id
-    JOIN gemini.cultivars c ON pc.cultivar_id = c.id
-    JOIN gemini.plots pl ON p.plot_id = pl.id
-    JOIN gemini.experiments e ON pl.experiment_id = e.id
-    JOIN gemini.seasons s ON pl.season_id = s.id
-    JOIN gemini.sites si ON pl.site_id = si.id;
-    
+LEFT JOIN gemini.plot_plant_view ppv ON p.plot_id = ppv.plot_id
+LEFT JOIN gemini.plot_view pv ON p.plot_id = pv.plot_id;
+
 
 
 -------------------------------------------------------------------------------
@@ -290,14 +313,17 @@ AS
 SELECT
     e.id AS experiment_id,
     e.experiment_name AS experiment_name,
+    e.experiment_info AS experiment_info,
+    e.experiment_start_date AS experiment_start_date,
+    e.experiment_end_date AS experiment_end_date,
     s.id AS season_id,
     s.season_name AS season_name,
     s.season_start_date AS season_start_date,
     s.season_end_date AS season_end_date,
     s.season_info AS season_info
 FROM
-    gemini.experiments e
-    JOIN gemini.seasons s ON e.id = s.experiment_id;
+    gemini.seasons s
+LEFT JOIN gemini.experiments e ON s.experiment_id = e.id;
 
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Sites
@@ -306,6 +332,9 @@ AS
 SELECT
     e.id AS experiment_id,
     e.experiment_name AS experiment_name,
+    e.experiment_info AS experiment_info,
+    e.experiment_start_date AS experiment_start_date,
+    e.experiment_end_date AS experiment_end_date,
     s.id AS site_id,
     s.site_name AS site_name,
     s.site_city AS site_city,
@@ -313,9 +342,9 @@ SELECT
     s.site_country AS site_country,
     s.site_info AS site_info
 FROM
-    gemini.experiments e
-    JOIN gemini.experiment_sites es ON e.id = es.experiment_id
-    JOIN gemini.sites s ON es.site_id = s.id;
+    gemini.sites s
+LEFT JOIN gemini.experiment_sites es ON s.id = es.site_id
+LEFT JOIN gemini.experiments e ON es.experiment_id = e.id;
 
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Seasons
@@ -324,6 +353,9 @@ AS
 SELECT
     e.id AS experiment_id,
     e.experiment_name AS experiment_name,
+    e.experiment_info AS experiment_info,
+    e.experiment_start_date AS experiment_start_date,
+    e.experiment_end_date AS experiment_end_date,
     t.id AS trait_id,
     t.trait_name AS trait_name,
     t.trait_units AS trait_units,
@@ -331,48 +363,51 @@ SELECT
     t.trait_level_id AS trait_level_id,
     t.trait_info AS trait_info
 FROM
-    gemini.experiments e
-    JOIN gemini.experiment_traits et ON e.id = et.experiment_id
-    JOIN gemini.traits t ON et.trait_id = t.id;
+    gemini.traits t
+LEFT JOIN gemini.experiment_traits et ON t.id = et.trait_id
+LEFT JOIN gemini.experiments e ON et.experiment_id = e.id;
 
--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 -- Materialized View to show Experiment Sensor Platforms
 CREATE OR REPLACE VIEW gemini.experiment_sensor_platforms_view
 AS
 SELECT
     e.id AS experiment_id,
     e.experiment_name AS experiment_name,
+    e.experiment_info AS experiment_info,
+    e.experiment_start_date AS experiment_start_date,
+    e.experiment_end_date AS experiment_end_date,
     sp.id AS sensor_platform_id,
     sp.sensor_platform_name AS sensor_platform_name,
     sp.sensor_platform_info AS sensor_platform_info
 FROM
-    gemini.experiments e
-    JOIN gemini.experiment_sensor_platforms esp ON e.id = esp.experiment_id
-    JOIN gemini.sensor_platforms sp ON esp.sensor_platform_id = sp.id;
+    gemini.sensor_platforms sp  -- Start from sensor_platforms
+LEFT JOIN gemini.experiment_sensor_platforms esp ON sp.id = esp.sensor_platform_id
+LEFT JOIN gemini.experiments e ON esp.experiment_id = e.id;
 
 
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Sensors
+
 CREATE OR REPLACE VIEW gemini.experiment_sensors_view
 AS
 SELECT
-    e.id AS experiment_id,
-    e.experiment_name AS experiment_name,
     s.id AS sensor_id,
     s.sensor_name AS sensor_name,
     s.sensor_type_id AS sensor_type_id,
     s.sensor_data_type_id AS sensor_data_type_id,
     s.sensor_data_format_id AS sensor_data_format_id,
     s.sensor_info AS sensor_info,
-    sp.id AS sensor_platform_id,
-    sp.sensor_platform_name AS sensor_platform_name,
-    sp.sensor_platform_info AS sensor_platform_info
+    e.id AS experiment_id,
+    e.experiment_name AS experiment_name,
+    e.experiment_info AS experiment_info,
+    e.experiment_start_date AS experiment_start_date,
+    e.experiment_end_date AS experiment_end_date
 FROM
-    gemini.experiments e
-    JOIN gemini.experiment_sensors es ON e.id = es.experiment_id
-    JOIN gemini.sensors s ON es.sensor_id = s.id
-    LEFT JOIN gemini.sensor_platform_sensors sps ON s.id = sps.sensor_id
-    LEFT JOIN gemini.sensor_platforms sp ON sps.sensor_platform_id = sp.id;
+    gemini.sensors s  -- Start from sensors
+LEFT JOIN gemini.experiment_sensors es ON s.id = es.sensor_id
+LEFT JOIN gemini.experiments e ON es.experiment_id = e.id;
+
 
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Cultivars
@@ -381,14 +416,17 @@ AS
 SELECT
     e.id AS experiment_id,
     e.experiment_name AS experiment_name,
+    e.experiment_info AS experiment_info,
+    e.experiment_start_date AS experiment_start_date,
+    e.experiment_end_date AS experiment_end_date,
     c.id AS cultivar_id,
     c.cultivar_accession AS cultivar_accession,
     c.cultivar_population AS cultivar_population,
     c.cultivar_info AS cultivar_info
 FROM
-    gemini.experiments e
-    JOIN gemini.experiment_cultivars ec ON e.id = ec.experiment_id
-    JOIN gemini.cultivars c ON ec.cultivar_id = c.id;
+    gemini.cultivars c -- Start from cultivars
+LEFT JOIN gemini.experiment_cultivars ec ON c.id = ec.cultivar_id
+LEFT JOIN gemini.experiments e ON ec.experiment_id = e.id;
 
 
 -------------------------------------------------------------------------------
@@ -398,13 +436,16 @@ AS
 SELECT
     e.id AS experiment_id,
     e.experiment_name AS experiment_name,
+    e.experiment_info AS experiment_info,
+    e.experiment_start_date AS experiment_start_date,
+    e.experiment_end_date AS experiment_end_date,
     p.id AS procedure_id,
     p.procedure_name AS procedure_name,
     p.procedure_info AS procedure_info
 FROM
-    gemini.experiments e
-    JOIN gemini.experiment_procedures ep ON e.id = ep.experiment_id
-    JOIN gemini.procedures p ON ep.procedure_id = p.id;
+    gemini.procedures p  -- Start from procedures
+LEFT JOIN gemini.experiment_procedures ep ON p.id = ep.procedure_id
+LEFT JOIN gemini.experiments e ON ep.experiment_id = e.id;
 
 
 -------------------------------------------------------------------------------
@@ -414,15 +455,18 @@ AS
 SELECT
     e.id AS experiment_id,
     e.experiment_name AS experiment_name,
+    e.experiment_info AS experiment_info,
+    e.experiment_start_date AS experiment_start_date,
+    e.experiment_end_date AS experiment_end_date,
     s.id AS script_id,
     s.script_name AS script_name,
     s.script_url AS script_url,
     s.script_extension AS script_extension,
     s.script_info AS script_info
 FROM
-    gemini.experiments e
-    JOIN gemini.experiment_scripts es ON e.id = es.experiment_id
-    JOIN gemini.scripts s ON es.script_id = s.id;
+    gemini.scripts s -- Start from scripts
+LEFT JOIN gemini.experiment_scripts es ON s.id = es.script_id
+LEFT JOIN gemini.experiments e ON es.experiment_id = e.id;
 
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Models
@@ -431,14 +475,17 @@ AS
 SELECT
     e.id AS experiment_id,
     e.experiment_name AS experiment_name,
+    e.experiment_info AS experiment_info,
+    e.experiment_start_date AS experiment_start_date,
+    e.experiment_end_date AS experiment_end_date,
     m.id AS model_id,
     m.model_name AS model_name,
     m.model_url AS model_url,
     m.model_info AS model_info
 FROM
-    gemini.experiments e
-    JOIN gemini.experiment_models em ON e.id = em.experiment_id
-    JOIN gemini.models m ON em.model_id = m.id;
+    gemini.models m -- Start from models
+LEFT JOIN gemini.experiment_models em ON m.id = em.model_id
+LEFT JOIN gemini.experiments e ON em.experiment_id = e.id;
 
 -------------------------------------------------------------------------------
 -- Materialized View to show Experiment Datasets
@@ -447,20 +494,22 @@ AS
 SELECT
     e.id AS experiment_id,
     e.experiment_name AS experiment_name,
+    e.experiment_info AS experiment_info,
+    e.experiment_start_date AS experiment_start_date,
+    e.experiment_end_date AS experiment_end_date,
     d.id AS dataset_id,
     d.collection_date AS collection_date,
     d.dataset_name AS dataset_name,
     d.dataset_type_id AS dataset_type_id,
     d.dataset_info AS dataset_info
 FROM
-    gemini.experiments e
-    JOIN gemini.experiment_datasets ed ON e.id = ed.experiment_id
-    JOIN gemini.datasets d ON ed.dataset_id = d.id;
+    gemini.datasets d  -- Start from datasets
+LEFT JOIN gemini.experiment_datasets ed ON d.id = ed.dataset_id
+LEFT JOIN gemini.experiments e ON ed.experiment_id = e.id;
 
 
 -------------------------------------------------------------------------------
 -- Sensor Datasets View
-
 CREATE OR REPLACE VIEW gemini.sensor_datasets_view
 AS
 SELECT
@@ -473,13 +522,12 @@ SELECT
     d.dataset_type_id AS dataset_type_id,
     sd.info AS sensor_dataset_info
 FROM
-    gemini.sensor_datasets sd
-    JOIN gemini.sensors s ON sd.sensor_id = s.id
-    JOIN gemini.datasets d ON sd.dataset_id = d.id;
+    gemini.sensors s  -- Start from sensors to include those without datasets
+LEFT JOIN gemini.sensor_datasets sd ON s.id = sd.sensor_id
+LEFT JOIN gemini.datasets d ON sd.dataset_id = d.id;
 
 -------------------------------------------------------------------------------
 -- Trait Datasets View
-
 CREATE OR REPLACE VIEW gemini.trait_datasets_view
 AS
 SELECT
@@ -492,14 +540,13 @@ SELECT
     d.dataset_type_id AS dataset_type_id,
     td.info AS trait_dataset_info
 FROM
-    gemini.trait_datasets td
-    JOIN gemini.traits t ON td.trait_id = t.id
-    JOIN gemini.datasets d ON td.dataset_id = d.id;
+    gemini.traits t  -- Start from traits
+LEFT JOIN gemini.trait_datasets td ON t.id = td.trait_id
+LEFT JOIN gemini.datasets d ON td.dataset_id = d.id;
 
 
 -------------------------------------------------------------------------------
 -- Procedure Datasets View
-
 CREATE OR REPLACE VIEW gemini.procedure_datasets_view
 AS
 SELECT
@@ -512,13 +559,12 @@ SELECT
     d.dataset_type_id AS dataset_type_id,
     pd.info AS procedure_dataset_info
 FROM
-    gemini.procedure_datasets pd
-    JOIN gemini.procedures p ON pd.procedure_id = p.id
-    JOIN gemini.datasets d ON pd.dataset_id = d.id;
+    gemini.procedures p  -- Start from procedures
+LEFT JOIN gemini.procedure_datasets pd ON p.id = pd.procedure_id
+LEFT JOIN gemini.datasets d ON pd.dataset_id = d.id;
 
 -------------------------------------------------------------------------------
 -- Procedure Runs View
-
 CREATE OR REPLACE VIEW gemini.procedure_runs_view
 AS
 SELECT
@@ -528,13 +574,12 @@ SELECT
     p.procedure_info AS procedure_info,
     pr.procedure_run_info AS procedure_run_info
 FROM
-    gemini.procedure_runs pr
-    JOIN gemini.procedures p ON pr.procedure_id = p.id;
+    gemini.procedures p -- Start from procedures
+FULL OUTER JOIN gemini.procedure_runs pr ON p.id = pr.procedure_id;
 
 
 -------------------------------------------------------------------------------
 -- Script Datasets View
-
 CREATE OR REPLACE VIEW gemini.script_datasets_view
 AS
 SELECT
@@ -547,13 +592,12 @@ SELECT
     d.dataset_type_id AS dataset_type_id,
     sd.info AS script_dataset_info
 FROM
-    gemini.script_datasets sd
-    JOIN gemini.scripts s ON sd.script_id = s.id
-    JOIN gemini.datasets d ON sd.dataset_id = d.id;
+    gemini.scripts s  -- Start from scripts
+LEFT JOIN gemini.script_datasets sd ON s.id = sd.script_id
+LEFT JOIN gemini.datasets d ON sd.dataset_id = d.id;
 
 ------------------------------------------------------------------------------
 -- Script Runs View
-
 CREATE OR REPLACE VIEW gemini.script_runs_view
 AS
 SELECT
@@ -565,13 +609,12 @@ SELECT
     s.script_info AS script_info,
     sr.script_run_info AS script_run_info
 FROM
-    gemini.script_runs sr
-    JOIN gemini.scripts s ON sr.script_id = s.id;
+    gemini.scripts s -- Start from scripts
+FULL OUTER JOIN gemini.script_runs sr ON s.id = sr.script_id; -- Full outer join to include all scripts and all runs
 
 
 -------------------------------------------------------------------------------
 -- Model Datasets View
-
 CREATE OR REPLACE VIEW gemini.model_datasets_view
 AS
 SELECT
@@ -584,14 +627,13 @@ SELECT
     d.dataset_type_id AS dataset_type_id,
     md.info AS model_dataset_info
 FROM
-    gemini.model_datasets md
-    JOIN gemini.models m ON md.model_id = m.id
-    JOIN gemini.datasets d ON md.dataset_id = d.id;
+    gemini.models m  -- Start from models
+LEFT JOIN gemini.model_datasets md ON m.id = md.model_id
+LEFT JOIN gemini.datasets d ON md.dataset_id = d.id;
 
 
 -----------------------------------------------------------------------------------
 -- Model Runs View
-
 CREATE OR REPLACE VIEW gemini.model_runs_view
 AS
 SELECT
@@ -602,8 +644,31 @@ SELECT
     m.model_info AS model_info,
     mr.model_run_info AS model_run_info
 FROM
-    gemini.model_runs mr
-    JOIN gemini.models m ON mr.model_id = m.id;
+    gemini.models m -- Start from models
+FULL OUTER JOIN gemini.model_runs mr ON m.id = mr.model_id;
+
+
+-------------------------------------------------------------------------------
+-- Sensor Platform Sensors View
+CREATE OR REPLACE VIEW gemini.sensor_platform_sensors_view
+AS
+SELECT
+    sp.id AS sensor_platform_id,
+    sp.sensor_platform_name AS sensor_platform_name,
+    sp.sensor_platform_info AS sensor_platform_info,
+    s.id AS sensor_id,
+    s.sensor_name AS sensor_name,
+    s.sensor_type_id AS sensor_type_id,
+    s.sensor_data_type_id AS sensor_data_type_id,
+    s.sensor_data_format_id AS sensor_data_format_id,
+    s.sensor_info AS sensor_info,
+    sps.info AS sensor_platform_sensor_info
+FROM
+    gemini.sensor_platforms sp
+FULL OUTER JOIN gemini.sensor_platform_sensors sps ON sp.id = sps.sensor_platform_id
+FULL OUTER JOIN gemini.sensors s ON sps.sensor_id = s.id;
+
+
 
     
 -------------------------------------------------------------------------------

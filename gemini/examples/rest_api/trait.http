@@ -1,0 +1,143 @@
+@baseUrl = http://localhost:8000
+@apiUrl = {{baseUrl}}/api/traits
+
+### Get all traits
+# @name GetAllTraits
+GET {{apiUrl}}/all
+
+### Get a specific trait
+# @name GetTrait
+GET {{apiUrl}}/?experiment_name=Experiment+A
+
+### Select a trait
+@traitId = {{GetTrait.response.body.$.0.id}}
+
+### Select a trait by ID
+# @name GetTraitById
+GET {{apiUrl}}/id/{{traitId}}
+
+### Get all associated experiments by trait ID
+# @name GetExperimentsByTraitId
+GET {{apiUrl}}/id/{{traitId}}/experiments
+
+### Get all associated datasets by trait ID
+# @name GetDatasetsByTraitId
+GET {{apiUrl}}/id/{{traitId}}/datasets
+
+### Create a new trait
+# @name CreateTrait
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+    "trait_name": "Test Trait",
+    "trait_units": "cm",
+    "trait_level_id": 1,
+    "trait_metrics": {
+        "trait_metric_name": "Height",
+        "trait_metric_description": "Height of the plant in cm"
+    },
+    "trait_info": {
+        "trait_description": "Test Description",
+        "trait_notes": "Test Notes"
+    },
+    "experiment_name": "Experiment B"
+}
+
+###
+@createdTraitId = {{CreateTrait.response.body.id}}
+
+### Update a trait
+# @name UpdateTrait
+PATCH {{apiUrl}}/id/{{createdTraitId}}
+Content-Type: application/json
+
+{
+    "trait_name": "Updated Test Trait",
+    "trait_units": "cm",
+    "trait_level_id": 1,
+    "trait_metrics": {
+        "trait_metric_name": "Height",
+        "trait_metric_description": "Updated height of the plant in cm"
+    },
+    "trait_info": {
+        "trait_description": "Updated Description",
+        "trait_notes": "Updated Notes"
+    },
+    "experiment_name": "Experiment B"
+}
+
+### Delete a trait
+# @name DeleteTrait
+DELETE {{apiUrl}}/id/{{createdTraitId}}
+
+### Get Trait Records
+# @name GetTraitRecords
+GET {{apiUrl}}/id/{{traitId}}/records?experiment_name=Experiment+A&site_name=Site+A1
+
+### Create Trait Record
+# @name CreateTraitRecord
+POST {{apiUrl}}/id/{{traitId}}/records
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="timestamp"
+
+2021-01-01T00:00:00Z
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="trait_value"
+
+33.456
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="experiment_name"
+
+Experiment A
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="season_name"
+
+Season 1A
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="site_name"
+
+Site A1
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="plot_number"
+
+1
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="plot_row_number"
+
+1
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="plot_column_number"
+
+1
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="record_info"
+
+{"record_description": "Test Description", "record_notes": "Test Notes"}
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+@createdTraitRecordId = {{CreateTraitRecord.response.body.id}}
+
+### Get Trait Record by ID
+# @name GetTraitRecordById
+GET {{apiUrl}}/records/id/{{createdTraitRecordId}}
+
+### Update Trait Record
+# @name UpdateTraitRecord
+PATCH {{apiUrl}}/records/id/{{createdTraitRecordId}}
+Content-Type: application/json
+
+{
+    "trait_value": 35.789,
+    "record_info": {
+        "record_description": "Updated Test Description",
+        "record_notes": "Updated Test Notes"
+    }
+}
+
+### Delete Trait Record
+# @name DeleteTraitRecord
+DELETE {{apiUrl}}/records/id/{{createdTraitRecordId}}

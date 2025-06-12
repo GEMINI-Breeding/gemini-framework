@@ -8,7 +8,7 @@
 
 CREATE TABLE IF NOT EXISTS gemini.dataset_records (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    timestamp TIMESTAMP NOT NULL DEFAULT NOW(),
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     collection_date DATE NOT NULL DEFAULT CURRENT_DATE,
     dataset_id UUID,
     dataset_name TEXT,
@@ -44,7 +44,7 @@ CREATE INDEX dataset_records_record_info_idx ON gemini.dataset_records USING GIN
 
 CREATE TABLE IF NOT EXISTS gemini.sensor_records (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    timestamp TIMESTAMP NOT NULL DEFAULT NOW(),
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     collection_date DATE NOT NULL DEFAULT CURRENT_DATE,
     dataset_id UUID,
     dataset_name TEXT,
@@ -92,7 +92,7 @@ CREATE INDEX sensor_records_record_info_idx ON gemini.sensor_records USING GIN (
 
 CREATE TABLE IF NOT EXISTS gemini.trait_records (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    timestamp TIMESTAMP NOT NULL DEFAULT NOW(),
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     collection_date DATE NOT NULL DEFAULT CURRENT_DATE,
     dataset_id UUID,
     dataset_name TEXT,
@@ -139,7 +139,7 @@ CREATE INDEX trait_records_record_info_idx ON gemini.trait_records USING GIN (re
 
 CREATE TABLE IF NOT EXISTS gemini.procedure_records (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    timestamp TIMESTAMP NOT NULL DEFAULT NOW(),
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     collection_date DATE NOT NULL DEFAULT CURRENT_DATE,
     dataset_id UUID,
     dataset_name TEXT,
@@ -179,7 +179,7 @@ CREATE INDEX procedure_records_record_info_idx ON gemini.procedure_records USING
 
 CREATE TABLE IF NOT EXISTS gemini.script_records (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    timestamp TIMESTAMP NOT NULL DEFAULT NOW(),
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     collection_date DATE NOT NULL DEFAULT CURRENT_DATE,
     dataset_id UUID,
     dataset_name TEXT,
@@ -218,7 +218,7 @@ CREATE INDEX script_records_record_info_idx ON gemini.script_records USING GIN (
 
 CREATE TABLE IF NOT EXISTS gemini.model_records (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    timestamp TIMESTAMP NOT NULL DEFAULT NOW(),
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     collection_date DATE NOT NULL DEFAULT CURRENT_DATE,
     dataset_id UUID,
     dataset_name TEXT,
@@ -251,3 +251,4 @@ ALTER TABLE gemini.model_records ADD CONSTRAINT model_records_unique UNIQUE NULL
 );
 
 CREATE INDEX model_records_record_info_idx ON gemini.model_records USING GIN (record_info);
+

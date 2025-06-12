@@ -51,6 +51,14 @@ print(f"Set ScriptRun Info: {script_run}")
 script_run_info = script_run.get_info()
 print(f"ScriptRun Info: {script_run_info}")
 
+# Check if ScriptRun exists before deletion
+exists = ScriptRun.exists(script_run_info={"test": "test_set"}, script_name=script.script_name)
+print(f"ScriptRun exists before deletion: {exists}")
+
 # Delete the script run
 is_deleted = script_run.delete()
 print(f"Deleted Script Run: {is_deleted}")
+
+# Check if ScriptRun exists after deletion
+exists_after_deletion = ScriptRun.exists(script_run_info={"test": "test_set"}, script_name=script.script_name)
+print(f"ScriptRun exists after deletion: {exists_after_deletion}")

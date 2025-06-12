@@ -1,97 +1,60 @@
-from gemini.api.trait import Trait, GEMINITraitLevel, GEMINIDatasetType
+from gemini.api.trait import Trait, GEMINITraitLevel
 
-# Create a new trait for experiment Experiment A
+
+# Create a new trait
 new_trait = Trait.create(
     trait_name="Trait Test 1",
-    trait_units="units",
-    trait_level=GEMINITraitLevel.Plot,
-    trait_info={"test": "test", "test2": "test2"},
+    trait_level=GEMINITraitLevel.Plant,
     trait_metrics={"test": "test"},
+    trait_info={"test": "test"},
     experiment_name="Experiment A"
 )
-print(f"Created Trait: {new_trait}")
-
-# Check if Belongs to Experiment A
-belongs = new_trait.belongs_to_experiment("Experiment A")
-print(f"Belongs to Experiment A: {belongs}")
-
-
-# Get Trait with trait_name and experiment_name that do exist
-trait = Trait.get("Trait Test 1", "Experiment A")
-print(f"Got Trait: {trait}")
-
-# Add Trait to Experiment B
-trait.assign_experiment("Experiment B")
-print(f"Added Trait to Experiment B: {trait}")
-
-# Remove Trait from Experiment B
-trait.unassign_experiment("Experiment B")
-print(f"Removed Trait from Experiment B: {trait}")
+print(f"Created New Trait: {new_trait}")
 
 # Get Trait by ID
-trait = Trait.get_by_id(new_trait.id)
-print(f"Got Trait by ID: {trait}")
+trait_by_id = Trait.get_by_id(id=new_trait.id)
+print(f"Trait by ID: {trait_by_id}")
 
-# Get all traits
+# Get Trait by Name
+trait_by_name = Trait.get(trait_name=new_trait.trait_name)
+print(f"Trait by Name: {trait_by_name}")
+
+# Get all Traits
 all_traits = Trait.get_all()
-print(f"All Traits:")
 for trait in all_traits:
-    print(trait)
+    print(f"All Traits: {trait}")
 
-# Search for traits
-searched_traits = Trait.search(trait_info={"test": "test"})
-length_searched_traits = len(searched_traits)
-print(f"Found {length_searched_traits} traits in Experiment A")
-
-# Refresh the trait
-trait.refresh()
-print(f"Refreshed Trait: {trait}")
+# Search for Traits
+searched_traits = Trait.search(trait_name="Trait Test 1")
+for trait in searched_traits:
+    print(f"Searched Trait: {trait}")
 
 # Update the trait
-trait.update(
-    trait_info={"test": "test_updated"},
-    trait_units="units_updated",
-    trait_level=GEMINITraitLevel.Plant,
+trait_by_name.update(
+    trait_level=GEMINITraitLevel.Plot,
     trait_metrics={"test": "test_updated"},
+    trait_info={"test": "test_updated"},
 )
-print(f"Updated Trait: {trait}")
+print(f"Updated Trait: {trait_by_name}")
 
 # Set Trait Info
-trait.set_info(
+trait_by_name.set_info(
     trait_info={"test": "test_set"},
 )
-print(f"Set Trait Info: {trait}")
+print(f"Set Trait Info: {trait_by_name.get_info()}")
 
-# Get Trait Info
-trait_info = trait.get_info()
-print(f"Trait Info: {trait_info}")
+# Refresh Trait
+trait_by_name.refresh()
+print(f"Refreshed Trait: {trait_by_name}")
 
-# Create a dataset for the trait
-dataset = trait.create_dataset(
-    dataset_name="Dataset Test 1",
-    dataset_info={"test": "test"},
-    collection_date="2023-10-01",
-    experiment_name="Experiment A"
-)
-print(f"Created Dataset: {dataset}")
+# Check if Trait Exists
+exists = Trait.exists(trait_name="Trait Test 1")
+print(f"Trait exists: {exists}")
 
-# Check if has_dataset for the trait
-has_dataset = trait.has_dataset("Dataset Test 1")
-print(f"Trait has Dataset Test 1: {has_dataset}")
-
-# Get all datasets for the trait
-datasets = trait.get_datasets()
-print(f"All Datasets:")
-for dataset in datasets:
-    print(dataset)
-
-# Get all experiments associated with the trait
-experiments = trait.get_experiments()
-print(f"All Experiments:")
-for experiment in experiments:
-    print(experiment)
-
-# Delete the trait
-is_deleted = new_trait.delete()
+# Delete the created trait
+is_deleted = trait_by_name.delete()
 print(f"Deleted Trait: {is_deleted}")
 
+# Check if Trait Exists after deletion
+exists_after_deletion = Trait.exists(trait_name="Trait Test 1")
+print(f"Trait exists after deletion: {exists_after_deletion}")

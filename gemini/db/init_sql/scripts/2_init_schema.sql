@@ -128,7 +128,7 @@ CREATE TABLE IF NOT EXISTS gemini.data_types (
 
 CREATE INDEX IF NOT EXISTS idx_data_types_info ON gemini.data_types USING GIN (data_type_info);
 
-ALTER TABLE gemini.data_types ADD CONSTRAINT data_type_unique UNIQUE NULLS NOT DISTINCT (data_type_name);
+ALTER TABLE gemini.data_types ADD CONSTRAINT data_type_unique UNIQUE (data_type_name);
 
 -------------------------------------------------------------------------------
 -- Data Formats Table
@@ -145,7 +145,7 @@ CREATE TABLE IF NOT EXISTS gemini.data_formats (
 
 CREATE INDEX IF NOT EXISTS idx_data_formats_info ON gemini.data_formats USING GIN (data_format_info);
 
-ALTER TABLE gemini.data_formats ADD CONSTRAINT data_format_unique UNIQUE NULLS NOT DISTINCT (data_format_name);
+ALTER TABLE gemini.data_formats ADD CONSTRAINT data_format_unique UNIQUE (data_format_name);
 
 -------------------------------------------------------------------------------
 -- Trait Levels Table
@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS gemini.trait_levels (
 
 CREATE INDEX IF NOT EXISTS idx_trait_levels_info ON gemini.trait_levels USING GIN (trait_level_info);
 
-ALTER TABLE gemini.trait_levels ADD CONSTRAINT trait_level_unique UNIQUE NULLS NOT DISTINCT (trait_level_name);
+ALTER TABLE gemini.trait_levels ADD CONSTRAINT trait_level_unique UNIQUE (trait_level_name);
 
 -------------------------------------------------------------------------------
 -- Traits Table
@@ -180,7 +180,7 @@ CREATE TABLE IF NOT EXISTS gemini.traits (
 
 CREATE INDEX IF NOT EXISTS idx_traits_info ON gemini.traits USING GIN (trait_info);
 
-ALTER TABLE gemini.traits ADD CONSTRAINT trait_unique UNIQUE NULLS NOT DISTINCT (trait_name);
+ALTER TABLE gemini.traits ADD CONSTRAINT trait_unique UNIQUE (trait_name);
 
 -------------------------------------------------------------------------------
 -- Sensor Types Table
@@ -196,7 +196,7 @@ CREATE TABLE IF NOT EXISTS gemini.sensor_types (
 
 CREATE INDEX IF NOT EXISTS idx_sensor_types_info ON gemini.sensor_types USING GIN (sensor_type_info);
 
-ALTER TABLE gemini.sensor_types ADD CONSTRAINT sensor_type_unique UNIQUE NULLS NOT DISTINCT (sensor_type_name);
+ALTER TABLE gemini.sensor_types ADD CONSTRAINT sensor_type_unique UNIQUE (sensor_type_name);
 
 -------------------------------------------------------------------------------
 -- Platforms Table
@@ -213,7 +213,7 @@ CREATE TABLE IF NOT EXISTS gemini.sensor_platforms (
 
 CREATE INDEX IF NOT EXISTS idx_sensor_platforms_info ON gemini.sensor_platforms USING GIN (sensor_platform_info);
 
-ALTER TABLE gemini.sensor_platforms ADD CONSTRAINT sensor_platform_unique UNIQUE NULLS NOT DISTINCT (sensor_platform_name);
+ALTER TABLE gemini.sensor_platforms ADD CONSTRAINT sensor_platform_unique UNIQUE (sensor_platform_name);
 
 -------------------------------------------------------------------------------
 -- Sensors Table
@@ -231,7 +231,7 @@ CREATE TABLE IF NOT EXISTS gemini.sensors (
 
 CREATE INDEX IF NOT EXISTS idx_sensors_info ON gemini.sensors USING GIN (sensor_info);
 
-ALTER TABLE gemini.sensors ADD CONSTRAINT sensor_unique UNIQUE NULLS NOT DISTINCT (sensor_name);
+ALTER TABLE gemini.sensors ADD CONSTRAINT sensor_unique UNIQUE (sensor_name);
 
 
 -------------------------------------------------------------------------------
@@ -251,7 +251,7 @@ CREATE TABLE IF NOT EXISTS gemini.resources (
 
 CREATE INDEX IF NOT EXISTS idx_resources_info ON gemini.resources USING GIN (resource_info);
 
-ALTER TABLE gemini.resources ADD CONSTRAINT resource_unique UNIQUE NULLS NOT DISTINCT (resource_uri, resource_file_name);
+ALTER TABLE gemini.resources ADD CONSTRAINT resource_unique UNIQUE (resource_uri, resource_file_name);
 
 -------------------------------------------------------------------------------
 -- Scripts Table
@@ -268,7 +268,7 @@ CREATE TABLE IF NOT EXISTS gemini.scripts (
 
 CREATE INDEX IF NOT EXISTS idx_scripts_info ON gemini.scripts USING GIN (script_info);
 
-ALTER TABLE gemini.scripts ADD CONSTRAINT script_unique UNIQUE NULLS NOT DISTINCT (script_name, script_url);
+ALTER TABLE gemini.scripts ADD CONSTRAINT script_unique UNIQUE (script_name, script_url);
 
 -------------------------------------------------------------------------------
 -- Script Runs Table
@@ -299,7 +299,7 @@ CREATE TABLE IF NOT EXISTS gemini.models (
 
 CREATE INDEX IF NOT EXISTS idx_models_info ON gemini.models USING GIN (model_info);
 
-ALTER TABLE gemini.models ADD CONSTRAINT model_unique UNIQUE NULLS NOT DISTINCT (model_name, model_url);
+ALTER TABLE gemini.models ADD CONSTRAINT model_unique UNIQUE (model_name, model_url);
 
 -------------------------------------------------------------------------------
 -- Model Runs Table
@@ -329,7 +329,7 @@ CREATE TABLE IF NOT EXISTS gemini.procedures (
 
 CREATE INDEX IF NOT EXISTS idx_procedures_info ON gemini.procedures USING GIN (procedure_info);
 
-ALTER TABLE gemini.procedures ADD CONSTRAINT procedure_unique UNIQUE NULLS NOT DISTINCT (procedure_name);
+ALTER TABLE gemini.procedures ADD CONSTRAINT procedure_unique UNIQUE (procedure_name);
 
 -------------------------------------------------------------------------------
 -- Procedure Runs Table
@@ -359,7 +359,7 @@ CREATE TABLE IF NOT EXISTS gemini.dataset_types (
 
 CREATE INDEX IF NOT EXISTS idx_dataset_types_info ON gemini.dataset_types USING GIN (dataset_type_info);
 
-ALTER TABLE gemini.dataset_types ADD CONSTRAINT dataset_type_unique UNIQUE NULLS NOT DISTINCT (dataset_type_name);
+ALTER TABLE gemini.dataset_types ADD CONSTRAINT dataset_type_unique UNIQUE (dataset_type_name);
 
 -------------------------------------------------------------------------------
 -- Datasets Table
@@ -376,7 +376,7 @@ CREATE TABLE IF NOT EXISTS gemini.datasets(
 
 CREATE INDEX IF NOT EXISTS idx_datasets_info ON gemini.datasets USING GIN (dataset_info);
 
-ALTER TABLE gemini.datasets ADD CONSTRAINT dataset_name_unique UNIQUE NULLS NOT DISTINCT (dataset_name);
+ALTER TABLE gemini.datasets ADD CONSTRAINT dataset_name_unique UNIQUE (dataset_name);
 
 ------------------------------------------------------------
 -- Create the initial data for the database

@@ -17,7 +17,8 @@ from gemini.rest_api.models import (
     ScriptOutput, 
     ScriptUpdate,
     ScriptRunOutput,
-    DatasetOutput, 
+    DatasetOutput,
+    ExperimentOutput, 
     RESTAPIError, 
     JSONB, 
     str_to_dict
@@ -33,7 +34,7 @@ from gemini.rest_api.file_handler import api_file_handler
 
 from typing import List, Annotated, Optional
 
-async def script_records_bytes_generator(script_record_generator: Generator[ScriptOutput, None, None]) -> AsyncGenerator[bytes, None]:
+async def script_records_bytes_generator(script_record_generator: Generator[ScriptRecord, None, None]) -> AsyncGenerator[bytes, None]:
     for record in script_record_generator:
         record = record.model_dump(exclude_none=True)
         record = encode_json(record) + b'\n'
@@ -59,19 +60,18 @@ class ScriptController(Controller):
         try:
             scripts = Script.get_all()
             if scripts is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No scripts found",
                     error_description="No scripts were found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return scripts
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving all scripts"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
 
     # Get Scripts
     @get()
@@ -95,19 +95,18 @@ class ScriptController(Controller):
                 experiment_name=experiment_name
             )
             if scripts is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No scripts found",
                     error_description="No scripts were found with the given search criteria"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return scripts
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving scripts"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Get Script by ID
     @get(path="/id/{script_id:str}")
@@ -117,19 +116,18 @@ class ScriptController(Controller):
         try:
             script = Script.get_by_id(id=script_id)
             if script is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script not found",
                     error_description="The script with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return script
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the script"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Create Script
@@ -147,19 +145,18 @@ class ScriptController(Controller):
                 experiment_name=data.experiment_name
             )
             if script is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script not created",
                     error_description="The script was not created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return script
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the script"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Update Script
     @patch(path="/id/{script_id:str}")
@@ -171,11 +168,11 @@ class ScriptController(Controller):
         try:
             script = Script.get_by_id(id=script_id)
             if script is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script not found",
                     error_description="The script with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             script = script.update(
                 script_name=data.script_name,
                 script_url=data.script_url,
@@ -183,19 +180,18 @@ class ScriptController(Controller):
                 script_info=data.script_info
             )
             if script is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script not updated",
                     error_description="The script was not updated"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return script
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while updating the script"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Delete Script
     @delete(path="/id/{script_id:str}")
@@ -206,26 +202,54 @@ class ScriptController(Controller):
         try:
             script = Script.get_by_id(id=script_id)
             if script is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script not found",
                     error_description="The script with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             is_deleted = script.delete()
             if not is_deleted:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script not deleted",
                     error_description="The script was not deleted"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return None
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while deleting the script"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
+        
+    # Get Associated Experiments
+    @get(path="/id/{script_id:str}/experiments")
+    async def get_script_experiments(
+        self, script_id: str
+    ) -> List[ExperimentOutput]:
+        try:
+            script = Script.get_by_id(id=script_id)
+            if script is None:
+                error = RESTAPIError(
+                    error="Script not found",
+                    error_description="The script with the given ID was not found"
+                )
+                return Response(content=error, status_code=404)
+            experiments = script.get_associated_experiments()
+            if experiments is None:
+                error = RESTAPIError(
+                    error="No experiments found",
+                    error_description="No experiments were found for the given script"
+                )
+                return Response(content=error, status_code=404)
+            return experiments
+        except Exception as e:
+            error = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while retrieving associated experiments"
+            )
+            return Response(content=error, status_code=500)
+
         
     # Get Script Runs
     @get(path="/id/{script_id:str}/runs")
@@ -235,25 +259,25 @@ class ScriptController(Controller):
         try:
             script = Script.get_by_id(id=script_id)
             if script is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script not found",
                     error_description="The script with the given ID was not found"
-                ).to_html()
-            script_runs = script.get_runs()
+                )
+                return Response(content=error, status_code=404)
+            script_runs = script.get_associated_runs()
             if script_runs is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No script runs found",
                     error_description="No script runs were found for the given script"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return script_runs
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving script runs"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Get Script Datasets
     @get(path="/id/{script_id:str}/datasets")
@@ -263,26 +287,25 @@ class ScriptController(Controller):
         try:
             script = Script.get_by_id(id=script_id)
             if script is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script not found",
                     error_description="The script with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            datasets = script.get_datasets()
+                )
+                return Response(content=error, status_code=404)
+            datasets = script.get_associated_datasets()
             if datasets is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No datasets found",
                     error_description="No datasets were found for the given script"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return datasets
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving datasets"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Create Script Run
     @post(path="/id/{script_id:str}/runs")
@@ -294,26 +317,25 @@ class ScriptController(Controller):
         try:
             script = Script.get_by_id(id=script_id)
             if script is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script not found",
                     error_description="The script with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            script_run = script.create_run(script_run_info=data.script_run_info)
+                )
+                return Response(content=error, status_code=404)
+            script_run = script.create_new_run(script_run_info=data.script_run_info)
             if script_run is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script run not created",
                     error_description="The script run was not created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return script_run
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the script run"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Create Script Dataset
     @post(path="/id/{script_id:str}/datasets")
@@ -325,31 +347,30 @@ class ScriptController(Controller):
         try:
             script = Script.get_by_id(id=script_id)
             if script is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script not found",
                     error_description="The script with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            dataset = script.create_dataset(
+                )
+                return Response(content=error, status_code=404)
+            dataset = script.create_new_dataset(
                 dataset_name=data.dataset_name,
                 dataset_info=data.dataset_info,
                 collection_date=data.collection_date,
                 experiment_name=data.experiment_name
             )
             if dataset is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Dataset not created",
                     error_description="The dataset was not created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return dataset
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the dataset"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
     
 
     # Add a Script Record
@@ -362,16 +383,17 @@ class ScriptController(Controller):
         try:
             script = Script.get_by_id(id=script_id)
             if script is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script not found",
                     error_description="The script with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             
+            record_file_path = None
             if data.record_file:
                 record_file_path = await api_file_handler.create_file(data.record_file)
 
-            add_success, inserted_record_ids = script.add_record(
+            add_success, inserted_record_ids = script.insert_record(
                 timestamp=data.timestamp,
                 collection_date=data.collection_date,
                 script_data=data.script_data,
@@ -379,31 +401,30 @@ class ScriptController(Controller):
                 experiment_name=data.experiment_name,
                 season_name=data.season_name,
                 site_name=data.site_name,
-                record_file=record_file_path if data.record_file else None,
+                record_file=record_file_path,
                 record_info=data.record_info
             )
-            if not add_success:
-                error_html = RESTAPIError(
+            if not add_success or not inserted_record_ids:
+                error = RESTAPIError(
                     error="Script record not added",
                     error_description="The script record was not added"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             inserted_record_id = inserted_record_ids[0]
             inserted_script_record = ScriptRecord.get_by_id(id=inserted_record_id)
             if inserted_script_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script record not found",
-                    error_description="The script record with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                    error_description="The script record with the given ID was not found after insertion"
+                )
+                return Response(content=error, status_code=404)
             return inserted_script_record
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while adding the script record"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500) 
+            return Response(content=error, status_code=500) 
 
     # Search Script Records
     @get(path="/id/{script_id:str}/records")
@@ -418,12 +439,12 @@ class ScriptController(Controller):
         try:
             script = Script.get_by_id(id=script_id)
             if script is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script not found",
                     error_description="The script with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
-            script_records = script.get_records(
+                )
+                return Response(content=error, status_code=404)
+            script_records = script.search_records(
                 experiment_name=experiment_name,
                 season_name=season_name,
                 site_name=site_name,
@@ -431,12 +452,11 @@ class ScriptController(Controller):
             )
             return Stream(script_records_bytes_generator(script_records), media_type="application/ndjson")
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving script records"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
 
         
     # Get Script Record by ID
@@ -448,19 +468,18 @@ class ScriptController(Controller):
         try:
             script_record = ScriptRecord.get_by_id(id=record_id)
             if script_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script record not found",
                     error_description="The script record with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return script_record
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the script record"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Get Script Record File
     @get(path="/records/id/{record_id:str}/download")
@@ -471,29 +490,28 @@ class ScriptController(Controller):
         try:
             script_record = ScriptRecord.get_by_id(id=record_id)
             if script_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script record not found",
                     error_description="The script record with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404) # This will be a type error at runtime
             record_file = script_record.record_file
             if record_file is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script record file not found",
                     error_description="The script record file with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404) # This will be a type error at runtime
             bucket_name = "gemini"
             object_name = record_file
             object_path = f"{bucket_name}/{object_name}"
             return Redirect(path=f"/api/files/download/{object_path}")
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the script record file"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Update Script Record
     @patch(path="/records/id/{record_id:str}")
@@ -505,29 +523,28 @@ class ScriptController(Controller):
         try:
             script_record = ScriptRecord.get_by_id(id=record_id)
             if script_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script record not found",
                     error_description="The script record with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             script_record = script_record.update(
                 script_data=data.script_data,
                 record_info=data.record_info
             )
             if script_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script record not updated",
                     error_description="The script record was not updated"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return script_record
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while updating the script record"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
 
     # Delete Script Record
@@ -539,23 +556,22 @@ class ScriptController(Controller):
         try:
             script_record = ScriptRecord.get_by_id(id=record_id)
             if script_record is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script record not found",
                     error_description="The script record with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             is_deleted = script_record.delete()
             if not is_deleted:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Script record not deleted",
                     error_description="The script record was not deleted"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
-            return None
+                )
+                return Response(content=error, status_code=500)
+            return None # Indicates success with 204 No Content if nothing is returned
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while deleting the script record"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)

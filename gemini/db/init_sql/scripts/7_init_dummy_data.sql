@@ -406,7 +406,7 @@ SELECT ep.experiment_id, pd.dataset_id, '{"description": "Test association"}', N
 FROM gemini.experiment_procedures ep
 JOIN gemini.procedure_datasets pd ON ep.procedure_id = pd.procedure_id;
 
-
+-- Add 10 records for each valid combination for Default Dataset Type
 DO $$
 DECLARE
     rec_count INTEGER;
@@ -421,15 +421,11 @@ BEGIN
             -- Generate random data for the dataset
             dataset_data := jsonb_build_object('record_number', rec_count, 'data', jsonb_build_object('field1', random() * 100, 'field2', random() * 100, 'field3', random() * 100));
 
-            INSERT INTO gemini.dataset_records (dataset_id, dataset_name, experiment_id, experiment_name, season_id, season_name, site_id, site_name, timestamp, collection_date, dataset_data, record_info)
+            INSERT INTO gemini.dataset_records (dataset_name, experiment_name, season_name, site_name, timestamp, collection_date, dataset_data, record_info)
             VALUES (
-                (SELECT id FROM gemini.datasets WHERE dataset_name = valid_row.dataset_name),
                 valid_row.dataset_name,
-                (SELECT id FROM gemini.experiments WHERE experiment_name = valid_row.experiment_name),
                 valid_row.experiment_name,
-                (SELECT id FROM gemini.seasons WHERE season_name = valid_row.season_name),
                 valid_row.season_name,
-                (SELECT id FROM gemini.sites WHERE site_name = valid_row.site_name),
                 valid_row.site_name,
                 NOW() + time_offset,
                 (NOW() + time_offset)::DATE,
@@ -457,17 +453,12 @@ BEGIN
             -- Generate random data for the dataset
             script_data := jsonb_build_object('record_number', rec_count, 'data', jsonb_build_object('field1', random() * 100, 'field2', random() * 100, 'field3', random() * 100));
 
-            INSERT INTO gemini.script_records (dataset_id, dataset_name, script_id, script_name, experiment_id, experiment_name, season_id, season_name, site_id, site_name, timestamp, collection_date, script_data, record_info)
+            INSERT INTO gemini.script_records (dataset_name, script_name, experiment_name, season_name, site_name, timestamp, collection_date, script_data, record_info)
             VALUES (
-                (SELECT id FROM gemini.datasets WHERE dataset_name = valid_row.dataset_name),
                 valid_row.dataset_name,
-                (SELECT id FROM gemini.scripts WHERE script_name = valid_row.script_name),
                 valid_row.script_name,
-                (SELECT id FROM gemini.experiments WHERE experiment_name = valid_row.experiment_name),
                 valid_row.experiment_name,
-                (SELECT id FROM gemini.seasons WHERE season_name = valid_row.season_name),
                 valid_row.season_name,
-                (SELECT id FROM gemini.sites WHERE site_name = valid_row.site_name),
                 valid_row.site_name,
                 NOW() + time_offset,
                 (NOW() + time_offset)::DATE,
@@ -494,17 +485,12 @@ BEGIN
             time_offset := rec_count * (random() * INTERVAL '1 hour');
             -- Generate random data for the dataset
             model_data := jsonb_build_object('record_number', rec_count, 'data', jsonb_build_object('field1', random() * 100, 'field2', random() * 100, 'field3', random() * 100));
-            INSERT INTO gemini.model_records (dataset_id, dataset_name, model_id, model_name, experiment_id, experiment_name, season_id, season_name, site_id, site_name, timestamp, collection_date, model_data, record_info)
+            INSERT INTO gemini.model_records (dataset_name, model_name, experiment_name, season_name, site_name, timestamp, collection_date, model_data, record_info)
             VALUES (
-                (SELECT id FROM gemini.datasets WHERE dataset_name = valid_row.dataset_name),
                 valid_row.dataset_name,
-                (SELECT id FROM gemini.models WHERE model_name = valid_row.model_name),
                 valid_row.model_name,
-                (SELECT id FROM gemini.experiments WHERE experiment_name = valid_row.experiment_name),
                 valid_row.experiment_name,
-                (SELECT id FROM gemini.seasons WHERE season_name = valid_row.season_name),
                 valid_row.season_name,
-                (SELECT id FROM gemini.sites WHERE site_name = valid_row.site_name),
                 valid_row.site_name,
                 NOW() + time_offset,
                 (NOW() + time_offset)::DATE,
@@ -531,17 +517,12 @@ BEGIN
             time_offset := rec_count * (random() * INTERVAL '1 hour');
             -- Generate random data for the dataset
             procedure_data := jsonb_build_object('record_number', rec_count, 'data', jsonb_build_object('field1', random() * 100, 'field2', random() * 100, 'field3', random() * 100));
-            INSERT INTO gemini.procedure_records (dataset_id, dataset_name, procedure_id, procedure_name, experiment_id, experiment_name, season_id, season_name, site_id, site_name, timestamp, collection_date, procedure_data, record_info)
+            INSERT INTO gemini.procedure_records (dataset_name, procedure_name, experiment_name, season_name, site_name, timestamp, collection_date, procedure_data, record_info)
             VALUES (
-                (SELECT id FROM gemini.datasets WHERE dataset_name = valid_row.dataset_name),
                 valid_row.dataset_name,
-                (SELECT id FROM gemini.procedures WHERE procedure_name = valid_row.procedure_name),
                 valid_row.procedure_name,
-                (SELECT id FROM gemini.experiments WHERE experiment_name = valid_row.experiment_name),
                 valid_row.experiment_name,
-                (SELECT id FROM gemini.seasons WHERE season_name = valid_row.season_name),
                 valid_row.season_name,
-                (SELECT id FROM gemini.sites WHERE site_name = valid_row.site_name),
                 valid_row.site_name,
                 NOW() + time_offset,
                 (NOW() + time_offset)::DATE,
@@ -557,27 +538,33 @@ END $$;
 -- Add sensor_records for each valid plot
 
 -- Refresh plot_view materialized view
-REFRESH MATERIALIZED VIEW gemini.plot_view;
+-- REFRESH MATERIALIZED VIEW gemini.plot_view;
 
 DO $$
 DECLARE
-    rec_count INTEGER;
-    valid_plot RECORD;
     valid_row RECORD;
-    exp_id UUID;
-    sea_id UUID;
-    sit_id UUID;
+    exp_name TEXT;
+    sea_name TEXT;
+    sit_name TEXT;
+    valid_plot RECORD;
     time_offset INTERVAL;
     sensor_data JSONB;
+    rec_count INTEGER;
 BEGIN
     FOR valid_row IN (SELECT * FROM gemini.valid_sensor_dataset_combinations_view) LOOP
-        exp_id := (SELECT id FROM gemini.experiments WHERE experiment_name = valid_row.experiment_name);
-        sea_id := (SELECT id FROM gemini.seasons WHERE season_name = valid_row.season_name);
-        sit_id := (SELECT id FROM gemini.sites WHERE site_name = valid_row.site_name);
-        FOR valid_plot IN (SELECT * FROM gemini.plot_view WHERE experiment_id = exp_id AND season_id = sea_id AND site_id = sit_id) LOOP
+        exp_name = valid_row.experiment_name;
+        sea_name = valid_row.season_name;
+        sit_name = valid_row.site_name;
+        
+        FOR valid_plot IN (
+            SELECT * FROM gemini.plot_view 
+            WHERE experiment_name = exp_name 
+            AND season_name = sea_name 
+            AND site_name = sit_name
+        ) LOOP
             FOR rec_count IN 1..10 LOOP
                 -- Generate a random time offset between 0 and 1 hour
-                time_offset:= rec_count * (random() * INTERVAL '1 hour');
+                time_offset := rec_count * (random() * INTERVAL '1 hour');
                 -- Generate random sensor data
                 sensor_data := jsonb_build_object(
                     'sensor_value_1', random() * 100,
@@ -585,18 +572,12 @@ BEGIN
                     'sensor_value_3', random() * 100
                 );
                 INSERT INTO gemini.sensor_records (
-                    dataset_id,
                     dataset_name,
-                    sensor_id,
                     sensor_name,
                     sensor_data,
-                    experiment_id,
                     experiment_name,
-                    season_id,
                     season_name,
-                    site_id,
                     site_name,
-                    plot_id,
                     plot_number,
                     plot_row_number,
                     plot_column_number,
@@ -605,18 +586,12 @@ BEGIN
                     record_info
                 )
                 VALUES (
-                    (SELECT id FROM gemini.datasets WHERE dataset_name = valid_row.dataset_name),
                     valid_row.dataset_name,
-                    (SELECT id FROM gemini.sensors WHERE sensor_name = valid_row.sensor_name),
                     valid_row.sensor_name,
                     sensor_data,
-                    valid_plot.experiment_id,
-                    (SELECT experiment_name FROM gemini.experiments WHERE id = valid_plot.experiment_id),
-                    valid_plot.season_id,
-                    (SELECT season_name FROM gemini.seasons WHERE id = valid_plot.season_id),
-                    (SELECT id FROM gemini.sites WHERE site_name = valid_plot.site_name),
+                    valid_plot.experiment_name,
+                    valid_plot.season_name,
                     valid_plot.site_name,
-                    valid_plot.plot_id,
                     valid_plot.plot_number,
                     valid_plot.plot_row_number,
                     valid_plot.plot_column_number,
@@ -636,42 +611,45 @@ END $$;
 -- Add trait_records for each valid plot
 
 -- Refresh plot_view materialized view
-REFRESH MATERIALIZED VIEW gemini.plot_view;
+-- REFRESH MATERIALIZED VIEW gemini.plot_view;
 
 DO $$
 DECLARE
-    rec_count INTEGER;
-    valid_plot RECORD;
     valid_row RECORD;
-    exp_id UUID;
-    sea_id UUID;
-    sit_id UUID;
+    exp_name TEXT;
+    sea_name TEXT;
+    sit_name TEXT;
+    valid_plot RECORD;
     time_offset INTERVAL;
-    trait_value REAL;
+    sensor_data JSONB;
+    rec_count INTEGER;
+    trait_value NUMERIC;
 BEGIN
     FOR valid_row IN (SELECT * FROM gemini.valid_trait_dataset_combinations_view) LOOP
-        exp_id := (SELECT id FROM gemini.experiments WHERE experiment_name = valid_row.experiment_name);
-        sea_id := (SELECT id FROM gemini.seasons WHERE season_name = valid_row.season_name);
-        sit_id := (SELECT id FROM gemini.sites WHERE site_name = valid_row.site_name);
-        FOR valid_plot IN (SELECT * FROM gemini.plot_view WHERE experiment_id = exp_id AND season_id = sea_id AND site_id = sit_id) LOOP
+        exp_name := valid_row.experiment_name;
+        sea_name := valid_row.season_name;
+        sit_name := valid_row.site_name;
+
+        FOR valid_plot IN (
+            SELECT * FROM gemini.plot_view 
+            WHERE experiment_name = exp_name 
+            AND season_name = sea_name 
+            AND site_name = sit_name
+        ) LOOP
             FOR rec_count IN 1..10 LOOP
                 -- Generate a random time offset between 0 and 1 hour
-                time_offset:= rec_count * (random() * INTERVAL '1 hour');
+                time_offset := rec_count * (random() * INTERVAL '1 hour');
                 -- Generate random trait data
                 trait_value := random() * 100;
+
                 INSERT INTO gemini.trait_records (
                     dataset_id,
                     dataset_name,
-                    trait_id,
                     trait_name,
                     trait_value,
-                    experiment_id,
                     experiment_name,
-                    season_id,
                     season_name,
-                    site_id,
                     site_name,
-                    plot_id,
                     plot_number,
                     plot_row_number,
                     plot_column_number,
@@ -682,16 +660,11 @@ BEGIN
                 VALUES (
                     (SELECT id FROM gemini.datasets WHERE dataset_name = valid_row.dataset_name),
                     valid_row.dataset_name,
-                    (SELECT id FROM gemini.traits WHERE trait_name = valid_row.trait_name),
                     valid_row.trait_name,
                     trait_value,
-                    valid_plot.experiment_id,
-                    (SELECT experiment_name FROM gemini.experiments WHERE id = valid_plot.experiment_id),
-                    valid_plot.season_id,
-                    (SELECT season_name FROM gemini.seasons WHERE id = valid_plot.season_id),
-                    (SELECT id FROM gemini.sites WHERE site_name = valid_plot.site_name),
+                    valid_plot.experiment_name,
+                    valid_plot.season_name,
                     valid_plot.site_name,
-                    valid_plot.plot_id,
                     valid_plot.plot_number,
                     valid_plot.plot_row_number,
                     valid_plot.plot_column_number,

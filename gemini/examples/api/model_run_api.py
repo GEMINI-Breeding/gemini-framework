@@ -1,69 +1,62 @@
-from gemini.api.model import Model
 from gemini.api.model_run import ModelRun
+from gemini.api.model import Model
 
-# Get model by name
-model = Model.get("Model A")
-print(f"Got Model: {model}")
-
-# Create a new model run
-model_run = ModelRun.create(
+# Create a new model run for Model A
+new_model_run = ModelRun.create(
     model_run_info={"test": "test"},
-    model_name=model.model_name
+    model_name="Model A"
 )
-print(f"Created Model Run: {model_run}")
+print(f"Created New Model Run: {new_model_run}")
 
-# Check if created model run exists
-exists = ModelRun.exists(
-    model_run_info={"test": "test"},
-    model_name=model.model_name
+# Get Model Run by ID
+model_run_b = ModelRun.get(new_model_run.id)
+print(f"Got Model Run B: {model_run_b}")
+
+# Get Model Run by Model Name and Model Info
+model_run_b = ModelRun.get(
+    model_name="Model A",
+    model_run_info={"test": "test"}
 )
-print(f"Model Run exists: {exists}")
-
-# Check a model run that does not exist
-exists = ModelRun.exists(
-    model_run_info={"test": "nonexistent"},
-    model_name=model.model_name
-)
-print(f"Nonexistent Model Run exists: {exists}")
-
-# Get ModelRun with model_run_info that does exist
-model_run = ModelRun.get({"test": "test"}, model_name=model.model_name)
-print(f"Got ModelRun: {model_run}")
-
-# Get ModelRun by ID
-model_run = ModelRun.get_by_id(model_run.id)
-print(f"Got ModelRun by ID: {model_run}")
+print(f"Got Model Run B: {model_run_b}")
 
 # Get all model runs
 all_model_runs = ModelRun.get_all()
-print(f"All Model Runs:")
-for model_run in all_model_runs:
-    print(model_run)
+print(f"All Model Runs: {all_model_runs}")
 
-# Search for model runs
-searched_model_runs = ModelRun.search(model_name=model.model_name)
-length_searched_model_runs = len(searched_model_runs)
-print(f"Found {length_searched_model_runs} model runs")
+# Search for model runs by name
+search_results = ModelRun.search(model_name="Model A")
+for result in search_results:
+    print(f"Search Result: {result}")
 
-# Refresh the model run
-model_run.refresh()
-print(f"Refreshed Model Run: {model_run}")
+# Update Model Run
+model_run_b.update(model_run_info={"updated": "info"})
+print(f"Updated Model Run B: {model_run_b}")
 
-# Update the model run
-model_run.update(
-    model_run_info={"test": "test_updated"},
+# Set Model Run Info
+model_run_b.set_info(
+    model_run_info={"new": "info"}
 )
-print(f"Updated Model Run: {model_run}")
+print(f"Set Model Run Info: {model_run_b.get_info()}")
 
-# Set ModelRun Info
-model_run.set_info(
-    model_run_info={"test": "test_set"},
+# Refresh Model Run
+model_run_b.refresh()
+print(f"Refreshed Model Run B: {model_run_b}")
+
+# Check if Model Run Exists
+exists = ModelRun.exists(
+    model_name="Model A",
+    model_run_info={"new": "info"}
 )
-print(f"Set ModelRun Info: {model_run}")
-# Get ModelRun Info
-model_run_info = model_run.get_info()
-print(f"ModelRun Info: {model_run_info}")
+print(f"Does Model Run Exist? {exists}")
 
-# Delete the model run
-is_deleted = model_run.delete()
-print(f"Deleted Model Run: {is_deleted}")
+# Delete Model Run
+is_deleted = model_run_b.delete()
+print(f"Deleted Model Run B: {is_deleted}")
+
+# Check if Model Run Exists after Deletion
+exists = ModelRun.exists(
+    model_name="Model A",
+    model_run_info={"new": "info"}
+)
+print(f"Does Model Run Exist after Deletion? {exists}")
+

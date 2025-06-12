@@ -18,7 +18,7 @@ from gemini.manager import GEMINIManager, GEMINIComponentType
 from gemini.storage.providers.minio_storage import MinioStorageProvider
 from gemini.storage.config.storage_config import MinioStorageConfig
 
-from typing import Optional, List, Annotated
+from typing import Annotated, List
 
 manager = GEMINIManager()
 minio_storage_settings = manager.get_component_settings(GEMINIComponentType.STORAGE)
@@ -41,22 +41,22 @@ class FileController(Controller):
         try:
             bucket_name = file_path.split('/')[1]
             if not minio_storage_provider.bucket_exists(bucket_name):
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Bucket not found",
                     error_description=f"Bucket {bucket_name} does not exist"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             object_name = '/'.join(file_path.split('/')[2:])
             file_exists = minio_storage_provider.file_exists(
                 object_name=object_name,
                 bucket_name=bucket_name
             )
             if not file_exists:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="File not found",
                     error_description=f"File {file_path} does not exist"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             file_info = minio_storage_provider.get_file_metadata(
                 object_name=object_name,
                 bucket_name=bucket_name
@@ -70,14 +70,56 @@ class FileController(Controller):
                 etag=file_info['etag']
             )
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving file metadata"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
-
+    @get(path="/list/{file_path:path}")
+    async def list_files(
+        self,
+        file_path: str
+    ) -> List[FileMetadata]:
+        try:
+            bucket_name = file_path.split('/')[1]
+            if not minio_storage_provider.bucket_exists(bucket_name):
+                error = RESTAPIError(
+                    error="Bucket not found",
+                    error_description=f"Bucket {bucket_name} does not exist"
+                )
+                return Response(content=error, status_code=404)
+            prefix = '/'.join(file_path.split('/')[2:])
+            object_names = minio_storage_provider.list_files(
+                bucket_name=bucket_name,
+                prefix=prefix
+            )
+            if not object_names:
+                return []
+            # Convert object names to FileMetadata
+            file_metadata_list = []
+            for object_name in object_names:
+                file_info = minio_storage_provider.get_file_metadata(
+                    object_name=object_name,
+                    bucket_name=bucket_name
+                )
+                file_metadata = FileMetadata(
+                    bucket_name=file_info['bucket_name'],
+                    object_name=file_info['object_name'],
+                    size=file_info['size'],
+                    last_modified=file_info['last_modified'],
+                    content_type=file_info['content_type'],
+                    etag=file_info['etag']
+                )
+                file_metadata_list.append(file_metadata)
+            return file_metadata_list
+        except Exception as e:
+            error = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while listing files"
+            )
+            return Response(content=error, status_code=500)
+        
     @get(path="/download/{file_path:path}")
     async def download_file(
         self,
@@ -86,11 +128,11 @@ class FileController(Controller):
         try:
             bucket_name = file_path.split('/')[1]
             if not minio_storage_provider.bucket_exists(bucket_name):
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Bucket not found",
                     error_description=f"Bucket {bucket_name} does not exist"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             object_name = '/'.join(file_path.split('/')[2:])
             file_name = object_name.split('/')[-1]
             file_exists = minio_storage_provider.file_exists(
@@ -98,11 +140,11 @@ class FileController(Controller):
                 bucket_name=bucket_name
             )
             if not file_exists:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="File not found",
                     error_description=f"File {file_path} does not exist"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             file_stream = minio_storage_provider.download_file_stream(
                 object_name=object_name,
                 bucket_name=bucket_name
@@ -113,12 +155,11 @@ class FileController(Controller):
                 headers={"Content-Disposition": f"attachment; filename={file_name}"}
             )
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while downloading the file"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     @post(path="/upload")
     async def upload_file(
@@ -128,11 +169,11 @@ class FileController(Controller):
         try:
             bucket_name = data.bucket_name
             if not minio_storage_provider.bucket_exists(bucket_name):
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Bucket not found",
                     error_description=f"Bucket {bucket_name} does not exist"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             file_stream = data.file.file
             minio_storage_provider.upload_file(
                 bucket_name=bucket_name,
@@ -156,8 +197,9 @@ class FileController(Controller):
                 error=str(e),
                 error_description="An error occurred while uploading the file"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
+        
+    
         
     @delete(path="/delete/{file_path:path}")
     async def delete_file(
@@ -167,39 +209,38 @@ class FileController(Controller):
         try:
             bucket_name = file_path.split('/')[1]
             if not minio_storage_provider.bucket_exists(bucket_name):
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Bucket not found",
                     error_description=f"Bucket {bucket_name} does not exist"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             object_name = '/'.join(file_path.split('/')[2:])
             file_exists = minio_storage_provider.file_exists(
                 object_name=object_name,
                 bucket_name=bucket_name
             )
             if not file_exists:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="File not found",
                     error_description=f"File {file_path} does not exist"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             is_deleted = minio_storage_provider.delete_file(
                 object_name=object_name,
                 bucket_name=bucket_name
             )
             if not is_deleted:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="File deletion failed",
                     error_description=f"Failed to delete file {file_path}"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return None
         except Exception as e:
             error_message = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while deleting the file"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error_message, status_code=500)
 
 

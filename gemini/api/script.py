@@ -14,6 +14,7 @@ from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.associations import ExperimentScriptModel, ScriptDatasetModel
 from gemini.db.models.views.experiment_views import ExperimentScriptsViewModel
 from gemini.db.models.views.dataset_views import ScriptDatasetsViewModel
+from gemini.db.models.views.run_views import ScriptRunsViewModel
 from datetime import date, datetime
 
 
@@ -26,6 +27,12 @@ class Script(APIBase):
     script_extension: Optional[str] = None
     script_info: Optional[dict] = None
 
+    def __str__(self):
+        return f"Script(name={self.script_name}, url={self.script_url}, extension={self.script_extension}, id={self.id})"
+    
+    def __repr__(self):
+        return f"Script(script_name={self.script_name}, script_url={self.script_url}, script_extension={self.script_extension}, id={self.id})"
+
     @classmethod
     def exists(
         cls,
@@ -35,8 +42,8 @@ class Script(APIBase):
             exists = ScriptModel.exists(script_name=script_name)
             return exists
         except Exception as e:
-            raise e
-
+            print(f"Error checking existence of script: {e}")
+            return False
 
     @classmethod
     def create(
@@ -46,7 +53,7 @@ class Script(APIBase):
         script_extension: str = None,
         script_info: dict = {},
         experiment_name: str = None
-    ):
+    ) -> Optional["Script"]:
         try:
             db_instance = ScriptModel.get_or_create(
                 script_name=script_name,
@@ -54,113 +61,105 @@ class Script(APIBase):
                 script_extension=script_extension,
                 script_info=script_info,
             )
-            if experiment_name:
-                db_experiment = ExperimentModel.get_by_parameters(experiment_name=experiment_name)
-                if db_experiment:
-                    ExperimentScriptModel.get_or_create(experiment_id=db_experiment.id, script_id=db_instance.id)
-
             script = cls.model_validate(db_instance)
-            return script if script else None
+            if experiment_name:
+                script.associate_experiment(experiment_name=experiment_name)
+            return script
         except Exception as e:
-            raise e
-        
-    def get_info(self) -> dict:
-        try:
-            current_id = self.id
-            script = ScriptModel.get(current_id)
-            script_info = script.script_info
-            if not script_info:
-                raise Exception("Script info is empty.")
-            return script_info
-        except Exception as e:
-            raise e
-        
-    def set_info(self, script_info: dict) -> "Script":
-        try:
-            current_id = self.id
-            script = ScriptModel.get(current_id)
-            script = ScriptModel.update(
-                script,
-                script_info=script_info
-            )
-            script = self.model_validate(script)
-            self.refresh()
-            return self
-        except Exception as e:
-            raise e
-        
+            print(f"Error creating script: {e}")
+            return None
 
     @classmethod
-    def get(cls, script_name: str, experiment_name: str = None) -> "Script":
+    def get(
+        cls,
+        script_name: str,
+        experiment_name: str = None
+    ) -> Optional["Script"]:
         try:
             db_instance = ExperimentScriptsViewModel.get_by_parameters(
                 script_name=script_name,
                 experiment_name=experiment_name
             )
-            script = cls.model_validate(db_instance) if db_instance else None
+            if not db_instance:
+                print(f"Script with name {script_name} not found.")
+                return None
+            script = cls.model_validate(db_instance)
             return script
         except Exception as e:
-            raise e
-        
+            print(f"Error getting script: {e}")
+            return None
 
     @classmethod
-    def get_by_id(cls, id: UUID | int | str) -> "Script":
+    def get_by_id(cls, id: UUID | int | str) -> Optional["Script"]:
         try:
             db_instance = ScriptModel.get(id)
-            script = cls.model_validate(db_instance) if db_instance else None
+            if not db_instance:
+                print(f"Script with ID {id} does not exist.")
+                return None
+            script = cls.model_validate(db_instance)
             return script
         except Exception as e:
-            raise e
-        
+            print(f"Error getting script by ID: {e}")
+            return None
+
     @classmethod
-    def get_all(cls) -> List["Script"]:
+    def get_all(cls) -> Optional[List["Script"]]:
         try:
             scripts = ScriptModel.all()
+            if not scripts or len(scripts) == 0:
+                print("No scripts found.")
+                return None
             scripts = [cls.model_validate(script) for script in scripts]
-            return scripts if scripts else None
+            return scripts
         except Exception as e:
-            raise e
-        
+            print(f"Error getting all scripts: {e}")
+            return None
 
     @classmethod
     def search(
         cls,
-        experiment_name: str = None,
         script_name: str = None,
         script_info: dict = None,
         script_url: str = None,
-        script_extension: str = None
-    ) -> List["Script"]:
+        script_extension: str = None,
+        experiment_name: str = None
+    ) -> Optional[List["Script"]]:
         try:
-            if not any([experiment_name, script_name, script_info, script_url, script_extension]):
-                raise Exception("At least one search parameter must be provided.")
-
+            if not any([script_name, script_info, script_url, script_extension, experiment_name]):
+                print("At least one search parameter must be provided.")
+                return None
             scripts = ExperimentScriptsViewModel.search(
-                experiment_name=experiment_name,
                 script_name=script_name,
                 script_info=script_info,
                 script_url=script_url,
-                script_extension=script_extension
+                script_extension=script_extension,
+                experiment_name=experiment_name
             )
+            if not scripts or len(scripts) == 0:
+                print("No scripts found with the provided search parameters.")
+                return None
             scripts = [cls.model_validate(script) for script in scripts]
-            return scripts if scripts else None
+            return scripts
         except Exception as e:
-            raise e
-        
+            print(f"Error searching scripts: {e}")
+            return None
 
     def update(
         self,
-        script_name: str = None, 
-        script_url : str = None,
-        script_extension : str = None,
-        script_info : dict = None
-    ) -> "Script":
-        try:    
-            if not any([script_url, script_extension, script_info, script_name]):                           
-                raise Exception("At least one update parameter must be provided.")
-
+        script_name: str = None,
+        script_url: str = None,
+        script_extension: str = None,
+        script_info: dict = None
+    ) -> Optional["Script"]:
+        try:
+            if not any([script_name, script_url, script_extension, script_info]):
+                print("At least one update parameter must be provided.")
+                return None
             current_id = self.id
             script = ScriptModel.get(current_id)
+            if not script:
+                print(f"Script with ID {current_id} does not exist.")
+                return None
             script = ScriptModel.update(
                 script,
                 script_name=script_name,
@@ -172,47 +171,205 @@ class Script(APIBase):
             self.refresh()
             return script
         except Exception as e:
-            raise e
-        
+            print(f"Error updating script: {e}")
+            return None
 
     def delete(self) -> bool:
         try:
             current_id = self.id
             script = ScriptModel.get(current_id)
+            if not script:
+                print(f"Script with ID {current_id} does not exist.")
+                return False
             ScriptModel.delete(script)
             return True
         except Exception as e:
+            print(f"Error deleting script: {e}")
             return False
-        
 
-    def refresh(self) -> "Script":
+    def refresh(self) -> Optional["Script"]:
         try:
             db_instance = ScriptModel.get(self.id)
+            if not db_instance:
+                print(f"Script with ID {self.id} does not exist.")
+                return self
             instance = self.model_validate(db_instance)
             for key, value in instance.model_dump().items():
                 if hasattr(self, key) and key != "id":
                     setattr(self, key, value)
             return self
         except Exception as e:
-            raise e
-        
-    def get_datasets(self) -> List["Dataset"]:
-        try:
-            script = ScriptModel.get(self.id)
-            datasets = ScriptDatasetsViewModel.search(script_id=script.id)
-            datasets = [Dataset.model_validate(dataset) for dataset in datasets]
-            return datasets if datasets else None
-        except Exception as e:
-            raise e
+            print(f"Error refreshing script: {e}")
+            return None
 
-    def create_dataset(
+    def get_info(self) -> Optional[dict]:
+        try:
+            current_id = self.id
+            script = ScriptModel.get(current_id)
+            if not script:
+                print(f"Script with ID {current_id} does not exist.")
+                return None
+            script_info = script.script_info
+            if not script_info:
+                print("Script info is empty.")
+                return None
+            return script_info
+        except Exception as e:
+            print(f"Error getting script info: {e}")
+            return None
+
+    def set_info(self, script_info: dict) -> Optional["Script"]:
+        try:
+            current_id = self.id
+            script = ScriptModel.get(current_id)
+            if not script:
+                print(f"Script with ID {current_id} does not exist.")
+                return None
+            script = ScriptModel.update(
+                script,
+                script_info=script_info
+            )
+            script = self.model_validate(script)
+            self.refresh()
+            return script
+        except Exception as e:
+            print(f"Error setting script info: {e}")
+            return None
+
+    def get_associated_runs(self):
+        try:
+            from gemini.api.script_run import ScriptRun
+            current_id = self.id
+            script_runs = ScriptRunsViewModel.search(script_id=current_id)
+            if not script_runs or len(script_runs) == 0:
+                print("No associated runs found.")
+                return None
+            runs = [ScriptRun.model_validate(script_run) for script_run in script_runs]
+            return runs
+        except Exception as e:
+            print(f"Error getting associated runs: {e}")
+            return None
+
+    def create_new_run(self, script_run_info: dict):
+        try:
+            from gemini.api.script_run import ScriptRun
+            new_script_run = ScriptRun.create(
+                script_run_info=script_run_info,
+                script_name=self.script_name
+            )
+            if not new_script_run:
+                print("Failed to create new script run.")
+                return None
+            return new_script_run
+        except Exception as e:
+            print(f"Error creating script run: {e}")
+            return None
+
+    def get_associated_experiments(self):
+        try:
+            from gemini.api.experiment import Experiment
+            current_id = self.id
+            experiment_scripts = ExperimentScriptsViewModel.search(script_id=current_id)
+            if not experiment_scripts or len(experiment_scripts) == 0:
+                print("No associated experiments found.")
+                return None
+            experiments = [Experiment.model_validate(experiment) for experiment in experiment_scripts]
+            return experiments
+        except Exception as e:
+            print(f"Error getting associated experiments: {e}")
+            return None
+
+    def associate_experiment(self, experiment_name: str):
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                print(f"Experiment {experiment_name} does not exist.")
+                return None
+            existing_association = ExperimentScriptModel.get_by_parameters(
+                experiment_id=experiment.id,
+                script_id=self.id
+            )
+            if existing_association:
+                print(f"Script {self.script_name} is already associated with experiment {experiment_name}.")
+                return self
+            new_association = ExperimentScriptModel.get_or_create(
+                experiment_id=experiment.id,
+                script_id=self.id
+            )
+            if not new_association:
+                print(f"Failed to associate script {self.script_name} with experiment {experiment_name}.")
+                return None
+            self.refresh()
+            return experiment
+        except Exception as e:
+            print(f"Error associating script with experiment: {e}")
+            return None
+
+
+    def unassociate_experiment(self, experiment_name: str):
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                print(f"Experiment {experiment_name} does not exist.")
+                return None
+            existing_association = ExperimentScriptModel.get_by_parameters(
+                experiment_id=experiment.id,
+                script_id=self.id
+            )
+            if not existing_association:
+                print(f"Script {self.script_name} is not associated with experiment {experiment_name}.")
+                return self
+            is_deleted = ExperimentScriptModel.delete(existing_association)
+            if not is_deleted:
+                print(f"Failed to unassociate script {self.script_name} from experiment {experiment_name}.")
+                return None
+            self.refresh()
+            return experiment
+        except Exception as e:
+            print(f"Error unassociating script from experiment: {e}")
+            return None
+
+    def belongs_to_experiment(self, experiment_name: str) -> bool:
+        try:
+            from gemini.api.experiment import Experiment
+            experiment = Experiment.get(experiment_name=experiment_name)
+            if not experiment:
+                print(f"Experiment {experiment_name} does not exist.")
+                return False
+            association_exists = ExperimentScriptModel.exists(
+                experiment_id=experiment.id,
+                script_id=self.id
+            )
+            return association_exists
+        except Exception as e:
+            print(f"Error checking if script belongs to experiment: {e}")
+            return
+        
+    def get_associated_datasets(self):
+        try:
+            from gemini.api.dataset import Dataset
+            current_id = self.id
+            script_datasets = ScriptDatasetsViewModel.search(script_id=current_id)
+            if not script_datasets or len(script_datasets) == 0:
+                print("No associated datasets found.")
+                return None
+            datasets = [Dataset.model_validate(script_dataset) for script_dataset in script_datasets]
+            return datasets
+        except Exception as e:
+            print(f"Error getting associated datasets: {e}")
+            return None
+        
+    def create_new_dataset(
         self,
         dataset_name: str,
         dataset_info: dict = {},
         collection_date: date = None,
         experiment_name: str = None
-    ) -> Dataset:
+    ) -> Optional[Dataset]:
         try:
+            from gemini.api.dataset import Dataset
             dataset = Dataset.create(
                 dataset_name=dataset_name,
                 dataset_info=dataset_info,
@@ -220,90 +377,88 @@ class Script(APIBase):
                 experiment_name=experiment_name,
                 dataset_type=GEMINIDatasetType.Script
             )
-            ScriptDatasetModel.get_or_create(script_id=self.id, dataset_id=dataset.id)
+            if not dataset:
+                print("Failed to create new dataset.")
+                return None
+            dataset = self.associate_dataset(dataset_name=dataset_name)
             return dataset
         except Exception as e:
-            raise e
+            print(f"Error creating new dataset: {e}")
+            return None
         
-    def has_dataset(self, dataset_name: str) -> bool:
+    def associate_dataset(self, dataset_name: str):
         try:
-            exists = ScriptDatasetsViewModel.exists(
+            from gemini.api.dataset import Dataset
+            dataset = Dataset.get(dataset_name=dataset_name)
+            if not dataset:
+                print(f"Dataset {dataset_name} does not exist.")
+                return None
+            existing_association = ScriptDatasetModel.get_by_parameters(
                 script_id=self.id,
-                dataset_name=dataset_name
+                dataset_id=dataset.id
             )
-            return exists
-        except Exception as e:
-            raise e
-
-    
-    def get_runs(self) -> List[ScriptRun]:
-        try:
-            script = ScriptModel.get(self.id)
-            script_runs = ScriptRunModel.search(script_id=script.id)
-            script_runs = [ScriptRun.model_validate(script_run) for script_run in script_runs]
-            return script_runs if script_runs else None
-        except Exception as e:
-            raise e
-        
-
-    def create_run(
-        self,
-        script_run_info: dict = None
-    ) -> ScriptRun:
-        try:
-            run = ScriptRun.create(
-                script_run_info=script_run_info,
-                script_name=self.script_name
+            if existing_association:
+                print(f"Script {self.script_name} is already associated with dataset {dataset_name}.")
+                return self
+            new_association = ScriptDatasetModel.get_or_create(
+                script_id=self.id,
+                dataset_id=dataset.id
             )
-            return run
+            if not new_association:
+                print(f"Failed to associate script {self.script_name} with dataset {dataset_name}.")
+                return None
+            self.refresh()
+            return dataset
         except Exception as e:
-            raise e
-                
-    def add_record(
+            print(f"Error associating script with dataset: {e}")
+            return None
+
+    def insert_record(
         self,
         timestamp: datetime = None,
         collection_date: date = None,
-        dataset_name: str = None,
         script_data: dict = {},
+        dataset_name: str = None,
         experiment_name: str = None,
         season_name: str = None,
         site_name: str = None,
         record_file: str = None,
-        record_info: dict = {}
+        record_info: dict = {},
     ) -> tuple[bool, List[str]]:
         try:
-            if not experiment_name or not season_name or not site_name:
-                raise ValueError("Experiment name, season name, and site name must be provided.")
+            if not experiment_name and not season_name and not site_name:
+                raise ValueError("At least one of experiment_name, season_name, or site_name must be provided.")
+            
+            if not script_data and not record_file:
+                raise ValueError("Either script_data or record_file must be provided.")
             
             timestamp = timestamp if timestamp else datetime.now()
             collection_date = collection_date if collection_date else timestamp.date()
-            script_name = self.script_name
-            script_id = self.id
-
             if not dataset_name:
-                dataset_name = script_name.lower().replace(" ", "_")
-                dataset_name = dataset_name + f"_{collection_date}"
-                dataset_name = dataset_name + f"_{experiment_name}_{season_name}_{site_name}"
-
-            script_record = ScriptRecord(
+                dataset_name = f"{self.script_name} Dataset {collection_date}"
+            script_name = self.script_name
+            script_record = ScriptRecord.create(
                 timestamp=timestamp,
                 collection_date=collection_date,
-                script_id=script_id,
                 script_name=script_name,
                 script_data=script_data,
                 dataset_name=dataset_name,
                 experiment_name=experiment_name,
                 season_name=season_name,
                 site_name=site_name,
-                record_file=record_file if record_file else None,
-                record_info=record_info if record_info else {}
+                record_file=record_file,
+                record_info=record_info,
+                insert_on_create=False
             )
-            success, inserted_record_ids = ScriptRecord.add([script_record])
+            success, inserted_record_ids = ScriptRecord.insert([script_record])
+            if not success:
+                raise Exception("Failed to insert script record.")
             return success, inserted_record_ids
         except Exception as e:
+            print(f"Error inserting script record: {e}")
             return False, []
         
-    def add_records(
+    def insert_records(
         self,
         timestamps: List[datetime] = None,
         collection_date: date = None,
@@ -312,50 +467,59 @@ class Script(APIBase):
         experiment_name: str = None,
         season_name: str = None,
         site_name: str = None,
-        record_files: List[str] = None,
+        record_files: List[str] = [],
         record_info: List[dict] = []
     ) -> tuple[bool, List[str]]:
         try:
-            if not experiment_name or not season_name or not site_name:
-                raise ValueError("Experiment name, season name, and site name must be provided.")
+            if not experiment_name and not season_name and not site_name:
+                raise ValueError("At least one of experiment_name, season_name, or site_name must be provided.")
             
             if len(timestamps) == 0:
                 raise ValueError("At least one timestamp must be provided.")
             
-            if not dataset_name:
-                dataset_name = self.script_name.lower().replace(" ", "_")
-                dataset_name = dataset_name + f"_{collection_date}"
-                dataset_name = dataset_name + f"_{experiment_name}_{season_name}_{site_name}"
-
+            if len(script_data) != len(timestamps):
+                raise ValueError("script_data must have the same length as timestamps.")
+            
+            if record_files and len(record_files) != len(timestamps):
+                raise ValueError("record_files must have the same length as timestamps.")
             
             collection_date = collection_date if collection_date else timestamps[0].date()
+            
+            if not dataset_name:
+                dataset_name = f"{self.script_name} Dataset {collection_date}"
+            
             script_records = []
             timestamps_length = len(timestamps)
 
-            for i in tqdm(range(timestamps_length), desc="Arranging Records for Script: " + self.script_name):
-                script_record = ScriptRecord(
-                    timestamp=timestamps[i],
-                    collection_date=collection_date,
-                    script_id=self.id,
-                    script_name=self.script_name,
-                    script_data=script_data[i] if script_data else {},
-                    experiment_name=experiment_name,
-                    dataset_name=dataset_name if dataset_name else f"{self.script_name} Dataset",
-                    season_name=season_name,
-                    site_name=site_name,
-                    record_file=record_files[i] if record_files else None,
-                    record_info=record_info[i] if record_info else {}
+            for i in tqdm(range(timestamps_length), desc="Arranging Records for Script " + self.script_name):
+                script_record = ScriptRecord.create(
+                    timestamp = timestamps[i],
+                    collection_date = collection_date,
+                    script_name= self.script_name,
+                    script_data = script_data[i]  if script_data else {},
+                    dataset_name = dataset_name,
+                    experiment_name = experiment_name,
+                    season_name = season_name,
+                    site_name = site_name,
+                    record_file= record_files[i] if record_files else None,
+                    record_info = record_info[i] if record_info else {},
+                    insert_on_create=False
                 )
                 script_records.append(script_record)
 
-            success, inserted_record_ids = ScriptRecord.add(script_records)
+            success, inserted_record_ids = ScriptRecord.insert(script_records)
+            if not success:
+                print("Failed to insert script records.")
+                return False, []
             return success, inserted_record_ids
         except Exception as e:
+            print(f"Error inserting script records: {e}")
             return False, []
         
-    def get_records(
+    def search_records(
         self,
         collection_date: date = None,
+        dataset_name: str = None,
         experiment_name: str = None,
         season_name: str = None,
         site_name: str = None,
@@ -366,8 +530,9 @@ class Script(APIBase):
             record_info = {k: v for k, v in record_info.items() if v is not None}
 
             records = ScriptRecord.search(
-                script_name=self.script_name,
                 collection_date=collection_date,
+                dataset_name=dataset_name,
+                script_name=self.script_name,
                 experiment_name=experiment_name,
                 season_name=season_name,
                 site_name=site_name,
@@ -375,4 +540,6 @@ class Script(APIBase):
             )
             return records
         except Exception as e:
-            raise e
+            print(f"Error searching script records: {e}")
+            return []
+

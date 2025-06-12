@@ -23,19 +23,18 @@ class DatasetTypeController(Controller):
         try:
             dataset_types = DatasetType.get_all()
             if dataset_types is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No dataset types found",
                     error_description="No dataset types were found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return dataset_types
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving all dataset types"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
 
     # Get Dataset Types
     @get()
@@ -53,19 +52,18 @@ class DatasetTypeController(Controller):
                 dataset_type_info=dataset_type_info
             )
             if dataset_types is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="No dataset types found",
                     error_description="No dataset types were found with the given search criteria"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return dataset_types
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving dataset types"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Get Dataset Type by ID
     @get(path="/id/{dataset_type_id:int}")
@@ -75,19 +73,18 @@ class DatasetTypeController(Controller):
         try:
             dataset_type = DatasetType.get_by_id(id=dataset_type_id)
             if dataset_type is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Dataset type not found",
                     error_description="The dataset type with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             return dataset_type
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while retrieving the dataset type"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Create Dataset Type
     @post()
@@ -100,19 +97,18 @@ class DatasetTypeController(Controller):
                 dataset_type_info=data.dataset_type_info
             )
             if dataset_type is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Dataset type not created",
                     error_description="The dataset type was not created"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return dataset_type
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while creating the dataset type"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Update Dataset Type
     @patch(path="/id/{dataset_type_id:int}")
@@ -122,29 +118,28 @@ class DatasetTypeController(Controller):
         try:
             dataset_type = DatasetType.get_by_id(id=dataset_type_id)
             if dataset_type is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Dataset type not found",
                     error_description="The dataset type with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             dataset_type = dataset_type.update(
                 dataset_type_name=data.dataset_type_name,
                 dataset_type_info=data.dataset_type_info
             )
             if dataset_type is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Dataset type not updated",
                     error_description="The dataset type could not be updated"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return dataset_type
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while updating the dataset type"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
         
     # Delete Dataset Type
     @delete(path="/id/{dataset_type_id:int}")
@@ -154,26 +149,25 @@ class DatasetTypeController(Controller):
         try:
             dataset_type = DatasetType.get_by_id(id=dataset_type_id)
             if dataset_type is None:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Dataset type not found",
                     error_description="The dataset type with the given ID was not found"
-                ).to_html()
-                return Response(content=error_html, status_code=404)
+                )
+                return Response(content=error, status_code=404)
             is_deleted = dataset_type.delete()
             if not is_deleted:
-                error_html = RESTAPIError(
+                error = RESTAPIError(
                     error="Dataset type not deleted",
                     error_description="The dataset type could not be deleted"
-                ).to_html()
-                return Response(content=error_html, status_code=500)
+                )
+                return Response(content=error, status_code=500)
             return None
         except Exception as e:
-            error_message = RESTAPIError(
+            error = RESTAPIError(
                 error=str(e),
                 error_description="An error occurred while deleting the dataset type"
             )
-            error_html = error_message.to_html()
-            return Response(content=error_html, status_code=500)
+            return Response(content=error, status_code=500)
 
 
             

@@ -1,0 +1,54 @@
+@baseUrl = http://localhost:8000
+@apiUrl = {{baseUrl}}/api/data_types
+
+### Get all data types
+# @name GetAllDataTypes
+GET {{apiUrl}}/all
+
+### Get a specific data type
+# @name GetDataType
+GET {{apiUrl}}/?data_type_name=Image
+
+### Select a data type
+@dataTypeId = {{GetDataType.response.body.$.0.id}}
+
+### Select a data type by ID
+# @name GetDataTypeById
+GET {{apiUrl}}/id/{{dataTypeId}}
+
+### Get all associated data formats by data type ID
+# @name GetDataFormatsByDataTypeId
+GET {{apiUrl}}/id/{{dataTypeId}}/data_formats
+
+### Create a new data type
+# @name CreateDataType
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+    "data_type_name": "Test Data Type",
+    "data_type_info": {
+        "data_type_description": "Test Description",
+        "data_type_notes": "Test Notes"
+    }
+}
+
+###
+@createdDataTypeId = {{CreateDataType.response.body.id}}
+
+### Update a data type
+# @name UpdateDataType
+PATCH {{apiUrl}}/id/{{createdDataTypeId}}
+Content-Type: application/json
+
+{
+    "data_type_name": "Updated Test Data Type",
+    "data_type_info": {
+        "data_type_description": "Updated Description",
+        "data_type_notes": "Updated Notes"
+    }
+}
+
+### Delete a data type
+# @name DeleteDataType
+DELETE {{apiUrl}}/id/{{createdDataTypeId}}
