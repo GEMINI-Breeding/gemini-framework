@@ -1,9 +1,11 @@
 from sqlalchemy.orm import relationship, mapped_column, Mapped, Relationship
 from sqlalchemy import UUID, JSON, String, Integer, UniqueConstraint, Index, ForeignKey, TIMESTAMP, DATE
 from sqlalchemy.dialects.postgresql import JSONB
-from gemini.db.core.base import ColumnarBaseModel
+from sqlalchemy import text, bindparam
+from gemini.db.core.base import ColumnarBaseModel, db_engine
 import uuid
 from datetime import datetime, date
+from typing import Optional, List
 
 
 
@@ -54,3 +56,41 @@ class SensorRecordModel(ColumnarBaseModel):
         ),
         Index('idx_sensor_records_record_info', 'record_info', postgresql_using='GIN'),
     )
+
+    @classmethod
+    def filter_records(
+        cls,
+        start_timestamp: Optional[datetime] = None,
+        end_timestamp: Optional[datetime] = None,
+        sensor_names: Optional[List[str]] = None,
+        dataset_names: Optional[List[str]] = None,
+        experiment_names: Optional[List[str]] = None,
+        season_names: Optional[List[str]] = None,
+        site_names: Optional[List[str]] = None,
+    ):
+        stmt = text(
+            """
+            SELECT * FROM gemini.filter_sensor_records(
+                p_start_timestamp => :start_timestamp,
+                p_end_timestamp => :end_timestamp,
+                p_sensor_names => :sensor_names,
+                p_dataset_names => :dataset_names,
+                p_experiment_names => :experiment_names,
+                p_season_names => :season_names,
+                p_site_names => :site_names
+            )
+            """
+        ).bindparams(
+            bindparam('start_timestamp', value=start_timestamp),
+            bindparam('end_timestamp', value=end_timestamp),
+            bindparam('sensor_names', value=sensor_names),
+            bindparam('dataset_names', value=dataset_names),
+            bindparam('experiment_names', value=experiment_names),
+            bindparam('season_names', value=season_names),
+            bindparam('site_names', value=site_names)
+        )
+        with db_engine.get_session() as session:
+            result = session.execute(stmt, execution_options={"yield_per": 1000})
+            for record in result:
+                yield record
+

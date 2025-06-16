@@ -250,6 +250,38 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
             print(f"Error searching ProcedureRecords: {e}")
             yield None
 
+
+    @classmethod
+    def filter(
+        cls,
+        procedure_names: List[str] = None,
+        dataset_names: List[str] = None,
+        start_timestamp: datetime = None,
+        end_timestamp: datetime = None,
+        experiment_names: List[str] = None,
+        site_names: List[str] = None,
+        season_names: List[str] = None
+    ) -> Generator["ProcedureRecord", None, None]:
+        try:
+            if not any([procedure_names, dataset_names, start_timestamp, end_timestamp, experiment_names, site_names, season_names]):
+                print(f"At least one parameter must be provided for filtering.")
+                return
+            records = ProcedureRecordModel.filter_records(
+                procedure_names=procedure_names,
+                dataset_names=dataset_names,
+                start_timestamp=start_timestamp,
+                end_timestamp=end_timestamp,
+                experiment_names=experiment_names,
+                site_names=site_names,
+                season_names=season_names
+            )
+            for record in records:
+                record = cls.model_validate(record)
+                yield record
+        except Exception as e:
+            print(f"Error filtering ProcedureRecords: {e}")
+            yield None
+
     def update(
         self,
         procedure_data: dict = None,

@@ -280,6 +280,38 @@ class TraitRecord(APIBase):
             print(f"Error searching TraitRecords: {e}")
             yield from []
 
+
+    @classmethod
+    def filter(
+        cls,
+        start_timestamp: Optional[datetime] = None,
+        end_timestamp: Optional[datetime] = None,
+        trait_names: Optional[List[str]] = None,
+        dataset_names: Optional[List[str]] = None,
+        experiment_names: Optional[List[str]] = None,
+        season_names: Optional[List[str]] = None,
+        site_names: Optional[List[str]] = None
+    ) -> Generator["TraitRecord", None, None]:
+        try:
+            if not any([start_timestamp, end_timestamp, trait_names, dataset_names, experiment_names, season_names, site_names]):
+                print("At least one filter parameter must be provided.")
+                return
+            records = TraitRecordModel.filter_records(
+                start_timestamp=start_timestamp,
+                end_timestamp=end_timestamp,
+                trait_names=trait_names,
+                dataset_names=dataset_names,
+                experiment_names=experiment_names,
+                season_names=season_names,
+                site_names=site_names
+            )
+            for record in records:
+                record = cls.model_validate(record)
+                yield record
+        except Exception as e:
+            print(f"Error filtering TraitRecords: {e}")
+            yield from []
+
     def update(
         self,
         trait_value: float = None,

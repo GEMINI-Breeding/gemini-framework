@@ -291,6 +291,35 @@ class SensorRecord(APIBase, FileHandlerMixin):
             print(f"Error searching sensor records: {e}")
             yield from []
 
+    @classmethod
+    def filter(
+        cls,
+        start_timestamp: datetime = None,
+        end_timestamp: datetime = None,
+        sensor_names: List[str] = None,
+        dataset_names: List[str] = None,
+        experiment_names: List[str] = None,
+        site_names: List[str] = None,
+        season_names: List[str] = None
+    ) -> Generator["SensorRecord", None, None]:
+        try:
+            records = SensorRecordModel.filter_records(
+                start_timestamp=start_timestamp,
+                end_timestamp=end_timestamp,
+                sensor_names=sensor_names,
+                dataset_names=dataset_names,
+                experiment_names=experiment_names,
+                site_names=site_names,
+                season_names=season_names
+            )
+            for record in records:
+                record = cls.model_validate(record)
+                yield record
+        except Exception as e:
+            print(f"Error filtering sensor records: {e}")
+            yield from []
+    
+
     def update(
         self,
         sensor_data: dict = None,

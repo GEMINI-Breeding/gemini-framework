@@ -25,7 +25,7 @@ from gemini.rest_api.models import (
 )
 
 
-async def trait_records_bytes_generator(trait_record_generator: Generator[TraitOutput, None, None]) -> AsyncGenerator[bytes, None]:
+async def trait_records_bytes_generator(trait_record_generator: Generator[TraitRecord, None, None]) -> AsyncGenerator[bytes, None]:
     for record in trait_record_generator:
         record = record.model_dump(exclude_none=True)
         record = encode_json(record) + b'\n'
@@ -358,6 +358,41 @@ class TraitController(Controller):
                 error_description="An error occurred while retrieving trait records"
             )
             return Response(content=error_message, status_code=500)
+        
+    @get(path="/id/{trait_id:str}/records/filter")
+    async def filter_trait_records(
+        self,
+        trait_id: str,
+        start_timestamp: Optional[str] = None,
+        end_timestamp: Optional[str] = None,
+        dataset_names: Optional[List[str]] = None,
+        experiment_names: Optional[List[str]] = None,
+        season_names: Optional[List[str]] = None,
+        site_names: Optional[List[str]] = None
+    ) -> Stream:
+        try:
+            trait = Trait.get_by_id(id=trait_id)
+            if trait is None:
+                error = RESTAPIError(
+                    error="Trait not found",
+                    error_description="The trait with the given ID was not found"
+                )
+                return Response(content=error, status_code=404)
+            trait_records = trait.filter_records(
+                start_timestamp=start_timestamp,
+                end_timestamp=end_timestamp,
+                dataset_names=dataset_names,
+                experiment_names=experiment_names,
+                season_names=season_names,
+                site_names=site_names
+            )
+            return Stream(trait_records_bytes_generator(trait_records), media_type="application/ndjson")
+        except Exception as e:
+            error = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while filtering trait records"
+            )
+            return Response(content=error, status_code=500)
         
     # Get Trait Record by ID
     @get(path="/records/id/{trait_record_id:str}")

@@ -250,6 +250,38 @@ class ScriptRecord(APIBase, FileHandlerMixin):
             print(f"Error searching ScriptRecords: {e}")
             yield None
 
+    @classmethod
+    def filter(
+        cls,
+        start_timestamp: datetime = None,
+        end_timestamp: datetime = None,
+        script_names: List[str] = None,
+        dataset_names: List[str] = None,
+        experiment_names: List[str] = None,
+        season_names: List[str] = None,
+        site_names: List[str] = None
+    ) -> Generator["ScriptRecord", None, None]:
+        try:
+            if not any([start_timestamp, end_timestamp, script_names, dataset_names, experiment_names, season_names, site_names]):
+                print(f"At least one parameter must be provided for filter.")
+                return
+            records = ScriptRecordModel.filter_records(
+                start_timestamp=start_timestamp,
+                end_timestamp=end_timestamp,
+                script_names=script_names,
+                dataset_names=dataset_names,
+                experiment_names=experiment_names,
+                season_names=season_names,
+                site_names=site_names
+            )
+            for record in records:
+                record = cls.model_validate(record)
+                yield record
+        except Exception as e:
+            print(f"Error filtering ScriptRecords: {e}")
+            yield None
+    
+
     def update(
         self,
         script_data: dict = None,

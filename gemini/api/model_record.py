@@ -250,6 +250,37 @@ class ModelRecord(APIBase, FileHandlerMixin):
             print(f"Error searching ModelRecords: {e}")
             yield None
 
+    @classmethod
+    def filter(
+        cls,
+        model_names: List[str] = None,
+        dataset_names: List[str] = None,
+        start_timestamp: datetime = None,
+        end_timestamp: datetime = None,
+        experiment_names: List[str] = None,
+        site_names: List[str] = None,
+        season_names: List[str] = None
+    ) -> Generator["ModelRecord", None, None]:
+        try:
+            if not any([model_names, dataset_names, start_timestamp, end_timestamp, experiment_names, site_names, season_names]):
+                print(f"At least one parameter must be provided for filter.")
+                return
+            records = ModelRecordModel.filter_records(
+                model_names=model_names,
+                dataset_names=dataset_names,
+                start_timestamp=start_timestamp,
+                end_timestamp=end_timestamp,
+                experiment_names=experiment_names,
+                site_names=site_names,
+                season_names=season_names
+            )
+            for record in records:
+                record = cls.model_validate(record)
+                yield record
+        except Exception as e:
+            print(f"Error filtering ModelRecords: {e}")
+            yield None
+
     def update(
         self,
         model_data: dict = None,

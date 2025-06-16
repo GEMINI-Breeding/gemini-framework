@@ -690,6 +690,14 @@ class DatasetRecordSearch(RESTAPIBase):
     collection_date: Optional[datetime] = None
     record_info: Optional[JSONB] = None
 
+class DatasetRecordFilter(RESTAPIBase):
+    start_timestamp: Optional[datetime] = None
+    end_timestamp: Optional[datetime] = None
+    dataset_names: Optional[List[str]] = None
+    experiment_names: Optional[List[str]] = None
+    season_names: Optional[List[str]] = None
+    site_names: Optional[List[str]] = None
+
 class DatasetRecordUpdate(RESTAPIBase):
     dataset_data: Optional[JSONB] = None
     record_info: Optional[JSONB] = None
@@ -739,6 +747,15 @@ class ModelRecordSearch(RESTAPIBase):
     site_name: Optional[str] = None
     collection_date: Optional[datetime] = None
     record_info: Optional[JSONB] = None
+
+class ModelRecordFilter(RESTAPIBase):
+    start_timestamp: Optional[datetime] = None
+    end_timestamp: Optional[datetime] = None
+    model_names: Optional[List[str]] = None
+    dataset_names: Optional[List[str]] = None
+    experiment_names: Optional[List[str]] = None
+    season_names: Optional[List[str]] = None
+    site_names: Optional[List[str]] = None
 
 class ModelRecordUpdate(RESTAPIBase):
     model_data: Optional[JSONB] = None
@@ -793,6 +810,15 @@ class ProcedureRecordSearch(RESTAPIBase):
     collection_date: Optional[datetime] = None
     record_info: Optional[JSONB] = None
 
+class ProcedureRecordFilter(RESTAPIBase):
+    start_timestamp: Optional[datetime] = None
+    end_timestamp: Optional[datetime] = None
+    procedure_names: Optional[List[str]] = None
+    dataset_names: Optional[List[str]] = None
+    experiment_names: Optional[List[str]] = None
+    season_names: Optional[List[str]] = None
+    site_names: Optional[List[str]] = None
+
 class ProcedureRecordUpdate(RESTAPIBase):
     procedure_data: Optional[JSONB] = None
     record_info: Optional[JSONB] = None
@@ -843,6 +869,15 @@ class ScriptRecordSearch(RESTAPIBase):
     site_name: Optional[str] = None
     collection_date: Optional[datetime] = None
     record_info: Optional[JSONB] = None
+
+class ScriptRecordFilter(RESTAPIBase):
+    start_timestamp: Optional[datetime] = None
+    end_timestamp: Optional[datetime] = None
+    script_names: Optional[List[str]] = None
+    dataset_names: Optional[List[str]] = None
+    experiment_names: Optional[List[str]] = None
+    season_names: Optional[List[str]] = None
+    site_names: Optional[List[str]] = None
 
 class ScriptRecordUpdate(RESTAPIBase):
     script_data: Optional[JSONB] = None
@@ -900,6 +935,15 @@ class SensorRecordSearch(RESTAPIBase):
     plot_column_number: Optional[int] = None
     collection_date: Optional[datetime] = None
     record_info: Optional[JSONB] = None
+
+class SensorRecordFilter(RESTAPIBase):
+    start_timestamp: Optional[datetime] = None
+    end_timestamp: Optional[datetime] = None
+    sensor_names: Optional[List[str]] = None
+    dataset_names: Optional[List[str]] = None
+    experiment_names: Optional[List[str]] = None
+    season_names: Optional[List[str]] = None
+    site_names: Optional[List[str]] = None
 
 class SensorRecordUpdate(RESTAPIBase):
     sensor_data: Optional[JSONB] = None
@@ -963,6 +1007,15 @@ class TraitRecordSearch(RESTAPIBase):
     plot_column_number: Optional[int] = None
     collection_date: Optional[datetime] = None
     record_info: Optional[JSONB] = None
+
+class TraitRecordFilter(RESTAPIBase):
+    start_timestamp: Optional[datetime] = None
+    end_timestamp: Optional[datetime] = None
+    trait_names: Optional[List[str]] = None
+    dataset_names: Optional[List[str]] = None
+    experiment_names: Optional[List[str]] = None
+    season_names: Optional[List[str]] = None
+    site_names: Optional[List[str]] = None
 
 class TraitRecordUpdate(RESTAPIBase):
     trait_value: Optional[float] = None

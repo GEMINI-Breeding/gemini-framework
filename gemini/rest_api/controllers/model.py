@@ -447,6 +447,41 @@ class ModelController(Controller):
             )
             return Response(content=error, status_code=500)
         
+    @get(path="/id/{model_id:str}/records/filter")
+    async def filter_model_records(
+        self,
+        model_id: str,
+        start_timestamp: Optional[str] = None,
+        end_timestamp: Optional[str] = None,
+        dataset_names: Optional[List[str]] = None,
+        experiment_names: Optional[List[str]] = None,
+        season_names: Optional[List[str]] = None,
+        site_names: Optional[List[str]] = None
+    ) -> Stream:
+        try:
+            model = Model.get_by_id(id=model_id)
+            if model is None:
+                error = RESTAPIError(
+                    error="Model not found",
+                    error_description="The model with the given ID was not found"
+                )
+                return Response(content=error, status_code=404)
+            model_records = model.filter_records(
+                start_timestamp=start_timestamp,
+                end_timestamp=end_timestamp,
+                dataset_names=dataset_names,
+                experiment_names=experiment_names,
+                season_names=season_names,
+                site_names=site_names
+            )
+            return Stream(model_records_bytes_generator(model_records), media_type="application/ndjson")
+        except Exception as e:
+            error = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while filtering model records"
+            )
+            return Response(content=error, status_code=500)
+        
 
     # Get Model Record by ID
     @get(path="/records/id/{record_id:str}")

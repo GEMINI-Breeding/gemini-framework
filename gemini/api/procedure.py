@@ -524,3 +524,27 @@ class Procedure(APIBase):
         except Exception as e:
             print(f"Error searching procedure records: {e}")
             return []
+        
+    def filter_records(
+        self,
+        start_timestamp: Optional[datetime] = None,
+        end_timestamp: Optional[datetime] = None,
+        dataset_names: Optional[List[str]] = None,
+        experiment_names: Optional[List[str]] = None,
+        season_names: Optional[List[str]] = None,
+        site_names: Optional[List[str]] = None
+    ) -> List[ProcedureRecord]:
+        try:
+            records = ProcedureRecord.filter(
+                start_timestamp=start_timestamp,
+                end_timestamp=end_timestamp,
+                procedure_names= [self.procedure_name],
+                dataset_names=dataset_names,
+                experiment_names=experiment_names,
+                season_names=season_names,
+                site_names=site_names
+            )
+            return records
+        except Exception as e:
+            print(f"Error filtering procedure records: {e}")
+            return []

@@ -433,4 +433,27 @@ class Dataset(APIBase):
         except Exception as e:
             print(f"Error searching records in dataset {self.dataset_name}: {e}")
             return []
+        
 
+    def filter_records(
+        self,
+        start_timestamp: Optional[datetime] = None,
+        end_timestamp: Optional[datetime] = None,
+        experiment_names: Optional[List[str]] = None,
+        season_names: Optional[List[str]] = None,
+        site_names: Optional[List[str]] = None
+    ) -> List[DatasetRecord]:
+        try:
+            records = DatasetRecord.filter(
+                dataset_names=[self.dataset_name],
+                start_timestamp=start_timestamp,
+                end_timestamp=end_timestamp,
+                experiment_names=experiment_names,
+                season_names=season_names,
+                site_names=site_names
+            )
+            return records
+        except Exception as e:
+            print(f"Error filtering records in dataset {self.dataset_name}: {e}")
+            return []
+            

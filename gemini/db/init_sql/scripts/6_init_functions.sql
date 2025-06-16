@@ -668,3 +668,382 @@ CREATE TRIGGER trg_populate_trait_record_ids
 BEFORE INSERT OR UPDATE ON gemini.trait_records
 FOR EACH ROW
 EXECUTE FUNCTION gemini.populate_trait_record_ids();
+
+------------------------------------------------------------------------------
+-- Filter Functions for Records
+------------------------------------------------------------------------------
+
+-- Filter function for dataset records
+CREATE OR REPLACE FUNCTION gemini.filter_dataset_records(
+    p_start_timestamp TIMESTAMPTZ DEFAULT NULL,
+    p_end_timestamp TIMESTAMPTZ DEFAULT NULL,
+    p_experiment_names TEXT[] DEFAULT NULL,
+    p_season_names TEXT[] DEFAULT NULL,
+    p_site_names TEXT[] DEFAULT NULL,
+    p_dataset_names TEXT[] DEFAULT NULL
+)
+RETURNS TABLE (
+    "id" UUID,
+    "timestamp" TIMESTAMPTZ,
+    "collection_date" DATE,
+    "dataset_id" UUID,
+    "dataset_name" TEXT,
+    "dataset_data" JSONB,
+    "experiment_id" UUID,
+    "experiment_name" TEXT,
+    "season_id" UUID,
+    "season_name" TEXT,
+    "site_id" UUID,
+    "site_name" TEXT,
+    "record_file" TEXT,
+    "record_info" JSONB
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        dr.id,
+        dr.timestamp,
+        dr.collection_date,
+        dr.dataset_id,
+        dr.dataset_name,
+        dr.dataset_data,
+        dr.experiment_id,
+        dr.experiment_name,
+        dr.season_id,
+        dr.season_name,
+        dr.site_id,
+        dr.site_name,
+        dr.record_file,
+        dr.record_info
+    FROM
+        gemini.dataset_records dr
+    WHERE
+        (p_start_timestamp IS NULL OR p_end_timestamp IS NULL OR dr.timestamp BETWEEN p_start_timestamp AND p_end_timestamp)
+        AND (p_experiment_names IS NULL OR array_length(p_experiment_names, 1) IS NULL OR dr.experiment_name = ANY(p_experiment_names))
+        AND (p_season_names IS NULL OR array_length(p_season_names, 1) IS NULL OR dr.season_name = ANY(p_season_names))
+        AND (p_site_names IS NULL OR array_length(p_site_names, 1) IS NULL OR dr.site_name = ANY(p_site_names))
+        AND (p_dataset_names IS NULL OR array_length(p_dataset_names, 1) IS NULL OR dr.dataset_name = ANY(p_dataset_names));
+END;
+$$;
+
+-- Filter function for procedure records
+CREATE OR REPLACE FUNCTION gemini.filter_procedure_records(
+    p_start_timestamp TIMESTAMPTZ DEFAULT NULL,
+    p_end_timestamp TIMESTAMPTZ DEFAULT NULL,
+    p_experiment_names TEXT[] DEFAULT NULL,
+    p_season_names TEXT[] DEFAULT NULL,
+    p_site_names TEXT[] DEFAULT NULL,
+    p_dataset_names TEXT[] DEFAULT NULL,
+    p_procedure_names TEXT[] DEFAULT NULL
+)
+RETURNS TABLE (
+    "id" UUID,
+    "timestamp" TIMESTAMPTZ,
+    "collection_date" DATE,
+    "dataset_id" UUID,
+    "dataset_name" TEXT,
+    "procedure_id" UUID,
+    "procedure_name" TEXT,
+    "procedure_data" JSONB,
+    "experiment_id" UUID,
+    "experiment_name" TEXT,
+    "season_id" UUID,
+    "season_name" TEXT,
+    "site_id" UUID,
+    "site_name" TEXT,
+    "record_file" TEXT,
+    "record_info" JSONB
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        pr.id,
+        pr.timestamp,
+        pr.collection_date,
+        pr.dataset_id,
+        pr.dataset_name,
+        pr.procedure_id,
+        pr.procedure_name,
+        pr.procedure_data,
+        pr.experiment_id,
+        pr.experiment_name,
+        pr.season_id,
+        pr.season_name,
+        pr.site_id,
+        pr.site_name,
+        pr.record_file,
+        pr.record_info
+    FROM
+        gemini.procedure_records pr
+    WHERE
+        (p_start_timestamp IS NULL OR p_end_timestamp IS NULL OR pr.timestamp BETWEEN p_start_timestamp AND p_end_timestamp)
+        AND (p_experiment_names IS NULL OR array_length(p_experiment_names, 1) IS NULL OR pr.experiment_name = ANY(p_experiment_names))
+        AND (p_season_names IS NULL OR array_length(p_season_names, 1) IS NULL OR pr.season_name = ANY(p_season_names))
+        AND (p_site_names IS NULL OR array_length(p_site_names, 1) IS NULL OR pr.site_name = ANY(p_site_names))
+        AND (p_dataset_names IS NULL OR array_length(p_dataset_names, 1) IS NULL OR pr.dataset_name = ANY(p_dataset_names))
+        AND (p_procedure_names IS NULL OR array_length(p_procedure_names, 1) IS NULL OR pr.procedure_name = ANY(p_procedure_names));
+END;
+$$;
+
+-- Filter function for script records
+CREATE OR REPLACE FUNCTION gemini.filter_script_records(
+    p_start_timestamp TIMESTAMPTZ DEFAULT NULL,
+    p_end_timestamp TIMESTAMPTZ DEFAULT NULL,
+    p_experiment_names TEXT[] DEFAULT NULL,
+    p_season_names TEXT[] DEFAULT NULL,
+    p_site_names TEXT[] DEFAULT NULL,
+    p_dataset_names TEXT[] DEFAULT NULL,
+    p_script_names TEXT[] DEFAULT NULL
+)
+RETURNS TABLE (
+    "id" UUID,
+    "timestamp" TIMESTAMPTZ,
+    "collection_date" DATE,
+    "dataset_id" UUID,
+    "dataset_name" TEXT,
+    "script_id" UUID,
+    "script_name" TEXT,
+    "script_data" JSONB,
+    "experiment_id" UUID,
+    "experiment_name" TEXT,
+    "season_id" UUID,
+    "season_name" TEXT,
+    "site_id" UUID,
+    "site_name" TEXT,
+    "record_file" TEXT,
+    "record_info" JSONB
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        sr.id,
+        sr.timestamp,
+        sr.collection_date,
+        sr.dataset_id,
+        sr.dataset_name,
+        sr.script_id,
+        sr.script_name,
+        sr.script_data,
+        sr.experiment_id,
+        sr.experiment_name,
+        sr.season_id,
+        sr.season_name,
+        sr.site_id,
+        sr.site_name,
+        sr.record_file,
+        sr.record_info
+    FROM
+        gemini.script_records sr
+    WHERE
+        (p_start_timestamp IS NULL OR p_end_timestamp IS NULL OR sr.timestamp BETWEEN p_start_timestamp AND p_end_timestamp)
+        AND (p_experiment_names IS NULL OR array_length(p_experiment_names, 1) IS NULL OR sr.experiment_name = ANY(p_experiment_names))
+        AND (p_season_names IS NULL OR array_length(p_season_names, 1) IS NULL OR sr.season_name = ANY(p_season_names))
+        AND (p_site_names IS NULL OR array_length(p_site_names, 1) IS NULL OR sr.site_name = ANY(p_site_names))
+        AND (p_dataset_names IS NULL OR array_length(p_dataset_names, 1) IS NULL OR sr.dataset_name = ANY(p_dataset_names))
+        AND (p_script_names IS NULL OR array_length(p_script_names, 1) IS NULL OR sr.script_name = ANY(p_script_names));
+END;
+$$;
+
+-- Filter function for model records
+CREATE OR REPLACE FUNCTION gemini.filter_model_records(
+    p_start_timestamp TIMESTAMPTZ DEFAULT NULL,
+    p_end_timestamp TIMESTAMPTZ DEFAULT NULL,
+    p_experiment_names TEXT[] DEFAULT NULL,
+    p_season_names TEXT[] DEFAULT NULL,
+    p_site_names TEXT[] DEFAULT NULL,
+    p_dataset_names TEXT[] DEFAULT NULL,
+    p_model_names TEXT[] DEFAULT NULL
+)
+RETURNS TABLE (
+    "id" UUID,
+    "timestamp" TIMESTAMPTZ,
+    "collection_date" DATE,
+    "dataset_id" UUID,
+    "dataset_name" TEXT,
+    "model_id" UUID,
+    "model_name" TEXT,
+    "model_data" JSONB,
+    "experiment_id" UUID,
+    "experiment_name" TEXT,
+    "season_id" UUID,
+    "season_name" TEXT,
+    "site_id" UUID,
+    "site_name" TEXT,
+    "record_file" TEXT,
+    "record_info" JSONB
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        mr.id,
+        mr.timestamp,
+        mr.collection_date,
+        mr.dataset_id,
+        mr.dataset_name,
+        mr.model_id,
+        mr.model_name,
+        mr.model_data,
+        mr.experiment_id,
+        mr.experiment_name,
+        mr.season_id,
+        mr.season_name,
+        mr.site_id,
+        mr.site_name,
+        mr.record_file,
+        mr.record_info
+    FROM
+        gemini.model_records mr
+    WHERE
+        (p_start_timestamp IS NULL OR p_end_timestamp IS NULL OR mr.timestamp BETWEEN p_start_timestamp AND p_end_timestamp)
+        AND (p_experiment_names IS NULL OR array_length(p_experiment_names, 1) IS NULL OR mr.experiment_name = ANY(p_experiment_names))
+        AND (p_season_names IS NULL OR array_length(p_season_names, 1) IS NULL OR mr.season_name = ANY(p_season_names))
+        AND (p_site_names IS NULL OR array_length(p_site_names, 1) IS NULL OR mr.site_name = ANY(p_site_names))
+        AND (p_dataset_names IS NULL OR array_length(p_dataset_names, 1) IS NULL OR mr.dataset_name = ANY(p_dataset_names))
+        AND (p_model_names IS NULL OR array_length(p_model_names, 1) IS NULL OR mr.model_name = ANY(p_model_names));
+END;
+$$;
+
+-- Filter function for sensor records
+CREATE OR REPLACE FUNCTION gemini.filter_sensor_records(
+    p_start_timestamp TIMESTAMPTZ DEFAULT NULL,
+    p_end_timestamp TIMESTAMPTZ DEFAULT NULL,
+    p_experiment_names TEXT[] DEFAULT NULL,
+    p_season_names TEXT[] DEFAULT NULL,
+    p_site_names TEXT[] DEFAULT NULL,
+    p_dataset_names TEXT[] DEFAULT NULL,
+    p_sensor_names TEXT[] DEFAULT NULL
+)
+RETURNS TABLE (
+    "id" UUID,
+    "timestamp" TIMESTAMPTZ,
+    "collection_date" DATE,
+    "dataset_id" UUID,
+    "dataset_name" TEXT,
+    "sensor_id" UUID,
+    "sensor_name" TEXT,
+    "sensor_data" JSONB,
+    "experiment_id" UUID,
+    "experiment_name" TEXT,
+    "season_id" UUID,
+    "season_name" TEXT,
+    "site_id" UUID,
+    "site_name" TEXT,
+    "plot_id" UUID,
+    "plot_number" INTEGER,
+    "plot_row_number" INTEGER,
+    "plot_column_number" INTEGER,
+    "record_file" TEXT,
+    "record_info" JSONB
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        sr.id,
+        sr.timestamp,
+        sr.collection_date,
+        sr.dataset_id,
+        sr.dataset_name,
+        sr.sensor_id,
+        sr.sensor_name,
+        sr.sensor_data,
+        sr.experiment_id,
+        sr.experiment_name,
+        sr.season_id,
+        sr.season_name,
+        sr.site_id,
+        sr.site_name,
+        sr.plot_id,
+        sr.plot_number,
+        sr.plot_row_number,
+        sr.plot_column_number,
+        sr.record_file,
+        sr.record_info
+    FROM
+        gemini.sensor_records sr
+    WHERE
+        (p_start_timestamp IS NULL OR p_end_timestamp IS NULL OR sr.timestamp BETWEEN p_start_timestamp AND p_end_timestamp)
+        AND (p_experiment_names IS NULL OR array_length(p_experiment_names, 1) IS NULL OR sr.experiment_name = ANY(p_experiment_names))
+        AND (p_season_names IS NULL OR array_length(p_season_names, 1) IS NULL OR sr.season_name = ANY(p_season_names))
+        AND (p_site_names IS NULL OR array_length(p_site_names, 1) IS NULL OR sr.site_name = ANY(p_site_names))
+        AND (p_dataset_names IS NULL OR array_length(p_dataset_names, 1) IS NULL OR sr.dataset_name = ANY(p_dataset_names))
+        AND (p_sensor_names IS NULL OR array_length(p_sensor_names, 1) IS NULL OR sr.sensor_name = ANY(p_sensor_names));
+END;
+$$;
+
+-- Filter function for trait records
+CREATE OR REPLACE FUNCTION gemini.filter_trait_records(
+    p_start_timestamp TIMESTAMPTZ DEFAULT NULL,
+    p_end_timestamp TIMESTAMPTZ DEFAULT NULL,
+    p_experiment_names TEXT[] DEFAULT NULL,
+    p_season_names TEXT[] DEFAULT NULL,
+    p_site_names TEXT[] DEFAULT NULL,
+    p_dataset_names TEXT[] DEFAULT NULL,
+    p_trait_names TEXT[] DEFAULT NULL
+)
+RETURNS TABLE (
+    "id" UUID,
+    "timestamp" TIMESTAMPTZ,
+    "collection_date" DATE,
+    "dataset_id" UUID,
+    "dataset_name" TEXT,
+    "trait_id" UUID,
+    "trait_name" TEXT,
+    "trait_value" REAL,
+    "experiment_id" UUID,
+    "experiment_name" TEXT,
+    "season_id" UUID,
+    "season_name" TEXT,
+    "site_id" UUID,
+    "site_name" TEXT,
+    "plot_id" UUID,
+    "plot_number" INTEGER,
+    "plot_row_number" INTEGER,
+    "plot_column_number" INTEGER,
+    "record_info" JSONB
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        tr.id,
+        tr.timestamp,
+        tr.collection_date,
+        tr.dataset_id,
+        tr.dataset_name,
+        tr.trait_id,
+        tr.trait_name,
+        tr.trait_value,
+        tr.experiment_id,
+        tr.experiment_name,
+        tr.season_id,
+        tr.season_name,
+        tr.site_id,
+        tr.site_name,
+        tr.plot_id,
+        tr.plot_number,
+        tr.plot_row_number,
+        tr.plot_column_number,
+        tr.record_info
+    FROM
+        gemini.trait_records tr
+    WHERE
+        (p_start_timestamp IS NULL OR p_end_timestamp IS NULL OR tr.timestamp BETWEEN p_start_timestamp AND p_end_timestamp)
+        AND (p_experiment_names IS NULL OR array_length(p_experiment_names, 1) IS NULL OR tr.experiment_name = ANY(p_experiment_names))
+        AND (p_season_names IS NULL OR array_length(p_season_names, 1) IS NULL OR tr.season_name = ANY(p_season_names))
+        AND (p_site_names IS NULL OR array_length(p_site_names, 1) IS NULL OR tr.site_name = ANY(p_site_names))
+        AND (p_dataset_names IS NULL OR array_length(p_dataset_names, 1) IS NULL OR tr.dataset_name = ANY(p_dataset_names))
+        AND (p_trait_names IS NULL OR array_length(p_trait_names, 1) IS NULL OR tr.trait_name = ANY(p_trait_names));
+END;
+$$;
+

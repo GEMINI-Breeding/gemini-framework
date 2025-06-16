@@ -316,6 +316,41 @@ class DatasetController(Controller):
                 error_description="An error occurred while retrieving dataset records"
             )
             return Response(content=error, status_code=500)
+        
+
+    # Filter Dataset Records
+    @get(path="/id/{dataset_id:str}/records/filter")
+    async def filter_dataset_records(
+        self,
+        dataset_id: str,
+        start_timestamp: Optional[str] = None,
+        end_timestamp: Optional[str] = None,
+        experiment_names: Optional[List[str]] = None,
+        season_names: Optional[List[str]] = None,
+        site_names: Optional[List[str]] = None
+    ) -> Stream:
+        try:
+            dataset = Dataset.get_by_id(id=dataset_id)
+            if dataset is None:
+                error = RESTAPIError(
+                    error="Dataset not found",
+                    error_description="No dataset was found with the given ID"
+                )
+                return Response(content=error, status_code=404)
+            records = dataset.filter_records(
+                start_timestamp=start_timestamp,
+                end_timestamp=end_timestamp,
+                experiment_names=experiment_names,
+                season_names=season_names,
+                site_names=site_names
+            )
+            return Stream(dataset_records_bytes_generator(records), media_type="application/ndjson")
+        except Exception as e:
+            error = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while filtering dataset records"
+            )
+            return Response(content=error, status_code=500)
     
 
     # Get Dataset Record by ID

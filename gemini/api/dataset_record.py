@@ -231,6 +231,34 @@ class DatasetRecord(APIBase, FileHandlerMixin):
             print(f"Error searching DatasetRecords: {e}")
             yield None
 
+    @classmethod
+    def filter(
+        cls,
+        dataset_names: List[str] = None,
+        start_timestamp: datetime = None,
+        end_timestamp: datetime = None,
+        experiment_names: List[str] = None,
+        season_names: List[str] = None,
+        site_names: List[str] = None
+    ) -> Generator["DatasetRecord", None, None]:
+        try:
+            if not any([dataset_names, start_timestamp, end_timestamp, experiment_names, season_names, site_names]):
+                raise ValueError("At least one parameter must be provided.")
+            records = DatasetRecordModel.filter_records(
+                dataset_names=dataset_names,
+                start_timestamp=start_timestamp,
+                end_timestamp=end_timestamp,
+                experiment_names=experiment_names,
+                season_names=season_names,
+                site_names=site_names
+            )
+            for record in records:
+                record = cls.model_validate(record)
+                yield record
+        except Exception as e:
+            print(f"Error filtering DatasetRecords: {e}")
+            yield None
+
     
     def update(
         self,

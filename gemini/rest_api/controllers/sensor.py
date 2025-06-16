@@ -383,6 +383,42 @@ class SensorController(Controller):
             )
             return Response(content=error_message, status_code=500)
         
+    @get(path="/id/{sensor_id:str}/records/filter")
+    async def filter_sensor_records(
+        self,
+        sensor_id: str,
+        start_timestamp: Optional[str] = None,
+        end_timestamp: Optional[str] = None,
+        dataset_names: Optional[List[str]] = None,
+        experiment_names: Optional[List[str]] = None,
+        season_names: Optional[List[str]] = None,
+        site_names: Optional[List[str]] = None
+    ) -> Stream:
+        try:
+            sensor = Sensor.get_by_id(id=sensor_id)
+            if sensor is None:
+                error = RESTAPIError(
+                    error="Sensor not found",
+                    error_description="The sensor with the given ID was not found"
+                )
+                return Response(content=error, status_code=404)
+            sensor_records = sensor.filter_records(
+                start_timestamp=start_timestamp,
+                end_timestamp=end_timestamp,
+                dataset_names=dataset_names,
+                experiment_names=experiment_names,
+                season_names=season_names,
+                site_names=site_names
+            )
+            return Stream(sensor_records_bytes_generator(sensor_records), media_type="application/ndjson")
+        except Exception as e:
+            error = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while filtering sensor records"
+            )
+            return Response(content=error, status_code=500)
+
+        
     # Get Sensor Record by ID
     @get(path="/records/id/{record_id:str}")
     async def get_sensor_record_by_id(

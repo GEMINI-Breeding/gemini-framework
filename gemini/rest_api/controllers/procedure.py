@@ -447,6 +447,41 @@ class ProcedureController(Controller):
             )
             return Response(content=error, status_code=500)
         
+    @get(path="/id/{procedure_id:str}/records/filter")
+    async def filter_procedure_records(
+        self,
+        procedure_id: str,
+        start_timestamp: Optional[str] = None,
+        end_timestamp: Optional[str] = None,
+        dataset_names: Optional[List[str]] = None,
+        experiment_names: Optional[List[str]] = None,
+        season_names: Optional[List[str]] = None,
+        site_names: Optional[List[str]] = None
+    ) -> Stream:
+        try:
+            procedure = Procedure.get_by_id(id=procedure_id)
+            if procedure is None:
+                error = RESTAPIError(
+                    error="Procedure not found",
+                    error_description="The procedure with the given ID was not found"
+                )
+                return Response(content=error, status_code=404)
+            procedure_records = procedure.filter_records(
+                start_timestamp=start_timestamp,
+                end_timestamp=end_timestamp,
+                dataset_names=dataset_names,
+                experiment_names=experiment_names,
+                season_names=season_names,
+                site_names=site_names
+            )
+            return Stream(procedure_records_bytes_generator(procedure_records), media_type="application/ndjson")
+        except Exception as e:
+            error = RESTAPIError(
+                error=str(e),
+                error_description="An error occurred while filtering procedure records"
+            )
+            return Response(content=error, status_code=500)
+        
     # Get Procedure Record by ID
     @get(path="/records/id/{procedure_record_id:str}")
     async def get_procedure_record_by_id(
