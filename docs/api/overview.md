@@ -1,0 +1,26 @@
+# Overview
+
+The GEMINI Python API offers a robust and programmatic interface for managing and interacting with GEMINI data directly from Python interpreters, scripts, and notebooks (like Jupyter Notebooks). It comprises several classes with functions for accessing data.
+
+- [Cultivars](cultivars.md)
+- [Data Formats](data_formats.md)
+- [Data Types](data_types.md)
+- [Datasets](datasets.md)
+- [Dataset Records](dataset_records.md)
+- [Experiments](experiments.md)
+- [Models](models.md)
+- [Model Records](model_records.md)
+- [Plants](plants.md)
+- [Plots](plots.md)
+- [Procedures](procedures.md)
+- [Procedure Records](procedure_records.md)
+- [Scripts](scripts.md)
+- [Script Records](script_records.md)
+- [Seasons](seasons.md)
+- [Sensor Platforms](sensor_platforms.md)
+- [Sensor Types](sensor_types.md)
+- [Sensors](sensors.md)
+- [Sites](sites.md)
+- [Trait Levels](trait_levels.md)
+- [Traits](traits.md)
+- [Trait Records](trait_records.md)

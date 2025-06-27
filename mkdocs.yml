@@ -1,0 +1,155 @@
+site_name: GEMINI Framework Documentation
+
+theme:
+  name: material
+  logo: assets/logo_white.png
+  features:
+    - search.highlight
+    - search.suggest
+
+plugins:
+  - mkdocstrings
+  - glightbox:
+      zoomable: true
+      draggable: true
+      loop: true
+  - search
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - pymdownx.blocks.caption
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  
+nav:
+  - Introduction: index.md
+  - Getting Started: getting_started.md
+  - Pipeline: 
+    - Overview: pipeline/overview.md
+  - Python API:
+    - Overview: api/overview.md
+    - Examples: 
+      - Overview: examples/overview.md
+    - Classes:
+      - Cultivars: api/cultivars.md
+      - Data Formats: api/data_formats.md
+      - Data Types: api/data_types.md
+      - Datasets: api/datasets.md
+      - Dataset Types: api/dataset_types.md
+      - Dataset Records: api/dataset_records.md
+      - Experiments: api/experiments.md
+      - Models: api/models.md
+      - Model Runs: api/model_runs.md
+      - Model Records: api/model_records.md
+      - Plants: api/plants.md
+      - Plots: api/plots.md
+      - Procedures: api/procedures.md
+      - Procedure Runs: api/procedure_runs.md
+      - Procedure Records: api/procedure_records.md
+      - Scripts: api/scripts.md
+      - Script Runs: api/script_runs.md
+      - Script Records: api/script_records.md
+      - Seasons: api/seasons.md
+      - Sensors: api/sensors.md
+      - Sensor Records: api/sensor_records.md
+      - Sites: api/sites.md
+      - Sensor Types: api/sensor_types.md
+      - Sensor Platforms: api/sensor_platforms.md
+      - Traits: api/traits.md
+      - Trait Records: api/trait_records.md
+      - Trait Levels: api/trait_levels.md
+  - REST API:
+    - Overview: rest_api/overview.md
+    - Endpoints:
+      - Cultivars: rest_api/cultivars.md
+      - Data Formats: rest_api/data_formats.md
+      - Data Types: rest_api/data_types.md
+      - Datasets: rest_api/datasets.md
+      - Dataset Types: rest_api/dataset_types.md
+      - Experiments: rest_api/experiments.md
+      - Files: rest_api/files.md
+      - Models: rest_api/models.md
+      - Plants: rest_api/plants.md
+      - Plots: rest_api/plots.md
+      - Procedures: rest_api/procedures.md
+      - Scripts: rest_api/scripts.md
+      - Seasons: rest_api/seasons.md
+      - Sensors: rest_api/sensors.md
+      - Sites: rest_api/sites.md
+      - Sensor Types: rest_api/sensor_types.md
+      - Sensor Platforms: rest_api/sensor_platforms.md
+      - Traits: rest_api/traits.md
+  - CLI: cli.md
+  - Database:
+    - Scripts: database/scripts.md
+    - Schema: database/schema.md
+    - Models:
+      - Overview: database/models/overview.md
+      - Main Entities:
+        - Cultivars: database/models/cultivars.md
+        - Data Formats: database/models/data_formats.md
+        - Data Types: database/models/data_types.md
+        - Dataset Types: database/models/dataset_types.md
+        - Datasets: database/models/datasets.md
+        - Experiments: database/models/experiments.md
+        - Model Runs: database/models/model_runs.md
+        - Models: database/models/models.md
+        - Plants: database/models/plants.md
+        - Plots: database/models/plots.md
+        - Procedure Runs: database/models/procedure_runs.md
+        - Procedures: database/models/procedures.md
+        - Resources: database/models/resources.md
+        - Script Runs: database/models/script_runs.md
+        - Scripts: database/models/scripts.md
+        - Seasons: database/models/seasons.md
+        - Sensor Platforms: database/models/sensor_platforms.md
+        - Sensor Types: database/models/sensor_types.md
+        - Sensors: database/models/sensors.md
+        - Sites: database/models/sites.md
+        - Trait Levels: database/models/trait_levels.md
+        - Traits: database/models/traits.md
+      - Association Tables:
+        - Data Type Formats: database/models/data_type_formats.md
+        - Experiment Sites: database/models/experiment_sites.md
+        - Experiment Sensors: database/models/experiment_sensors.md
+        - Experiment Sensor Platforms: database/models/experiment_sensor_platforms.md
+        - Experiment Traits: database/models/experiment_traits.md
+        - Experiment Cultivars: database/models/experiment_cultivars.md
+        - Experiment Models: database/models/experiment_models.md
+        - Experiment Procedures: database/models/experiment_procedures.md
+        - Experiment Scripts: database/models/experiment_scripts.md
+        - Experiment Datasets: database/models/experiment_datasets.md
+        - Plot Cultivars: database/models/plot_cultivars.md
+        - Trait Sensors: database/models/trait_sensors.md
+        - Sensor Platform Sensors: database/models/sensor_platform_sensors.md
+        - Sensor Datasets: database/models/sensor_datasets.md
+        - Trait Datasets: database/models/trait_datasets.md
+        - Model Datasets: database/models/model_datasets.md
+        - Script Datasets: database/models/script_datasets.md
+        - Procedure Datasets: database/models/procedure_datasets.md
+      - Columnar Tables:
+        - Dataset Records: database/models/dataset_records.md
+        - Model Records: database/models/model_records.md
+        - Procedure Records: database/models/procedure_records.md
+        - Script Records: database/models/script_records.md
+        - Sensor Records: database/models/sensor_records.md
+        - Trait Records: database/models/trait_records.md
+      - Views:
+        - Data Type Formats View: database/models/datatype_format_view.md
+        - Experiment Views: database/models/experiment_views.md
+        - Plant View: database/models/plant_view.md
+        - Plot Cultivar View: database/models/plot_cultivar_view.md
+        - Plot View: database/models/plot_view.md
+        - Plot Plant View: database/models/plot_plant_view.md
+        - Run Views: database/models/run_views.md
+        - Validation Views: database/models/validation_views.md
+        - Dataset Views: database/models/dataset_views.md
+
+extra_css:
+  - stylesheets/extra.css
