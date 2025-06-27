@@ -6,23 +6,24 @@ Many staple crops that are important for food, nutritional, and economic securit
 
 [More details about GEMINI Here](https://projectgemini.ucdavis.edu/)
 
-## Requirements
+## System Requirements
 
-- Linux (Native, on Windows via WSL, and on Apple Silicon via Parallels)
+- Linux (Native, on Windows via WSL or on Mac via Parallels)
 - [Docker Engine](https://docs.docker.com/engine/install/)
-- Minimum 16GB RAM
+- Minimum 16 GB of RAM
 - Minimum 256 GB Storage
-- Python >= 3.10
-- [Poetry](https://python-poetry.org/docs/)
+- Python >= 3.11
+- [Poetry] (https://python-poetry.org/docs/)
 
+# Getting Started & Installation
 
 ## Installation Steps
 
-Please install all the prerequisites above before continuing
+Install all the prerequisites above before continuing
 
 #### Step 1
 
-Clone the repository and enter the root foler
+Clone the repository and enter the root folder
 
 ```
 $ git clone https://github.com/GEMINI-Breeding/gemini-framework.git
@@ -31,33 +32,38 @@ $ cd gemini-framework
 
 #### Step 2
 
-Add a .env file in the root folder
+Run poetry installation command to install global `gemini` python module.
 
-Check ```.env.example``` in the root folder for all environment variables
-
-**NOTE**: You can also rename ```.env.example``` to ```.env```
+```
+$ poetry install
+```
 
 #### Step 3
 
-If `task` is installed then just run task
+Setup the GEMINI Pipeline
 
 ```
-$ task 
+$ gemini setup --default
 ```
 
-### Step 4
+#### Step 4
 
-Install the package for use locally
+Build the Docker containers that make up the GEMINI Pipeline
 
 ```
-$ pip install -e .
+$ gemini build
 ```
 
-**WARNING**: Make sure you are installing the package while the environment you are working with is activated.
+#### Step 5
 
+Start the GEMINI Pipeline
 
+```
+$ gemini start
+```
 
+## Next Steps
 
-
+The REST API will be available on http://localhost:7777
 
 
