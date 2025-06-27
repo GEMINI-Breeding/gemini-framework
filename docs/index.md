@@ -1,6 +1,6 @@
 # GEMINI Framework
 
-![GEMINI Logo](docs/assets/logo_large.png "GEMINI Project")
+![GEMINI Logo](assets/logo_large.png "GEMINI Project")
 
 This is the repository for GEMINI Framework back-end.
 
