@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for Cultivar entities in the GEMINI database.
+"""
+
 from sqlalchemy import JSON, String, TIMESTAMP, UniqueConstraint, Index
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
@@ -11,6 +15,17 @@ import uuid
 
 
 class CultivarModel(BaseModel):
+    """
+    Represents a cultivar in the GEMINI database.
+
+    Attributes:
+        id (uuid.UUID): Unique identifier for the cultivar.
+        cultivar_accession (str): The accession identifier for the cultivar.
+        cultivar_population (str): The population name of the cultivar.
+        cultivar_info (dict): Additional JSONB data for the cultivar.
+        created_at (datetime): Timestamp when the record was created.
+        updated_at (datetime): Timestamp when the record was last updated.
+    """
     __tablename__ = "cultivars"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)

@@ -1,4 +1,13 @@
-# gemini/server/database/core/engine.py
+"""
+Manages SQLAlchemy database engines and sessions for GEMINI.
+
+This module provides the `DatabaseEngine` class, which encapsulates
+the creation, management, and health checking of synchronous and
+asynchronous SQLAlchemy engines and session factories. It includes
+features like connection pooling, event listeners for monitoring,
+and context managers for session handling.
+"""
+
 import asyncio
 from datetime import datetime
 from typing import Generator, Optional, Any
@@ -31,7 +40,17 @@ class DatabaseEngine:
     """
 
     def __init__(self, config: Optional[DatabaseConfig] = None, engine: Optional[Engine] = None, async_engine: Optional[Engine] = None):
-        """Initialize database engine with configuration."""
+        """
+        Initialize database engine with configuration.
+
+        Args:
+            config (Optional[DatabaseConfig]): Database configuration settings.
+            engine (Optional[Engine]): Pre-existing synchronous SQLAlchemy engine.
+            async_engine (Optional[Engine]): Pre-existing asynchronous SQLAlchemy engine.
+
+        Raises:
+            ValueError: If database configuration is not provided.
+        """
         
         if not config:
             raise ValueError("Database configuration is required")
@@ -55,7 +74,11 @@ class DatabaseEngine:
         self._setup_engine_events()
 
     def setup_engine(self) -> None:
-        """Set up the SQLAlchemy engine with optimal settings."""
+        """
+        Sets up the synchronous SQLAlchemy engine with optimal settings.
+
+        This method initializes `_engine` and `_session_factory` based on the provided configuration.
+        """
         if self._engine is not None:
             return
 
@@ -83,7 +106,12 @@ class DatabaseEngine:
         )
 
     def setup_async_engine(self) -> None:
-        """Set up the async SQLAlchemy engine."""
+        """
+        Sets up the asynchronous SQLAlchemy engine.
+
+        This method initializes `_async_engine` and `_async_session_factory`
+        by replacing the 'postgresql' dialect with 'postgresql+asyncpg' in the URL.
+        """
         if self._async_engine is not None:
             return
         
@@ -110,11 +138,23 @@ class DatabaseEngine:
         )
 
     def get_engine(self) -> Engine:
-        """Get the SQLAlchemy engine."""
+        """
+        Retrieves the synchronous SQLAlchemy engine instance.
+
+        If the engine has not been set up, it calls `setup_engine` to initialize it.
+
+        Returns:
+            Engine: The synchronous SQLAlchemy engine.
+        """
         return self._engine or self.setup_engine()
 
     def _setup_engine_events(self) -> None:
-        """Set up SQLAlchemy event listeners for monitoring."""
+        """
+        Sets up SQLAlchemy event listeners for monitoring query execution and connection lifecycle.
+
+        This includes logging for `before_cursor_execute`, `after_cursor_execute`,
+        `engine_connect`, and `connection_close` events.
+        """
         
         @event.listens_for(self._engine, 'before_cursor_execute')
         def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
@@ -180,13 +220,13 @@ class DatabaseEngine:
             await session.close()
 
     def check_health(self) -> bool:
-        """Check database connection health.
-        
+        """
+        Checks the health of the synchronous database connection.
+
+        Executes a simple query to verify connectivity.
+
         Returns:
-            bool: True if database is healthy
-            
-        Raises:
-            DatabaseConnectionError: If connection check fails
+            bool: True if the database connection is healthy, False otherwise.
         """
         try:
             with self._engine.connect() as conn:
@@ -197,10 +237,13 @@ class DatabaseEngine:
             return False
 
     async def check_health_async(self) -> bool:
-        """Check async database connection health.
-        
+        """
+        Checks the health of the asynchronous database connection.
+
+        Executes a simple query to verify connectivity.
+
         Returns:
-            bool: True if database is healthy
+            bool: True if the async database connection is healthy, False otherwise.
         """
         try:
             async with self._async_engine.connect() as conn:
@@ -211,10 +254,11 @@ class DatabaseEngine:
             return False
 
     def get_pool_status(self) -> dict:
-        """Get current connection pool status.
-        
+        """
+        Retrieves the current status and statistics of the synchronous connection pool.
+
         Returns:
-            dict: Pool statistics
+            dict: A dictionary containing pool size, checked-in, checked-out, and overflow statistics.
         """
         return {
             "size": self._engine.pool.size(),
@@ -225,7 +269,11 @@ class DatabaseEngine:
         }
 
     def dispose(self) -> None:
-        """Dispose of the engine and connection pool."""
+        """
+        Disposes of both synchronous and asynchronous database engines and their connection pools.
+
+        This method should be called to gracefully shut down database connections.
+        """
         if self._engine:
             self._engine.dispose()
         if self._async_engine:

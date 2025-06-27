@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for DataType entities in the GEMINI database.
+"""
+
 from sqlalchemy import (
     JSON,
     String,
@@ -14,6 +18,16 @@ from gemini.db.core.base import BaseModel
 from datetime import datetime
 
 class DataTypeModel(BaseModel):
+    """
+    Represents a data type in the GEMINI database.
+
+    Attributes:
+        id (int): Unique integer identifier for the data type.
+        data_type_name (str): The name of the data type (e.g., "Temperature", "Humidity").
+        data_type_info (dict): Additional JSONB data for the data type.
+        created_at (datetime): Timestamp when the record was created.
+        updated_at (datetime): Timestamp when the record was last updated.
+    """
     __tablename__ = 'data_types'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -26,4 +40,3 @@ class DataTypeModel(BaseModel):
         UniqueConstraint('data_type_name', name='data_type_unique'),
         Index('idx_data_types_info', 'data_type_info', postgresql_using='GIN')
     )
-

@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for ProcedureRun entities in the GEMINI database.
+"""
+
 from sqlalchemy import (
     JSON,
     String,
@@ -18,6 +22,16 @@ import uuid
 from datetime import datetime
 
 class ProcedureRunModel(BaseModel):
+    """
+    Represents a procedure run in the GEMINI database.
+
+    Attributes:
+        id (uuid.UUID): Unique identifier for the procedure run.
+        procedure_id (uuid.UUID): Foreign key referencing the procedure.
+        procedure_run_info (dict): Additional JSONB data for the procedure run.
+        created_at (datetime): Timestamp when the record was created.
+        updated_at (datetime): Timestamp when the record was last updated.
+    """
 
     __tablename__ = "procedure_runs"
 

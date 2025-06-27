@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for Trait entities in the GEMINI database.
+"""
+
 from sqlalchemy import (
     JSON,
     String,
@@ -20,6 +24,19 @@ import uuid
 
 
 class TraitModel(BaseModel):
+    """
+    Represents a trait in the GEMINI database.
+
+    Attributes:
+        id (uuid.UUID): Unique identifier for the trait.
+        trait_name (str): The name of the trait.
+        trait_units (str): The units in which the trait is measured.
+        trait_level_id (int): Foreign key referencing the trait level.
+        trait_metrics (dict): Additional JSONB data for the trait metrics.
+        trait_info (dict): Additional JSONB data for the trait.
+        created_at (datetime): Timestamp when the record was created.
+        updated_at (datetime): Timestamp when the record was last updated.
+    """
     __tablename__ = "traits"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)

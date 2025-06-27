@@ -14,7 +14,6 @@ class ValidPlotCombinationsViewModel(ViewBaseModel):
     site_id : Mapped[UUID] = mapped_column(UUID, primary_key=True)
 
 
-
 class ValidDatasetCombinationsViewModel(ViewBaseModel):
     
     __tablename__ = 'valid_dataset_combinations_view'

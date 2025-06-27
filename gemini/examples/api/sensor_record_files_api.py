@@ -1,6 +1,6 @@
 from gemini.api.sensor_record import SensorRecord
 from datetime import datetime, timedelta
-from random import randint
+from random import randint, uniform
 import os
 
 # Create Timestamp
@@ -24,17 +24,14 @@ for image_file in sample_image_files:
     record = SensorRecord.create(
         timestamp=timestamp,
         collection_date=collection_date,
-        sensor_name="Sensor A1",
+        sensor_name="Sensor A",
         dataset_name="Sensor A Images Dataset",
-        sensor_data={"key": "value"},
+        sensor_data={"value": uniform(0, 100)},
         experiment_name="Experiment A",
         site_name="Site A1",
         season_name="Season 1A",
         record_file=image_file,
         record_info={"test": "test"},
-        plot_number=1,
-        plot_row_number=1,
-        plot_column_number=1,
         insert_on_create=False
     )
     records_to_add.append(record)
@@ -44,13 +41,14 @@ SensorRecord.insert(records_to_add)
 # Search the Sensor Records
 searched_records = SensorRecord.search(
     collection_date=timestamp.date(),
-    sensor_name="Sensor A1",
+    sensor_name="Sensor A",
     dataset_name="Sensor A Images Dataset",
     experiment_name="Experiment A",
     site_name="Site A1",
     season_name="Season 1A"
 )
 searched_records = list(searched_records)  # Convert to list to evaluate the generator
+
 # Print the searched records
 print(f"Found {len(searched_records)} records in Sensor A, Experiment A, Site A1, Season 1A:")
 for record in searched_records:

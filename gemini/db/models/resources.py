@@ -1,3 +1,7 @@
+"""
+SQLAlchemy models for resources in the GEMINI database.
+"""
+
 from sqlalchemy import (
     JSON,
     String,
@@ -20,6 +24,20 @@ import uuid
 
 
 class ResourceModel(BaseModel):
+    """
+    Represents a resource in the GEMINI database.
+
+    Attributes:
+        id (uuid.UUID): Unique identifier for the resource.
+        resource_uri (str): The URI of the resource.
+        resource_file_name (str): The file name of the resource.
+        is_external (bool): Whether the resource is external.
+        resource_experiment_id (uuid.UUID): Foreign key referencing the experiment.
+        resource_data_format_id (int): Foreign key referencing the data format.
+        resource_info (dict): Additional JSONB data for the resource.
+        created_at (datetime): Timestamp of when the resource was created.
+        updated_at (datetime): Timestamp of when the resource was last updated.
+    """
     __tablename__ = "resources"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)

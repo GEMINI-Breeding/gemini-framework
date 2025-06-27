@@ -67,6 +67,9 @@ class GEMINISensorType(Enum):
     GPS (int): GPS sensor type.
     Calibration (int): Calibration sensor type.
     Depth (int): Depth sensor type.
+    IMU (int): IMU (Inertial Measurement Unit) sensor type.
+    Disparity (int): Disparity sensor type.
+    Confidence (int): Confidence sensor type.
   """
   Default = 0
   RGB = 1

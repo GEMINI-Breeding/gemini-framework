@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for Script entities in the GEMINI database.
+"""
+
 from sqlalchemy import (
     JSON,
     String,
@@ -18,6 +22,18 @@ from datetime import datetime
 import uuid
 
 class ScriptModel(BaseModel):
+    """
+    Represents a script in the GEMINI database.
+
+    Attributes:
+        id (uuid.UUID): Unique identifier for the script.
+        script_name (str): The name of the script.
+        script_url (str): The URL where the script can be accessed.
+        script_extension (str): The file extension of the script.
+        script_info (dict): Additional JSONB data for the script.
+        created_at (datetime): Timestamp when the record was created.
+        updated_at (datetime): Timestamp when the record was last updated.
+    """
     __tablename__ = "scripts"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)

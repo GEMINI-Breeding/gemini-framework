@@ -1,4 +1,26 @@
-from typing import Optional, List
+"""
+This module defines the Experiment class, which represents an experiment entity, including its metadata and associations to seasons, cultivars, procedures, scripts, models, sensors, sites, datasets, traits, and plots.
+
+It includes methods for creating, retrieving, updating, and deleting experiments, as well as methods for checking existence, searching, and managing associations with related entities.
+
+This module includes the following methods:
+
+- `exists`: Check if an experiment with the given name exists.
+- `create`: Create a new experiment.
+- `get`: Retrieve an experiment by its name.
+- `get_by_id`: Retrieve an experiment by its ID.
+- `get_all`: Retrieve all experiments.
+- `search`: Search for experiments based on various criteria.
+- `update`: Update the details of an experiment.
+- `delete`: Delete an experiment.
+- `refresh`: Refresh the experiment's data from the database.
+- `get_info`: Get the additional information of the experiment.
+- `set_info`: Set the additional information of the experiment.
+- Association methods for seasons, cultivars, procedures, scripts, models, sensors, sensor platforms, sites, datasets, traits, and plots.
+
+"""
+
+from typing import Optional, List, TYPE_CHECKING
 from uuid import UUID
 
 from pydantic import Field, AliasChoices
@@ -30,8 +52,31 @@ from gemini.db.models.views.plot_view import PlotViewModel
 
 from datetime import date
 
+if TYPE_CHECKING:
+    from gemini.api.cultivar import Cultivar
+    from gemini.api.procedure import Procedure
+    from gemini.api.script import Script
+    from gemini.api.model import Model
+    from gemini.api.sensor import Sensor
+    from gemini.api.sensor_platform import SensorPlatform
+    from gemini.api.site import Site
+    from gemini.api.season import Season
+    from gemini.api.dataset import Dataset
+    from gemini.api.trait import Trait
+    from gemini.api.plot import Plot
+
 
 class Experiment(APIBase):
+    """
+    Represents an experiment entity, including its metadata and associations to seasons, cultivars, procedures, scripts, models, sensors, sites, datasets, traits, and plots.
+
+    Attributes:
+        id (Optional[ID]): The unique identifier of the experiment.
+        experiment_name (str): The name of the experiment.
+        experiment_info (Optional[dict]): Additional information about the experiment.
+        experiment_start_date (Optional[date]): The start date of the experiment.
+        experiment_end_date (Optional[date]): The end date of the experiment.
+    """
 
     id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "experiment_id"))
 
@@ -41,9 +86,11 @@ class Experiment(APIBase):
     experiment_end_date: Optional[date] = None
 
     def __str__(self):
-        return f"Experiment(name={self.experiment_name}, start_date={self.experiment_start_date}, end_date={self.experiment_end_date}, id={self.id})"
+        """Return a string representation of the Experiment object."""
+        return f"Experiment(experiment_name={self.experiment_name}, experiment_start_date={self.experiment_start_date}, experiment_end_date={self.experiment_end_date}, id={self.id})"
     
     def __repr__(self):
+        """Return a detailed string representation of the Experiment object."""
         return f"Experiment(experiment_name={self.experiment_name}, experiment_start_date={self.experiment_start_date}, experiment_end_date={self.experiment_end_date}, id={self.id})"
     
     @classmethod
@@ -51,6 +98,20 @@ class Experiment(APIBase):
         cls,
         experiment_name: str
     ) -> bool:
+        """
+        Check if an experiment with the given name exists.
+
+        Examples:
+            >>> Experiment.exists("My Experiment")
+            True
+            >>> Experiment.exists("Nonexistent Experiment")
+            False
+
+        Args:
+            experiment_name (str): The name of the experiment.
+        Returns:
+            bool: True if the experiment exists, False otherwise.
+        """
         try:
             exists = ExperimentModel.exists(experiment_name=experiment_name)
             return exists
@@ -66,6 +127,22 @@ class Experiment(APIBase):
         experiment_start_date: date = date.today(),
         experiment_end_date: date = date.today(),
     ) -> Optional["Experiment"]:
+        """
+        Create a new experiment. If an experiment with the same name already exists, it will return the existing one.
+
+        Examples:
+            >>> experiment = Experiment.create("My Experiment", {"description": "Test experiment"})
+            >>> print(experiment)
+            Experiment(experiment_name=My Experiment, experiment_start_date=2023-10-01, experiment_end_date=2023-10-01, id=UUID(...))
+
+        Args:
+            experiment_name (str): The name of the experiment.
+            experiment_info (dict, optional): Additional information about the experiment. Defaults to {{}}.
+            experiment_start_date (date, optional): The start date. Defaults to today.
+            experiment_end_date (date, optional): The end date. Defaults to today.
+        Returns:
+            Optional["Experiment"]: The created experiment, or None if an error occurred.
+        """
         try:
             db_instance = ExperimentModel.get_or_create(
                 experiment_name=experiment_name,
@@ -81,6 +158,19 @@ class Experiment(APIBase):
         
     @classmethod
     def get(cls, experiment_name: str) -> Optional["Experiment"]:
+        """
+        Retrieve an experiment by its name.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> print(experiment)
+            Experiment(experiment_name=My Experiment, experiment_start_date=2023-10-01, experiment_end_date=2023-10-01, id=UUID(...))
+
+        Args:
+            experiment_name (str): The name of the experiment.
+        Returns:
+            Optional["Experiment"]: The experiment, or None if not found.
+        """
         try:
             db_instance = ExperimentModel.get_by_parameters(
                 experiment_name=experiment_name,
@@ -96,6 +186,19 @@ class Experiment(APIBase):
         
     @classmethod
     def get_by_id(cls, id: UUID | int | str) -> Optional["Experiment"]:
+        """
+        Retrieve an experiment by its ID.
+
+        Examples:
+            >>> experiment = Experiment.get_by_id(UUID('...'))
+            >>> print(experiment)
+            Experiment(experiment_name=My Experiment, experiment_start_date=2023-10-01, experiment_end_date=2023-10-01, id=UUID(...))
+
+        Args:
+            id (UUID | int | str): The ID of the experiment.
+        Returns:
+            Optional["Experiment"]: The experiment, or None if not found.
+        """
         try:
             db_instance = ExperimentModel.get(id)
             if not db_instance:
@@ -109,6 +212,18 @@ class Experiment(APIBase):
         
     @classmethod
     def get_all(cls) -> Optional[List["Experiment"]]:
+        """
+        Retrieve all experiments.
+
+        Examples:
+            >>> experiments = Experiment.get_all()
+            >>> for exp in experiments:
+            ...     print(exp)
+            Experiment(experiment_name=Experiment 1, experiment_start_date=2023-10-01, experiment_end_date=2023-10-01, id=UUID(...))
+
+        Returns:
+            Optional[List["Experiment"]]: A list of all experiments, or None if an error occurred.
+        """
         try:
             experiments = ExperimentModel.all()
             if not experiments or len(experiments) == 0:
@@ -128,6 +243,23 @@ class Experiment(APIBase):
         experiment_start_date: date = None,
         experiment_end_date: date = None
     ) -> Optional[List["Experiment"]]:
+        """
+        Search for experiments based on various criteria.
+
+        Examples:
+            >>> experiments = Experiment.search(experiment_name="My Experiment")
+            >>> for exp in experiments:
+            ...     print(exp)
+            Experiment(experiment_name=My Experiment, experiment_start_date=2023-10-01, experiment_end_date=2023-10-01, id=UUID(...))
+
+        Args:
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            experiment_info (dict, optional): Additional information. Defaults to None.
+            experiment_start_date (date, optional): The start date. Defaults to None.
+            experiment_end_date (date, optional): The end date. Defaults to None.
+        Returns:
+            Optional[List["Experiment"]]: A list of matching experiments, or None if an error occurred.
+        """
         try:
             if not any([experiment_name, experiment_info, experiment_start_date, experiment_end_date]):
                 print("At least one parameter must be provided for search.")
@@ -154,6 +286,23 @@ class Experiment(APIBase):
         experiment_start_date: date = None,
         experiment_end_date: date = None
     ) -> Optional["Experiment"]:
+        """
+        Update the details of the experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> updated_experiment = experiment.update(experiment_name="Updated Experiment")
+            >>> print(updated_experiment)
+            Experiment(experiment_name=Updated Experiment, experiment_start_date=2023-10-01, experiment_end_date=2023-10-01, id=UUID(...))
+
+        Args:
+            experiment_name (str, optional): The new name. Defaults to None.
+            experiment_info (dict, optional): The new information. Defaults to None.
+            experiment_start_date (date, optional): The new start date. Defaults to None.
+            experiment_end_date (date, optional): The new end date. Defaults to None.
+        Returns:
+            Optional["Experiment"]: The updated experiment, or None if an error occurred.
+        """
         try:
             if not any([experiment_name, experiment_info, experiment_start_date, experiment_end_date]):
                 print("At least one parameter must be provided for update.")
@@ -180,6 +329,18 @@ class Experiment(APIBase):
             return None
         
     def delete(self) -> bool:
+        """
+        Delete the experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> success = experiment.delete()
+            >>> print(success)
+            True
+
+        Returns:
+            bool: True if the experiment was deleted, False otherwise.
+        """
         try:
             current_id = self.id
             experiment = ExperimentModel.get(current_id)
@@ -193,6 +354,19 @@ class Experiment(APIBase):
             return False
         
     def refresh(self) -> Optional["Experiment"]:
+        """
+        Refresh the experiment's data from the database. It is rarely called by the user
+        as it is automatically called on access.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> refreshed_experiment = experiment.refresh()
+            >>> print(refreshed_experiment)
+            Experiment(experiment_name=My Experiment, experiment_start_date=2023-10-01, experiment_end_date=2023-10-01, id=UUID(...))
+
+        Returns:
+            Optional["Experiment"]: The refreshed experiment, or None if an error occurred.
+        """
         try:
             db_instance = ExperimentModel.get(self.id)
             if not db_instance:
@@ -208,6 +382,18 @@ class Experiment(APIBase):
             return None
         
     def get_info(self) -> Optional[dict]:
+        """
+        Get the additional information of the experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> info = experiment.get_info()
+            >>> print(info)
+            {'description': 'Test experiment', 'created_by': 'user'}
+
+        Returns:
+            Optional[dict]: The experiment's info, or None if not found.
+        """
         try:
             current_id = self.id
             experiment = ExperimentModel.get(current_id)
@@ -224,6 +410,20 @@ class Experiment(APIBase):
             return None
         
     def set_info(self, experiment_info: dict) -> Optional["Experiment"]:
+        """
+        Set the additional information of the experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> updated_experiment = experiment.set_info({"description": "Updated description"})
+            >>> print(updated_experiment.get_info())
+            {'description': 'Updated description'}
+
+        Args:
+            experiment_info (dict): The new information to set.
+        Returns:
+            Optional["Experiment"]: The updated experiment, or None if an error occurred.
+        """
         try:
             current_id = self.id
             experiment = ExperimentModel.get(current_id)
@@ -243,7 +443,21 @@ class Experiment(APIBase):
 
     # region Season
 
-    def get_associated_seasons(self):
+    def get_associated_seasons(self) -> Optional[List["Season"]]:
+        """
+        Get all seasons associated with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> seasons = experiment.get_associated_seasons()
+            >>> for season in seasons:
+            ...     print(season)
+            Season(season_name=Spring 2024, season_start_date=2024-03-01, season_end_date=2024-05-31, id=UUID(...))
+            Season(season_name=Summer 2024, season_start_date=2024-06-01, season_end_date=2024-08-31, id=UUID(...))
+
+        Returns:
+            Optional[List["Season"]]: A list of associated seasons, or None if not found.
+        """
         try:
             from gemini.api.season import Season
             experiment_seasons = ExperimentSeasonsViewModel.search(experiment_id=self.id)
@@ -262,7 +476,24 @@ class Experiment(APIBase):
         season_info: dict = {},
         season_start_date: date = date.today(),
         season_end_date: date = date.today(),
-    ):
+    ) -> Optional["Season"]:
+        """
+        Create and associate a new season with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> new_season = experiment.create_new_season("Spring 2024", {"description": "Spring season"})
+            >>> print(new_season)
+            Season(season_name=Spring 2024, season_start_date=2024-03-01, season_end_date=2024-05-31, id=UUID(...))
+
+        Args:
+            season_name (str): The name of the new season.
+            season_info (dict, optional): Additional information about the season. Defaults to {{}}.
+            season_start_date (date, optional): The start date of the season. Defaults to today.
+            season_end_date (date, optional): The end date of the season. Defaults to today.
+        Returns:
+            Optional["Season"]: The created and associated season, or None if an error occurred.
+        """
         try:
             from gemini.api.season import Season
             new_season = Season.create(
@@ -283,7 +514,20 @@ class Experiment(APIBase):
     # endregion
 
     # region Cultivar
-    def get_associated_cultivars(self):
+    def get_associated_cultivars(self) -> Optional[List["Cultivar"]]:
+        """
+        Get all cultivars associated with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> cultivars = experiment.get_associated_cultivars()
+            >>> for cultivar in cultivars:
+            ...     print(cultivar)
+            Cultivar(cultivar_population=Population A, cultivar_accession=Accession 123, id=UUID(...))
+
+        Returns:
+            Optional[List["Cultivar"]]: A list of associated cultivars, or None if not found.
+        """
         try:
             from gemini.api.cultivar import Cultivar
             experiment_cultivars = ExperimentCultivarsViewModel.search(experiment_id=self.id)
@@ -301,7 +545,23 @@ class Experiment(APIBase):
         cultivar_population: str,
         cultivar_accession: str,
         cultivar_info: dict = {},
-    ):
+    ) -> Optional["Cultivar"]:
+        """
+        Create and associate a new cultivar with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> new_cultivar = experiment.create_new_cultivar("Population A", "Accession 123", {"description": "New cultivar"})
+            >>> print(new_cultivar)
+            Cultivar(cultivar_population=Population A, cultivar_accession=Accession 123, id=UUID(...))
+
+        Args:
+            cultivar_population (str): The population of the new cultivar.
+            cultivar_accession (str): The accession of the new cultivar.
+            cultivar_info (dict, optional): Additional information about the cultivar. Defaults to {{}}.
+        Returns:
+            Optional["Cultivar"]: The created and associated cultivar, or None if an error occurred.
+        """
         try:
             from gemini.api.cultivar import Cultivar
             new_cultivar = Cultivar.create(
@@ -322,7 +582,22 @@ class Experiment(APIBase):
         self,
         cultivar_population: str,
         cultivar_accession: str,
-    ):
+    ) -> Optional["Cultivar"]:
+        """
+        Associate an existing cultivar with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> cultivar = experiment.associate_cultivar("Population A", "Accession 123")
+            >>> print(cultivar)
+            Cultivar(cultivar_population=Population A, cultivar_accession=Accession 123, id=UUID(...))
+
+        Args:
+            cultivar_population (str): The population of the cultivar.
+            cultivar_accession (str): The accession of the cultivar.
+        Returns:
+            Optional["Cultivar"]: The associated cultivar, or None if an error occurred.
+        """
         try:
             from gemini.api.cultivar import Cultivar
             cultivar = Cultivar.get(cultivar_population=cultivar_population, cultivar_accession=cultivar_accession)
@@ -339,7 +614,22 @@ class Experiment(APIBase):
         self,
         cultivar_population: str,
         cultivar_accession: str,
-    ):
+    ) -> Optional["Cultivar"]:
+        """
+        Unassociate a cultivar from this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> cultivar = experiment.unassociate_cultivar("Population A", "Accession 123")
+            >>> print(cultivar)
+            Cultivar(cultivar_population=Population A, cultivar_accession=Accession 123, id=UUID(...))
+
+        Args:
+            cultivar_population (str): The population of the cultivar.
+            cultivar_accession (str): The accession of the cultivar.
+        Returns:
+            Optional["Cultivar"]: The unassociated cultivar, or None if an error occurred.
+        """
         try:
             from gemini.api.cultivar import Cultivar
             cultivar = Cultivar.get(cultivar_population=cultivar_population, cultivar_accession=cultivar_accession)
@@ -357,6 +647,21 @@ class Experiment(APIBase):
         cultivar_population: str,
         cultivar_accession: str,
     ) -> bool:
+        """
+        Check if the experiment is associated with a specific cultivar.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> is_associated = experiment.belongs_to_cultivar("Population A", "Accession 123")
+            >>> print(is_associated)
+            True
+
+        Args:
+            cultivar_population (str): The population of the cultivar.
+            cultivar_accession (str): The accession of the cultivar.
+        Returns:
+            bool: True if associated, False otherwise.
+        """
         try:
             from gemini.api.cultivar import Cultivar
             cultivar = Cultivar.get(cultivar_population=cultivar_population, cultivar_accession=cultivar_accession)
@@ -372,7 +677,21 @@ class Experiment(APIBase):
     # endregion
 
     # region Procedure
-    def get_associated_procedures(self):
+    def get_associated_procedures(self) -> Optional[List["Procedure"]]:
+        """
+        Get all procedures associated with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> procedures = experiment.get_associated_procedures()
+            >>> for procedure in procedures:
+            ...     print(procedure)
+            Procedure(procedure_name=Procedure 1, id=UUID(...))
+            Procedure(procedure_name=Procedure 2, id=UUID(...))
+
+        Returns:
+            Optional[List["Procedure"]]: A list of associated procedures, or None if not found.
+        """
         try:
             from gemini.api.procedure import Procedure
             experiment_procedures = ExperimentProceduresViewModel.search(experiment_id=self.id)
@@ -389,7 +708,22 @@ class Experiment(APIBase):
         self,
         procedure_name: str,
         procedure_info: dict = {}
-    ):
+    ) -> Optional["Procedure"]:
+        """
+        Create and associate a new procedure with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> new_procedure = experiment.create_new_procedure("Procedure 1", {"description": "Test procedure"})
+            >>> print(new_procedure)
+            Procedure(procedure_name=Procedure 1, id=UUID(...))
+
+        Args:
+            procedure_name (str): The name of the new procedure.
+            procedure_info (dict, optional): Additional information about the procedure. Defaults to {{}}.
+        Returns:
+            Optional["Procedure"]: The created and associated procedure, or None if an error occurred.
+        """
         try:
             from gemini.api.procedure import Procedure
             new_procedure = Procedure.create(
@@ -408,7 +742,21 @@ class Experiment(APIBase):
     def associate_procedure(
         self,
         procedure_name: str,
-    ):
+    ) -> Optional["Procedure"]:
+        """
+        Associate an existing procedure with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> procedure = experiment.associate_procedure("Procedure 1")
+            >>> print(procedure)
+            Procedure(procedure_name=Procedure 1, id=UUID(...))
+
+        Args:
+            procedure_name (str): The name of the procedure.
+        Returns:
+            Optional["Procedure"]: The associated procedure, or None if an error occurred.
+        """
         try:
             from gemini.api.procedure import Procedure
             procedure = Procedure.get(procedure_name=procedure_name)
@@ -424,7 +772,21 @@ class Experiment(APIBase):
     def unassociate_procedure(
         self,
         procedure_name: str,
-    ):
+    ) -> Optional["Procedure"]:
+        """
+        Unassociate a procedure from this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> procedure = experiment.unassociate_procedure("Procedure 1")
+            >>> print(procedure)
+            Procedure(procedure_name=Procedure 1, id=UUID(...))
+
+        Args:
+            procedure_name (str): The name of the procedure.
+        Returns:
+            Optional["Procedure"]: The unassociated procedure, or None if an error occurred.
+        """
         try:
             from gemini.api.procedure import Procedure
             procedure = Procedure.get(procedure_name=procedure_name)
@@ -441,6 +803,20 @@ class Experiment(APIBase):
         self,
         procedure_name: str,
     ) -> bool:
+        """
+        Check if the experiment is associated with a specific procedure.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> is_associated = experiment.belongs_to_procedure("Procedure 1")
+            >>> print(is_associated)
+            True
+
+        Args:
+            procedure_name (str): The name of the procedure.
+        Returns:
+            bool: True if associated, False otherwise.
+        """
         try:
             from gemini.api.procedure import Procedure
             procedure = Procedure.get(procedure_name=procedure_name)
@@ -456,7 +832,21 @@ class Experiment(APIBase):
     # endregion
 
     # region Script
-    def get_associated_scripts(self):
+    def get_associated_scripts(self) -> Optional[List["Script"]]:
+        """
+        Get all scripts associated with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> scripts = experiment.get_associated_scripts()
+            >>> for script in scripts:
+            ...     print(script)
+            Script(script_name=Script 1, script_url='http://example.com/script1', script_extension='.py', id=UUID(...))
+            Script(script_name=Script 2, script_url='http://example.com/script2', script_extension='.js', id=UUID(...))
+
+        Returns:
+            Optional[List["Script"]]: A list of associated scripts, or None if not found.
+        """
         try:
             from gemini.api.script import Script
             experiment_scripts = ExperimentScriptsViewModel.search(experiment_id=self.id)
@@ -475,7 +865,24 @@ class Experiment(APIBase):
         script_extension: str = None,
         script_url: str = None,
         script_info: dict = {}
-    ):
+    ) -> Optional["Script"]:
+        """
+        Create and associate a new script with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> new_script = experiment.create_new_script("Script 1", script_extension=".py", script_url="http://example.com/script1", script_info={"description": "Test script"})
+            >>> print(new_script)
+            Script(script_name=Script 1, script_url='http://example.com/script1', script_extension='.py', id=UUID(...))
+
+        Args:
+            script_name (str): The name of the new script.
+            script_extension (str, optional): The extension of the script. Defaults to None.
+            script_url (str, optional): The URL of the script. Defaults to None.
+            script_info (dict, optional): Additional information about the script. Defaults to {{}}.
+        Returns:
+            Optional["Script"]: The created and associated script, or None if an error occurred.
+        """
         try:
             from gemini.api.script import Script
             new_script = Script.create(
@@ -496,7 +903,21 @@ class Experiment(APIBase):
     def associate_script(
         self,
         script_name: str,
-    ):
+    ) -> Optional["Script"]:
+        """
+        Associate an existing script with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> script = experiment.associate_script("Script 1")
+            >>> print(script)
+            Script(script_name=Script 1, script_url='http://example.com/script1', script_extension='.py', id=UUID(...))
+
+        Args:
+            script_name (str): The name of the script.
+        Returns:
+            Optional["Script"]: The associated script, or None if an error occurred.
+        """
         try:
             from gemini.api.script import Script
             script = Script.get(script_name=script_name)
@@ -512,7 +933,21 @@ class Experiment(APIBase):
     def unassociate_script(
         self,
         script_name: str,
-    ):
+    ) -> Optional["Script"]:
+        """
+        Unassociate a script from this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> script = experiment.unassociate_script("Script 1")
+            >>> print(script)
+            Script(script_name=Script 1, script_url='http://example.com/script1', script_extension='.py', id=UUID(...))
+
+        Args:
+            script_name (str): The name of the script.
+        Returns:
+            Optional["Script"]: The unassociated script, or None if an error occurred.
+        """
         try:
             from gemini.api.script import Script
             script = Script.get(script_name=script_name)
@@ -529,6 +964,20 @@ class Experiment(APIBase):
         self,
         script_name: str,
     ) -> bool:
+        """
+        Check if the experiment is associated with a specific script.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> is_associated = experiment.belongs_to_script("Script 1")
+            >>> print(is_associated)
+            True
+
+        Args:
+            script_name (str): The name of the script.
+        Returns:
+            bool: True if associated, False otherwise.
+        """
         try:
             from gemini.api.script import Script
             script = Script.get(script_name=script_name)
@@ -543,7 +992,21 @@ class Experiment(APIBase):
     # endregion
 
     # region Model
-    def get_associated_models(self):
+    def get_associated_models(self) -> Optional[List["Model"]]:
+        """
+        Get all models associated with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> models = experiment.get_associated_models()
+            >>> for model in models:
+            ...     print(model)
+            Model(model_name=Model 1, model_url='http://example.com/model1', id=UUID(...))
+            Model(model_name=Model 2, model_url='http://example.com/model2', id=UUID(...))
+
+        Returns:
+            Optional[List["Model"]]: A list of associated models, or None if not found.
+        """
         try:
             from gemini.api.model import Model
             experiment_models = ExperimentModelsViewModel.search(experiment_id=self.id)
@@ -561,7 +1024,23 @@ class Experiment(APIBase):
         model_name: str,
         model_url: str = None,
         model_info: dict = {}
-    ):
+    ) -> Optional["Model"]:
+        """
+        Create and associate a new model with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> new_model = experiment.create_new_model("Model 1", model_url="http://example.com/model1", model_info={"description": "Test model"})
+            >>> print(new_model)
+            Model(model_name=Model 1, model_url='http://example.com/model1', id=UUID(...))
+
+        Args:
+            model_name (str): The name of the new model.
+            model_url (str, optional): The URL of the model. Defaults to None.
+            model_info (dict, optional): Additional information about the model. Defaults to {{}}.
+        Returns:
+            Optional["Model"]: The created and associated model, or None if an error occurred.
+        """
         try:
             from gemini.api.model import Model
             new_model = Model.create(
@@ -581,7 +1060,21 @@ class Experiment(APIBase):
     def associate_model(
         self,
         model_name: str,
-    ):
+    ) -> Optional["Model"]:
+        """
+        Associate an existing model with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> model = experiment.associate_model("Model 1")
+            >>> print(model)
+            Model(model_name=Model 1, model_url='http://example.com/model1', id=UUID(...))
+
+        Args:
+            model_name (str): The name of the model.
+        Returns:
+            Optional["Model"]: The associated model, or None if an error occurred.
+        """
         try:
             from gemini.api.model import Model
             model = Model.get(model_name=model_name)
@@ -597,7 +1090,21 @@ class Experiment(APIBase):
     def unassociate_model(
         self,
         model_name: str,
-    ):
+    ) -> Optional["Model"]:
+        """
+        Unassociate a model from this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> model = experiment.unassociate_model("Model 1")
+            >>> print(model)
+            Model(model_name=Model 1, model_url='http://example.com/model1', id=UUID(...))
+
+        Args:
+            model_name (str): The name of the model.
+        Returns:
+            Optional["Model"]: The unassociated model, or None if an error occurred.
+        """
         try:
             from gemini.api.model import Model
             model = Model.get(model_name=model_name)
@@ -614,6 +1121,20 @@ class Experiment(APIBase):
         self,
         model_name: str,
     ) -> bool:
+        """
+        Check if the experiment is associated with a specific model.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> is_associated = experiment.belongs_to_model("Model 1")
+            >>> print(is_associated)
+            True
+
+        Args:
+            model_name (str): The name of the model.
+        Returns:
+            bool: True if associated, False otherwise.
+        """
         try:
             from gemini.api.model import Model
             model = Model.get(model_name=model_name)
@@ -628,7 +1149,21 @@ class Experiment(APIBase):
     # endregion
 
     # region Sensor
-    def get_associated_sensors(self):
+    def get_associated_sensors(self) -> Optional[List["Sensor"]]:
+        """
+        Get all sensors associated with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> sensors = experiment.get_associated_sensors()
+            >>> for sensor in sensors:
+            ...     print(sensor)
+            Sensor(sensor_name=Sensor 1, id=UUID(...))
+            Sensor(sensor_name=Sensor 2, id=UUID(...))
+
+        Returns:
+            Optional[List["Sensor"]]: A list of associated sensors, or None if not found.
+        """
         try:
             from gemini.api.sensor import Sensor
             experiment_sensors = ExperimentSensorsViewModel.search(experiment_id=self.id)
@@ -649,7 +1184,26 @@ class Experiment(APIBase):
         sensor_data_format: GEMINIDataFormat = GEMINIDataFormat.Default,
         sensor_info: dict = {},
         sensor_platform_name: str = None
-    ):
+    ) -> Optional["Sensor"]:
+        """
+        Create and associate a new sensor with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> new_sensor = experiment.create_new_sensor("Sensor 1", sensor_type=GEMINISensorType.RGB, sensor_data_type=GEMINIDataType.Sensor, sensor_data_format=GEMINIDataFormat.Default, sensor_info={"description": "Test sensor"}, sensor_platform_name="Platform 1")
+            >>> print(new_sensor)
+            Sensor(sensor_name=Sensor 1, id=UUID(...))
+
+        Args:
+            sensor_name (str): The name of the new sensor.
+            sensor_type (GEMINISensorType, optional): The type of the sensor. Defaults to Default.
+            sensor_data_type (GEMINIDataType, optional): The data type. Defaults to Default.
+            sensor_data_format (GEMINIDataFormat, optional): The data format. Defaults to Default.
+            sensor_info (dict, optional): Additional information about the sensor. Defaults to {{}}.
+            sensor_platform_name (str, optional): The name of the sensor platform. Defaults to None.
+        Returns:
+            Optional["Sensor"]: The created and associated sensor, or None if an error occurred.
+        """
         try:
             from gemini.api.sensor import Sensor
             new_sensor = Sensor.create(
@@ -672,7 +1226,21 @@ class Experiment(APIBase):
     def associate_sensor(
         self,
         sensor_name: str,
-    ):
+    ) -> Optional["Sensor"]:
+        """
+        Associate an existing sensor with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> sensor = experiment.associate_sensor("Sensor 1")
+            >>> print(sensor)
+            Sensor(sensor_name=Sensor 1, id=UUID(...))
+            
+        Args:
+            sensor_name (str): The name of the sensor.
+        Returns:
+            Optional["Sensor"]: The associated sensor, or None if an error occurred.
+        """
         try:
             from gemini.api.sensor import Sensor
             sensor = Sensor.get(sensor_name=sensor_name)
@@ -688,7 +1256,21 @@ class Experiment(APIBase):
     def unassociate_sensor(
         self,
         sensor_name: str,
-    ):
+    ) -> Optional["Sensor"]:
+        """
+        Unassociate a sensor from this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> sensor = experiment.unassociate_sensor("Sensor 1")
+            >>> print(sensor)
+            Sensor(sensor_name=Sensor 1, id=UUID(...))
+            
+        Args:
+            sensor_name (str): The name of the sensor.
+        Returns:
+            Optional["Sensor"]: The unassociated sensor, or None if an error occurred.
+        """
         try:
             from gemini.api.sensor import Sensor
             sensor = Sensor.get(sensor_name=sensor_name)
@@ -705,6 +1287,20 @@ class Experiment(APIBase):
         self,
         sensor_name: str,
     ) -> bool:
+        """
+        Check if the experiment is associated with a specific sensor.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> is_associated = experiment.belongs_to_sensor("Sensor 1")
+            >>> print(is_associated)
+            True
+
+        Args:
+            sensor_name (str): The name of the sensor.
+        Returns:
+            bool: True if associated, False otherwise.
+        """
         try:
             from gemini.api.sensor import Sensor
             sensor = Sensor.get(sensor_name=sensor_name)
@@ -719,7 +1315,21 @@ class Experiment(APIBase):
     # endregion
 
     # region Sensor Platform
-    def get_associated_sensor_platforms(self):
+    def get_associated_sensor_platforms(self) -> Optional[List["SensorPlatform"]]:
+        """
+        Get all sensor platforms associated with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> sensor_platforms = experiment.get_associated_sensor_platforms()
+            >>> for sensor_platform in sensor_platforms:
+            ...     print(sensor_platform)
+            SensorPlatform(sensor_platform_name=Platform 1, id=UUID(...))
+            SensorPlatform(sensor_platform_name=Platform 2, id=UUID(...))
+
+        Returns:
+            Optional[List["SensorPlatform"]]: A list of associated sensor platforms, or None if not found.
+        """
         try:
             from gemini.api.sensor_platform import SensorPlatform
             experiment_sensor_platforms = ExperimentSensorPlatformsViewModel.search(experiment_id=self.id)
@@ -736,7 +1346,22 @@ class Experiment(APIBase):
         self,
         sensor_platform_name: str,
         sensor_platform_info: dict = {}
-    ):
+    ) -> Optional["SensorPlatform"]:
+        """
+        Create and associate a new sensor platform with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> new_sensor_platform = experiment.create_new_sensor_platform("Platform 1", {"description": "Test platform"})
+            >>> print(new_sensor_platform)
+            SensorPlatform(sensor_platform_name=Platform 1, id=UUID(...))
+
+        Args:
+            sensor_platform_name (str): The name of the new sensor platform.
+            sensor_platform_info (dict, optional): Additional information about the sensor platform. Defaults to {{}}.
+        Returns:
+            Optional["SensorPlatform"]: The created and associated sensor platform, or None if an error occurred.
+        """
         try:
             from gemini.api.sensor_platform import SensorPlatform
             new_sensor_platform = SensorPlatform.create(
@@ -755,7 +1380,21 @@ class Experiment(APIBase):
     def associate_sensor_platform(
         self,
         sensor_platform_name: str,
-    ):
+    ) -> Optional["SensorPlatform"]:
+        """
+        Associate an existing sensor platform with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> sensor_platform = experiment.associate_sensor_platform("Platform 1")
+            >>> print(sensor_platform)
+            SensorPlatform(sensor_platform_name=Platform 1, id=UUID(...))
+
+        Args:
+            sensor_platform_name (str): The name of the sensor platform.
+        Returns:
+            Optional["SensorPlatform"]: The associated sensor platform, or None if an error occurred.
+        """
         try:
             from gemini.api.sensor_platform import SensorPlatform
             sensor_platform = SensorPlatform.get(sensor_platform_name=sensor_platform_name)
@@ -771,7 +1410,21 @@ class Experiment(APIBase):
     def unassociate_sensor_platform(
         self,
         sensor_platform_name: str,
-    ):
+    ) -> Optional["SensorPlatform"]:
+        """
+        Unassociate a sensor platform from this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> sensor_platform = experiment.unassociate_sensor_platform("Platform 1")
+            >>> print(sensor_platform)
+            SensorPlatform(sensor_platform_name=Platform 1, id=UUID(...))
+
+        Args:
+            sensor_platform_name (str): The name of the sensor platform.
+        Returns:
+            Optional["SensorPlatform"]: The unassociated sensor platform, or None if an error occurred.
+        """
         try:
             from gemini.api.sensor_platform import SensorPlatform
             sensor_platform = SensorPlatform.get(sensor_platform_name=sensor_platform_name)
@@ -788,6 +1441,20 @@ class Experiment(APIBase):
         self,
         sensor_platform_name: str,
     ) -> bool:
+        """
+        Check if the experiment is associated with a specific sensor platform.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> is_associated = experiment.belongs_to_sensor_platform("Platform 1")
+            >>> print(is_associated)
+            True
+
+        Args:
+            sensor_platform_name (str): The name of the sensor platform.
+        Returns:
+            bool: True if associated, False otherwise.
+        """
         try:
             from gemini.api.sensor_platform import SensorPlatform
             sensor_platform = SensorPlatform.get(sensor_platform_name=sensor_platform_name)
@@ -802,7 +1469,21 @@ class Experiment(APIBase):
     # endregion
 
     # region Site
-    def get_associated_sites(self):
+    def get_associated_sites(self) -> Optional[List["Site"]]:
+        """
+        Get all sites associated with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> sites = experiment.get_associated_sites()
+            >>> for site in sites:
+            ...     print(site)
+            Site(site_name=Site 1, id=UUID(...))
+            Site(site_name=Site 2, id=UUID(...))
+
+        Returns:
+            Optional[List["Site"]]: A list of associated sites, or None if not found.
+        """
         try:
             from gemini.api.site import Site
             experiment_sites = ExperimentSitesViewModel.search(experiment_id=self.id)
@@ -822,7 +1503,25 @@ class Experiment(APIBase):
         site_state: str = None,
         site_country: str = None,
         site_info: dict = {}
-    ):
+    ) -> Optional["Site"]:
+        """
+        Create and associate a new site with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> new_site = experiment.create_new_site("Site 1", site_city="City", site_state="State", site_country="Country", site_info={"description": "Test site"})
+            >>> print(new_site)
+            Site(site_name=Site 1, id=UUID(...))
+            
+        Args:
+            site_name (str): The name of the new site.
+            site_city (str, optional): The city of the site. Defaults to None.
+            site_state (str, optional): The state of the site. Defaults to None.
+            site_country (str, optional): The country of the site. Defaults to None.
+            site_info (dict, optional): Additional information about the site. Defaults to {{}}.
+        Returns:
+            Optional["Site"]: The created and associated site, or None if an error occurred.
+        """
         try:
             from gemini.api.site import Site
             new_site = Site.create(
@@ -844,7 +1543,21 @@ class Experiment(APIBase):
     def associate_site(
         self,
         site_name: str,
-    ):
+    ) -> Optional["Site"]:
+        """
+        Associate an existing site with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> site = experiment.associate_site("Site 1")
+            >>> print(site)
+            Site(site_name=Site 1, id=UUID(...))
+            
+        Args:
+            site_name (str): The name of the site.
+        Returns:
+            Optional["Site"]: The associated site, or None if an error occurred.
+        """
         try:
             from gemini.api.site import Site
             site = Site.get(site_name=site_name)
@@ -860,7 +1573,21 @@ class Experiment(APIBase):
     def unassociate_site(
         self,
         site_name: str,
-    ):
+    ) -> Optional["Site"]:
+        """
+        Unassociate a site from this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> site = experiment.unassociate_site("Site 1")
+            >>> print(site)
+            Site(site_name=Site 1, id=UUID(...))
+            
+        Args:
+            site_name (str): The name of the site.
+        Returns:
+            Optional["Site"]: The unassociated site, or None if an error occurred.
+        """
         try:
             from gemini.api.site import Site
             site = Site.get(site_name=site_name)
@@ -877,6 +1604,20 @@ class Experiment(APIBase):
         self,
         site_name: str,
     ) -> bool:
+        """
+        Check if the experiment is associated with a specific site.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> is_associated = experiment.belongs_to_site("Site 1")
+            >>> print(is_associated)
+            True
+
+        Args:
+            site_name (str): The name of the site.
+        Returns:
+            bool: True if associated, False otherwise.
+        """
         try:
             from gemini.api.site import Site
             site = Site.get(site_name=site_name)
@@ -891,7 +1632,21 @@ class Experiment(APIBase):
     # endregion
 
     # region Dataset
-    def get_associated_datasets(self):
+    def get_associated_datasets(self) -> Optional[List["Dataset"]]:
+        """
+        Get all datasets associated with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> datasets = experiment.get_associated_datasets()
+            >>> for dataset in datasets:
+            ...     print(dataset)
+            Dataset(dataset_name=Dataset 1, collection_date=date(2023, 10, 1), dataset_type=Default, id=UUID(...))
+            Dataset(dataset_name=Dataset 2, collection_date=date(2023, 10, 2), dataset_type=Default, id=UUID(...))
+
+        Returns:
+            Optional[List["Dataset"]]: A list of associated datasets, or None if not found.
+        """
         try:
             from gemini.api.dataset import Dataset
             experiment_datasets = ExperimentDatasetsViewModel.search(experiment_id=self.id)
@@ -910,7 +1665,25 @@ class Experiment(APIBase):
         dataset_info: dict = {},
         dataset_type: GEMINIDatasetType = GEMINIDatasetType.Default,
         collection_date: date = date.today()
-    ):
+    ) -> Optional["Dataset"]:
+        """
+        Create and associate a new dataset with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> new_dataset = experiment.create_new_dataset("Dataset 1", dataset_info={"description": "Test dataset"}, dataset_type=GEMINIDatasetType.Default, collection_date=date.today())
+            >>> print(new_dataset)
+            Dataset(dataset_name=Dataset 1, collection_date=date(2023, 10, 1), dataset_type=Default, id=UUID(...))
+
+
+        Args:
+            dataset_name (str): The name of the new dataset.
+            dataset_info (dict, optional): Additional information about the dataset. Defaults to {{}}.
+            dataset_type (GEMINIDatasetType, optional): The type of the dataset. Defaults to Default.
+            collection_date (date, optional): The collection date. Defaults to today.
+        Returns:
+            Optional["Dataset"]: The created and associated dataset, or None if an error occurred.
+        """
         try:
             from gemini.api.dataset import Dataset
             new_dataset = Dataset.create(
@@ -931,7 +1704,21 @@ class Experiment(APIBase):
     def associate_dataset(
         self,
         dataset_name: str,
-    ):
+    ) -> Optional["Dataset"]:
+        """
+        Associate an existing dataset with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> dataset = experiment.associate_dataset("Dataset 1")
+            >>> print(dataset)
+            Dataset(dataset_name=Dataset 1, collection_date=date(2023, 10, 1), dataset_type=Default, id=UUID(...))
+
+        Args:
+            dataset_name (str): The name of the dataset.
+        Returns:
+            Optional["Dataset"]: The associated dataset, or None if an error occurred.
+        """
         try:
             from gemini.api.dataset import Dataset
             dataset = Dataset.get(dataset_name=dataset_name)
@@ -947,7 +1734,21 @@ class Experiment(APIBase):
     def unassociate_dataset(
         self,
         dataset_name: str,
-    ):
+    ) -> Optional["Dataset"]:
+        """
+        Unassociate a dataset from this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> dataset = experiment.unassociate_dataset("Dataset 1")
+            >>> print(dataset)
+            Dataset(dataset_name=Dataset 1, collection_date=date(2023, 10, 1), dataset_type=Default, id=UUID(...))
+            
+        Args:
+            dataset_name (str): The name of the dataset.
+        Returns:
+            Optional["Dataset"]: The unassociated dataset, or None if an error occurred.
+        """
         try:
             from gemini.api.dataset import Dataset
             dataset = Dataset.get(dataset_name=dataset_name)
@@ -964,6 +1765,21 @@ class Experiment(APIBase):
         self,
         dataset_name: str,
     ) -> bool:
+        """
+        Check if the experiment is associated with a specific dataset.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> is_associated = experiment.belongs_to_dataset("Dataset 1")
+            >>> print(is_associated)
+            True
+
+
+        Args:
+            dataset_name (str): The name of the dataset.
+        Returns:
+            bool: True if associated, False otherwise.
+        """
         try:
             from gemini.api.dataset import Dataset
             dataset = Dataset.get(dataset_name=dataset_name)
@@ -979,7 +1795,21 @@ class Experiment(APIBase):
     # endregion
 
     # region Trait
-    def get_associated_traits(self):
+    def get_associated_traits(self) -> Optional[List["Trait"]]:
+        """
+        Get all traits associated with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> traits = experiment.get_associated_traits()
+            >>> for trait in traits:
+            ...     print(trait)
+            Trait(trait_name=Trait 1, id=UUID(...))
+            Trait(trait_name=Trait 2, id=UUID(...))
+
+        Returns:
+            Optional[List["Trait"]]: A list of associated traits, or None if not found.
+        """
         try:
             from gemini.api.trait import Trait
             experiment_traits = ExperimentTraitsViewModel.search(experiment_id=self.id)
@@ -999,7 +1829,25 @@ class Experiment(APIBase):
         trait_metrics: dict = {},
         trait_level: GEMINITraitLevel = GEMINITraitLevel.Default,
         trait_info: dict = {},
-    ):
+    ) -> Optional["Trait"]:
+        """
+        Create and associate a new trait with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> new_trait = experiment.create_new_trait("Trait 1", trait_units="kg", trait_metrics={"metric1": 1.0}, trait_level=GEMINITraitLevel.Default, trait_info={"description": "Test trait"})
+            >>> print(new_trait)
+            Trait(trait_name=Trait 1, id=UUID(...))
+            
+        Args:
+            trait_name (str): The name of the new trait.
+            trait_units (str, optional): The units of the trait. Defaults to None.
+            trait_metrics (dict, optional): Metrics for the trait. Defaults to {{}}.
+            trait_level (GEMINITraitLevel, optional): The level of the trait. Defaults to Default.
+            trait_info (dict, optional): Additional information about the trait. Defaults to {{}}.
+        Returns:
+            Optional["Trait"]: The created and associated trait, or None if an error occurred.
+        """
         try:
             from gemini.api.trait import Trait
             new_trait = Trait.create(
@@ -1021,7 +1869,21 @@ class Experiment(APIBase):
     def associate_trait(
         self,
         trait_name: str,
-    ):
+    ) -> Optional["Trait"]:
+        """
+        Associate an existing trait with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> trait = experiment.associate_trait("Trait 1")
+            >>> print(trait)
+            Trait(trait_name=Trait 1, id=UUID(...))
+            
+        Args:
+            trait_name (str): The name of the trait.
+        Returns:
+            Optional["Trait"]: The associated trait, or None if an error occurred.
+        """
         try:
             from gemini.api.trait import Trait
             trait = Trait.get(trait_name=trait_name)
@@ -1037,7 +1899,21 @@ class Experiment(APIBase):
     def unassociate_trait(
         self,
         trait_name: str,
-    ):
+    ) -> Optional["Trait"]:
+        """
+        Unassociate a trait from this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> trait = experiment.unassociate_trait("Trait 1")
+            >>> print(trait)
+            Trait(trait_name=Trait 1, id=UUID(...))
+            
+        Args:
+            trait_name (str): The name of the trait.
+        Returns:
+            Optional["Trait"]: The unassociated trait, or None if an error occurred.
+        """
         try:
             from gemini.api.trait import Trait
             trait = Trait.get(trait_name=trait_name)
@@ -1054,6 +1930,20 @@ class Experiment(APIBase):
         self,
         trait_name: str,
     ) -> bool:
+        """
+        Check if the experiment is associated with a specific trait.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> is_associated = experiment.belongs_to_trait("Trait 1")
+            >>> print(is_associated)
+            True
+
+        Args:
+            trait_name (str): The name of the trait.
+        Returns:
+            bool: True if associated, False otherwise.
+        """
         try:
             from gemini.api.trait import Trait
             trait = Trait.get(trait_name=trait_name)
@@ -1069,7 +1959,22 @@ class Experiment(APIBase):
 
     # region Plot
     
-    def get_associated_plots(self):
+    def get_associated_plots(self) -> Optional[List["Plot"]]:
+        """
+        Get all plots associated with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> plots = experiment.get_associated_plots()
+            >>> for plot in plots:
+            ...     print(plot)
+            Plot(plot_number=1, plot_row_number=1, plot_column_number=1, id=UUID(...))
+            Plot(plot_number=2, plot_row_number=1, plot_column_number=2, id=UUID(...))
+
+
+        Returns:
+            Optional[List["Plot"]]: A list of associated plots, or None if not found.
+        """
         try:
             from gemini.api.plot import Plot
             plots = PlotViewModel.search(experiment_id=self.id)
@@ -1090,7 +1995,26 @@ class Experiment(APIBase):
         season_name: str = None,
         site_name: str = None,
         plot_info: dict = {}
-    ):
+    ) -> Optional["Plot"]:
+        """
+        Create and associate a new plot with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> new_plot = experiment.create_new_plot(1, 1, 1, season_name="Spring", site_name="Site 1", plot_info={"description": "Test plot"})
+            >>> print(new_plot)
+            Plot(plot_number=1, plot_row_number=1, plot_column_number=1, id=UUID(...))
+
+        Args:
+            plot_number (int): The plot number.
+            plot_row_number (int): The row number of the plot.
+            plot_column_number (int): The column number of the plot.
+            season_name (str, optional): The season name. Defaults to None.
+            site_name (str, optional): The site name. Defaults to None.
+            plot_info (dict, optional): Additional information about the plot. Defaults to {{}}.
+        Returns:
+            Optional["Plot"]: The created and associated plot, or None if an error occurred.
+        """
         try:
             from gemini.api.plot import Plot
             new_plot = Plot.create(
@@ -1117,7 +2041,25 @@ class Experiment(APIBase):
         plot_column_number: int,
         season_name: str = None,
         site_name: str = None,
-    ):
+    ) -> Optional["Plot"]:
+        """
+        Associate an existing plot with this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> plot = experiment.associate_plot(1, 1, 1, season_name="Spring", site_name="Site 1")
+            >>> print(plot)
+            Plot(plot_number=1, plot_row_number=1, plot_column_number=1, id=UUID(...))
+
+        Args:
+            plot_number (int): The plot number.
+            plot_row_number (int): The row number of the plot.
+            plot_column_number (int): The column number of the plot.
+            season_name (str, optional): The season name. Defaults to None.
+            site_name (str, optional): The site name. Defaults to None.
+        Returns:
+            Optional["Plot"]: The associated plot, or None if an error occurred.
+        """
         try:
             from gemini.api.plot import Plot
             plot = Plot.get(
@@ -1143,7 +2085,25 @@ class Experiment(APIBase):
         plot_column_number: int,
         season_name: str = None,
         site_name: str = None,
-    ):
+    ) -> Optional["Plot"]:
+        """
+        Unassociate a plot from this experiment.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> plot = experiment.unassociate_plot(1, 1, 1, season_name="Spring", site_name="Site 1")
+            >>> print(plot)
+            Plot(plot_number=1, plot_row_number=1, plot_column_number=1, id=UUID(...))
+            
+        Args:
+            plot_number (int): The plot number.
+            plot_row_number (int): The row number of the plot.
+            plot_column_number (int): The column number of the plot.
+            season_name (str, optional): The season name. Defaults to None.
+            site_name (str, optional): The site name. Defaults to None.
+        Returns:
+            Optional["Plot"]: The unassociated plot, or None if an error occurred.
+        """
         try:
             from gemini.api.plot import Plot
             plot = Plot.get(
@@ -1170,6 +2130,24 @@ class Experiment(APIBase):
         season_name: str = None,
         site_name: str = None,
     ) -> bool:
+        """
+        Check if the experiment is associated with a specific plot.
+
+        Examples:
+            >>> experiment = Experiment.get("My Experiment")
+            >>> is_associated = experiment.belongs_to_plot(1, 1, 1, season_name="Spring", site_name="Site 1")
+            >>> print(is_associated)
+            True
+
+        Args:
+            plot_number (int): The plot number.
+            plot_row_number (int): The row number of the plot.
+            plot_column_number (int): The column number of the plot.
+            season_name (str, optional): The season name. Defaults to None.
+            site_name (str, optional): The site name. Defaults to None.
+        Returns:
+            bool: True if associated, False otherwise.
+        """
         try:
             from gemini.api.plot import Plot
             plot = Plot.get(
@@ -1188,5 +2166,5 @@ class Experiment(APIBase):
             print("Error checking if belongs to plot:", e)
             return False
     # endregion
-            
-        
+
+

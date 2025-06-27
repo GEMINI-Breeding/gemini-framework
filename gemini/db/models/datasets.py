@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for Dataset entities in the GEMINI database.
+"""
+
 from sqlalchemy import (
     JSON,
     String,
@@ -19,7 +23,21 @@ import uuid
 
 
 class DatasetModel(BaseModel):
+    """
+    Represents a dataset in the GEMINI database.
 
+    Attributes:
+        id (uuid.UUID): Unique identifier for the dataset.
+        collection_date (date): The date when the dataset was collected.
+        dataset_name (str): The name of the dataset.
+        dataset_info (dict): Additional JSONB data for the dataset.
+        dataset_type_id (int): Foreign key referencing the dataset type.
+        created_at (datetime): Timestamp when the record was created.
+        updated_at (datetime): Timestamp when the record was last updated.
+
+    Relationships:
+        dataset_type (DatasetTypeModel): Relationship to the dataset type.
+    """
 
     __tablename__ = "datasets"
 

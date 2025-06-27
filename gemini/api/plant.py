@@ -1,16 +1,50 @@
-from typing import List, Optional
+"""
+This module defines the Plant class, which represents a plant entity, including its metadata, associations to cultivars and plots, and related operations.
+
+It includes methods for creating, retrieving, updating, and deleting plants, as well as methods for checking existence, searching, and managing associations with cultivars and plots.
+
+This module includes the following methods:
+
+- `exists`: Check if a plant with the given parameters exists.
+- `create`: Create a new plant.
+- `get`: Retrieve a plant by its parameters.
+- `get_by_id`: Retrieve a plant by its ID.
+- `get_all`: Retrieve all plants.
+- `search`: Search for plants based on various criteria.
+- `update`: Update the details of a plant.
+- `delete`: Delete a plant.
+- `refresh`: Refresh the plant's data from the database.
+- `get_info`: Get the additional information of the plant.
+- `set_info`: Set the additional information of the plant.
+- Association methods for cultivars and plots.
+
+"""
+
+from typing import List, Optional, TYPE_CHECKING
 from uuid import UUID
 
 from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.api.cultivar import Cultivar
-from gemini.db.models.views.plot_view import PlotViewModel
 from gemini.db.models.plants import PlantModel
-from gemini.db.models.cultivars import CultivarModel
 from gemini.db.models.views.plant_view import PlantViewModel
 
+if TYPE_CHECKING:
+    from gemini.api.plot import Plot
+    from gemini.api.cultivar import Cultivar
+
 class Plant(APIBase):
+    """
+    Represents a plant entity, including its metadata, associations to cultivars and plots, and related operations.
+
+    Attributes:
+        id (Optional[ID]): The unique identifier of the plant.
+        plant_number (int): The number of the plant within the plot.
+        plant_info (Optional[dict]): Additional information about the plant.
+        plot_id (Optional[UUID]): The ID of the associated plot.
+        cultivar_id (Optional[UUID]): The ID of the associated cultivar.
+    """
 
     id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "plant_id"))
 
@@ -20,9 +54,11 @@ class Plant(APIBase):
     cultivar_id: Optional[UUID] = None
 
     def __str__(self):
+        """Return a string representation of the Plant object."""
         return f"Plant(plot_id={self.plot_id}, plant_number={self.plant_number}, plant_info={self.plant_info}, id={self.id})"
 
     def __repr__(self):
+        """Return a detailed string representation of the Plant object."""
         return f"Plant(plot_id={self.plot_id}, plant_number={self.plant_number}, plant_info={self.plant_info}, id={self.id})"
 
     @classmethod
@@ -38,6 +74,30 @@ class Plant(APIBase):
         plot_row_number: int = None,
         plot_column_number: int = None,
     ) -> bool:
+        """
+        Check if a plant with the given parameters exists.
+
+        Examples:
+            >>> Plant.exists(plant_number=1)
+            True
+            >>> Plant.exists(plant_number=1, cultivar_accession="AC123")
+            True
+            >>> Plant.exists(plant_number=1, plot_number=2, plot_row_number=3, plot_column_number=4)
+            False
+
+        Args:
+            plant_number (int): The number of the plant within the plot.
+            cultivar_accession (str, optional): The accession of the cultivar. Defaults to None.
+            cultivar_population (str, optional): The population of the cultivar. Defaults to None.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+            plot_number (int, optional): The plot number. Defaults to None.
+            plot_row_number (int, optional): The plot row number. Defaults to None.
+            plot_column_number (int, optional): The plot column number. Defaults to None.
+        Returns:
+            bool: True if the plant exists, False otherwise.
+        """
         try:
             exists = PlantViewModel.exists(
                 plant_number=plant_number,
@@ -69,6 +129,28 @@ class Plant(APIBase):
         season_name: str = None,
         site_name: str = None
     ) -> "Plant":
+        """
+        Create a new plant and associate it with cultivar and plot if provided.
+
+        Examples:
+            >>> plant = Plant.create(plant_number=1, plant_info={"height": 100})
+            >>> plant
+            Plant(plot_id=UUID(...), plant_number=1, plant_info={'height': 100}, id=UUID(...))
+
+        Args:
+            plant_number (int): The number of the plant within the plot.
+            plant_info (dict, optional): Additional information about the plant. Defaults to None.
+            cultivar_accession (str, optional): The accession of the cultivar. Defaults to None.
+            cultivar_population (str, optional): The population of the cultivar. Defaults to None.
+            plot_number (int, optional): The plot number. Defaults to None.
+            plot_row_number (int, optional): The plot row number. Defaults to None.
+            plot_column_number (int, optional): The plot column number. Defaults to None.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+        Returns:
+            Plant: The created plant instance, or None if an error occurred.
+        """
         try:
             db_instance = PlantModel.get_or_create(
                 plant_number=plant_number,
@@ -107,6 +189,27 @@ class Plant(APIBase):
         plot_row_number: int = None,
         plot_column_number: int = None
     ) -> Optional["Plant"]:
+        """
+        Retrieve a plant by its parameters.
+
+        Examples:
+            >>> plant = Plant.get(plant_number=1)
+            >>> plant
+            Plant(plot_id=UUID(...), plant_number=1, plant_info={'height': 100}, id=UUID(...))
+
+        Args:
+            plant_number (int): The number of the plant within the plot.
+            cultivar_accession (str, optional): The accession of the cultivar. Defaults to None.
+            cultivar_population (str, optional): The population of the cultivar. Defaults to None.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+            plot_number (int, optional): The plot number. Defaults to None.
+            plot_row_number (int, optional): The plot row number. Defaults to None.
+            plot_column_number (int, optional): The plot column number. Defaults to None.
+        Returns:
+            Optional[Plant]: The plant instance, or None if not found.
+        """
         try:
             db_instance = PlantViewModel.get_by_parameters(
                 plant_number=plant_number,
@@ -130,6 +233,19 @@ class Plant(APIBase):
         
     @classmethod
     def get_by_id(cls, id: UUID | int | str) -> Optional["Plant"]:
+        """
+        Retrieve a plant by its ID.
+
+        Examples:
+            >>> plant = Plant.get_by_id(UUID('...'))
+            >>> plant
+            Plant(plot_id=UUID(...), plant_number=1, plant_info={'height': 100}, id=UUID(...))
+
+        Args:
+            id (UUID | int | str): The ID of the plant.
+        Returns:
+            Optional[Plant]: The plant instance, or None if not found.
+        """
         try:
             db_instance = PlantModel.get(id)
             if not db_instance:
@@ -143,6 +259,17 @@ class Plant(APIBase):
         
     @classmethod
     def get_all(cls) -> Optional[List["Plant"]]:
+        """
+        Retrieve all plants.
+
+        Examples:
+            >>> plants = Plant.get_all()
+            >>> plants
+            [Plant(plot_id=UUID(...), plant_number=1, plant_info={'height': 100}, id=UUID(...)), ...]
+
+        Returns:
+            Optional[List[Plant]]: A list of all plants, or None if not found.
+        """
         try:
             plants = PlantModel.all()
             if not plants or len(plants) == 0:
@@ -167,6 +294,27 @@ class Plant(APIBase):
         plot_row_number: int = None,
         plot_column_number: int = None
     ) -> Optional[List["Plant"]]:
+        """
+        Search for plants based on various criteria.
+
+        Examples:
+            >>> plants = Plant.search(plant_number=1)
+            >>> plants
+            [Plant(plot_id=UUID(...), plant_number=1, plant_info={'height': 100}, id=UUID(...)), ...]
+
+        Args:
+            plant_number (int, optional): The number of the plant within the plot. Defaults to None.
+            cultivar_accession (str, optional): The accession of the cultivar. Defaults to None.
+            cultivar_population (str, optional): The population of the cultivar. Defaults to None.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+            plot_number (int, optional): The plot number. Defaults to None.
+            plot_row_number (int, optional): The plot row number. Defaults to None.
+            plot_column_number (int, optional): The plot column number. Defaults to None.
+        Returns:
+            Optional[List[Plant]]: A list of matching plants, or None if not found.
+        """
         try:
             if not any([plant_number, cultivar_accession, cultivar_population, experiment_name, season_name, site_name, plot_number, plot_row_number, plot_column_number]):
                 print("At least one search parameter must be provided.")
@@ -196,6 +344,21 @@ class Plant(APIBase):
         plant_number: int = None,
         plant_info: dict = None
     ) -> Optional["Plant"]:
+        """
+        Update the details of the plant.
+
+        Examples:
+            >>> plant = Plant.get_by_id(UUID('...'))
+            >>> updated_plant = plant.update(plant_number=2, plant_info={"height": 150})
+            >>> updated_plant
+            Plant(plot_id=UUID(...), plant_number=2, plant_info={'height': 150}, id=UUID(...))
+
+        Args:
+            plant_number (int, optional): The new plant number. Defaults to None.
+            plant_info (dict, optional): The new plant information. Defaults to None.
+        Returns:
+            Optional[Plant]: The updated plant instance, or None if an error occurred.
+        """
         try:
             if not plant_info and not plant_number:
                 print("At least one parameter must be provided for update.")
@@ -218,6 +381,18 @@ class Plant(APIBase):
             return None
         
     def delete(self) -> bool:
+        """
+        Delete the plant.
+
+        Examples:
+            >>> plant = Plant.get_by_id(UUID('...'))
+            >>> deleted = plant.delete()
+            >>> deleted
+            True
+
+        Returns:
+            bool: True if the plant was deleted, False otherwise.
+        """
         try:
             current_id = self.id
             plant = PlantModel.get(current_id)
@@ -231,6 +406,18 @@ class Plant(APIBase):
             return False
 
     def refresh(self) -> Optional["Plant"]:
+        """
+        Refresh the plant's data from the database.
+
+        Examples:
+            >>> plant = Plant.get_by_id(UUID('...'))
+            >>> refreshed_plant = plant.refresh()
+            >>> refreshed_plant
+            Plant(plot_id=UUID(...), plant_number=1, plant_info={'height': 100}, id=UUID(...))
+
+        Returns:
+            Optional[Plant]: The refreshed plant instance, or None if an error occurred.
+        """
         try:
             db_instance = PlantModel.get(self.id)
             if not db_instance:
@@ -246,6 +433,18 @@ class Plant(APIBase):
             return None
         
     def get_info(self) -> Optional[dict]:
+        """
+        Get the additional information of the plant.
+
+        Examples:
+            >>> plant = Plant.get_by_id(UUID('...'))
+            >>> plant_info = plant.get_info()
+            >>> plant_info
+            {'height': 100, 'width': 50}
+
+        Returns:
+            Optional[dict]: The plant's info, or None if not found.
+        """
         try:
             current_id = self.id
             plant = PlantModel.get(current_id)
@@ -262,6 +461,20 @@ class Plant(APIBase):
             return None
         
     def set_info(self, plant_info: dict) -> Optional["Plant"]:
+        """
+        Set the additional information of the plant.
+
+        Examples:
+            >>> plant = Plant.get_by_id(UUID('...'))
+            >>> updated_plant = plant.set_info({"height": 150, "width": 75})
+            >>> updated_plant.get_info()
+            {'height': 150, 'width': 75}
+
+        Args:
+            plant_info (dict): The new information to set.
+        Returns:
+            Optional[Plant]: The updated plant instance, or None if an error occurred.
+        """
         try:
             current_id = self.id
             plant = PlantModel.get(current_id)
@@ -279,7 +492,19 @@ class Plant(APIBase):
             print(f"Error setting plant info: {e}")
             return None
     
-    def get_associated_cultivar(self):
+    def get_associated_cultivar(self) -> Optional["Cultivar"]:
+        """
+        Get the cultivar associated with this plant.
+
+        Examples:
+            >>> plant = Plant.get_by_id(UUID('...'))
+            >>> cultivar = plant.get_associated_cultivar()
+            >>> cultivar
+            Cultivar(id=UUID(...), cultivar_accession='AC123', cultivar_population='Population1')
+
+        Returns:
+            Optional[Cultivar]: The associated cultivar, or None if not found.
+        """
         try:
             from gemini.api.cultivar import Cultivar
             if not self.cultivar_id:
@@ -298,7 +523,22 @@ class Plant(APIBase):
         self,
         cultivar_accession: str,
         cultivar_population: str
-    ):
+    ) -> Optional["Cultivar"]:
+        """
+        Associate this plant with a cultivar.
+
+        Examples:
+            >>> plant = Plant.get_by_id(UUID('...'))
+            >>> cultivar = plant.associate_cultivar(cultivar_accession="AC123", cultivar_population="Population1")
+            >>> cultivar
+            Cultivar(id=UUID(...), cultivar_accession='AC123', cultivar_population='Population1')
+
+        Args:
+            cultivar_accession (str): The accession of the cultivar.
+            cultivar_population (str): The population of the cultivar.
+        Returns:
+            Optional[Cultivar]: The associated cultivar, or None if an error occurred.
+        """
         try:
             from gemini.api.cultivar import Cultivar
             cultivar = Cultivar.get(
@@ -333,6 +573,21 @@ class Plant(APIBase):
         cultivar_accession: str = None,
         cultivar_population: str = None
     ) -> bool:
+        """
+        Check if this plant is associated with a specific cultivar.
+
+        Examples:
+            >>> plant = Plant.get_by_id(UUID('...'))
+            >>> is_associated = plant.belongs_to_cultivar(cultivar_accession="AC123", cultivar_population="Population1")
+            >>> is_associated
+            True
+
+        Args:
+            cultivar_accession (str, optional): The accession of the cultivar. Defaults to None.
+            cultivar_population (str, optional): The population of the cultivar. Defaults to None.
+        Returns:
+            bool: True if associated, False otherwise.
+        """
         try:
             from gemini.api.cultivar import Cultivar
             cultivar = Cultivar.get(
@@ -351,7 +606,19 @@ class Plant(APIBase):
             print(f"Error checking cultivar assignment: {e}")
             return False
 
-    def unassociate_cultivar(self):
+    def unassociate_cultivar(self) -> Optional["Cultivar"]:
+        """
+        Unassociate this plant from its cultivar.
+
+        Examples:
+            >>> plant = Plant.get_by_id(UUID('...'))
+            >>> cultivar = plant.unassociate_cultivar()
+            >>> cultivar
+            Cultivar(id=UUID(...), cultivar_accession='AC123', cultivar_population='Population1')
+
+        Returns:
+            Optional[Cultivar]: The unassociated cultivar, or None if an error occurred.
+        """
         try:
             from gemini.api.cultivar import Cultivar
             if not self.cultivar_id:
@@ -370,7 +637,19 @@ class Plant(APIBase):
             print(f"Error unassigning cultivar: {e}")
             return False
 
-    def get_associated_plot(self):
+    def get_associated_plot(self) -> Optional["Plot"]:
+        """
+        Get the plot associated with this plant.
+
+        Examples:
+            >>> plant = Plant.get_by_id(UUID('...'))
+            >>> plot = plant.get_associated_plot()
+            >>> plot
+            Plot(id=UUID(...), plot_number=1, plot_row_number=2, plot_column_number=3)
+
+        Returns:
+            Optional[Plot]: The associated plot, or None if not found.
+        """
         try:
             from gemini.api.plot import Plot
             if not self.plot_id:
@@ -393,7 +672,26 @@ class Plant(APIBase):
         experiment_name: str = None,
         season_name: str = None,
         site_name: str = None,
-    ):
+    ) -> Optional["Plot"]:
+        """
+        Associate this plant with a plot.
+
+        Examples:
+            >>> plant = Plant.get_by_id(UUID('...'))
+            >>> plot = plant.associate_plot(plot_number=1, plot_row_number=2, plot_column_number=3, experiment_name="Experiment1", season_name="Season1", site_name="Site1")
+            >>> plot
+            Plot(id=UUID(...), plot_number=1, plot_row_number=2, plot_column_number=3)
+
+        Args:
+            plot_number (int): The plot number.
+            plot_row_number (int): The plot row number.
+            plot_column_number (int): The plot column number.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+        Returns:
+            Optional[Plot]: The associated plot, or None if an error occurred.
+        """
         try:
             from gemini.api.plot import Plot
             plot = Plot.get(
@@ -436,6 +734,25 @@ class Plant(APIBase):
         season_name: str = None,
         site_name: str = None
     ) -> bool:
+        """
+        Check if this plant is associated with a specific plot.
+
+        Examples:
+            >>> plant = Plant.get_by_id(UUID('...'))
+            >>> is_associated = plant.belongs_to_plot(plot_number=1, plot_row_number=2, plot_column_number=3, experiment_name="Experiment1", season_name="Season1", site_name="Site1")
+            >>> is_associated
+            True
+
+        Args:
+            plot_number (int): The plot number.
+            plot_row_number (int): The plot row number.
+            plot_column_number (int): The plot column number.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+        Returns:
+            bool: True if associated, False otherwise.
+        """
         try:
             from gemini.api.plot import Plot
             plot = Plot.get(
@@ -458,7 +775,19 @@ class Plant(APIBase):
             print(f"Error checking plot assignment: {e}")
             return False
 
-    def unassociate_plot(self):
+    def unassociate_plot(self) -> Optional["Plot"]:
+        """
+        Unassociate this plant from its plot.
+
+        Examples:
+            >>> plant = Plant.get_by_id(UUID('...'))
+            >>> plot = plant.unassociate_plot()
+            >>> plot
+            Plot(id=UUID(...), plot_number=1, plot_row_number=2, plot_column_number=3)
+
+        Returns:
+            Optional[Plot]: The unassociated plot, or None if an error occurred.
+        """
         try:
             from gemini.api.plot import Plot
             if not self.plot_id:
@@ -477,4 +806,3 @@ class Plant(APIBase):
         except Exception as e:
             print(f"Error unassigning plot: {e}")
             return None
- 

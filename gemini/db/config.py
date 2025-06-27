@@ -1,4 +1,6 @@
-# FILE: gemini/server/database/config.py
+"""
+Configuration for the database connection.
+"""
 
 import os
 from pydantic import BaseModel, field_validator
@@ -35,4 +37,3 @@ class DatabaseConfig(BaseModel):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
-

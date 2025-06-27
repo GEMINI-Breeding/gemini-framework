@@ -1,4 +1,30 @@
-from typing import Optional, List
+"""
+This module defines the Dataset class, which represents a dataset entity, including its metadata, type, and associations to experiments and records.
+
+It includes methods for creating, retrieving, updating, and deleting datasets, as well as methods for checking existence, searching, and managing associations with experiments and dataset records.
+
+This module includes the following methods:
+
+- `exists`: Check if a dataset with the given name exists.
+- `create`: Create a new dataset.
+- `get`: Retrieve a dataset by its name.
+- `get_by_id`: Retrieve a dataset by its ID.
+- `get_all`: Retrieve all datasets.
+- `search`: Search for datasets based on various criteria.
+- `update`: Update the details of a dataset.
+- `delete`: Delete a dataset.
+- `refresh`: Refresh the dataset's data from the database.
+- `get_info`: Get the additional information of the dataset.
+- `set_info`: Set the additional information of the dataset.
+- `associate_experiment`: Associate the dataset with an experiment.
+- `unassociate_experiment`: Unassociate the dataset from an experiment.
+- `get_associated_experiments`: Get all experiments associated with the dataset.
+- `get_records`: Get all records associated with the dataset.
+- `add_record`: Add a new record to the dataset.
+
+"""
+
+from typing import Optional, List, TYPE_CHECKING
 from uuid import UUID
 from tqdm import tqdm
 
@@ -15,7 +41,20 @@ from gemini.db.models.views.experiment_views import ExperimentDatasetsViewModel
 
 from datetime import date, datetime
 
+if TYPE_CHECKING:
+    from gemini.api.experiment import Experiment  # Avoid circular import issues
+
 class Dataset(APIBase):
+    """
+    Represents a dataset entity, including its metadata, type, and associations to experiments and records.
+
+    Attributes:
+        id (Optional[ID]): The unique identifier of the dataset.
+        collection_date (date): The collection date of the dataset.
+        dataset_name (str): The name of the dataset.
+        dataset_info (Optional[dict]): Additional information about the dataset.
+        dataset_type_id (int): The ID of the dataset type.
+    """
 
     id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "dataset_id"))
 
@@ -25,9 +64,11 @@ class Dataset(APIBase):
     dataset_type_id: int
 
     def __str__(self):
-        return f"Dataset(name={self.dataset_name}, collection_date={self.collection_date}, dataset_type={GEMINIDatasetType(self.dataset_type_id).name}, id={self.id})"
+        """Return a string representation of the Dataset object."""
+        return f"Dataset(dataset_name={self.dataset_name}, collection_date={self.collection_date}, dataset_type={GEMINIDatasetType(self.dataset_type_id).name}, id={self.id})"
     
     def __repr__(self):
+        """Return a detailed string representation of the Dataset object."""
         return f"Dataset(dataset_name={self.dataset_name}, collection_date={self.collection_date}, dataset_type={GEMINIDatasetType(self.dataset_type_id).name}, id={self.id})"
     
     @classmethod
@@ -35,6 +76,20 @@ class Dataset(APIBase):
         cls,
         dataset_name: str,
     ) -> bool:
+        """
+        Check if a dataset with the given name exists.
+
+        Examples:
+            >>> Dataset.exists("my_dataset")
+            True
+            >>> Dataset.exists("non_existent_dataset")
+            False
+
+        Args:
+            dataset_name (str): The name of the dataset.
+        Returns:
+            bool: True if the dataset exists, False otherwise.
+        """
         try:
             exists = DatasetModel.exists(
                 dataset_name=dataset_name,
@@ -53,6 +108,23 @@ class Dataset(APIBase):
         collection_date: date = date.today(),
         experiment_name: str = None
     ) -> Optional["Dataset"]:
+        """
+        Create a new dataset. If the dataset already exists, it will return the existing dataset.
+
+        Examples:
+            >>> dataset = Dataset.create("my_dataset", {"description": "Test dataset"})
+            >>> print(dataset)
+            Dataset(dataset_name=my_dataset, collection_date=2023-10-01, dataset_type=Default, id=UUID('...'))
+
+        Args:
+            dataset_name (str): The name of the dataset.
+            dataset_info (dict, optional): Additional information about the dataset. Defaults to {{}}.
+            dataset_type (GEMINIDatasetType, optional): The type of the dataset. Defaults to Default.
+            collection_date (date, optional): The collection date. Defaults to today.
+            experiment_name (str, optional): The name of the experiment to associate. Defaults to None.
+        Returns:
+            Optional["Dataset"]: The created dataset, or None if an error occurred.
+        """
         try:
             db_instance = DatasetModel.get_or_create(
                 collection_date=collection_date,
@@ -74,6 +146,20 @@ class Dataset(APIBase):
         dataset_name: str,
         experiment_name: str = None
     ) -> Optional["Dataset"]:
+        """
+        Retrieve a dataset by its name.
+
+        Examples:
+            >>> dataset = Dataset.get("my_dataset")
+            >>> print(dataset)
+            Dataset(dataset_name=my_dataset, collection_date=2023-10-01, dataset_type=Default, id=UUID('...'))
+
+        Args:
+            dataset_name (str): The name of the dataset.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+        Returns:
+            Optional["Dataset"]: The retrieved dataset, or None if not found.
+        """
         try:
             db_instance = ExperimentDatasetsViewModel.get_by_parameters(
                 dataset_name=dataset_name,
@@ -90,6 +176,19 @@ class Dataset(APIBase):
         
     @classmethod
     def get_by_id(cls, id: UUID | int | str) -> Optional["Dataset"]:
+        """
+        Retrieve a dataset by its ID.
+
+        Examples:
+            >>> dataset = Dataset.get_by_id(UUID('...'))
+            >>> print(dataset)
+            Dataset(dataset_name=my_dataset, collection_date=2023-10-01, dataset_type=Default, id=UUID('...'))
+
+        Args:
+            id (UUID | int | str): The ID of the dataset.
+        Returns:
+            Optional["Dataset"]: The retrieved dataset, or None if not found.
+        """
         try:
             db_instance = DatasetModel.get(id)
             if not db_instance:
@@ -103,6 +202,19 @@ class Dataset(APIBase):
         
     @classmethod
     def get_all(cls) -> Optional[List["Dataset"]]:
+        """
+        Retrieve all datasets.
+
+        Examples:
+            >>> datasets = Dataset.get_all()
+            >>> for dataset in datasets:
+            ...     print(dataset)
+            Dataset(dataset_name=my_dataset1, collection_date=2023-10-01, dataset_type=Default, id=UUID('...'))
+            Dataset(dataset_name=my_dataset2, collection_date=2023-10-02, dataset_type=Sensor, id=UUID('...'))
+
+        Returns:
+            Optional[List["Dataset"]]: A list of all datasets, or None if an error occurred.
+        """
         try:
             datasets = DatasetModel.all()
             if not datasets or len(datasets) == 0:
@@ -123,6 +235,24 @@ class Dataset(APIBase):
         collection_date: date = None,
         experiment_name: str = None,
     ) -> Optional[List["Dataset"]]:
+        """
+        Search for datasets based on various criteria.
+
+        Examples:
+            >>> datasets = Dataset.search(dataset_name="my_dataset")
+            >>> for dataset in datasets:
+            ...     print(dataset)
+            Dataset(dataset_name=my_dataset, collection_date=2023-10-01, dataset_type=Default, id=UUID('...'))
+
+        Args:
+            dataset_name (str, optional): The name of the dataset. Defaults to None.
+            dataset_info (dict, optional): Additional information about the dataset. Defaults to None.
+            dataset_type (GEMINIDatasetType, optional): The type of the dataset. Defaults to None.
+            collection_date (date, optional): The collection date. Defaults to None.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+        Returns:
+            Optional[List["Dataset"]]: A list of datasets matching the search criteria, or None if an error occurred.
+        """
         try:
             if not any([dataset_name, dataset_info, dataset_type, collection_date, experiment_name]):
                 print("At least one parameter must be provided.")
@@ -150,6 +280,23 @@ class Dataset(APIBase):
         dataset_type: GEMINIDatasetType = None,
         collection_date: date = None
     ) -> Optional["Dataset"]:
+        """
+        Update the details of a dataset.
+
+        Examples:
+            >>> dataset = Dataset.get("my_dataset")
+            >>> updated_dataset = dataset.update(dataset_name="new_dataset_name", dataset_info={"description": "Updated dataset"})
+            >>> print(updated_dataset)
+            Dataset(dataset_name=new_dataset_name, collection_date=2023-10-01, dataset_type=Default, id=UUID('...'))
+
+        Args:
+            dataset_name (str, optional): The new name of the dataset. Defaults to None.
+            dataset_info (dict, optional): The new additional information about the dataset. Defaults to None.
+            dataset_type (GEMINIDatasetType, optional): The new type of the dataset. Defaults to None.
+            collection_date (date, optional): The new collection date. Defaults to None.
+        Returns:
+            Optional["Dataset"]: The updated dataset, or None if an error occurred.
+        """
         try:
             if not any([dataset_name, dataset_info, dataset_type, collection_date]):
                 print("At least one parameter must be provided for update.")
@@ -174,6 +321,18 @@ class Dataset(APIBase):
             return None
         
     def delete(self) -> bool:
+        """
+        Delete a dataset.
+
+        Examples:
+            >>> dataset = Dataset.get("my_dataset")
+            >>> success = dataset.delete()
+            >>> print(success)
+            True
+
+        Returns:
+            bool: True if the dataset was deleted successfully, False otherwise.
+        """
         try:
             current_id = self.id
             dataset = DatasetModel.get(current_id)
@@ -187,6 +346,19 @@ class Dataset(APIBase):
             return False
         
     def refresh(self) -> Optional["Dataset"]:
+        """
+        Refresh the dataset's data from the database. It is rarely called by the user
+        as it is automatically called on access.
+
+        Examples:
+            >>> dataset = Dataset.get("my_dataset")
+            >>> refreshed_dataset = dataset.refresh()
+            >>> print(refreshed_dataset)
+            Dataset(dataset_name=my_dataset, collection_date=2023-10-01, dataset_type=Default, id=UUID('...'))
+
+        Returns:
+            Optional["Dataset"]: The refreshed dataset, or None if an error occurred.
+        """
         try:
             db_instance = DatasetModel.get(self.id)
             if not db_instance:
@@ -202,6 +374,18 @@ class Dataset(APIBase):
             return None
         
     def get_info(self) -> Optional[dict]:
+        """
+        Get the additional information of the dataset.
+
+        Examples:
+            >>> dataset = Dataset.get("my_dataset")
+            >>> dataset_info = dataset.get_info()
+            >>> print(dataset_info)
+            {'description': 'Test dataset', 'created_by': 'user1'}
+
+        Returns:
+            Optional[dict]: The additional information of the dataset, or None if an error occurred.
+        """
         try:
             current_id = self.id
             dataset = DatasetModel.get(current_id)
@@ -218,6 +402,20 @@ class Dataset(APIBase):
             return None
         
     def set_info(self, dataset_info: dict) -> Optional["Dataset"]:
+        """
+        Set the additional information of the dataset.
+
+        Examples:
+            >>> dataset = Dataset.get("my_dataset")
+            >>> updated_dataset = dataset.set_info({"description": "Updated dataset", "created_by": "user1"})
+            >>> print(updated_dataset.get_info())
+            {'description': 'Updated dataset', 'created_by': 'user1'}
+
+        Args:
+            dataset_info (dict): The additional information to set.
+        Returns:
+            Optional["Dataset"]: The updated dataset, or None if an error occurred.
+        """
         try:
             current_id = self.id
             dataset = DatasetModel.get(current_id)
@@ -235,7 +433,21 @@ class Dataset(APIBase):
             print(f"Error setting dataset info: {e}")
             return None
         
-    def get_associated_experiments(self):
+    def get_associated_experiments(self) -> Optional[List["Experiment"]]:
+        """
+        Get all experiments associated with the dataset.
+
+        Examples:
+            >>> dataset = Dataset.get("my_dataset")
+            >>> experiments = dataset.get_associated_experiments()
+            >>> for experiment in experiments:
+            ...     print(experiment)
+            Experiment(experiment_name=experiment1, experiment_start_date='2023-10-01', experiment_end_date='2023-10-31', id=UUID('...'))
+
+
+        Returns:
+            Optional[List["Experiment"]]: A list of experiments associated with the dataset, or None if an error occurred.
+        """
         try:
             from gemini.api.experiment import Experiment
             current_id = self.id
@@ -249,7 +461,21 @@ class Dataset(APIBase):
             print(f"Error getting associated experiments: {e}")
             return None
 
-    def associate_experiment(self, experiment_name: str):
+    def associate_experiment(self, experiment_name: str) -> Optional["Experiment"]:
+        """
+        Associate the dataset with an experiment.
+
+        Examples:
+            >>> dataset = Dataset.get("my_dataset")
+            >>> experiment = dataset.associate_experiment("experiment1")
+            >>> print(experiment)
+            Experiment(experiment_name=experiment1, experiment_start_date='2023-10-01', experiment_end_date='2023-10-31', id=UUID('...'))
+
+        Args:
+            experiment_name (str): The name of the experiment to associate.
+        Returns:
+            Optional["Experiment"]: The associated experiment, or None if an error occurred.
+        """
         try:
             from gemini.api.experiment import Experiment
             experiment = Experiment.get(experiment_name)
@@ -276,7 +502,21 @@ class Dataset(APIBase):
             print(f"Error associating dataset with experiment: {e}")
             return None 
 
-    def unassociate_experiment(self, experiment_name: str):
+    def unassociate_experiment(self, experiment_name: str) -> Optional["Experiment"]:
+        """
+        Unassociate the dataset from an experiment.
+
+        Examples:
+            >>> dataset = Dataset.get("my_dataset")
+            >>> experiment = dataset.unassociate_experiment("experiment1")
+            >>> print(experiment)
+            Experiment(experiment_name=experiment1, experiment_start_date='2023-10-01', experiment_end_date='2023-10-31', id=UUID('...'))
+
+        Args:
+            experiment_name (str): The name of the experiment to unassociate.
+        Returns:
+            Optional["Experiment"]: The unassociated experiment, or None if an error occurred.
+        """
         try:
             from gemini.api.experiment import Experiment
             experiment = Experiment.get(experiment_name)
@@ -301,6 +541,20 @@ class Dataset(APIBase):
             return None
 
     def belongs_to_experiment(self, experiment_name: str) -> bool:
+        """
+        Check if the dataset belongs to an experiment.
+
+        Examples:
+            >>> dataset = Dataset.get("my_dataset")
+            >>> belongs = dataset.belongs_to_experiment("experiment1")
+            >>> print(belongs)
+            True
+
+        Args:
+            experiment_name (str): The name of the experiment.
+        Returns:
+            bool: True if the dataset belongs to the experiment, False otherwise.
+        """
         try:
             from gemini.api.experiment import Experiment
             experiment = Experiment.get(experiment_name)
@@ -328,6 +582,37 @@ class Dataset(APIBase):
         record_file: str = None,
         record_info: dict = {},
     ) -> tuple[bool, List[str]]:
+        """
+        Add a new record to the dataset.
+
+        Examples:
+            >>> dataset = Dataset.get("my_dataset")
+            >>> success, record_ids = dataset.insert_record(
+            ...     timestamp=datetime.now(),
+            ...     collection_date=date.today(),
+            ...     dataset_data={"key": "value"},
+            ...     experiment_name="experiment1",
+            ...     season_name="season1",
+            ...     site_name="site1",
+            ...     record_file="path/to/file.txt",
+            ...     record_info={"info_key": "info_value"}
+            ... )
+            >>> print(success, record_ids)
+            True [UUID(...)]
+
+
+        Args:
+            timestamp (datetime, optional): The timestamp of the record. Defaults to None.
+            collection_date (date, optional): The collection date of the record. Defaults to None.
+            dataset_data (dict, optional): The data of the record. Defaults to {}.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+            record_file (str, optional): The file associated with the record. Defaults to None.
+            record_info (dict, optional): Additional information about the record. Defaults to {}.
+        Returns:
+            tuple[bool, List[str]]: A tuple containing a success flag and a list of inserted record IDs.
+        """
         try:
             if not experiment_name and not season_name and not site_name:
                 raise ValueError("Please provide at least one of the following: experiment_name, season_name, site_name.")
@@ -369,6 +654,36 @@ class Dataset(APIBase):
         record_files: List[str] = None,
         record_info: List[dict] = []
     ) -> tuple[bool, List[str]]:
+        """
+        Add new records to the dataset.
+
+        Examples:
+            >>> dataset = Dataset.get("my_dataset")
+            >>> success, record_ids = dataset.insert_records(
+            ...     timestamps=[datetime.now(), datetime.now()],
+            ...     collection_date=date.today(),
+            ...     dataset_data=[{"key1": "value1"}, {"key2": "value2"}],
+            ...     experiment_name="experiment1",
+            ...     season_name="season1",
+            ...     site_name="site1",
+            ...     record_files=["path/to/file1.txt", "path/to/file2.txt"],
+            ...     record_info=[{"info_key1": "info_value1"}, {"info_key2": "info_value2"}]
+            ... )
+            >>> print(success, record_ids)
+            True [UUID(...), UUID(...)]
+
+        Args:
+            timestamps (List[datetime], optional): The timestamps of the records. Defaults to None.
+            collection_date (date, optional): The collection date of the records. Defaults to None.
+            dataset_data (List[dict], optional): The data of the records. Defaults to [].
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+            record_files (List[str], optional): The files associated with the records. Defaults to None.
+            record_info (List[dict], optional): Additional information about the records. Defaults to [].
+        Returns:
+            tuple[bool, List[str]]: A tuple containing a success flag and a list of inserted record IDs.
+        """
         try:
             if not experiment_name and not season_name and not site_name:
                 raise ValueError("Please provide at least one of the following: experiment_name, season_name, site_name.")
@@ -417,6 +732,31 @@ class Dataset(APIBase):
         site_name: str = None,
         record_info: dict = None,
     ) -> List[DatasetRecord]:
+        """
+        Search for records in the dataset.
+
+        Examples:
+            >>> dataset = Dataset.get("my_dataset")
+            >>> records = dataset.search_records(
+            ...     collection_date=date.today(),
+            ...     experiment_name="experiment1",
+            ...     season_name="season1",
+            ...     site_name="site1",
+            ...     record_info={"info_key": "info_value"}
+            ... )
+            >>> for record in records:
+            ...     print(record)
+            DatasetRecord(id=UUID(...), dataset_name='my_dataset', timestamp='2023-10-01T12:00:00', dataset_data={...}, experiment_name='experiment1', season_name='season1', site_name='site1')
+
+        Args:
+            collection_date (date, optional): The collection date of the records. Defaults to None.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+            record_info (dict, optional): Additional information about the records. Defaults to None.
+        Returns:
+            List[DatasetRecord]: A list of records matching the search criteria.
+        """
         try:
             record_info = record_info if record_info else {}
             record_info = {k: v for k, v in record_info.items() if v is not None}
@@ -443,6 +783,32 @@ class Dataset(APIBase):
         season_names: Optional[List[str]] = None,
         site_names: Optional[List[str]] = None
     ) -> List[DatasetRecord]:
+        """
+        Filter records in the dataset based on criteria.
+
+        Examples:
+            >>> dataset = Dataset.get("my_dataset")
+            >>> records = dataset.filter_records(
+            ...     start_timestamp=datetime(2023, 1, 1),
+            ...     end_timestamp=datetime(2023, 12, 31),
+            ...     experiment_names=["experiment1", "experiment2"],
+            ...     season_names=["season1"],
+            ...     site_names=["site1"]
+            ... )
+            >>> for record in records:
+            ...     print(record)
+            DatasetRecord(record_id=UUID(...), dataset_name='my_dataset', timestamp='2023-10-01T12:00:00', dataset_data={...}, experiment_name='experiment1', season_name='season1', site_name='site1')
+
+
+        Args:
+            start_timestamp (Optional[datetime], optional): The start timestamp for filtering. Defaults to None.
+            end_timestamp (Optional[datetime], optional): The end timestamp for filtering. Defaults to None.
+            experiment_names (Optional[List[str]], optional): The names of the experiments. Defaults to None.
+            season_names (Optional[List[str]], optional): The names of the seasons. Defaults to None.
+            site_names (Optional[List[str]], optional): The names of the sites. Defaults to None.
+        Returns:
+            List[DatasetRecord]: A list of filtered records.
+        """
         try:
             records = DatasetRecord.filter(
                 dataset_names=[self.dataset_name],
@@ -456,4 +822,3 @@ class Dataset(APIBase):
         except Exception as e:
             print(f"Error filtering records in dataset {self.dataset_name}: {e}")
             return []
-            

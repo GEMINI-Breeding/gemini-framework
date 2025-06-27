@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for Plant entities in the GEMINI database.
+"""
+
 from sqlalchemy import (
     JSON,
     String,
@@ -18,6 +22,18 @@ import uuid
 
 
 class PlantModel(BaseModel):
+    """
+    Represents a plant in the GEMINI database.
+
+    Attributes:
+        id (uuid.UUID): Unique identifier for the plant.
+        plot_id (uuid.UUID): Foreign key referencing the plot where the plant is located.
+        plant_number (int): The number of the plant within the plot.
+        plant_info (dict): Additional JSONB data for the plant.
+        cultivar_id (uuid.UUID): Foreign key referencing the cultivar of the plant.
+        created_at (datetime): Timestamp when the record was created.
+        updated_at (datetime): Timestamp when the record was last updated.
+    """
     __tablename__ = "plants"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)

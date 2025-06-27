@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for Sensor entities in the GEMINI database.
+"""
+
 from sqlalchemy import (
     JSON,
     String,
@@ -19,7 +23,21 @@ import uuid
 
 
 class SensorModel(BaseModel):
+    """
+    Represents a sensor in the GEMINI database.
+
+    Attributes:
+        id (uuid.UUID): Unique identifier for the sensor.
+        sensor_name (str): The name of the sensor.
+        sensor_type_id (int): Foreign key referencing the sensor type.
+        sensor_data_type_id (int): Foreign key referencing the data type of the sensor's data.
+        sensor_data_format_id (int): Foreign key referencing the data format of the sensor's data.
+        sensor_info (dict): Additional JSONB data for the sensor.
+        created_at (datetime): Timestamp when the record was created.
+        updated_at (datetime): Timestamp when the record was last updated.
+    """
     __tablename__ = "sensors"
+
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=False), primary_key=True, default=uuid.uuid4
     )

@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for ModelRun entities in the GEMINI database.
+"""
+
 from sqlalchemy import (
     JSON,
     String,
@@ -18,6 +22,16 @@ import uuid
 from datetime import datetime
 
 class ModelRunModel(BaseModel):
+    """
+    Represents a model run in the GEMINI database.
+
+    Attributes:
+        id (uuid.UUID): Unique identifier for the model run.
+        model_id (uuid.UUID): Foreign key referencing the model.
+        model_run_info (dict): Additional JSONB data for the model run.
+        created_at (datetime): Timestamp when the record was created.
+        updated_at (datetime): Timestamp when the record was last updated.
+    """
 
     __tablename__ = "model_runs"
 
@@ -31,5 +45,3 @@ class ModelRunModel(BaseModel):
         UniqueConstraint("model_id", "model_run_info"),
         Index("idx_model_runs_info", "model_run_info", postgresql_using="GIN"),
     )
-
-

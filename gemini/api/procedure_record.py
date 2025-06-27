@@ -1,3 +1,26 @@
+"""
+This module defines the ProcedureRecord class, which represents a record of a procedure, including metadata, associations to datasets, experiments, sites, and seasons, and file handling capabilities.
+
+It includes methods for creating, retrieving, updating, and deleting procedure records, as well as methods for checking existence, searching, filtering, and managing file handling for records.
+
+This module includes the following methods:
+
+- `exists`: Check if a procedure record with the given parameters exists.
+- `create`: Create a new procedure record.
+- `get`: Retrieve a procedure record by its parameters.
+- `get_by_id`: Retrieve a procedure record by its ID.
+- `get_all`: Retrieve all procedure records.
+- `search`: Search for procedure records based on various criteria.
+- `filter`: Filter procedure records based on custom logic.
+- `update`: Update the details of a procedure record.
+- `delete`: Delete a procedure record.
+- `refresh`: Refresh the procedure record's data from the database.
+- `get_info`: Get the additional information of the procedure record.
+- `set_info`: Set the additional information of the procedure record.
+- File handling methods from FileHandlerMixin for managing record files.
+
+"""
+
 from typing import Optional, List, Generator
 import os, mimetypes
 from uuid import UUID
@@ -6,28 +29,34 @@ from tqdm import tqdm
 from gemini.api.types import ID
 from pydantic import Field, AliasChoices
 from gemini.api.base import APIBase, FileHandlerMixin
-from gemini.api.dataset import Dataset, GEMINIDatasetType
-from gemini.db.models.procedures import ProcedureModel
-from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.procedure_records import ProcedureRecordModel
 from gemini.db.models.views.procedure_records_immv import ProcedureRecordsIMMVModel
-from gemini.db.models.views.dataset_views import ProcedureDatasetsViewModel
-from gemini.db.models.views.validation_views import ValidProcedureDatasetCombinationsViewModel
-from gemini.db.models.views.experiment_views import (
-    ExperimentProceduresViewModel,
-    ExperimentDatasetsViewModel,
-    ExperimentSitesViewModel,
-    ExperimentSeasonsViewModel
-)
 
-
-from gemini.db.models.experiments import ExperimentModel
-from gemini.db.models.datasets import DatasetModel
-from gemini.db.models.associations import ProcedureDatasetModel
 
 from datetime import date, datetime
 
 class ProcedureRecord(APIBase, FileHandlerMixin):
+    """
+    Represents a record of a procedure, including metadata, associations to datasets, experiments, sites, and seasons, and file handling capabilities.
+
+    Attributes:
+        id (Optional[ID]): The unique identifier of the procedure record.
+        timestamp (Optional[datetime]): The timestamp of the record.
+        collection_date (Optional[date]): The collection date of the record.
+        dataset_id (Optional[ID]): The ID of the associated dataset.
+        dataset_name (Optional[str]): The name of the associated dataset.
+        procedure_id (Optional[ID]): The ID of the associated procedure.
+        procedure_name (Optional[str]): The name of the associated procedure.
+        procedure_data (Optional[dict]): The data content of the procedure record.
+        experiment_id (Optional[ID]): The ID of the associated experiment.
+        experiment_name (Optional[str]): The name of the associated experiment.
+        season_id (Optional[ID]): The ID of the associated season.
+        season_name (Optional[str]): The name of the associated season.
+        site_id (Optional[ID]): The ID of the associated site.
+        site_name (Optional[str]): The name of the associated site.
+        record_file (Optional[str]): The file path or URI of the record file.
+        record_info (Optional[dict]): Additional information about the record.
+    """
 
     id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "procedure_record_id"))
     timestamp: Optional[datetime] = None
@@ -47,10 +76,12 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
     record_info: Optional[dict] = None
 
     def __str__(self):
-        return f"ModelRecord(id={self.id}, timestamp={self.timestamp}, procedure_name={self.procedure_name}, dataset_name={self.dataset_name}, experiment_name={self.experiment_name}, site_name={self.site_name}, season_name={self.season_name})"
+        """Return a string representation of the ProcedureRecord object."""
+        return f"ProcedureRecord(id={self.id}, timestamp={self.timestamp}, procedure_name={self.procedure_name}, dataset_name={self.dataset_name}, experiment_name={self.experiment_name}, site_name={self.site_name}, season_name={self.season_name})"
     
     def __repr__(self):
-        return f"ModelRecord(id={self.id}, timestamp={self.timestamp}, procedure_name={self.procedure_name}, dataset_name={self.dataset_name}, experiment_name={self.experiment_name}, site_name={self.site_name}, season_name={self.season_name})"
+        """Return a detailed string representation of the ProcedureRecord object."""
+        return f"ProcedureRecord(id={self.id}, timestamp={self.timestamp}, procedure_name={self.procedure_name}, dataset_name={self.dataset_name}, experiment_name={self.experiment_name}, site_name={self.site_name}, season_name={self.season_name})"
     
     @classmethod
     def exists(
@@ -62,6 +93,30 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
         season_name: str,
         site_name: str
     ) -> bool:
+        """
+        Check if a procedure record with the given parameters exists.
+
+        Examples:
+            >>> ProcedureRecord.exists(
+            ...     timestamp=datetime(2023, 10, 1, 12, 0, 0),
+            ...     procedure_name="SampleProcedure",
+            ...     dataset_name="SampleDataset",
+            ...     experiment_name="SampleExperiment",
+            ...     season_name="SampleSeason",
+            ...     site_name="SampleSite"
+            ... )
+            True
+
+        Args:
+            timestamp (datetime): The timestamp of the record.
+            procedure_name (str): The name of the procedure.
+            dataset_name (str): The name of the dataset.
+            experiment_name (str): The name of the experiment.
+            season_name (str): The name of the season.
+            site_name (str): The name of the site.
+        Returns:
+            bool: True if the procedure record exists, False otherwise.
+        """
         try:
             exists = ProcedureRecordModel.exists(
                 timestamp=timestamp,
@@ -91,6 +146,41 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
         record_info: dict = {},
         insert_on_create: bool = True
     ) -> Optional["ProcedureRecord"]:
+        """
+        Create a new procedure record.
+
+        Examples:
+            >>> record = ProcedureRecord.create(
+            ...     timestamp=datetime(2023, 10, 1, 12, 0, 0),
+            ...     collection_date=date(2023, 10, 1),
+            ...     dataset_name="SampleDataset",
+            ...     procedure_name="SampleProcedure",
+            ...     procedure_data={"key": "value"},
+            ...     experiment_name="SampleExperiment",
+            ...     site_name="SampleSite",
+            ...     season_name="SampleSeason",
+            ...     record_file="/path/to/file.txt",
+            ...     record_info={"info_key": "info_value"},
+            ...     insert_on_create=True
+            ... )
+            >>> print(record)
+            ProcedureRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), procedure_name='SampleProcedure', dataset_name='SampleDataset', experiment_name='SampleExperiment', site_name='SampleSite', season_name='SampleSeason')
+
+        Args:
+            timestamp (datetime, optional): The timestamp of the record. Defaults to now.
+            collection_date (date, optional): The collection date. Defaults to None.
+            dataset_name (str, optional): The name of the dataset. Defaults to None.
+            procedure_name (str, optional): The name of the procedure. Defaults to None.
+            procedure_data (dict, optional): The data content. Defaults to {{}}.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            record_file (str, optional): The file path or URI. Defaults to None.
+            record_info (dict, optional): Additional info. Defaults to {{}}.
+            insert_on_create (bool, optional): Whether to insert on create. Defaults to True.
+        Returns:
+            Optional[ProcedureRecord]: The created procedure record, or None if an error occurred.
+        """
         try:
             if not any([experiment_name, site_name, season_name]):
                 raise ValueError("At least one of experiment_name, site_name, or season_name must be provided.")
@@ -133,6 +223,14 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
         
     @classmethod
     def insert(cls, records: List["ProcedureRecord"]) -> tuple[bool, List[str]]:
+        """
+        Insert a list of procedure records into the database.
+
+        Args:
+            records (List[ProcedureRecord]): The records to insert.
+        Returns:
+            tuple[bool, List[str]]: Success status and list of inserted record IDs.
+        """
         try:
             if not records or len(records) == 0:
                 print(f"No records provided for insertion.")
@@ -161,6 +259,31 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
         season_name: str = None,
         site_name: str = None
     ) -> Optional["ProcedureRecord"]:
+        """
+        Retrieve a procedure record by its parameters.
+
+        Examples:
+            >>> record = ProcedureRecord.get(
+            ...     timestamp=datetime(2023, 10, 1, 12, 0, 0),
+            ...     procedure_name="SampleProcedure",
+            ...     dataset_name="SampleDataset",
+            ...     experiment_name="SampleExperiment",
+            ...     season_name="SampleSeason",
+            ...     site_name="SampleSite"
+            ... )
+            >>> print(record)
+            ProcedureRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), procedure_name='SampleProcedure', dataset_name='SampleDataset', experiment_name='SampleExperiment', site_name='SampleSite', season_name='SampleSeason')
+
+        Args:
+            timestamp (datetime): The timestamp of the record.
+            procedure_name (str): The name of the procedure.
+            dataset_name (str): The name of the dataset.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+        Returns:
+            Optional[ProcedureRecord]: The procedure record, or None if not found.
+        """
         try:
             if not timestamp:
                 print(f"Timestamp is required to get ProcedureRecord.")
@@ -193,6 +316,19 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
         
     @classmethod
     def get_by_id(cls, id: UUID | int | str) -> Optional["ProcedureRecord"]:
+        """
+        Retrieve a procedure record by its ID.
+
+        Examples:
+            >>> record = ProcedureRecord.get_by_id(UUID('...'))
+            >>> print(record)
+            ProcedureRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), procedure_name='SampleProcedure', dataset_name='SampleDataset', experiment_name='SampleExperiment', site_name='SampleSite', season_name='SampleSeason')
+
+        Args:
+            id (UUID | int | str): The ID of the procedure record.
+        Returns:
+            Optional[ProcedureRecord]: The procedure record, or None if not found.
+        """
         try:
             db_instance = ProcedureRecordModel.get(id)
             if not db_instance:
@@ -206,6 +342,21 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
         
     @classmethod
     def get_all(cls, limit: int = 100) -> Optional[List["ProcedureRecord"]]:
+        """
+        Retrieve all procedure records, up to a specified limit.
+
+        Examples:
+            >>> records = ProcedureRecord.get_all(limit=10)
+            >>> for record in records:
+            ...     print(record)
+            ProcedureRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), procedure_name='SampleProcedure', dataset_name='SampleDataset', experiment_name='SampleExperiment', site_name='SampleSite', season_name='SampleSeason')
+            ProcedureRecord(id=UUID('...'), timestamp=datetime(2023, 10, 2, 12, 0), procedure_name='AnotherProcedure', dataset_name='AnotherDataset', experiment_name='AnotherExperiment', site_name='AnotherSite', season_name='AnotherSeason')
+
+        Args:
+            limit (int, optional): The maximum number of records to retrieve. Defaults to 100.
+        Returns:
+            Optional[List[ProcedureRecord]]: List of procedure records, or None if not found.
+        """
         try:
             records = ProcedureRecordModel.all(limit=limit)
             if not records or len(records) == 0:
@@ -229,6 +380,36 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
         collection_date: date = None,
         record_info: dict = None
     ) -> Generator["ProcedureRecord", None, None]:
+        """
+        Search for procedure records based on various criteria.
+
+        Examples:
+            >>> records = ProcedureRecord.search(
+            ...     procedure_name="SampleProcedure",
+            ...     dataset_name="SampleDataset",
+            ...     experiment_name="SampleExperiment",
+            ...     site_name="SampleSite",
+            ...     season_name="SampleSeason",
+            ...     collection_date=date(2023, 10, 1),
+            ...     record_info={"info_key": "info_value"}
+            ... )
+            >>> for record in records:
+            ...     print(record)
+            ProcedureRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), procedure_name='SampleProcedure', dataset_name='SampleDataset', experiment_name='SampleExperiment', site_name='SampleSite', season_name='SampleSeason')
+            ProcedureRecord(id=UUID('...'), timestamp=datetime(2023, 10, 2, 12, 0), procedure_name='AnotherProcedure', dataset_name='AnotherDataset', experiment_name='AnotherExperiment', site_name='AnotherSite', season_name='AnotherSeason')
+
+        Args:
+            procedure_name (str, optional): The name of the procedure. Defaults to None.
+            procedure_data (dict, optional): The data content. Defaults to None.
+            dataset_name (str, optional): The name of the dataset. Defaults to None.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            collection_date (date, optional): The collection date. Defaults to None.
+            record_info (dict, optional): Additional info. Defaults to None.
+        Yields:
+            ProcedureRecord: Matching procedure records.
+        """
         try:
             if not any([procedure_name, dataset_name, experiment_name, site_name, season_name, collection_date, record_info]):
                 print(f"At least one parameter must be provided for search.")
@@ -262,6 +443,35 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
         site_names: List[str] = None,
         season_names: List[str] = None
     ) -> Generator["ProcedureRecord", None, None]:
+        """
+        Filter procedure records based on custom logic.
+
+        Examples:
+            >>> records = ProcedureRecord.filter(
+            ...     procedure_names=["SampleProcedure", "AnotherProcedure"],
+            ...     dataset_names=["SampleDataset", "AnotherDataset"],
+            ...     start_timestamp=datetime(2023, 10, 1, 0, 0, 0),
+            ...     end_timestamp=datetime(2023, 10, 31, 23, 59, 59),
+            ...     experiment_names=["SampleExperiment", "AnotherExperiment"],
+            ...     site_names=["SampleSite", "AnotherSite"],
+            ...     season_names=["SampleSeason", "AnotherSeason"]
+            ... )
+            >>> for record in records:
+            ...     print(record)
+            ProcedureRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), procedure_name='SampleProcedure', dataset_name='SampleDataset', experiment_name='SampleExperiment', site_name='SampleSite', season_name='SampleSeason')
+            ProcedureRecord(id=UUID('...'), timestamp=datetime(2023, 10, 2, 12, 0), procedure_name='AnotherProcedure', dataset_name='AnotherDataset', experiment_name='AnotherExperiment', site_name='AnotherSite', season_name='AnotherSeason')
+
+        Args:
+            procedure_names (List[str], optional): List of procedure names. Defaults to None.
+            dataset_names (List[str], optional): List of dataset names. Defaults to None.
+            start_timestamp (datetime, optional): Start of timestamp range. Defaults to None.
+            end_timestamp (datetime, optional): End of timestamp range. Defaults to None.
+            experiment_names (List[str], optional): List of experiment names. Defaults to None.
+            site_names (List[str], optional): List of site names. Defaults to None.
+            season_names (List[str], optional): List of season names. Defaults to None.
+        Yields:
+            ProcedureRecord: Filtered procedure records.
+        """
         try:
             if not any([procedure_names, dataset_names, start_timestamp, end_timestamp, experiment_names, site_names, season_names]):
                 print(f"At least one parameter must be provided for filtering.")
@@ -287,6 +497,24 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
         procedure_data: dict = None,
         record_info: dict = None
     ) -> Optional["ProcedureRecord"]:
+        """
+        Update the details of the procedure record.
+
+        Examples:
+            >>> record = ProcedureRecord.get_by_id(UUID('...'))
+            >>> updated_record = record.update(
+            ...     procedure_data={"new_key": "new_value"},
+            ...     record_info={"new_info_key": "new_info_value"}
+            ... )
+            >>> print(updated_record)
+            ProcedureRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), procedure_name='SampleProcedure', dataset_name='SampleDataset', experiment_name='SampleExperiment', site_name='SampleSite', season_name='SampleSeason')
+
+        Args:
+            procedure_data (dict, optional): The new procedure data. Defaults to None.
+            record_info (dict, optional): The new record information. Defaults to None.
+        Returns:
+            Optional[ProcedureRecord]: The updated procedure record, or None if an error occurred.
+        """
         try:
             if not any([procedure_data, record_info]):
                 print(f"At least one parameter must be provided for update.")
@@ -309,6 +537,18 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
             return None
         
     def delete(self) -> bool:
+        """
+        Delete the procedure record.
+
+        Examples:
+            >>> record = ProcedureRecord.get_by_id(UUID('...'))
+            >>> success = record.delete()
+            >>> print(success)
+            True
+
+        Returns:
+            bool: True if the procedure record was deleted, False otherwise.
+        """
         try:
             current_id = self.id
             procedure_record = ProcedureRecordModel.get(current_id)
@@ -322,6 +562,18 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
             return False
         
     def refresh(self) -> Optional["ProcedureRecord"]:
+        """
+        Refresh the procedure record's data from the database.
+
+        Examples:
+            >>> record = ProcedureRecord.get_by_id(UUID('...'))
+            >>> refreshed_record = record.refresh()
+            >>> print(refreshed_record)
+            ProcedureRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), procedure_name='SampleProcedure', dataset_name='SampleDataset', experiment_name='SampleExperiment', site_name='SampleSite', season_name='SampleSeason')
+
+        Returns:
+            Optional[ProcedureRecord]: The refreshed procedure record, or None if an error occurred.
+        """
         try:
             db_instance = ProcedureRecordModel.get(self.id)
             if not db_instance:
@@ -337,6 +589,18 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
             return None
         
     def get_info(self) -> Optional[dict]:
+        """
+        Get the additional information of the procedure record.
+
+        Examples:
+            >>> record = ProcedureRecord.get_by_id(UUID('...'))
+            >>> info = record.get_info()
+            >>> print(info)
+            {'info_key': 'info_value'}
+
+        Returns:
+            Optional[dict]: The record's info, or None if not found.
+        """
         try:
             current_id = self.id
             procedure_record = ProcedureRecordModel.get(current_id)
@@ -353,6 +617,22 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
             return None
         
     def set_info(self, record_info: dict) -> Optional["ProcedureRecord"]:
+        """
+        Set the additional information of the procedure record.
+
+        Examples:
+            >>> record = ProcedureRecord.get_by_id(UUID('...'))
+            >>> updated_record = record.set_info(
+            ...     record_info={"new_info_key": "new_info_value"}
+            ... )
+            >>> print(updated_record)
+            ProcedureRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), procedure_name='SampleProcedure', dataset_name='SampleDataset', experiment_name='SampleExperiment', site_name='SampleSite', season_name='SampleSeason')
+
+        Args:
+            record_info (dict): The new information to set.
+        Returns:
+            Optional[ProcedureRecord]: The updated procedure record, or None if an error occurred.
+        """
         try:
             current_id = self.id
             procedure_record = ProcedureRecordModel.get(current_id)
@@ -372,6 +652,29 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
         
     @classmethod
     def create_file_uri(cls, record: "ProcedureRecord") -> Optional[str]:
+        """
+        Create a file URI for the given procedure record.
+
+        Examples:
+            >>> record = ProcedureRecord(
+            ...     timestamp=datetime(2023, 10, 1, 12, 0, 0),
+            ...     collection_date=date(2023, 10, 1),
+            ...     dataset_name="SampleDataset",
+            ...     procedure_name="SampleProcedure",
+            ...     experiment_name="SampleExperiment",
+            ...     site_name="SampleSite",
+            ...     season_name="SampleSeason",
+            ...     record_file="/path/to/file.txt"
+            ... )
+            >>> file_uri = ProcedureRecord.create_file_uri(record)
+            >>> print(file_uri)
+            procedure_data/SampleExperiment/SampleProcedure/SampleDataset/2023-10-01/SampleSite/SampleSeason/1706467200000.txt
+
+        Args:
+            record (ProcedureRecord): The procedure record for which to create the file URI.
+        Returns:
+            Optional[str]: The file URI, or None if creation failed.
+        """
         try:
             original_file_path = record.record_file
             if not original_file_path:
@@ -397,6 +700,29 @@ class ProcedureRecord(APIBase, FileHandlerMixin):
 
     @classmethod
     def process_record(cls, record: "ProcedureRecord") -> "ProcedureRecord":
+        """
+        Process a procedure record (custom logic, e.g., file upload).
+
+        Examples:
+            >>> record = ProcedureRecord(
+            ...     timestamp=datetime(2023, 10, 1, 12, 0, 0),
+            ...     collection_date=date(2023, 10, 1),
+            ...     dataset_name="SampleDataset",
+            ...     procedure_name="SampleProcedure",
+            ...     experiment_name="SampleExperiment",
+            ...     site_name="SampleSite",
+            ...     season_name="SampleSeason",
+            ...     record_file="/path/to/file.txt"
+            ... )
+            >>> processed_record = ProcedureRecord.process_record(record)
+            >>> print(processed_record)
+            ProcedureRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), procedure_name='SampleProcedure', dataset_name='SampleDataset', experiment_name='SampleExperiment', site_name='SampleSite', season_name='SampleSeason')
+
+        Args:
+            record (ProcedureRecord): The procedure record to process.
+        Returns:
+            ProcedureRecord: The processed procedure record.
+        """
         try:
             file = record.record_file
             if not file:

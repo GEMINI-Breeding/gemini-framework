@@ -1,4 +1,26 @@
-from typing import Optional, List
+"""
+This module defines the Trait class, which represents a trait entity, including its metadata, associations to experiments, datasets, and records, and related operations.
+
+It includes methods for creating, retrieving, updating, and deleting traits, as well as methods for checking existence, searching, and managing associations with related entities and records.
+
+This module includes the following methods:
+
+- `exists`: Check if a trait with the given name exists.
+- `create`: Create a new trait.
+- `get`: Retrieve a trait by its name and experiment.
+- `get_by_id`: Retrieve a trait by its ID.
+- `get_all`: Retrieve all traits.
+- `search`: Search for traits based on various criteria.
+- `update`: Update the details of a trait.
+- `delete`: Delete a trait.
+- `refresh`: Refresh the trait's data from the database.
+- `get_info`: Get the additional information of the trait.
+- `set_info`: Set the additional information of the trait.
+- Association methods for experiments, datasets, and records.
+
+"""
+
+from typing import Optional, List, TYPE_CHECKING
 from uuid import UUID
 from tqdm import tqdm
 
@@ -14,7 +36,22 @@ from gemini.db.models.views.dataset_views import TraitDatasetsViewModel
 from gemini.db.models.associations import ExperimentTraitModel, TraitDatasetModel
 from datetime import date, datetime
 
+if TYPE_CHECKING:
+    from gemini.api.experiment import Experiment
+    from gemini.api.dataset import Dataset
+
 class Trait(APIBase):
+    """
+    Represents a trait entity, including its metadata, associations to experiments, datasets, and records, and related operations.
+
+    Attributes:
+        id (Optional[ID]): The unique identifier of the trait.
+        trait_name (str): The name of the trait.
+        trait_units (str): The units of the trait.
+        trait_level_id (Optional[int]): The ID of the trait level.
+        trait_info (Optional[dict]): Additional information about the trait.
+        trait_metrics (Optional[dict]): Metrics associated with the trait.
+    """
 
     id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "trait_id"))
 
@@ -25,9 +62,11 @@ class Trait(APIBase):
     trait_metrics: Optional[dict] = None
 
     def __str__(self):
-        return f"Trait(name={self.trait_name}, id={self.id})"
+        """Return a string representation of the Trait object."""
+        return f"Trait(trait_name={self.trait_name}, id={self.id})"
     
     def __repr__(self):
+        """Return a detailed string representation of the Trait object."""
         return f"Trait(trait_name={self.trait_name}, id={self.id})"
     
     @classmethod
@@ -35,6 +74,21 @@ class Trait(APIBase):
         cls,
         trait_name: str
     ) -> bool:
+        """
+        Check if a trait with the given name exists.
+
+        Examples:
+            >>> Trait.exists("Leaf Area Index")
+            True
+
+            >>> Trait.exists("Nonexistent Trait")
+            False
+
+        Args:
+            trait_name (str): The name of the trait.
+        Returns:
+            bool: True if the trait exists, False otherwise.
+        """
         try:
             exists = TraitModel.exists(trait_name=trait_name)
             return exists
@@ -52,6 +106,23 @@ class Trait(APIBase):
         trait_metrics: dict = {},
         experiment_name: str = None
     ) -> Optional["Trait"]:
+        """
+        Create a new trait and associate it with an experiment if provided.
+
+        Examples:
+            >>> Trait.create("Leaf Area Index", "cm^2", GEMINITraitLevel.Plot, {"description": "Leaf area index"}, {"mean": 5.0}, "Experiment 1")
+            Trait(trait_name=Leaf Area Index, id=UUID(...))
+
+        Args:
+            trait_name (str): The name of the trait.
+            trait_units (str, optional): The units of the trait. Defaults to None.
+            trait_level (GEMINITraitLevel, optional): The level of the trait. Defaults to Plot.
+            trait_info (dict, optional): Additional information. Defaults to {{}}.
+            trait_metrics (dict, optional): Metrics associated with the trait. Defaults to {{}}.
+            experiment_name (str, optional): The name of the experiment to associate. Defaults to None.
+        Returns:
+            Optional[Trait]: The created trait, or None if an error occurred.
+        """
         try:
             trait_level_id = trait_level.value if isinstance(trait_level, GEMINITraitLevel) else trait_level
             trait = TraitModel.get_or_create(
@@ -75,6 +146,19 @@ class Trait(APIBase):
         trait_name: str,
         experiment_name: str = None
     ) -> Optional["Trait"]:
+        """
+        Retrieve a trait by its name and experiment.
+
+        Examples:
+            >>> Trait.get("Leaf Area Index", "Experiment 1")
+            Trait(trait_name=Leaf Area Index, id=UUID(...))
+
+        Args:
+            trait_name (str): The name of the trait.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+        Returns:
+            Optional[Trait]: The trait, or None if not found.
+        """
         try:
             trait = ExperimentTraitsViewModel.get_by_parameters(
                 trait_name=trait_name,
@@ -91,6 +175,18 @@ class Trait(APIBase):
     
     @classmethod
     def get_by_id(cls, id: UUID | int | str) -> Optional["Trait"]:
+        """
+        Retrieve a trait by its ID.
+
+        Examples:
+            >>> Trait.get_by_id(UUID('...'))
+            Trait(trait_name=Leaf Area Index, id=UUID(...))
+
+        Args:
+            id (UUID | int | str): The ID of the trait.
+        Returns:
+            Optional[Trait]: The trait, or None if not found.
+        """
         try:
             trait = TraitModel.get(id)
             if not trait:
@@ -104,6 +200,16 @@ class Trait(APIBase):
 
     @classmethod
     def get_all(cls) -> Optional[List["Trait"]]:
+        """
+        Retrieve all traits.
+
+        Examples:
+            >>> Trait.get_all()
+            [Trait(trait_name=Leaf Area Index, id=UUID(...)), Trait(trait_name=Plant Height, id=UUID(...))]
+
+        Returns:
+            Optional[List[Trait]]: List of all traits, or None if not found.
+        """
         try:
             traits = TraitModel.all()
             if not traits or len(traits) == 0:
@@ -125,6 +231,23 @@ class Trait(APIBase):
         trait_metrics: dict = None,
         experiment_name: str = None
     ) -> Optional[List["Trait"]]:
+        """
+        Search for traits based on various criteria.
+
+        Examples:
+            >>> Trait.search(trait_name="Leaf Area Index")
+            [Trait(trait_name=Leaf Area Index, id=UUID(...))]
+
+        Args:
+            trait_name (str, optional): The name of the trait. Defaults to None.
+            trait_units (str, optional): The units of the trait. Defaults to None.
+            trait_level (GEMINITraitLevel, optional): The level of the trait. Defaults to None.
+            trait_info (dict, optional): Additional information. Defaults to None.
+            trait_metrics (dict, optional): Metrics associated with the trait. Defaults to None.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+        Returns:
+            Optional[List[Trait]]: List of matching traits, or None if not found.
+        """
         try:
             if not any([experiment_name, trait_name, trait_units, trait_level, trait_info, trait_metrics]):
                 print("At least one search parameter must be provided.")
@@ -155,6 +278,24 @@ class Trait(APIBase):
         trait_info: dict = None,
         trait_metrics: dict = None,
     ) -> Optional["Trait"]:
+        """
+        Update the details of the trait.
+
+        Examples:
+            >>> trait = Trait.get("Leaf Area Index")
+            >>> updated_trait = trait.update(trait_name="New Leaf Area Index", trait_units="m^2")
+            >>> print(updated_trait)
+            Trait(trait_name=New Leaf Area Index, id=UUID(...))
+
+        Args:
+            trait_name (str, optional): The new name. Defaults to None.
+            trait_units (str, optional): The new units. Defaults to None.
+            trait_level (GEMINITraitLevel, optional): The new level. Defaults to None.
+            trait_info (dict, optional): The new information. Defaults to None.
+            trait_metrics (dict, optional): The new metrics. Defaults to None.
+        Returns:
+            Optional[Trait]: The updated trait, or None if an error occurred.
+        """
         try:
             if not any([trait_units, trait_level, trait_info, trait_metrics, trait_name]):
                 print("At least one update parameter must be provided.")
@@ -182,6 +323,18 @@ class Trait(APIBase):
             return None
     
     def delete(self) -> bool:
+        """
+        Delete the trait.
+
+        Examples:
+            >>> trait = Trait.get("Leaf Area Index")
+            >>> success = trait.delete()
+            >>> print(success)
+            True
+
+        Returns:
+            bool: True if the trait was deleted, False otherwise.
+        """
         try:
             current_id = self.id
             trait = TraitModel.get(current_id)
@@ -195,6 +348,18 @@ class Trait(APIBase):
             return False
         
     def refresh(self) -> Optional["Trait"]:
+        """
+        Refresh the trait's data from the database.
+
+        Examples:
+            >>> trait = Trait.get("Leaf Area Index")
+            >>> refreshed_trait = trait.refresh()
+            >>> print(refreshed_trait)
+            Trait(trait_name=Leaf Area Index, id=UUID(...))
+
+        Returns:
+            Optional[Trait]: The refreshed trait, or None if an error occurred.
+        """
         try:
             db_instance = TraitModel.get(self.id)
             if not db_instance:
@@ -210,6 +375,18 @@ class Trait(APIBase):
             return None
         
     def get_info(self) -> Optional[dict]:
+        """
+        Get the additional information of the trait.
+
+        Examples:
+            >>> trait = Trait.get("Leaf Area Index")
+            >>> trait_info = trait.get_info()
+            >>> print(trait_info)
+            {'description': 'Leaf area index', 'source': 'Field measurements'}
+
+        Returns:
+            Optional[dict]: The trait's info, or None if not found.
+        """
         try:
             current_id = self.id
             trait = TraitModel.get(current_id)
@@ -226,6 +403,20 @@ class Trait(APIBase):
             return None
         
     def set_info(self, trait_info: dict) -> Optional["Trait"]:
+        """
+        Set the additional information of the trait.
+
+        Examples:
+            >>> trait = Trait.get("Leaf Area Index")
+            >>> updated_trait = trait.set_info({"description": "Updated leaf area index", "source": "New measurements"})
+            >>> print(updated_trait.get_info())
+            {'description': 'Updated leaf area index', 'source': 'New measurements'}
+
+        Args:
+            trait_info (dict): The new information to set.
+        Returns:
+            Optional[Trait]: The updated trait, or None if an error occurred.
+        """
         try:
             current_id = self.id
             trait = TraitModel.get(current_id)
@@ -243,7 +434,21 @@ class Trait(APIBase):
             print(f"Error setting trait info: {e}")
             return None
         
-    def get_associated_experiments(self):
+    def get_associated_experiments(self) -> Optional[List["Experiment"]]:
+        """
+        Get all experiments associated with this trait.
+
+        Examples:
+            >>> trait = Trait.get("Leaf Area Index")
+            >>> experiments = trait.get_associated_experiments()
+            >>> for experiment in experiments:
+            ...     print(experiment)
+            Experiment(experiment_name=Experiment 1, experiment_start_date=2023-01-01, experiment_end_date=2023-12-31, id=UUID(...))
+            Experiment(experiment_name=Experiment 2, experiment_start_date=2023-02-01, experiment_end_date=2023-11-30, id=UUID(...))
+
+        Returns:
+            Optional[List[Experiment]]: A list of associated experiments, or None if not found.
+        """
         try:
             from gemini.api.experiment import Experiment
             experiment_traits = ExperimentTraitsViewModel.search(trait_id=self.id)
@@ -256,7 +461,21 @@ class Trait(APIBase):
             print(f"Error getting associated experiments: {e}")
             return None
 
-    def associate_experiment(self, experiment_name: str):
+    def associate_experiment(self, experiment_name: str) -> Optional["Experiment"]:
+        """
+        Associate this trait with an experiment.
+
+        Examples:
+            >>> trait = Trait.get("Leaf Area Index")
+            >>> experiment = trait.associate_experiment("Experiment 1")
+            >>> print(experiment)
+            Experiment(experiment_name=Experiment 1, experiment_start_date=2023-01-01, experiment_end_date=2023-12-31, id=UUID(...))
+
+        Args:
+            experiment_name (str): The name of the experiment to associate.
+        Returns:
+            Optional[Experiment]: The associated experiment, or None if an error occurred.
+        """
         try:
             from gemini.api.experiment import Experiment
             experiment = Experiment.get(experiment_name)
@@ -283,7 +502,21 @@ class Trait(APIBase):
             print(f"Error associating experiment: {e}")
             return None
 
-    def unassociate_experiment(self, experiment_name: str):
+    def unassociate_experiment(self, experiment_name: str) -> Optional["Experiment"]:
+        """
+        Unassociate this trait from an experiment.
+
+        Examples:
+            >>> trait = Trait.get("Leaf Area Index")
+            >>> experiment = trait.unassociate_experiment("Experiment 1")
+            >>> print(experiment)
+            Experiment(experiment_name=Experiment 1, experiment_start_date=2023-01-01, experiment_end_date=2023-12-31, id=UUID(...))
+
+        Args:
+            experiment_name (str): The name of the experiment to unassociate.
+        Returns:
+            Optional[Experiment]: The unassociated experiment, or None if an error occurred.
+        """
         try:
             from gemini.api.experiment import Experiment
             experiment = Experiment.get(experiment_name)
@@ -307,7 +540,21 @@ class Trait(APIBase):
             print(f"Error unassociating experiment: {e}")
             return None
 
-    def belongs_to_experiment(self, experiment_name: str):
+    def belongs_to_experiment(self, experiment_name: str) -> bool:
+        """
+        Check if this trait is associated with a specific experiment.
+
+        Examples:
+            >>> trait = Trait.get("Leaf Area Index")
+            >>> is_associated = trait.belongs_to_experiment("Experiment 1")
+            >>> print(is_associated)
+            True
+
+        Args:
+            experiment_name (str): The name of the experiment to check.
+        Returns:
+            bool: True if associated, False otherwise.
+        """
         try:
             from gemini.api.experiment import Experiment
             experiment = Experiment.get(experiment_name)
@@ -323,7 +570,21 @@ class Trait(APIBase):
             print(f"Error checking if trait belongs to experiment: {e}")
             return
 
-    def get_associated_datasets(self):
+    def get_associated_datasets(self) -> Optional[List["Dataset"]]:
+        """
+        Get all datasets associated with this trait.
+
+        Examples:
+            >>> trait = Trait.get("Leaf Area Index")
+            >>> datasets = trait.get_associated_datasets()
+            >>> for dataset in datasets:
+            ...     print(dataset)
+            Dataset(dataset_name=Leaf Area Index Dataset 2023-01-01, dataset_type=Trait, collection_date=2023-01-01, id=UUID(...))
+            Dataset(dataset_name=Leaf Area Index Dataset 2023-02-01, dataset_type=Trait, collection_date=2023-02-01, id=UUID(...))
+
+        Returns:
+            Optional[List[Dataset]]: A list of associated datasets, or None if not found.
+        """
         try:
             from gemini.api.dataset import Dataset
             datasets = TraitDatasetsViewModel.search(trait_id=self.id)
@@ -342,7 +603,24 @@ class Trait(APIBase):
         dataset_info: dict = {},
         collection_date: date = None,
         experiment_name: str = None
-    ):
+    ) -> Optional["Dataset"]:
+        """
+        Create and associate a new dataset with this trait.
+
+        Examples:
+            >>> trait = Trait.get("Leaf Area Index")
+            >>> dataset = trait.create_new_dataset("Leaf Area Index Dataset 2023-01-01", {"description": "Dataset for leaf area index"}, date(2023, 1, 1), "Experiment 1")
+            >>> print(dataset)
+            Dataset(dataset_name=Leaf Area Index Dataset 2023-01-01, dataset_type=Trait, collection_date=2023-01-01, id=UUID(...))
+
+        Args:
+            dataset_name (str): The name of the new dataset.
+            dataset_info (dict, optional): Additional information. Defaults to {{}}.
+            collection_date (date, optional): The collection date. Defaults to None.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+        Returns:
+            Optional[Dataset]: The created and associated dataset, or None if an error occurred.
+        """
         try:
             from gemini.api.dataset import Dataset
             dataset = Dataset.create(
@@ -360,8 +638,22 @@ class Trait(APIBase):
         except Exception as e:
             print(f"Error creating new dataset: {e}")
             return None
-    
-    def associate_dataset(self, dataset_name: str):
+
+    def associate_dataset(self, dataset_name: str) -> Optional["Dataset"]:
+        """
+        Associate this trait with a dataset.
+
+        Examples:
+            >>> trait = Trait.get("Leaf Area Index")
+            >>> dataset = trait.associate_dataset("Leaf Area Index Dataset 2023-01-01")
+            >>> print(dataset)
+            Dataset(dataset_name=Leaf Area Index Dataset 2023-01-01, dataset_type=Trait, collection_date=2023-01-01, id=UUID(...))
+
+        Args:
+            dataset_name (str): The name of the dataset to associate.
+        Returns:
+            Optional[Dataset]: The associated dataset, or None if an error occurred.
+        """
         try:
             from gemini.api.dataset import Dataset
             dataset = Dataset.get(dataset_name)
@@ -402,6 +694,42 @@ class Trait(APIBase):
         plot_column_number: int = -1,
         record_info: dict = {}
     ) -> tuple[bool, List[str]]:
+        """
+        Insert a single trait record for this trait.
+
+        Examples:
+            >>> trait = Trait.get("Leaf Area Index")
+            >>> success, record_ids = trait.insert_record(
+            ...     timestamp=datetime.now(),
+            ...     collection_date=date(2023, 1, 1),
+            ...     dataset_name="Leaf Area Index Dataset 2023-01-01",
+            ...     trait_value=5.0,
+            ...     experiment_name="Experiment 1",
+            ...     season_name="Spring 2023",
+            ...     site_name="Field Site A",
+            ...     plot_number=1,
+            ...     plot_row_number=1,
+            ...     plot_column_number=1,
+            ...     record_info={"description": "Leaf area index measurement"}
+            ... )
+            >>> print(success, record_ids)
+            True [UUID(...)]
+
+        Args:
+            timestamp (datetime, optional): The timestamp of the record. Defaults to None.
+            collection_date (date, optional): The collection date. Defaults to None.
+            dataset_name (str, optional): The name of the dataset. Defaults to None.
+            trait_value (float, optional): The value of the trait. Defaults to None.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+            plot_number (int, optional): The plot number. Defaults to -1.
+            plot_row_number (int, optional): The plot row number. Defaults to -1.
+            plot_column_number (int, optional): The plot column number. Defaults to -1.
+            record_info (dict, optional): Additional info. Defaults to {{}}.
+        Returns:
+            tuple[bool, List[str]]: Success status and list of inserted record IDs.
+        """
         try:
             if not experiment_name or not season_name or not site_name:
                 raise ValueError("Experiment name, season name, and site name must be provided.")
@@ -452,6 +780,42 @@ class Trait(APIBase):
         plot_column_numbers: List[int] = None,
         record_info: List[dict] = []
     ) -> tuple[bool, List[str]]:
+        """
+        Insert multiple trait records for this trait.
+
+        Examples:
+            >>> trait = Trait.get("Leaf Area Index")
+            >>> success, record_ids = trait.insert_records(
+            ...     timestamps=[datetime.now(), datetime.now()],
+            ...     collection_date=date(2023, 1, 1),
+            ...     trait_values=[5.0, 6.0],
+            ...     dataset_name="Leaf Area Index Dataset 2023-01-01",
+            ...     experiment_name="Experiment 1",
+            ...     season_name="Spring 2023",
+            ...     site_name="Field Site A",
+            ...     plot_numbers=[1, 2],
+            ...     plot_row_numbers=[1, 2],
+            ...     plot_column_numbers=[1, 2],
+            ...     record_info=[{"description": "Leaf area index measurement 1"}, {"description": "Leaf area index measurement 2"}]
+            ... )
+            >>> print(success, record_ids)
+            True [UUID(...), UUID(...)]
+
+        Args:
+            timestamps (List[datetime], optional): List of timestamps. Defaults to None.
+            collection_date (date, optional): The collection date. Defaults to None.
+            trait_values (List[float], optional): List of trait values. Defaults to [].
+            dataset_name (str, optional): The name of the dataset. Defaults to None.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+            plot_numbers (List[int], optional): List of plot numbers. Defaults to None.
+            plot_row_numbers (List[int], optional): List of plot row numbers. Defaults to None.
+            plot_column_numbers (List[int], optional): List of plot column numbers. Defaults to None.
+            record_info (List[dict], optional): List of additional info. Defaults to [].
+        Returns:
+            tuple[bool, List[str]]: Success status and list of inserted record IDs.
+        """
         try:
             if not experiment_name or not season_name or not site_name:
                 raise ValueError("Experiment name, season name, and site name must be provided.")
@@ -502,6 +866,40 @@ class Trait(APIBase):
         plot_column_number: int = None,
         record_info: dict = None
     ) -> List[TraitRecord]:
+        """
+        Search for trait records associated with this trait based on search parameters.
+
+        Examples:
+            >>> trait = Trait.get("Leaf Area Index")
+            >>> records = trait.search_records(
+            ...     collection_date=date(2023, 1, 1),
+            ...     dataset_name="Leaf Area Index Dataset 2023-01-01",
+            ...     experiment_name="Experiment 1",
+            ...     season_name="Spring 2023",
+            ...     site_name="Field Site A",
+            ...     plot_number=1,
+            ...     plot_row_number=1,
+            ...     plot_column_number=1,
+            ...     record_info={"description": "Leaf area index measurement"}
+            ... )
+            >>> for record in records:
+            ...     print(record)
+            TraitRecord(id=UUID(...), trait_name=Leaf Area Index, collection_date=2023-01-01, dataset_name=Leaf Area Index Dataset 2023-01-01, experiment_name=Experiment 1, season_name=Spring 2023, site_name=Field Site A, plot_number=1, plot_row_number=1, plot_column_number=1)
+            TraitRecord(id=UUID(...), trait_name=Leaf Area Index, collection_date=2023-01-01, dataset_name=Leaf Area Index Dataset 2023-01-01, experiment_name=Experiment 1, season_name=Spring 2023, site_name=Field Site A, plot_number=2, plot_row_number=2, plot_column_number=2)
+
+        Args:
+            collection_date (date, optional): The collection date. Defaults to None.
+            dataset_name (str, optional): The name of the dataset. Defaults to None.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+            plot_number (int, optional): The plot number. Defaults to None.
+            plot_row_number (int, optional): The plot row number. Defaults to None.
+            plot_column_number (int, optional): The plot column number. Defaults to None.
+            record_info (dict, optional): Additional info. Defaults to None.
+        Returns:
+            List[TraitRecord]: List of matching trait records, or empty list if not found.
+        """
         try:
             record_info = record_info if record_info else {}
             record_info = {k: v for k, v in record_info.items() if v is not None}
@@ -532,6 +930,34 @@ class Trait(APIBase):
         season_names: Optional[List[str]] = None,
         site_names: Optional[List[str]] = None
     ) -> List[TraitRecord]:
+        """
+        Filter trait records associated with this trait using a custom filter function.
+
+        Examples:
+            >>> trait = Trait.get("Leaf Area Index")
+            >>> records = trait.filter_records(
+            ...     start_timestamp=datetime(2023, 1, 1),
+            ...     end_timestamp=datetime(2023, 12, 31),
+            ...     dataset_names=["Leaf Area Index Dataset 2023-01-01"],
+            ...     experiment_names=["Experiment 1"],
+            ...     season_names=["Spring 2023"],
+            ...     site_names=["Field Site A"]
+            ... )
+            >>> for record in records:
+            ...     print(record)
+            TraitRecord(id=UUID(...), trait_name=Leaf Area Index, collection_date=2023-01-01, dataset_name=Leaf Area Index Dataset 2023-01-01, experiment_name=Experiment 1, season_name=Spring 2023, site_name=Field Site A, plot_number=1, plot_row_number=1, plot_column_number=1)
+            TraitRecord(id=UUID(...), trait_name=Leaf Area Index, collection_date=2023-01-01, dataset_name=Leaf Area Index Dataset 2023-01-01, experiment_name=Experiment 1, season_name=Spring 2023, site_name=Field Site A, plot_number=2, plot_row_number=2, plot_column_number=2)
+
+        Args:
+            start_timestamp (datetime, optional): Start of timestamp range. Defaults to None.
+            end_timestamp (datetime, optional): End of timestamp range. Defaults to None.
+            dataset_names (List[str], optional): List of dataset names. Defaults to None.
+            experiment_names (List[str], optional): List of experiment names. Defaults to None.
+            season_names (List[str], optional): List of season names. Defaults to None.
+            site_names (List[str], optional): List of site names. Defaults to None.
+        Returns:
+            List[TraitRecord]: List of filtered trait records, or empty list if not found.
+        """
         try:
             records = TraitRecord.filter(
                 start_timestamp=start_timestamp,

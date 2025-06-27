@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for Site entities in the GEMINI database.
+"""
+
 from sqlalchemy import (
     JSON,
     String,
@@ -18,6 +22,19 @@ import uuid
 
 
 class SiteModel(BaseModel):
+  """
+  Represents a site in the GEMINI database.
+
+  Attributes:
+    id (uuid.UUID): Unique identifier for the site.
+    site_name (str): The name of the site.
+    site_city (str): The city where the site is located.
+    site_state (str): The state where the site is located.
+    site_country (str): The country where the site is located.
+    site_info (dict): Additional JSONB data for the site.
+    created_at (datetime): Timestamp when the record was created.
+    updated_at (datetime): Timestamp when the record was last updated.
+  """
   __tablename__ = 'sites'
 
   id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)

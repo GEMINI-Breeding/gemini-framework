@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for DatasetType entities in the GEMINI database.
+"""
+
 from sqlalchemy import (
     JSON,
     String,
@@ -14,6 +18,16 @@ from gemini.db.core.base import BaseModel
 from datetime import datetime
 
 class DatasetTypeModel(BaseModel):
+    """
+    Represents a type of dataset in the GEMINI database.
+
+    Attributes:
+        id (int): Unique integer identifier for the dataset type.
+        dataset_type_name (str): The name of the dataset type (e.g., "Phenotypic", "Genotypic").
+        dataset_type_info (dict): Additional JSONB data for the dataset type.
+        created_at (datetime): Timestamp when the record was created.
+        updated_at (datetime): Timestamp when the record was last updated.
+    """
     __tablename__ = "dataset_types"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

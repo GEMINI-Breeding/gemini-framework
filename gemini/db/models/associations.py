@@ -1,3 +1,10 @@
+"""
+SQLAlchemy models for defining associations between different entities in the GEMINI database.
+
+These models represent many-to-many relationships and store additional information
+about these relationships, such as creation and update timestamps.
+"""
+
 from sqlalchemy import Integer, JSON, TIMESTAMP
 from sqlalchemy import ForeignKey, UniqueConstraint, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
@@ -8,6 +15,9 @@ from gemini.db.core.base import BaseModel
 
 
 class DataTypeFormatModel(BaseModel):
+    """
+    Represents the association between a data type and a data format.
+    """
     __tablename__ = "data_type_formats"
 
     data_type_id: Mapped[int] = mapped_column(Integer, ForeignKey("gemini.data_types.id", ondelete="CASCADE"), primary_key=True)
@@ -22,6 +32,9 @@ class DataTypeFormatModel(BaseModel):
 
 
 class ExperimentSiteModel(BaseModel):
+    """
+    Represents the association between an experiment and a site.
+    """
     __tablename__ = "experiment_sites"
 
     experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.experiments.id", ondelete="CASCADE"), primary_key=True)
@@ -37,6 +50,9 @@ class ExperimentSiteModel(BaseModel):
 
 
 class ExperimentSensorModel(BaseModel):
+    """
+    Represents the association between an experiment and a sensor.
+    """
     __tablename__ = "experiment_sensors"
 
     experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.experiments.id", ondelete="CASCADE"), primary_key=True)
@@ -52,6 +68,9 @@ class ExperimentSensorModel(BaseModel):
 
 
 class ExperimentSensorPlatformModel(BaseModel):
+    """
+    Represents the association between an experiment and a sensor platform.
+    """
     __tablename__ = "experiment_sensor_platforms"
 
     experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.experiments.id", ondelete="CASCADE"), primary_key=True)
@@ -67,6 +86,9 @@ class ExperimentSensorPlatformModel(BaseModel):
     )
 
 class ExperimentTraitModel(BaseModel):
+    """
+    Represents the association between an experiment and a trait.
+    """
     __tablename__ = "experiment_traits"
 
     experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.experiments.id", ondelete="CASCADE"), primary_key=True)
@@ -81,6 +103,9 @@ class ExperimentTraitModel(BaseModel):
     )
 
 class ExperimentCultivarModel(BaseModel):
+    """
+    Represents the association between an experiment and a cultivar.
+    """
     __tablename__ = "experiment_cultivars"
 
     experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.experiments.id", ondelete="CASCADE"), primary_key=True)
@@ -96,6 +121,9 @@ class ExperimentCultivarModel(BaseModel):
 
 
 class ExperimentModelModel(BaseModel):
+    """
+    Represents the association between an experiment and a model.
+    """
     __tablename__ = "experiment_models"
 
     experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.experiments.id", ondelete="CASCADE"), primary_key=True)
@@ -111,6 +139,9 @@ class ExperimentModelModel(BaseModel):
     )
 
 class ExperimentProcedureModel(BaseModel):
+    """
+    Represents the association between an experiment and a procedure.
+    """
     __tablename__ = "experiment_procedures"
 
     experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.experiments.id", ondelete="CASCADE"), primary_key=True)
@@ -125,6 +156,9 @@ class ExperimentProcedureModel(BaseModel):
     )
 
 class ExperimentScriptModel(BaseModel):
+    """
+    Represents the association between an experiment and a script.
+    """
     __tablename__ = "experiment_scripts"
 
     experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.experiments.id", ondelete="CASCADE"), primary_key=True)
@@ -139,6 +173,9 @@ class ExperimentScriptModel(BaseModel):
     )
 
 class ExperimentDatasetModel(BaseModel):
+    """
+    Represents the association between an experiment and a dataset.
+    """
     __tablename__ = "experiment_datasets"
 
     experiment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.experiments.id", ondelete="CASCADE"), primary_key=True)
@@ -152,6 +189,9 @@ class ExperimentDatasetModel(BaseModel):
     )
 
 class PlotCultivarModel(BaseModel):
+    """
+    Represents the association between a plot and a cultivar.
+    """
     __tablename__ = "plot_cultivars"
 
     plot_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.plots.id", ondelete="CASCADE"), primary_key=True)
@@ -166,6 +206,9 @@ class PlotCultivarModel(BaseModel):
     )
 
 class TraitSensorModel(BaseModel):
+    """
+    Represents the association between a trait and a sensor.
+    """
     __tablename__ = "trait_sensors"
 
     trait_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.traits.id", ondelete="CASCADE"), primary_key=True)
@@ -180,6 +223,9 @@ class TraitSensorModel(BaseModel):
     )
 
 class SensorPlatformSensorModel(BaseModel):
+    """
+    Represents the association between a sensor platform and a sensor.
+    """
     __tablename__ = "sensor_platform_sensors"
 
     sensor_platform_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.sensor_platforms.id", ondelete="CASCADE"), primary_key=True)
@@ -194,6 +240,9 @@ class SensorPlatformSensorModel(BaseModel):
     )
 
 class SensorDatasetModel(BaseModel):
+    """
+    Represents the association between a sensor and a dataset.
+    """
     __tablename__ = "sensor_datasets"
 
     sensor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.sensors.id", ondelete="CASCADE"), primary_key=True)
@@ -208,6 +257,9 @@ class SensorDatasetModel(BaseModel):
     )
 
 class TraitDatasetModel(BaseModel):
+    """
+    Represents the association between a trait and a dataset.
+    """
     __tablename__ = "trait_datasets"
 
     trait_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.traits.id", ondelete="CASCADE"), primary_key=True)
@@ -223,6 +275,9 @@ class TraitDatasetModel(BaseModel):
 
 
 class ModelDatasetModel(BaseModel):
+    """
+    Represents the association between a model and a dataset.
+    """
     __tablename__ = "model_datasets"
 
     model_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.models.id", ondelete="CASCADE"), primary_key=True)
@@ -238,6 +293,9 @@ class ModelDatasetModel(BaseModel):
 
 
 class ScriptDatasetModel(BaseModel):
+    """
+    Represents the association between a script and a dataset.
+    """
     __tablename__ = "script_datasets"
 
     script_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.scripts.id", ondelete="CASCADE"), primary_key=True)
@@ -253,6 +311,9 @@ class ScriptDatasetModel(BaseModel):
 
 
 class ProcedureDatasetModel(BaseModel):
+    """
+    Represents the association between a procedure and a dataset.
+    """
     __tablename__ = "procedure_datasets"
 
     procedure_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), ForeignKey("gemini.procedures.id", ondelete="CASCADE"), primary_key=True)
@@ -265,4 +326,3 @@ class ProcedureDatasetModel(BaseModel):
     __table_args__ = (
         UniqueConstraint("procedure_id", "dataset_id", name="procedure_dataset_unique"),
     )
-

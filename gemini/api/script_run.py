@@ -1,15 +1,46 @@
-from typing import Optional, List
+"""
+This module defines the ScriptRun class, which represents a run of a script, including metadata, associations to scripts, and run information.
+
+It includes methods for creating, retrieving, updating, and deleting script runs, as well as methods for checking existence, searching, and managing associations with scripts.
+
+This module includes the following methods:
+
+- `exists`: Check if a script run with the given parameters exists.
+- `create`: Create a new script run.
+- `get`: Retrieve a script run by its info and name.
+- `get_by_id`: Retrieve a script run by its ID.
+- `get_all`: Retrieve all script runs.
+- `search`: Search for script runs based on various criteria.
+- `update`: Update the details of a script run.
+- `delete`: Delete a script run.
+- `refresh`: Refresh the script run's data from the database.
+- `get_info`: Get the additional information of the script run.
+- `set_info`: Set the additional information of the script run.
+- Association methods for scripts.
+
+"""
+
+from typing import Optional, List, TYPE_CHECKING
 from uuid import UUID
 
 from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.db.models.script_runs import ScriptRunModel
-from gemini.db.models.scripts import ScriptModel
 from gemini.db.models.views.run_views import ScriptRunsViewModel
 
+if TYPE_CHECKING:
+    from gemini.api.script import Script
 
 class ScriptRun(APIBase):
+    """
+    Represents a run of a script, including metadata, associations to scripts, and run information.
+
+    Attributes:
+        id (Optional[ID]): The unique identifier of the script run.
+        script_id (Optional[ID]): The ID of the associated script.
+        script_run_info (Optional[dict]): Additional information about the script run.
+    """
 
     id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "script_run_id"))
 
@@ -17,9 +48,11 @@ class ScriptRun(APIBase):
     script_run_info: Optional[dict] = None
 
     def __str__(self):
+        """Return a string representation of the ScriptRun object."""
         return f"ScriptRun(id={self.id}, script_id={self.script_id}, script_run_info={self.script_run_info})"
 
     def __repr__(self):
+        """Return a detailed string representation of the ScriptRun object."""
         return f"ScriptRun(id={self.id}, script_id={self.script_id}, script_run_info={self.script_run_info})"
 
     @classmethod
@@ -28,6 +61,21 @@ class ScriptRun(APIBase):
         script_run_info: dict,
         script_name: str = None
     ) -> bool:
+        """
+        Check if a script run with the given parameters exists.
+
+        Examples:
+            >>> ScriptRun.exists(script_run_info={"status": "completed"}, script_name="example_script")
+            True
+            >>> ScriptRun.exists(script_run_info={"status": "running"})
+            False
+
+        Args:
+            script_run_info (dict): The run information to check.
+            script_name (str, optional): The name of the script. Defaults to None.
+        Returns:
+            bool: True if the script run exists, False otherwise.
+        """
         try:
             exists = ScriptRunsViewModel.exists(
                 script_name=script_name,
@@ -44,6 +92,20 @@ class ScriptRun(APIBase):
         script_run_info: dict = {},
         script_name: str = None
     ) -> Optional["ScriptRun"]:
+        """
+        Create a new script run.
+
+        Examples:
+            >>> script_run = ScriptRun.create(script_run_info={"status": "running"}, script_name="example_script")
+            >>> print(script_run)
+            ScriptRun(id=UUID('...'), script_id=UUID('...') script_run_info={'status': 'running'})
+
+        Args:
+            script_run_info (dict, optional): The run information for the new script run. Defaults to {{}}.
+            script_name (str, optional): The name of the script. Defaults to None.
+        Returns:
+            Optional[ScriptRun]: The created script run, or None if an error occurred.
+        """
         try:
             db_instance = ScriptRunModel.get_or_create(
                 script_run_info=script_run_info,
@@ -58,11 +120,21 @@ class ScriptRun(APIBase):
 
     @classmethod
     def get(cls, script_run_info: dict, script_name: str = None) -> Optional["ScriptRun"]:
+        """
+        Retrieve a script run by its info and name.
+
+        Examples:
+            >>> script_run = ScriptRun.get(script_run_info={"status": "completed"}, script_name="example_script")
+            >>> print(script_run)
+            ScriptRun(id=UUID('...'), script_id=UUID('...') script_run_info={'status': 'completed'})
+
+        Args:
+            script_run_info (dict): The run information to search for.
+            script_name (str, optional): The name of the script. Defaults to None.
+        Returns:
+            Optional[ScriptRun]: The script run, or None if not found.
+        """
         try:
-            db_script = ScriptModel.get_by_parameters(script_name=script_name)
-            if not db_script:
-                print(f"Script with name {script_name} does not exist.")
-                return None
             db_instance = ScriptRunsViewModel.get_by_parameters(
                 script_run_info=script_run_info,
                 script_name=script_name
@@ -78,6 +150,19 @@ class ScriptRun(APIBase):
 
     @classmethod
     def get_by_id(cls, id: UUID | int | str) -> Optional["ScriptRun"]:
+        """
+        Retrieve a script run by its ID.
+
+        Examples:
+            >>> script_run = ScriptRun.get_by_id(UUID('...'))
+            >>> print(script_run)
+            ScriptRun(id=UUID('...'), script_id=UUID('...') script_run_info={'status': 'completed'})
+
+        Args:
+            id (UUID | int | str): The ID of the script run.
+        Returns:
+            Optional[ScriptRun]: The script run, or None if not found.
+        """
         try:
             db_instance = ScriptRunModel.get(id)
             if not db_instance:
@@ -91,6 +176,19 @@ class ScriptRun(APIBase):
 
     @classmethod
     def get_all(cls) -> Optional[List["ScriptRun"]]:
+        """
+        Retrieve all script runs.
+
+        Examples:
+            >>> script_runs = ScriptRun.get_all()
+            >>> for run in script_runs:
+            ...     print(run)
+            ScriptRun(id=UUID('...'), script_id=UUID('...') script_run_info={'status': 'completed'})
+            ScriptRun(id=UUID('...'), script_id=UUID('...') script_run_info={'status': 'running'})
+
+        Returns:
+            Optional[List[ScriptRun]]: List of all script runs, or None if not found.
+        """
         try:
             script_runs = ScriptRunModel.all()
             if not script_runs or len(script_runs) == 0:
@@ -108,6 +206,22 @@ class ScriptRun(APIBase):
         script_run_info: dict = None,
         script_name: str = None
     ) -> Optional[List["ScriptRun"]]:
+        """
+        Search for script runs based on various criteria.
+
+        Examples:
+            >>> script_runs = ScriptRun.search(script_run_info={"status": "completed"}, script_name="example_script")
+            >>> for run in script_runs:
+            ...     print(run)
+            ScriptRun(id=UUID('...'), script_id=UUID('...') script_run_info={'status': 'completed'})
+            ScriptRun(id=UUID('...'), script_id=UUID('...') script_run_info={'status': 'running'})
+
+        Args:
+            script_run_info (dict, optional): The run information to search for. Defaults to None.
+            script_name (str, optional): The name of the script. Defaults to None.
+        Returns:
+            Optional[List[ScriptRun]]: List of matching script runs, or None if not found.
+        """
         try:
             if not any([script_name, script_run_info]):
                 print("At least one of script_name or script_run_info must be provided.")
@@ -126,6 +240,20 @@ class ScriptRun(APIBase):
             return None
 
     def update(self, script_run_info: dict = None) -> Optional["ScriptRun"]:
+        """
+        Update the details of the script run.
+
+        Examples:
+            >>> script_run = ScriptRun.get_by_id(UUID('...'))
+            >>> updated_run = script_run.update(script_run_info={"status": "completed"})
+            >>> print(updated_run)
+            ScriptRun(id=UUID('...'), script_id=UUID('...') script_run_info={'status': 'completed'})
+
+        Args:
+            script_run_info (dict, optional): The new run information. Defaults to None.
+        Returns:
+            Optional[ScriptRun]: The updated script run, or None if an error occurred.
+        """
         try:
             if not script_run_info:
                 print("Model run info cannot be empty.")
@@ -147,6 +275,18 @@ class ScriptRun(APIBase):
             return None
 
     def delete(self) -> bool:
+        """
+        Delete the script run.
+
+        Examples:
+            >>> script_run = ScriptRun.get_by_id(UUID('...'))
+            >>> success = script_run.delete()
+            >>> print(success)
+            True
+
+        Returns:
+            bool: True if the script run was deleted, False otherwise.
+        """
         try:
             current_id = self.id
             script_run = ScriptRunModel.get(current_id)
@@ -160,6 +300,18 @@ class ScriptRun(APIBase):
             return False
 
     def refresh(self) -> Optional["ScriptRun"]:
+        """
+        Refresh the script run's data from the database.
+
+        Examples:
+            >>> script_run = ScriptRun.get_by_id(UUID('...'))
+            >>> refreshed_run = script_run.refresh()
+            >>> print(refreshed_run)
+            ScriptRun(id=UUID('...'), script_id=UUID('...') script_run_info={'status': 'running'})
+
+        Returns:
+            Optional[ScriptRun]: The refreshed script run, or None if an error occurred.
+        """
         try:
             db_instance = ScriptRunModel.get(self.id)
             if not db_instance:
@@ -175,6 +327,18 @@ class ScriptRun(APIBase):
             return None
 
     def get_info(self) -> Optional[dict]:
+        """
+        Get the additional information of the script run.
+
+        Examples:
+            >>> script_run = ScriptRun.get_by_id(UUID('...'))
+            >>> info = script_run.get_info()
+            >>> print(info)
+            {'status': 'running', 'start_time': '2023-10-01T12:00:00Z'}
+
+        Returns:
+            Optional[dict]: The script run's info, or None if not found.
+        """
         try:
             current_id = self.id
             script_run = ScriptRunModel.get(current_id)
@@ -191,6 +355,20 @@ class ScriptRun(APIBase):
             return None
 
     def set_info(self, script_run_info: dict) -> Optional["ScriptRun"]:
+        """
+        Set the additional information of the script run.
+
+        Examples:
+            >>> script_run = ScriptRun.get_by_id(UUID('...'))
+            >>> updated_run = script_run.set_info(script_run_info={"status": "completed"})
+            >>> print(updated_run)
+            ScriptRun(id=UUID('...'), script_id=UUID('...') script_run_info={'status': 'completed'})
+
+        Args:
+            script_run_info (dict): The new run information to set.
+        Returns:
+            Optional[ScriptRun]: The updated script run, or None if an error occurred.
+        """
         try:
             current_id = self.id
             script_run = ScriptRunModel.get(current_id)
@@ -207,7 +385,20 @@ class ScriptRun(APIBase):
             print(f"Error setting script run info: {e}")
             return None
         
-    def get_associated_script(self):
+    def get_associated_script(self) -> Optional["Script"]:
+        """
+        Get the script associated with this script run.
+
+        Examples:
+            >>> script_run = ScriptRun.get_by_id(UUID('...'))
+            >>> script = script_run.get_associated_script()
+            >>> print(script)
+            Script(script_name='example_script', script_url='https://example.com/script.py', script_extension='py', id=UUID('...'))
+            Script(script_name='example_script', script_url='https://example.com/script.py', script_extension='py', id=UUID('...'))
+
+        Returns:
+            Optional[Script]: The associated script, or None if not found.
+        """
         try:
             from gemini.api.script import Script
             current_id = self.script_id
@@ -227,7 +418,21 @@ class ScriptRun(APIBase):
             print(f"Error getting script for script run: {e}")
             return None
 
-    def associate_script(self, script_name: str):
+    def associate_script(self, script_name: str) -> Optional["Script"]:
+        """
+        Associate this script run with a script.
+
+        Examples:
+            >>> script_run = ScriptRun.get_by_id(UUID('...'))
+            >>> script = script_run.associate_script(script_name="example_script")
+            >>> print(script)
+            Script(script_name='example_script', script_url='https://example.com/script.py', script_extension='py', id=UUID('...'))
+
+        Args:
+            script_name (str): The name of the script to associate.
+        Returns:
+            Optional[Script]: The associated script, or None if an error occurred.
+        """
         try:
             from gemini.api.script import Script
             script = Script.get(script_name=script_name)
@@ -253,7 +458,19 @@ class ScriptRun(APIBase):
             print(f"Error assigning script to script run: {e}")
             return None
 
-    def unassociate_script(self):
+    def unassociate_script(self) -> Optional["Script"]:
+        """
+        Unassociate this script run from its script.
+
+        Examples:
+            >>> script_run = ScriptRun.get_by_id(UUID('...'))
+            >>> script = script_run.unassociate_script()
+            >>> print(script)
+            Script(script_name='example_script', script_url='https://example.com/script.py', script_extension='py', id=UUID('...'))
+
+        Returns:
+            Optional[Script]: The unassociated script, or None if an error occurred.
+        """
         try:
             from gemini.api.script import Script
             script_run = ScriptRunModel.get(self.id)
@@ -273,6 +490,20 @@ class ScriptRun(APIBase):
             return None
 
     def belongs_to_script(self, script_name: str) -> bool:
+        """
+        Check if this script run is associated with a specific script.
+
+        Examples:
+            >>> script_run = ScriptRun.get_by_id(UUID('...'))
+            >>> is_associated = script_run.belongs_to_script("example_script")
+            >>> print(is_associated)
+            True
+
+        Args:
+            script_name (str): The name of the script to check.
+        Returns:
+            bool: True if associated, False otherwise.
+        """
         try:
             from gemini.api.script import Script
             script = Script.get(script_name=script_name)
@@ -288,4 +519,3 @@ class ScriptRun(APIBase):
             print(f"Error checking if script run belongs to script: {e}")
             return False
 
-    

@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for Plot entities in the GEMINI database.
+"""
+
 from sqlalchemy import (
     UniqueConstraint,
     Index,
@@ -16,6 +20,22 @@ import uuid
 from datetime import datetime
 
 class PlotModel(BaseModel):
+  """
+  Represents a plot in the GEMINI database.
+
+  Attributes:
+    id (uuid.UUID): Unique identifier for the plot.
+    experiment_id (uuid.UUID): Foreign key referencing the experiment to which the plot belongs.
+    season_id (uuid.UUID): Foreign key referencing the season during which the plot was used.
+    site_id (uuid.UUID): Foreign key referencing the site where the plot is located.
+    plot_number (int): The number of the plot.
+    plot_row_number (int): The row number of the plot in a grid layout.
+    plot_column_number (int): The column number of the plot in a grid layout.
+    plot_geometry_info (dict): Additional JSONB data describing the plot's geometry.
+    plot_info (dict): Additional JSONB data for the plot.
+    created_at (datetime): Timestamp when the record was created.
+    updated_at (datetime): Timestamp when the record was last updated.
+  """
   __tablename__ = 'plots'
 
   id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)

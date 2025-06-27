@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for columnar DatasetRecord entities in the GEMINI database.
+"""
+
 from sqlalchemy.orm import relationship, mapped_column, Mapped, Relationship
 from sqlalchemy import UUID, JSON, String, Integer, UniqueConstraint, Index, ForeignKey, TIMESTAMP, DATE
 from sqlalchemy.dialects.postgresql import JSONB
@@ -9,6 +13,25 @@ from typing import Optional, List
 
 
 class DatasetRecordModel(ColumnarBaseModel):
+    """
+    Represents a dataset record in the GEMINI database.
+
+    Attributes:
+        id (uuid.UUID): Unique identifier for the dataset record.
+        timestamp (datetime): Timestamp of the record.
+        collection_date (date): The date when the data was collected.
+        dataset_id (UUID): Foreign key referencing the dataset.
+        dataset_name (str): The name of the dataset.
+        dataset_data (dict): Additional JSONB data for the dataset.
+        experiment_id (UUID): Foreign key referencing the experiment.
+        experiment_name (str): The name of the experiment.
+        season_id (UUID): Foreign key referencing the season.
+        season_name (str): The name of the season.
+        site_id (UUID): Foreign key referencing the site.
+        site_name (str): The name of the site.
+        record_file (str): The file where the record is stored.
+        record_info (dict): Additional JSONB data for the record.
+    """
     __tablename__ = "dataset_records"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
@@ -53,6 +76,20 @@ class DatasetRecordModel(ColumnarBaseModel):
         season_names: Optional[List[str]] = None,
         site_names: Optional[List[str]] = None
     ):
+        """
+        Filters dataset records based on the provided parameters.
+
+        Args:
+            start_timestamp (Optional[datetime]): The starting timestamp for the filter.
+            end_timestamp (Optional[datetime]): The ending timestamp for the filter.
+            dataset_names (Optional[List[str]]): A list of dataset names to filter by.
+            experiment_names (Optional[List[str]]): A list of experiment names to filter by.
+            season_names (Optional[List[str]]): A list of season names to filter by.
+            site_names (Optional[List[str]]): A list of site names to filter by.
+
+        Yields:
+            record: Matching dataset records.
+        """
         stmt = text(
             """
             SELECT * FROM gemini.filter_dataset_records(
@@ -76,4 +113,3 @@ class DatasetRecordModel(ColumnarBaseModel):
             result = session.execute(stmt, execution_options={"yield_per": 1000})
             for record in result:
                 yield record
-

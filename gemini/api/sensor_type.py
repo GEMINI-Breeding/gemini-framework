@@ -1,3 +1,24 @@
+"""
+This module defines the SensorType class, which represents a type or category for sensors.
+
+It includes methods for creating, retrieving, updating, and deleting sensor types, as well as methods for checking existence, searching, and managing additional information.
+
+This module includes the following methods:
+
+- `exists`: Check if a sensor type with the given name exists.
+- `create`: Create a new sensor type.
+- `get`: Retrieve a sensor type by its name.
+- `get_by_id`: Retrieve a sensor type by its ID.
+- `get_all`: Retrieve all sensor types.
+- `search`: Search for sensor types based on various criteria.
+- `update`: Update the details of a sensor type.
+- `delete`: Delete a sensor type.
+- `refresh`: Refresh the sensor type's data from the database.
+- `get_info`: Get the additional information of the sensor type.
+- `set_info`: Set the additional information of the sensor type.
+
+"""
+
 from typing import Optional, List
 from uuid import UUID
 
@@ -7,6 +28,14 @@ from gemini.api.base import APIBase
 from gemini.db.models.sensor_types import SensorTypeModel
 
 class SensorType(APIBase):
+    """
+    Represents a type or category for sensors.
+
+    Attributes:
+        id (Optional[ID]): The unique identifier of the sensor type.
+        sensor_type_name (str): The name of the sensor type.
+        sensor_type_info (Optional[dict]): Additional information about the sensor type.
+    """
 
     id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "sensor_type_id"))
 
@@ -14,9 +43,11 @@ class SensorType(APIBase):
     sensor_type_info: Optional[dict] = None
 
     def __str__(self):
-        return f"SensorType(name={self.sensor_type_name}, id={self.id})"
+        """Return a string representation of the SensorType object."""
+        return f"SensorType(sensor_type_name={self.sensor_type_name}, id={self.id})"
 
     def __repr__(self):
+        """Return a detailed string representation of the SensorType object."""
         return f"SensorType(sensor_type_name={self.sensor_type_name}, id={self.id})"
 
     @classmethod
@@ -24,6 +55,20 @@ class SensorType(APIBase):
         cls,
         sensor_type_name: str
     ) -> bool:
+        """
+        Check if a sensor type with the given name exists.
+
+        Examples:
+            >>> SensorType.exists("TemperatureSensor")
+            True
+            >>> SensorType.exists("NonExistentSensor")
+            False
+
+        Args:
+            sensor_type_name (str): The name of the sensor type.
+        Returns:
+            bool: True if the sensor type exists, False otherwise.
+        """
         try:
             exists = SensorTypeModel.exists(sensor_type_name=sensor_type_name)
             return exists
@@ -37,6 +82,19 @@ class SensorType(APIBase):
         sensor_type_name: str,
         sensor_type_info: dict = {},
     ) -> Optional["SensorType"]:
+        """
+        Create a new sensor type.
+
+        Examples:
+            >>> SensorType.create("TemperatureSensor", {"unit": "Celsius"})
+            SensorType(sensor_type_name='TemperatureSensor', id=UUID(...))
+
+        Args:
+            sensor_type_name (str): The name of the sensor type.
+            sensor_type_info (dict, optional): Additional information about the sensor type. Defaults to {{}}.
+        Returns:
+            Optional[SensorType]: The created sensor type, or None if an error occurred.
+        """
         try:
             db_instance = SensorTypeModel.get_or_create(
                 sensor_type_name=sensor_type_name,
@@ -50,6 +108,18 @@ class SensorType(APIBase):
 
     @classmethod
     def get(cls, sensor_type_name: str) -> Optional["SensorType"]:
+        """
+        Retrieve a sensor type by its name.
+
+        Examples:
+            >>> SensorType.get("TemperatureSensor")
+            SensorType(sensor_type_name='TemperatureSensor', id=UUID(...))
+
+        Args:
+            sensor_type_name (str): The name of the sensor type.
+        Returns:
+            Optional[SensorType]: The sensor type, or None if not found.
+        """
         try:
             db_instance = SensorTypeModel.get_by_parameters(sensor_type_name=sensor_type_name)
             if not db_instance:
@@ -63,6 +133,18 @@ class SensorType(APIBase):
 
     @classmethod
     def get_by_id(cls, id: UUID | int | str) -> Optional["SensorType"]:
+        """
+        Retrieve a sensor type by its ID.
+
+        Examples:
+            >>> SensorType.get_by_id(UUID('...'))
+            SensorType(sensor_type_name='TemperatureSensor', id=UUID(...))
+
+        Args:
+            id (UUID | int | str): The ID of the sensor type.
+        Returns:
+            Optional[SensorType]: The sensor type, or None if not found.
+        """
         try:
             db_instance = SensorTypeModel.get(id)
             if not db_instance:
@@ -76,6 +158,16 @@ class SensorType(APIBase):
 
     @classmethod
     def get_all(cls) -> Optional[List["SensorType"]]:
+        """
+        Retrieve all sensor types.
+
+        Examples:
+            >>> SensorType.get_all()
+            [SensorType(sensor_type_name='TemperatureSensor', id=UUID(...)), ...]
+
+        Returns:
+            Optional[List[SensorType]]: List of all sensor types, or None if not found.
+        """
         try:
             instances = SensorTypeModel.all()
             if not instances or len(instances) == 0:
@@ -93,6 +185,19 @@ class SensorType(APIBase):
         sensor_type_name: str = None,
         sensor_type_info: dict = None
     ) -> Optional[List["SensorType"]]:
+        """
+        Search for sensor types based on various criteria.
+
+        Examples:
+            >>> SensorType.search(sensor_type_name="TemperatureSensor")
+            [SensorType(sensor_type_name='TemperatureSensor', id=UUID(...))]
+
+        Args:
+            sensor_type_name (str, optional): The name of the sensor type. Defaults to None.
+            sensor_type_info (dict, optional): Additional information. Defaults to None.
+        Returns:
+            Optional[List[SensorType]]: List of matching sensor types, or None if not found.
+        """
         try:
             if not any([sensor_type_name, sensor_type_info]):
                 print("At least one search parameter must be provided.")
@@ -116,6 +221,20 @@ class SensorType(APIBase):
         sensor_type_name: str = None,
         sensor_type_info: dict = None,
     ) -> Optional["SensorType"]:
+        """
+        Update the details of the sensor type.
+
+        Examples:
+            >>> sensor_type = SensorType.get("TemperatureSensor")
+            >>> sensor_type.update(sensor_type_name="NewTemperatureSensor")
+            SensorType(sensor_type_name='NewTemperatureSensor', id=UUID(...))
+
+        Args:
+            sensor_type_name (str, optional): The new name. Defaults to None.
+            sensor_type_info (dict, optional): The new information. Defaults to None.
+        Returns:
+            Optional[SensorType]: The updated sensor type, or None if an error occurred.
+        """
         try:
             if not any([sensor_type_name, sensor_type_info]):
                 print("At least one parameter must be provided for update.")
@@ -140,6 +259,17 @@ class SensorType(APIBase):
             return None
 
     def delete(self) -> bool:
+        """
+        Delete the sensor type.
+
+        Examples:
+            >>> sensor_type = SensorType.get("TemperatureSensor")
+            >>> sensor_type.delete()
+            True
+
+        Returns:
+            bool: True if the sensor type was deleted, False otherwise.
+        """
         try:
             current_id = self.id
             sensor_type = SensorTypeModel.get(current_id)
@@ -153,6 +283,17 @@ class SensorType(APIBase):
             return False
 
     def refresh(self) -> Optional["SensorType"]:
+        """
+        Refresh the sensor type's data from the database.
+
+        Examples:
+            >>> sensor_type = SensorType.get("TemperatureSensor")
+            >>> sensor_type.refresh()
+            SensorType(sensor_type_name='TemperatureSensor', id=UUID(...))
+
+        Returns:
+            Optional[SensorType]: The refreshed sensor type, or None if an error occurred.
+        """
         try:
             db_instance = SensorTypeModel.get(self.id)
             if not db_instance:
@@ -168,6 +309,17 @@ class SensorType(APIBase):
             return None
 
     def get_info(self) -> Optional[dict]:
+        """
+        Get the additional information of the sensor type.
+
+        Examples:
+            >>> sensor_type = SensorType.get("TemperatureSensor")
+            >>> sensor_type.get_info()
+            {'unit': 'Celsius'}
+
+        Returns:
+            Optional[dict]: The sensor type's info, or None if not found.
+        """
         try:
             current_id = self.id
             sensor_type = SensorTypeModel.get(current_id)
@@ -184,6 +336,20 @@ class SensorType(APIBase):
             return None
 
     def set_info(self, sensor_type_info: dict) -> Optional["SensorType"]:
+        """
+        Set the additional information of the sensor type.
+
+        Examples:
+            >>> sensor_type = SensorType.get("TemperatureSensor")
+            >>> sensor_type.set_info({"unit": "Celsius"})
+            >>> sensor_type.get_info()
+            {'unit': 'Celsius'}
+
+        Args:
+            sensor_type_info (dict): The new information to set.
+        Returns:
+            Optional[SensorType]: The updated sensor type, or None if an error occurred.
+        """
         try:
             current_id = self.id
             sensor_type = SensorTypeModel.get(current_id)

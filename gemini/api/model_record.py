@@ -1,3 +1,24 @@
+"""
+This module defines the ModelRecord class, which represents a record of a model, including metadata, associations to datasets and experiments, and file handling capabilities.
+
+It includes methods for creating, retrieving, updating, and deleting model records, as well as methods for checking existence, searching, and managing file handling for records.
+
+This module includes the following methods:
+
+- `exists`: Check if a model record with the given parameters exists.
+- `create`: Create a new model record.
+- `get_by_id`: Retrieve a model record by its ID.
+- `get_all`: Retrieve all model records.
+- `search`: Search for model records based on various criteria.
+- `update`: Update the details of a model record.
+- `delete`: Delete a model record.
+- `refresh`: Refresh the model record's data from the database.
+- `get_info`: Get the additional information of the model record.
+- `set_info`: Set the additional information of the model record.
+- File handling methods from FileHandlerMixin for managing record files.
+
+"""
+
 from typing import Optional, List, Generator
 import os, mimetypes
 from uuid import UUID
@@ -6,28 +27,34 @@ from tqdm import tqdm
 from gemini.api.types import ID
 from pydantic import Field, AliasChoices
 from gemini.api.base import APIBase, FileHandlerMixin
-from gemini.api.dataset import Dataset, GEMINIDatasetType
-from gemini.db.models.models import ModelModel
-from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.model_records import ModelRecordModel
 from gemini.db.models.views.model_records_immv import ModelRecordsIMMVModel
-from gemini.db.models.views.dataset_views import ModelDatasetsViewModel
-from gemini.db.models.views.validation_views import ValidModelDatasetCombinationsViewModel
-from gemini.db.models.views.experiment_views import (
-    ExperimentModelsViewModel,
-    ExperimentDatasetsViewModel,
-    ExperimentSeasonsViewModel,
-    ExperimentSitesViewModel,
-)
-
-from gemini.db.models.experiments import ExperimentModel
-from gemini.db.models.datasets import DatasetModel
-from gemini.db.models.associations import ModelDatasetModel
 
 from datetime import date, datetime
 
 class ModelRecord(APIBase, FileHandlerMixin):
+    """
+    Represents a record of a model, including metadata, associations to datasets and experiments, and file handling capabilities.
 
+    Attributes:
+        id (Optional[ID]): The unique identifier of the model record.
+        timestamp (Optional[datetime]): The timestamp of the record.
+        collection_date (Optional[date]): The collection date of the record.
+        dataset_id (Optional[ID]): The ID of the associated dataset.
+        dataset_name (Optional[str]): The name of the associated dataset.
+        model_id (Optional[ID]): The ID of the associated model.
+        model_name (Optional[str]): The name of the associated model.
+        model_data (Optional[dict]): The data content of the model record.
+        experiment_id (Optional[ID]): The ID of the associated experiment.
+        experiment_name : Optional[str] = None
+        season_id: Optional[ID] = None
+        season_name: Optional[str] = None
+        site_id: Optional[ID] = None
+        site_name: Optional[str] = None
+        record_file: Optional[str] = None
+        record_info: Optional[dict] = None
+
+    """
     id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "model_record_id"))
 
     timestamp: Optional[datetime] = None
@@ -47,10 +74,12 @@ class ModelRecord(APIBase, FileHandlerMixin):
     record_info: Optional[dict] = None
 
     def __str__(self):
-        return f"ModelRecord(id={self.id}, timestamp={self.timestamp}, model_name={self.model_name}, dataset_name={self.dataset_name}, experiment_name={self.experiment_name}, site_name={self.site_name}, season_name={self.season_name})"
+        """Return a string representation of the ModelRecord object."""
+        return f"ModelRecord(id={self.id}, timestamp={self.timestamp}, model_data={self.model_data}, model_name={self.model_name}, dataset_name={self.dataset_name}, experiment_name={self.experiment_name}, site_name={self.site_name}, season_name={self.season_name})"
     
     def __repr__(self):
-        return f"ModelRecord(id={self.id}, timestamp={self.timestamp}, model_name={self.model_name}, dataset_name={self.dataset_name}, experiment_name={self.experiment_name}, site_name={self.site_name}, season_name={self.season_name})"
+        """Return a detailed string representation of the ModelRecord object."""
+        return f"ModelRecord(id={self.id}, timestamp={self.timestamp}, model_data={self.model_data}, model_name={self.model_name}, dataset_name={self.dataset_name}, experiment_name={self.experiment_name}, site_name={self.site_name}, season_name={self.season_name})"
     
     @classmethod
     def exists(
@@ -62,6 +91,31 @@ class ModelRecord(APIBase, FileHandlerMixin):
         season_name: str,
         site_name: str
     ) -> bool:
+        """
+        Check if a model record with the given parameters exists.
+
+        Examples:
+            >>> ModelRecord.exists(
+            ...     timestamp=datetime.now(),
+            ...     model_name="example_model",
+            ...     dataset_name="example_dataset",
+            ...     experiment_name="example_experiment",
+            ...     season_name="example_season",
+            ...     site_name="example_site"
+            ... )
+            True
+        
+        Args:
+            timestamp (datetime): The timestamp of the model record.
+            model_name (str): The name of the model.
+            dataset_name (str): The name of the dataset.
+            experiment_name (str): The name of the experiment.
+            season_name (str): The name of the season.
+            site_name (str): The name of the site.
+
+        Returns:
+            bool: True if the model record exists, False otherwise.
+        """
         try:
             exists = ModelRecordModel.exists(
                 timestamp=timestamp,
@@ -91,6 +145,42 @@ class ModelRecord(APIBase, FileHandlerMixin):
         record_info: dict = {},
         insert_on_create: bool = True
     ) -> Optional["ModelRecord"]:
+        """
+        Create a new model record.
+
+        Examples:
+            >>> model_record = ModelRecord.create(
+            ...     timestamp=datetime.now(),
+            ...     collection_date=date.today(),
+            ...     dataset_name="example_dataset",
+            ...     model_name="example_model",
+            ...     model_data={"key": "value"},
+            ...     experiment_name="example_experiment",
+            ...     site_name="example_site",
+            ...     season_name="example_season",
+            ...     record_file="path/to/record_file.txt",
+            ...     record_info={"info_key": "info_value"},
+            ...     insert_on_create=True
+            ... )
+            >>> print(model_record)
+            ModelRecord(id=UUID(...), timestamp=2023-10-01 12:00:00, model_name=example_model, model_data={...}, dataset_name=example_dataset, experiment_name=example_experiment, site_name=example_site, season_name=example_season)
+
+        Args:
+            timestamp (datetime): The timestamp of the model record. Defaults to the current time.
+            collection_date (date): The collection date of the model record. Defaults to the timestamp's date.
+            dataset_name (str): The name of the associated dataset. Required.
+            model_name (str): The name of the associated model. Required.
+            model_data (dict): The data content of the model record. Defaults to an empty dictionary
+            experiment_name (str): The name of the associated experiment. Optional.
+            site_name (str): The name of the associated site. Optional.
+            season_name (str): The name of the associated season. Optional.
+            record_file (str): The file path of the model record. Optional.
+            record_info (dict): Additional information about the model record. Defaults to an empty dictionary.
+            insert_on_create (bool): Whether to insert the record into the database upon creation. Defaults to True.
+
+        Returns:
+            Optional["ModelRecord"]: The created model record, or None if an error occurred.
+        """
         try:
             if not any([experiment_name, site_name, season_name]):
                 raise ValueError("At least one of experiment_name, site_name, or season_name must be provided.")
@@ -133,6 +223,16 @@ class ModelRecord(APIBase, FileHandlerMixin):
         
     @classmethod
     def insert(cls, records: List["ModelRecord"]) -> tuple[bool, List[str]]:
+        """
+        Insert a list of model records into the database.
+
+        Args:
+            records (List[ModelRecord]): List of model records to insert.
+    
+
+        Returns:
+            tuple[bool, List[str]]: Success status and list of inserted record IDs.
+        """
         try:
             if not records or len(records) == 0:
                 print(f"No records provided for insertion.")
@@ -161,6 +261,33 @@ class ModelRecord(APIBase, FileHandlerMixin):
         season_name: str = None,
         site_name: str = None
     ) -> Optional["ModelRecord"]:
+        """
+        Retrieve model records based on provided parameters.
+
+        Examples:
+            >>> model_record = ModelRecord.get(
+            ...     timestamp=datetime.now(),
+            ...     model_name="example_model",
+            ...     dataset_name="example_dataset",
+            ...     experiment_name="example_experiment",
+            ...     season_name="example_season"
+            ...     site_name="example_site"
+            ... )
+            >>> print(model_record)
+            ModelRecord(id=UUID(...), timestamp=2023-10-01 12:00:00, model_name=example_model, model_data={...}, dataset_name=example_dataset, experiment_name=example_experiment, site_name=example_site, season_name=example_season)
+
+        Args:
+            timestamp (datetime): The timestamp of the model record.
+            model_name (str): The name of the model.
+            dataset_name (str): The name of the dataset.
+            experiment_name (str): The name of the experiment. Optional.
+            season_name (str): The name of the season. Optional.
+            site_name (str): The name of the site. Optional.
+
+
+        Returns:
+            Optional[List["ModelRecord"]]: List of matching model records, or None if not found.
+        """
         try:
             if not timestamp:
                 print(f"Timestamp is required to get ModelRecord.")
@@ -193,6 +320,20 @@ class ModelRecord(APIBase, FileHandlerMixin):
         
     @classmethod
     def get_by_id(cls, id: UUID | int | str) -> Optional["ModelRecord"]:
+        """
+        Retrieve a model record by its ID
+
+        Examples:
+            >>> model_record = ModelRecord.get_by_id(UUID('...'))
+            >>> print(model_record)
+            ModelRecord(id=UUID(...), timestamp=2023-10-01 12:00:00, model_name=example_model, model_data={...}, dataset_name=example_dataset, experiment_name=example_experiment, site_name=example_site, season_name=example_season)
+            
+        Args:
+            id (UUID | int | str): The unique identifier of the model record.
+
+        Returns:
+            Optional["ModelRecord"]: The model record, or None if not found.
+        """
         try:
             db_instance = ModelRecordModel.get(id)
             if not db_instance:
@@ -206,6 +347,22 @@ class ModelRecord(APIBase, FileHandlerMixin):
         
     @classmethod
     def get_all(cls, limit: int = 100) -> Optional[List["ModelRecord"]]:
+        """
+        Retrieve all model records, up to a specified limit.
+
+        Examples:
+            >>> model_records = ModelRecord.get_all(limit=10)
+            >>> for record in model_records:
+            ...     print(record)
+            ModelRecord(id=UUID(...), timestamp=2023-10-01 12:00:00, model_name=example_model, model_data={...}, dataset_name=example_dataset, experiment_name=example_experiment, site_name=example_site, season_name=example_season)
+            ModelRecord(id=UUID(...), timestamp=2023-10-02 12:00:00, model_name=example_model2, model_data={...}, dataset_name=example_dataset2, experiment_name=example_experiment2, site_name=example_site2, season_name=example_season2)
+
+        Args:
+            limit (int): The maximum number of model records to retrieve. Defaults to 100.
+
+        Returns:
+            Optional[List["ModelRecord"]]: List of model records, or None if not found.
+        """
         try:
             records = ModelRecordModel.all(limit=limit)
             if not records or len(records) == 0:
@@ -229,6 +386,36 @@ class ModelRecord(APIBase, FileHandlerMixin):
         collection_date: date = None,
         record_info: dict = None
     ) -> Generator["ModelRecord", None, None]:
+        """
+        Search for model records based on various criteria.
+
+        Examples:
+            >>> for record in ModelRecord.search(
+            ...     model_name="example_model",
+            ...     dataset_name="example_dataset",
+            ...     experiment_name="example_experiment",
+            ...     site_name="example_site",
+            ...     season_name="example_season",
+            ...     collection_date=date.today(),
+            ...     record_info={"info_key": "info_value"}
+            ... ):
+            ...     print(record)
+            ModelRecord(id=UUID(...), timestamp=2023-10-01 12:00:00, model_name=example_model, model_data={...}, dataset_name=example_dataset, experiment_name=example_experiment, site_name=example_site, season_name=example_season)
+
+        Args:
+            model_name (str): The name of the model. Optional.
+            model_data (dict): The data content of the model record. Optional.
+            dataset_name (str): The name of the associated dataset. Optional.
+            experiment_name (str): The name of the associated experiment. Optional.
+            site_name (str): The name of the associated site. Optional.
+            season_name (str): The name of the associated season. Optional.
+            collection_date (date): The collection date of the model record. Optional.
+            record_info (dict): Additional information about the model record. Optional.
+
+
+        Returns:
+            Optional[List["ModelRecord"]]: List of matching model records, or None if not found.
+        """
         try:
             if not any([model_name, dataset_name, experiment_name, site_name, season_name, collection_date, record_info]):
                 print(f"At least one parameter must be provided for search.")
@@ -261,6 +448,34 @@ class ModelRecord(APIBase, FileHandlerMixin):
         site_names: List[str] = None,
         season_names: List[str] = None
     ) -> Generator["ModelRecord", None, None]:
+        """
+        Filter model records based on custom logic.
+
+        Examples:
+            >>> for record in ModelRecord.filter(
+            ...     model_names=["example_model"],
+            ...     dataset_names=["example_dataset"],
+            ...     start_timestamp=datetime(2023, 1, 1),
+            ...     end_timestamp=datetime(2023, 12, 31),
+            ...     experiment_names=["example_experiment"],
+            ...     site_names=["example_site"],
+            ...     season_names=["example_season"]
+            ... ):
+            ...     print(record)
+            ModelRecord(id=UUID(...), timestamp=2023-10-01 12:00:00, model_name=example_model, model_data={...}, dataset_name=example_dataset, experiment_name=example_experiment, site_name=example_site, season_name=example_season)
+
+        Args:
+            model_names (List[str]): List of model names to filter by. Optional.
+            dataset_names (List[str]): List of dataset names to filter by. Optional.
+            start_timestamp (datetime): Start timestamp for filtering. Optional.
+            end_timestamp (datetime): End timestamp for filtering. Optional.
+            experiment_names (List[str]): List of experiment names to filter by. Optional.
+            site_names (List[str]): List of site names to filter by. Optional.
+            season_names (List[str]): List of season names to filter by. Optional.
+
+        Returns:
+            Optional[List["ModelRecord"]]: List of filtered model records, or None if not found.
+        """
         try:
             if not any([model_names, dataset_names, start_timestamp, end_timestamp, experiment_names, site_names, season_names]):
                 print(f"At least one parameter must be provided for filter.")
@@ -286,6 +501,21 @@ class ModelRecord(APIBase, FileHandlerMixin):
         model_data: dict = None,
         record_info: dict = None
     ) -> Optional["ModelRecord"]:
+        """
+        Update the details of the model record.
+
+        Examples:
+            >>> model_record = ModelRecord.get_by_id(UUID('...'))
+            >>> updated_record = model_record.update(
+            ...     model_data={"new_key": "new_value"},
+            ...     record_info={"new_info_key": "new_info_value"}
+            ... )
+            >>> print(updated_record)
+            ModelRecord(id=UUID(...), timestamp=2023-10-01 12:00:00, model_name=example_model, model_data={...}, dataset_name=example_dataset, experiment_name=example_experiment, site_name=example_site, season_name=example_season)
+
+        Returns:
+            Optional["ModelRecord"]: The updated model record, or None if an error occurred.
+        """
         try:
             if not any([model_data, record_info]):
                 print(f"At least one parameter must be provided for update.")
@@ -308,6 +538,18 @@ class ModelRecord(APIBase, FileHandlerMixin):
             return None
         
     def delete(self) -> bool:
+        """
+        Delete the model record.
+
+        Examples:
+            >>> model_record = ModelRecord.get_by_id(UUID('...'))
+            >>> deleted = model_record.delete()
+            >>> print(deleted)
+            True
+
+        Returns:
+            bool: True if the model record was deleted, False otherwise.
+        """
         try:
             current_id = self.id
             model_record = ModelRecordModel.get(current_id)
@@ -321,6 +563,19 @@ class ModelRecord(APIBase, FileHandlerMixin):
             return False
         
     def refresh(self) -> Optional["ModelRecord"]:
+        """
+        Refresh the model record's data from the database. It is rarely called by the user
+        as it is automatically called on access.
+
+        Examples:
+            >>> model_record = ModelRecord.get_by_id(UUID('...'))
+            >>> refreshed_record = model_record.refresh()
+            >>> print(refreshed_record)
+            ModelRecord(id=UUID(...), timestamp=2023-10-01 12:00:00, model_name=example_model, model_data={...}, dataset_name=example_dataset, experiment_name=example_experiment, site_name=example_site, season_name=example_season)
+
+        Returns:
+            Optional["ModelRecord"]: The refreshed model record, or None if an error occurred.
+        """
         try:
             db_instance = ModelRecordModel.get(self.id)
             if not db_instance:
@@ -336,6 +591,18 @@ class ModelRecord(APIBase, FileHandlerMixin):
             return None
         
     def get_info(self) -> Optional[dict]:
+        """
+        Get the additional information of the model record.
+
+        Examples:
+            >>> model_record = ModelRecord.get_by_id(UUID('...'))
+            >>> record_info = model_record.get_info()
+            >>> print(record_info)
+            {'info_key': 'info_value'}
+
+        Returns:
+            Optional[dict]: The model record's info, or None if not found.
+        """
         try:
             current_id = self.id
             model_record = ModelRecordModel.get(current_id)
@@ -352,6 +619,18 @@ class ModelRecord(APIBase, FileHandlerMixin):
             return None
         
     def set_info(self, record_info: dict) -> Optional["ModelRecord"]:
+        """
+        Set the additional information of the model record.
+
+        Examples:
+            >>> model_record = ModelRecord.get_by_id(UUID('...'))
+            >>> record_info = model_record.get_info()
+            >>> print(record_info)
+            {'info_key': 'info_value'}
+
+        Returns:
+            Optional["ModelRecord"]: The updated model record, or None if an error occurred.
+        """
         try:
             current_id = self.id
             model_record = ModelRecordModel.get(current_id)
@@ -371,6 +650,29 @@ class ModelRecord(APIBase, FileHandlerMixin):
         
     @classmethod
     def create_file_uri(cls, record: "ModelRecord") -> Optional[str]:
+        """
+        Create a file URI for the given model record.
+
+        Examples:
+            >>> record = ModelRecord(
+            ...     timestamp=datetime.now(),
+            ...     collection_date=date.today(),
+            ...     dataset_name="example_dataset",
+            ...     model_name="example_model",
+            ...     model_data={"key": "value"},
+            ...     experiment_name="example_experiment",
+            ...     site_name="example_site",
+            ...     season_name="example_season",
+            ...     record_file="path/to/record_file.txt",
+            ...     record_info={"info_key": "info_value"}
+            ... )
+            >>> file_uri = ModelRecord.create_file_uri(record)
+            >>> print(file_uri)
+            model_data/example_experiment/example_model/example_dataset/2023-10-01/example_site/example_season/1700000000000.txt
+
+        Returns:
+            Optional[str]: The file URI, or None if creation failed.
+        """
         try:
             original_file_path = record.record_file
             if not original_file_path:
@@ -396,6 +698,33 @@ class ModelRecord(APIBase, FileHandlerMixin):
 
     @classmethod
     def process_record(cls, record: "ModelRecord") -> "ModelRecord":
+        """
+        Process a model record (custom logic).
+
+        This method handles the file upload to the storage provider and updates the record's file URI.
+
+        Examples:
+            >>> record = ModelRecord(
+            ...     timestamp=datetime.now(),
+            ...     collection_date=date.today(),
+            ...     dataset_name="example_dataset",
+            ...     model_name="example_model",
+            ...     model_data={"key": "value"},
+            ...     experiment_name="example_experiment",
+            ...     site_name="example_site",
+            ...     season_name="example_season",
+            ...     record_file="path/to/record_file.txt",
+            ...     record_info={"info_key": "info_value"}
+            ... )
+            >>> processed_record = ModelRecord.process_record(record)
+            >>> print(processed_record)
+            ModelRecord(id=UUID(...), timestamp=2023-10-01 12:00:00, model_name=example_model, model_data={...}, dataset_name=example_dataset, experiment_name=example_experiment, site_name=example_site, season_name=example_season)
+        Args:
+            record (ModelRecord): The model record to process.
+
+        Returns:
+            ModelRecord: The processed model record.
+        """
         try:
             file = record.record_file
             if not file:
@@ -429,4 +758,3 @@ class ModelRecord(APIBase, FileHandlerMixin):
             print(f"Error processing ModelRecord: {e}")
             return record
 
-    

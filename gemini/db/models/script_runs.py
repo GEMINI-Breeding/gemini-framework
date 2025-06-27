@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for ScriptRun entities in the GEMINI database.
+"""
+
 from sqlalchemy import (
     JSON,
     String,
@@ -19,6 +23,16 @@ from datetime import datetime
 
 
 class ScriptRunModel(BaseModel):
+    """
+    Represents a script run in the GEMINI database.
+
+    Attributes:
+        id (uuid.UUID): Unique identifier for the script run.
+        script_id (uuid.UUID): Foreign key referencing the script.
+        script_run_info (dict): Additional JSONB data for the script run.
+        created_at (datetime): Timestamp when the record was created.
+        updated_at (datetime): Timestamp when the record was last updated.
+    """
     __tablename__ = "script_runs"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)
@@ -31,5 +45,3 @@ class ScriptRunModel(BaseModel):
         UniqueConstraint("script_id", "script_run_info"),
         Index("idx_script_runs_info", "script_run_info", postgresql_using="GIN"),
     )
-
-

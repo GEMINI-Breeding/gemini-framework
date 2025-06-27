@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for columnar SensorRecord entities in the GEMINI database.
+"""
+
 from sqlalchemy.orm import relationship, mapped_column, Mapped, Relationship
 from sqlalchemy import UUID, JSON, String, Integer, UniqueConstraint, Index, ForeignKey, TIMESTAMP, DATE
 from sqlalchemy.dialects.postgresql import JSONB
@@ -10,6 +14,31 @@ from typing import Optional, List
 
 
 class SensorRecordModel(ColumnarBaseModel):
+    """
+    Represents a sensor record in the GEMINI database.
+
+    Attributes:
+        id (uuid.UUID): Unique identifier for the sensor record.
+        timestamp (datetime): Timestamp of the record.
+        collection_date (date): The date when the data was collected.
+        dataset_id (UUID): Foreign key referencing the dataset.
+        dataset_name (str): The name of the dataset.
+        sensor_id (UUID): Foreign key referencing the sensor.
+        sensor_name (str): The name of the sensor.
+        sensor_data (dict): Additional JSONB data for the sensor.
+        experiment_id (UUID): Foreign key referencing the experiment.
+        experiment_name (str): The name of the experiment.
+        season_id (UUID): Foreign key referencing the season.
+        season_name (str): The name of the season.
+        site_id (UUID): Foreign key referencing the site.
+        site_name (str): The name of the site.
+        plot_id (UUID): Foreign key referencing the plot.
+        plot_number (str): The number of the plot.
+        plot_row_number (str): The row number of the plot.
+        plot_column_number (str): The column number of the plot.
+        record_file (str): The file where the record is stored.
+        record_info (dict): Additional JSONB data for the record.
+    """
 
     __tablename__ = "sensor_records"
 
@@ -93,4 +122,3 @@ class SensorRecordModel(ColumnarBaseModel):
             result = session.execute(stmt, execution_options={"yield_per": 1000})
             for record in result:
                 yield record
-

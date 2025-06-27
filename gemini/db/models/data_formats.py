@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for DataFormat entities in the GEMINI database.
+"""
+
 from sqlalchemy import JSON, String, TIMESTAMP, UniqueConstraint, Index, Integer, Identity
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
@@ -11,6 +15,17 @@ import uuid
 
 
 class DataFormatModel(BaseModel):
+    """
+    Represents a data format in the GEMINI database.
+
+    Attributes:
+        id (int): Unique integer identifier for the data format.
+        data_format_name (str): The name of the data format (e.g., "CSV", "JSON").
+        data_format_mime_type (str): The MIME type associated with the data format.
+        data_format_info (dict): Additional JSONB data for the data format.
+        created_at (datetime): Timestamp when the record was created.
+        updated_at (datetime): Timestamp when the record was last updated.
+    """
     __tablename__ = "data_formats"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -24,4 +39,3 @@ class DataFormatModel(BaseModel):
         UniqueConstraint('data_format_name', name='data_format_unique'),
         Index('idx_data_formats_info', 'data_format_info', postgresql_using='GIN')
     )
-

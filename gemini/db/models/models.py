@@ -1,7 +1,10 @@
+"""
+SQLAlchemy model for Model entities in the GEMINI database.
+"""
+
 from sqlalchemy import (
     JSON,
     String,
-    TIMESTAMP,
     UniqueConstraint,
     Index,
     Integer,
@@ -10,7 +13,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import UUID, JSONB, TIMESTAMP
 
 from gemini.db.core.base import BaseModel
 
@@ -18,6 +21,17 @@ from datetime import datetime
 import uuid
 
 class ModelModel(BaseModel):
+    """
+    Represents a model in the GEMINI database.
+
+    Attributes:
+        id (uuid.UUID): Unique identifier for the model.
+        model_name (str): The name of the model.
+        model_url (str): The URL where the model can be accessed.
+        model_info (dict): Additional JSONB data for the model.
+        created_at (datetime): Timestamp when the record was created.
+        updated_at (datetime): Timestamp when the record was last updated.
+    """
     __tablename__ = "models"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)

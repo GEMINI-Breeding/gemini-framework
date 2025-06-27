@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for columnar ModelRecord entities in the GEMINI database.
+"""
+
 from sqlalchemy.orm import relationship, mapped_column, Mapped, Relationship
 from sqlalchemy import UUID, JSON, String, Integer, UniqueConstraint, Index, ForeignKey, TIMESTAMP, DATE
 from sqlalchemy.dialects.postgresql import JSONB
@@ -9,6 +13,27 @@ from typing import Optional, List
 
 
 class ModelRecordModel(ColumnarBaseModel):
+    """
+    Represents a model record in the GEMINI database.
+
+    Attributes:
+        id (uuid.UUID): Unique identifier for the model record.
+        timestamp (datetime): Timestamp of the record.
+        collection_date (date): The date when the data was collected.
+        dataset_id (UUID): Foreign key referencing the dataset.
+        dataset_name (str): The name of the dataset.
+        model_id (UUID): Foreign key referencing the model.
+        model_name (str): The name of the model.
+        model_data (dict): Additional JSONB data for the model.
+        experiment_id (UUID): Foreign key referencing the experiment.
+        experiment_name (str): The name of the experiment.
+        season_id (UUID): Foreign key referencing the season.
+        season_name (str): The name of the season.
+        site_id (UUID): Foreign key referencing the site.
+        site_name (str): The name of the site.
+        record_file (str): The file where the record is stored.
+        record_info (dict): Additional JSONB data for the record.
+    """
 
     __tablename__ = "model_records"
 

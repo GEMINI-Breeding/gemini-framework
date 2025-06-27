@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for Procedure entities in the GEMINI database.
+"""
+
 from sqlalchemy import (
     JSON,
     String,
@@ -19,6 +23,16 @@ import uuid
 
 
 class ProcedureModel(BaseModel):
+    """
+    Represents a procedure in the GEMINI database.
+
+    Attributes:
+        id (uuid.UUID): Unique identifier for the procedure.
+        procedure_name (str): The name of the procedure.
+        procedure_info (dict): Additional JSONB data for the procedure.
+        created_at (datetime): Timestamp when the record was created.
+        updated_at (datetime): Timestamp when the record was last updated.
+    """
     __tablename__ = "procedures"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=False), primary_key=True, default=uuid.uuid4)

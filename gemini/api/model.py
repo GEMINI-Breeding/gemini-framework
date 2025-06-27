@@ -1,4 +1,26 @@
-from typing import Optional, List
+"""
+This module defines the Model class, which represents a model entity, including its metadata, associations to runs, experiments, datasets, and records.
+
+It includes methods for creating, retrieving, updating, and deleting models, as well as methods for checking existence, searching, and managing associations with related entities and records.
+
+This module includes the following methods:
+
+- `exists`: Check if a model with the given name exists.
+- `create`: Create a new model.
+- `get`: Retrieve a model by its name.
+- `get_by_id`: Retrieve a model by its ID.
+- `get_all`: Retrieve all models.
+- `search`: Search for models based on various criteria.
+- `update`: Update the details of a model.
+- `delete`: Delete a model.
+- `refresh`: Refresh the model's data from the database.
+- `get_info`: Get the additional information of the model.
+- `set_info`: Set the additional information of the model.
+- Association methods for runs, experiments, datasets, and records.
+
+"""
+
+from typing import Optional, List, TYPE_CHECKING
 from uuid import UUID
 from tqdm import tqdm
 
@@ -9,7 +31,6 @@ from gemini.api.dataset import Dataset, GEMINIDatasetType
 from gemini.api.model_run import ModelRun
 from gemini.api.model_record import ModelRecord
 from gemini.db.models.models import ModelModel
-from gemini.db.models.model_runs import ModelRunModel
 from gemini.db.models.associations import ExperimentModelModel, ModelDatasetModel
 from gemini.db.models.views.experiment_views import ExperimentModelsViewModel
 from gemini.db.models.views.dataset_views import ModelDatasetsViewModel
@@ -17,7 +38,21 @@ from gemini.db.models.views.run_views import ModelRunsViewModel
 
 from datetime import date, datetime
 
+if TYPE_CHECKING:
+    from gemini.api.experiment import Experiment
+    from gemini.api.dataset import Dataset
+    from gemini.api.model_run import ModelRun
+
 class Model(APIBase):
+    """
+    Represents a model entity, including its metadata, associations to runs, experiments, datasets, and records.
+
+    Attributes:
+        id (Optional[ID]): The unique identifier of the model.
+        model_name (str): The name of the model.
+        model_url (Optional[str]): The URL of the model.
+        model_info (Optional[dict]): Additional information about the model.
+    """
 
     id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "model_id"))
 
@@ -26,9 +61,11 @@ class Model(APIBase):
     model_info: Optional[dict] = None
 
     def __str__(self):
-        return f"Model(name={self.model_name}, url={self.model_url}, id={self.id})"
+        """Return a string representation of the Model object."""
+        return f"Model(model_name={self.model_name}, model_url={self.model_url}, id={self.id})"
     
     def __repr__(self):
+        """Return a detailed string representation of the Model object."""
         return f"Model(model_name={self.model_name}, model_url={self.model_url}, id={self.id})"
     
     @classmethod
@@ -36,6 +73,20 @@ class Model(APIBase):
         cls,
         model_name: str
     ) -> bool:
+        """
+        Check if a model with the given name exists.
+
+        Examples:
+            >>> Model.exists("example_model")
+            True
+            >>> Model.exists("non_existent_model")
+            False
+
+        Args:
+            model_name (str): The name of the model.
+        Returns:
+            bool: True if the model exists, False otherwise.
+        """
         try:
             exists = ModelModel.exists(model_name=model_name)
             return exists
@@ -51,6 +102,24 @@ class Model(APIBase):
         model_info: dict = {},
         experiment_name: str = None
     ) -> Optional["Model"]:
+        """
+        Create a new model.
+
+        If the model already exists, it will return the existing model.
+
+        Examples:
+            >>> model = Model.create("example_model", "http://example.com/model")
+            >>> print(model)
+            Model(model_name=example_model, model_url=http://example.com/model, id=123e456-e789-12d3-a456-426614174000)
+
+        Args:
+            model_name (str): The name of the model.
+            model_url (str, optional): The URL of the model. Defaults to None.
+            model_info (dict, optional): Additional information about the model. Defaults to {{}}.
+            experiment_name (str, optional): The name of the experiment to associate. Defaults to None.
+        Returns:
+            Optional["Model"]: The created model, or None if an error occurred.
+        """
         try:
             db_instance = ModelModel.get_or_create(
                 model_name=model_name,
@@ -71,6 +140,19 @@ class Model(APIBase):
         model_name: str,
         experiment_name: str = None
     ) -> Optional["Model"]:
+        """
+        Retrieve a model by its name.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> print(model)
+            Model(model_name=example_model, model_url=http://example.com/model, id=UUID('...'))
+
+        Args:
+            model_name (str): The name of the model.
+        Returns:
+            Optional["Model"]: The model, or None if not found.
+        """
         try:
             db_instance = ExperimentModelsViewModel.get_by_parameters(
                 model_name=model_name,
@@ -87,6 +169,18 @@ class Model(APIBase):
         
     @classmethod
     def get_by_id(cls, id: UUID | int | str) -> Optional["Model"]:
+        """
+        Retrieve a model by its ID.
+
+        Examples:
+            >>> model = Model.get_by_id(UUID('...'))
+            Model(model_name=example_model, model_url=http://example.com/model, id=UUID('...'))
+
+        Args:
+            id (UUID | int | str): The ID of the model.
+        Returns:
+            Optional["Model"]: The model, or None if not found.
+        """
         try:
             db_instance = ModelModel.get(id)
             if not db_instance:
@@ -100,6 +194,19 @@ class Model(APIBase):
         
     @classmethod
     def get_all(cls) -> Optional[List["Model"]]:
+        """
+        Retrieve all models.
+
+        Examples:
+            >>> models = Model.get_all()
+            >>> for model in models:
+            ...     print(model)
+            Model(model_name=example_model1, model_url=http://example.com/model1, id=UUID('...'))
+            Model(model_name=example_model2, model_url=http://example.com/model2, id=UUID('...'))
+
+        Returns:
+            Optional[List["Model"]]: List of all models, or None if not found.
+        """
         try:
             models = ModelModel.all()
             if not models or len(models) == 0:
@@ -119,6 +226,23 @@ class Model(APIBase):
         model_url: str = None,
         experiment_name: str = None
     ) -> Optional[List["Model"]]:
+        """
+        Search for models based on various criteria.
+
+        Examples:
+            >>> models = Model.search(model_name="example_model")
+            >>> for model in models:
+            ...     print(model)
+            Model(model_name=example_model, model_url=http://example.com/model, id=UUID('...'))
+
+        Args:
+            model_name (str, optional): The name of the model. Defaults to None.
+            model_url (str, optional): The URL of the model. Defaults to None.
+            model_info (dict, optional): Additional information. Defaults to None.
+            experiment_name (str, optional): The name of the experiment to filter by. Defaults to None.
+        Returns:
+            Optional[List["Model"]]: List of matching models, or None if not found.
+        """
         try:
             if not any([model_name, model_info, model_url, experiment_name]):
                 print("At least one search parameter must be provided.")
@@ -144,6 +268,21 @@ class Model(APIBase):
         model_url: str = None,
         model_info: dict = None
     ) -> Optional["Model"]:
+        """
+        Update the details of the model.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> updated_model = model.update(model_name="new_example_model")
+            >>> print(updated_model)
+            Model(model_name=new_example_model, model_url=http://example.com/model, id=UUID('...'))
+        Args:
+            model_name (str, optional): The new name. Defaults to None.
+            model_url (str, optional): The new URL. Defaults to None.
+            model_info (dict, optional): The new information. Defaults to None.
+        Returns:
+            Optional["Model"]: The updated model, or None if an error occurred.
+        """
         try:
             if not any([model_name, model_url, model_info]):
                 print("At least one update parameter must be provided.")
@@ -167,6 +306,18 @@ class Model(APIBase):
             return None
         
     def delete(self) -> bool:
+        """
+        Delete the model.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> success = model.delete()
+            >>> print(success)
+            True
+
+        Returns:
+            bool: True if the model was deleted, False otherwise.
+        """
         try:
             current_id = self.id
             model = ModelModel.get(current_id)
@@ -180,6 +331,18 @@ class Model(APIBase):
             return False
         
     def refresh(self) -> Optional["Model"]:
+        """
+        Refresh the model's data from the database.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> refreshed_model = model.refresh()
+            >>> print(refreshed_model)
+            Model(model_name=example_model, model_url=http://example.com/model, id=UUID('...'))
+
+        Returns:
+            Optional["Model"]: The refreshed model, or None if an error occurred.
+        """
         try:
             db_instance = ModelModel.get(self.id)
             if not db_instance:
@@ -195,6 +358,18 @@ class Model(APIBase):
             return None
         
     def get_info(self) -> Optional[dict]:
+        """
+        Get the additional information of the model.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> info = model.get_info()
+            >>> print(info)
+            {'key1': 'value1', 'key2': 'value2'}
+
+        Returns:
+            Optional[dict]: The model's info, or None if not found.
+        """
         try:
             current_id = self.id
             model = ModelModel.get(current_id)
@@ -211,6 +386,20 @@ class Model(APIBase):
             return None
         
     def set_info(self, model_info: dict) -> Optional["Model"]:
+        """
+        Set the additional information of the model.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> updated_model = model.set_info({"key1": "new_value1", "key2": "new_value2"})
+            >>> print(updated_model.get_info())
+            {'key1': 'new_value1', 'key2': 'new_value2'}
+        
+        Args:
+            model_info (dict): The new information to set.
+        Returns:
+            Optional["Model"]: The updated model, or None if an error occurred.
+        """
         try:
             current_id = self.id
             model = ModelModel.get(current_id)
@@ -228,7 +417,21 @@ class Model(APIBase):
             print(f"Error setting model info: {e}")
             return None
         
-    def get_associated_runs(self):
+    def get_associated_runs(self) -> Optional[List["ModelRun"]]:
+        """
+        Get all runs associated with this model.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> runs = model.get_associated_runs()
+            >>> for run in runs:
+            ...     print(run)
+            ModelRun(id=UUID(...), model_id=UUID(...), model_run_info={...})
+            ModelRun(id=UUID(...), model_id=UUID(...), model_run_info={...})
+
+        Returns:
+            Optional[List["ModelRun"]]: A list of associated runs, or None if not found.
+        """
         try:
             from gemini.api.model_run import ModelRun
             current_id = self.id
@@ -242,7 +445,22 @@ class Model(APIBase):
             print(f"Error getting associated runs: {e}")
             return None
 
-    def create_new_run(self, model_run_info: dict):
+    def create_new_run(self, model_run_info: dict) -> Optional["ModelRun"]:
+        """
+        Create and associate a new run with this model.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> run_info = {"run_name": "example_run", "run_parameters": {"param1": "value1"}}
+            >>> new_run = model.create_new_run(run_info)
+            >>> print(new_run)
+            ModelRun(id=UUID(...), model_id=UUID(...), model_run_info={...})
+
+        Args:
+            model_run_info (dict): The run information for the new run.
+        Returns:
+            Optional["ModelRun"]: The created and associated run, or None if an error occurred.
+        """
         try:
             from gemini.api.model_run import ModelRun
             current_name = self.model_name
@@ -258,7 +476,21 @@ class Model(APIBase):
             print(f"Error creating run: {e}")
             return None
 
-    def get_associated_experiments(self):
+    def get_associated_experiments(self) -> Optional[List["Experiment"]]:
+        """
+        Get all experiments associated with this model.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> experiments = model.get_associated_experiments()
+            >>> for experiment in experiments:
+            ...     print(experiment)
+            Experiment(id=UUID(...), experiment_name="example_experiment", experiment_start_date="2023-10-01", experiment_end_date="2023-10-31")
+            Experiment(id=UUID(...), experiment_name="another_experiment", experiment_start_date="2023-11-01", experiment_end_date="2023-11-30")
+
+        Returns:
+            Optional[List["Experiment"]]: A list of associated experiments, or None if not found.
+        """
         try:
             from gemini.api.experiment import Experiment
             current_id = self.id
@@ -272,7 +504,21 @@ class Model(APIBase):
             print(f"Error getting associated experiments: {e}")
             return None
 
-    def associate_experiment(self, experiment_name: str):
+    def associate_experiment(self, experiment_name: str) -> Optional["Experiment"]:
+        """
+        Associate this model with an experiment.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> experiment = model.associate_experiment("example_experiment")
+            >>> print(experiment)
+            Experiment(id=UUID(...), experiment_name="example_experiment", experiment_start_date="2023-10-01", experiment_end_date="2023-10-31")
+
+        Args:
+            experiment_name (str): The name of the experiment to associate.
+        Returns:
+            Optional["Experiment"]: The associated experiment, or None if an error occurred.
+        """
         try:
             from gemini.api.experiment import Experiment
             experiment = Experiment.get(experiment_name=experiment_name)
@@ -299,7 +545,21 @@ class Model(APIBase):
             print(f"Error associating experiment: {e}")
             return None
 
-    def unassociate_experiment(self, experiment_name: str):
+    def unassociate_experiment(self, experiment_name: str) -> Optional["Experiment"]:
+        """
+        Unassociate this model from an experiment.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> experiment = model.unassociate_experiment("example_experiment")
+            >>> print(experiment)
+            Experiment(id=UUID(...), experiment_name="example_experiment", experiment_start_date="2023-10-01", experiment_end_date="2023-10-31")
+
+        Args:
+            experiment_name (str): The name of the experiment to unassociate.
+        Returns:
+            Optional["Experiment"]: The unassociated experiment, or None if an error occurred.
+        """
         try:
             from gemini.api.experiment import Experiment
             experiment = Experiment.get(experiment_name=experiment_name)
@@ -324,6 +584,20 @@ class Model(APIBase):
             return None
 
     def belongs_to_experiment(self, experiment_name: str) -> bool:
+        """
+        Check if this model is associated with a specific experiment.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> is_associated = model.belongs_to_experiment("example_experiment")
+            >>> print(is_associated)
+            True
+
+        Args:
+            experiment_name (str): The name of the experiment to check.
+        Returns:
+            bool: True if associated, False otherwise.
+        """
         try:
             from gemini.api.experiment import Experiment
             experiment = Experiment.get(experiment_name=experiment_name)
@@ -339,7 +613,21 @@ class Model(APIBase):
             print(f"Error checking experiment membership: {e}")
             return False
         
-    def get_associated_datasets(self):
+    def get_associated_datasets(self) -> Optional[List["Dataset"]]:
+        """
+        Get all datasets associated with this model.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> datasets = model.get_associated_datasets()
+            >>> for dataset in datasets:
+            ...     print(dataset)
+            Dataset(dataset_name="example_dataset", collection_date="2023-10-01", dataset_type=Model, id=UUID('...'))
+            Dataset(dataset_name="another_dataset", collection_date="2023-11-01", dataset_type=Model, id=UUID('...'))
+
+        Returns:
+            Optional[List["Dataset"]]: A list of associated datasets, or None if not found.
+        """
         try:
             from gemini.api.dataset import Dataset
             current_id = self.id
@@ -359,7 +647,24 @@ class Model(APIBase):
         dataset_info: dict = {},
         collection_date: date = None,
         experiment_name: str = None
-    ):
+    ) -> Optional["Dataset"]:
+        """
+        Create and associate a new dataset with this model.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> dataset = model.create_new_dataset("example_dataset", {"key": "value"})
+            >>> print(dataset)
+            Dataset(dataset_name="example_dataset", collection_date="2023-10-01", dataset_type=Model, id=UUID('...'))
+
+        Args:
+            dataset_name (str): The name of the new dataset.
+            dataset_info (dict, optional): Additional information about the dataset. Defaults to {{}}.
+            collection_date (date, optional): The collection date. Defaults to today.
+            experiment_name (str, optional): The name of the experiment to associate. Defaults to None.
+        Returns:
+            Optional["Dataset"]: The created and associated dataset, or None if an error occurred.
+        """
         try:
             from gemini.api.dataset import Dataset
             dataset = Dataset.create(
@@ -378,7 +683,21 @@ class Model(APIBase):
             print(f"Error creating dataset: {e}")
             return None
         
-    def associate_dataset(self, dataset_name: str):
+    def associate_dataset(self, dataset_name: str) -> Optional["Dataset"]:
+        """
+        Associate this model with a dataset.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> dataset = model.associate_dataset("example_dataset")
+            >>> print(dataset)
+            Dataset(dataset_name="example_dataset", collection_date="2023-10-01", dataset_type=Model, id=UUID('...'))
+
+        Args:
+            dataset_name (str): The name of the dataset to associate.
+        Returns:
+            Optional["Dataset"]: The associated dataset, or None if an error occurred.
+        """
         try:
             from gemini.api.dataset import Dataset
             dataset = Dataset.get(dataset_name=dataset_name)
@@ -418,6 +737,38 @@ class Model(APIBase):
         record_file: str = None,
         record_info: dict = {},
     ) -> tuple[bool, List[str]]:
+        """
+        Insert a single model record for this model.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> success, record_ids = model.insert_record(
+            ...     timestamp=datetime.now(),
+            ...     collection_date=date.today(),
+            ...     model_data={"key": "value"},
+            ...     dataset_name="example_dataset",
+            ...     experiment_name="example_experiment",
+            ...     season_name="example_season",
+            ...     site_name="example_site",
+            ...     record_file="path/to/record/file",
+            ...     record_info={"info_key": "info_value"}
+            ... )
+            >>> print(success, record_ids)
+            True [UUID('...')]
+
+        Args:
+            timestamp (datetime, optional): The timestamp for the record. Defaults to now.
+            collection_date (date, optional): The collection date for the record. Defaults to today.
+            model_data (dict, optional): The model data dictionary. Defaults to {}.
+            dataset_name (str, optional): The dataset name. Defaults to None.
+            experiment_name (str, optional): The experiment name. Defaults to None.
+            season_name (str, optional): The season name. Defaults to None.
+            site_name (str, optional): The site name. Defaults to None.
+            record_file (str, optional): The record file path. Defaults to None.
+            record_info (dict, optional): Additional record information dictionary. Defaults to {}.
+        Returns:
+            Optional[ModelRecord]: The inserted model record, or None if an error occurred.
+        """
         try:
             if not experiment_name and not season_name and not site_name:
                 raise ValueError("At least one of experiment_name, season_name, or site_name must be provided.")
@@ -463,6 +814,40 @@ class Model(APIBase):
         record_files: List[str] = [],
         record_info: List[dict] = []
     ) -> tuple[bool, List[str]]:
+        """
+        Insert multiple model records for this model.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> timestamps = [datetime.now(), datetime.now()]
+            >>> model_data = [{"key1": "value1"}, {"key2": "value2"}]
+            >>> success, record_ids = model.insert_records(
+            ...     timestamps=timestamps,
+            ...     collection_date=date.today(),
+            ...     model_data=model_data,
+            ...     dataset_name="example_dataset",
+            ...     experiment_name="example_experiment",
+            ...     season_name="example_season",
+            ...     site_name="example_site",
+            ...     record_files=["path/to/record1", "path/to/record2"],
+            ...     record_info=[{"info_key1": "info_value1"}, {"info_key2": "info_value2"}]
+            ... )
+            >>> print(success, record_ids)
+            True [UUID('...'), UUID('...')]
+
+        Args:
+            timestamps (List[datetime]): List of timestamps for the records.
+            collection_date (date, optional): The collection date for the records. Defaults to None.
+            model_data (List[dict], optional): List of model data dictionaries. Defaults to [].
+            dataset_name (str, optional): The dataset name. Defaults to None.
+            experiment_name (str, optional): The experiment name. Defaults to None.
+            season_name (str, optional): The season name. Defaults to None.
+            site_name (str, optional): The site name. Defaults to None.
+            record_files (List[str], optional): List of record file paths. Defaults to [].
+            record_info (List[dict], optional): List of additional record information dictionaries. Defaults to [].
+        Returns:
+            tuple[bool, List[str]]: Success status and list of inserted record IDs.
+        """
         try:
             if not experiment_name and not season_name and not site_name:
                 raise ValueError("At least one of experiment_name, season_name, or site_name must be provided.")
@@ -518,6 +903,33 @@ class Model(APIBase):
         site_name: str = None,
         record_info: dict = None
     ) -> List[ModelRecord]:
+        """
+        Search for model records associated with this model based on search parameters.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> records = model.search_records(
+            ...     collection_date=date.today(),
+            ...     dataset_name="example_dataset",
+            ...     experiment_name="example_experiment",
+            ...     season_name="example_season",
+            ...     site_name="example_site",
+            ...     record_info={"info_key": "info_value"}
+            ... )
+            >>> for record in records:
+            ...     print(record)
+            ModelRecord(id=UUID(...), model_name='example_model', dataset_name='example_dataset', timestamp='2023-10-01T12:00:00', model_data={...}, experiment_name='example_experiment', season_name='example_season', site_name='example_site')
+
+        Args:
+            collection_date (date, optional): The collection date to filter by. Defaults to None.
+            dataset_name (str, optional): The dataset name to filter by. Defaults to None.
+            experiment_name (str, optional): The experiment name to filter by. Defaults to None.
+            season_name (str, optional): The season name to filter by. Defaults to None.
+            site_name (str, optional): The site name to filter by. Defaults to None.
+            record_info (dict, optional): Additional record information to filter by. Defaults to None.
+        Returns:
+            Optional[List[ModelRecord]]: List of matching model records, or None if not found.
+        """
         try:
             record_info = record_info if record_info else {}
             record_info = {k: v for k, v in record_info.items() if v is not None}
@@ -545,6 +957,33 @@ class Model(APIBase):
         season_names: Optional[List[str]] = None,
         site_names: Optional[List[str]] = None
     ) -> List[ModelRecord]:
+        """
+        Filter model records associated with this model using a custom filter function.
+
+        Examples:
+            >>> model = Model.get("example_model")
+            >>> records = model.filter_records(
+            ...     start_timestamp=datetime(2023, 1, 1),
+            ...     end_timestamp=datetime(2023, 12, 31),
+            ...     dataset_names=["example_dataset"],
+            ...     experiment_names=["example_experiment"],
+            ...     season_names=["example_season"],
+            ...     site_names=["example_site"]
+            ... )
+            >>> for record in records:
+            ...     print(record)
+            ModelRecord(id=UUID(...), model_name='example_model', dataset_name='example_dataset', timestamp='2023-10-01T12:00:00, model_data={...}, experiment_name='example_experiment', season_name='example_season', site_name='example_site')
+            
+        Args:
+            start_timestamp (Optional[datetime], optional): The start timestamp for filtering. Defaults to None.
+            end_timestamp (Optional[datetime], optional): The end timestamp for filtering. Defaults to None
+            dataset_names (Optional[List[str]], optional): List of dataset names to filter by. Defaults to None.
+            experiment_names (Optional[List[str]], optional): List of experiment names to filter by. Defaults
+            season_names (Optional[List[str]], optional): List of season names to filter by. Defaults to None.
+            site_names (Optional[List[str]], optional): List of site names to filter by. Defaults to None.
+        Returns:
+            Optional[List[ModelRecord]]: List of filtered model records, or None if not found.
+        """
         try:
             records = ModelRecord.filter(
                 start_timestamp=start_timestamp,
@@ -559,4 +998,4 @@ class Model(APIBase):
         except Exception as e:
             print(f"Error filtering model records: {e}")
             return []
-        
+

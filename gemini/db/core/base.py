@@ -1,4 +1,5 @@
-from typing import Any
+from typing import Any, List, Optional, Dict
+from uuid import UUID
 
 from sqlalchemy import select, delete
 from sqlalchemy import TIMESTAMP, JSON, DATE
@@ -27,14 +28,69 @@ class BaseModel(DeclarativeBase, SerializeMixin):
     metadata = metadata_obj
 
 
+"""
+Base models for database interactions in GEMINI.
+
+This module defines the core SQLAlchemy models and utility methods for
+interacting with the GEMINI database, including base classes for
+standard tables, views, materialized views, and columnar tables.
+"""
+
+from typing import Any
+
+from sqlalchemy import select, delete
+from sqlalchemy import TIMESTAMP, JSON, DATE
+from sqlalchemy import MetaData, text
+from sqlalchemy.schema import UniqueConstraint
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy_mixins.serialize import SerializeMixin
+from sqlalchemy.dialects.postgresql import insert as pg_insert, JSONB
+
+from gemini.manager import GEMINIManager, GEMINIComponentType
+from gemini.db.core.engine import DatabaseEngine
+from gemini.db.config import DatabaseConfig
+
+
+db_config_settings = GEMINIManager().get_component_settings(GEMINIComponentType.DB)
+db_config = DatabaseConfig(
+    database_url=f"postgresql://{db_config_settings['GEMINI_DB_USER']}:{db_config_settings['GEMINI_DB_PASSWORD']}@{db_config_settings['GEMINI_DB_HOSTNAME']}:{db_config_settings['GEMINI_DB_PORT']}/{db_config_settings['GEMINI_DB_NAME']}"
+)
+metadata_obj = MetaData(schema="gemini")
+db_engine = DatabaseEngine(db_config)
+
+
+class BaseModel(DeclarativeBase, SerializeMixin):
+    """
+    Base class for all SQLAlchemy models in GEMINI.
+
+    Provides common CRUD (Create, Read, Update, Delete) operations,
+    field validation, and utility methods for database interaction.
+    """
+
+    __abstract__ = True
+    metadata = metadata_obj
+
+
     @classmethod
-    def set_engine(cls, engine: DatabaseEngine):
+    def set_engine(cls, engine: DatabaseEngine) -> None:
+        """
+        Sets the global database engine for the models.
+
+        Args:
+            engine (DatabaseEngine): The database engine instance to use.
+        """
         global db_engine
         db_engine = engine
 
 
     @classmethod
-    def unique_fields(cls):
+    def unique_fields(cls) -> List[str]:
+        """
+        Retrieves a list of unique field names for the model's table.
+
+        Returns:
+            list: A list of strings, where each string is the name of a unique field.
+        """
         unique_fields = []
         for constraint in cls.__table__.constraints:
             if isinstance(constraint, UniqueConstraint):
@@ -46,7 +102,16 @@ class BaseModel(DeclarativeBase, SerializeMixin):
     
 
     @classmethod
-    def validate_fields(cls, **kwargs):
+    def validate_fields(cls, **kwargs: Any) -> Dict[str, Any]:
+        """
+        Validates and filters keyword arguments against the model's columns.
+
+        Removes None values, empty dictionaries, and arguments that do not
+        correspond to actual columns in the table.
+
+        Returns:
+            dict: A dictionary of validated and filtered keyword arguments.
+        """
         # Remove None values from the kwargs
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
         # Remove empty dicts from the kwargs
@@ -58,7 +123,16 @@ class BaseModel(DeclarativeBase, SerializeMixin):
     
 
     @classmethod
-    def create(cls, **kwargs):
+    def create(cls, **kwargs: Any) -> BaseModel:
+        """
+        Creates a new instance of the model and adds it to the database.
+
+        Args:
+            **kwargs: Keyword arguments corresponding to the model's fields.
+
+        Returns:
+            BaseModel: The newly created model instance.
+        """
         kwargs = cls.validate_fields(**kwargs)
         instance = cls(**kwargs)
         with db_engine.get_session() as session:
@@ -67,7 +141,16 @@ class BaseModel(DeclarativeBase, SerializeMixin):
     
 
     @classmethod
-    def exists(cls, **kwargs):
+    def exists(cls, **kwargs: Any) -> bool:
+        """
+        Checks if an instance with the given parameters exists in the database.
+
+        Args:
+            **kwargs: Keyword arguments to search for.
+
+        Returns:
+            bool: True if an instance exists, False otherwise.
+        """
         kwargs = cls.validate_fields(**kwargs)
         if kwargs == {}:
             return False
@@ -78,7 +161,13 @@ class BaseModel(DeclarativeBase, SerializeMixin):
 
 
     @classmethod
-    def all(cls):
+    def all(cls) -> List[BaseModel]:
+        """
+        Retrieves all instances of the model from the database.
+
+        Returns:
+            list: A list of all model instances.
+        """
         query = select(cls)
         with db_engine.get_session() as session:
             result = session.execute(query).scalars().all()
@@ -86,7 +175,16 @@ class BaseModel(DeclarativeBase, SerializeMixin):
     
 
     @classmethod
-    def get(cls, id):
+    def get(cls, id: Any) -> BaseModel | None:
+        """
+        Retrieves a single instance of the model by its ID.
+
+        Args:
+            id: The ID of the instance to retrieve.
+
+        Returns:
+            BaseModel or None: The model instance if found, otherwise None.
+        """
         query = select(cls).where(cls.id == id)
         with db_engine.get_session() as session:
             result = session.execute(query).scalar_one_or_none()
@@ -94,7 +192,16 @@ class BaseModel(DeclarativeBase, SerializeMixin):
     
 
     @classmethod
-    def get_by_parameters(cls, **kwargs):
+    def get_by_parameters(cls, **kwargs: Any) -> BaseModel | None:
+        """
+        Retrieves a single instance of the model based on provided parameters.
+
+        Args:
+            **kwargs: Keyword arguments to filter the query.
+
+        Returns:
+            BaseModel or None: The model instance if found, otherwise None.
+        """
         query = select(cls)
         kwargs = cls.validate_fields(**kwargs)
         if kwargs == {}:
@@ -113,7 +220,17 @@ class BaseModel(DeclarativeBase, SerializeMixin):
     
 
     @classmethod
-    def update(cls, instance, **kwargs):
+    def update(cls, instance, **kwargs: Any) -> BaseModel:
+        """
+        Updates an existing instance of the model with new values.
+
+        Args:
+            instance (BaseModel): The instance to update.
+            **kwargs: Keyword arguments with the new values for the fields.
+
+        Returns:
+            BaseModel: The updated model instance.
+        """
         with db_engine.get_session() as session:
             kwargs = cls.validate_fields(**kwargs)
             for key, value in kwargs.items():
@@ -122,7 +239,20 @@ class BaseModel(DeclarativeBase, SerializeMixin):
         return instance
     
     @classmethod
-    def get_or_update(cls, instance, **kwargs):
+    def get_or_update(cls, instance, **kwargs: Any) -> BaseModel:
+        """
+        Retrieves an existing instance based on unique fields, or updates the provided instance.
+
+        If an instance with matching unique fields exists, it is returned.
+        Otherwise, the provided instance is updated with the given kwargs.
+
+        Args:
+            instance (BaseModel): The instance to potentially update.
+            **kwargs: Keyword arguments for unique fields and other updates.
+
+        Returns:
+            BaseModel: An existing instance or the updated provided instance.
+        """
         unique_fields = cls.unique_fields()
         kwargs = cls.validate_fields(**kwargs)
         unique_kwargs = {key: value for key, value in kwargs.items() if key in unique_fields}
@@ -140,7 +270,16 @@ class BaseModel(DeclarativeBase, SerializeMixin):
 
 
     @classmethod
-    def get_or_create(cls, **kwargs):
+    def get_or_create(cls, **kwargs: Any) -> Optional[BaseModel]:
+        """
+        Retrieves an existing instance or creates a new one if it doesn't exist.
+
+        Args:
+            **kwargs: Keyword arguments to search for or create the instance.
+
+        Returns:
+            BaseModel or None: An existing or newly created model instance, or None if unique fields are missing.
+        """
         unique_fields = cls.unique_fields()
         kwargs = cls.validate_fields(**kwargs)
         unique_kwargs = {key: value for key, value in kwargs.items() if key in unique_fields}
@@ -154,7 +293,16 @@ class BaseModel(DeclarativeBase, SerializeMixin):
             return instance
         
     @classmethod
-    def delete(cls, instance):
+    def delete(cls, instance: Any) -> bool:
+        """
+        Deletes an instance from the database.
+
+        Args:
+            instance (BaseModel): The instance to delete.
+
+        Returns:
+            bool: True if deletion was successful, False otherwise.
+        """
         try:
             with db_engine.get_session() as session:
                 session.delete(instance)
@@ -164,12 +312,31 @@ class BaseModel(DeclarativeBase, SerializeMixin):
             return False
     
     @classmethod
-    def get_model_from_table_name(cls, table_name):
+    def get_model_from_table_name(cls, table_name) -> Optional[BaseModel]:
+        """
+        Retrieves a model class from its table name.
+
+        Args:
+            table_name (str): The name of the table.
+
+        Returns:
+            Table: The SQLAlchemy Table object.
+        """
         return cls.metadata.tables[f"{cls.metadata.schema}.{table_name}"]
         
 
     @classmethod
-    def insert_bulk(cls, constraint, data):
+    def insert_bulk(cls, constraint: Any, data) -> List[UUID]:
+        """
+        Performs a bulk insert operation with conflict handling.
+
+        Args:
+            constraint: The unique constraint to use for conflict resolution.
+            data (list): A list of dictionaries, where each dictionary represents a row to insert.
+
+        Returns:
+            list: A list of IDs of the inserted records.
+        """
         with db_engine.get_session() as session:
             table = cls.__table__
             stmt = pg_insert(table).on_conflict_do_nothing(constraint=constraint).returning(table.c.id)
@@ -179,7 +346,18 @@ class BaseModel(DeclarativeBase, SerializeMixin):
         
         
     @classmethod
-    def update_bulk(cls, constraint, upsert_on, data):
+    def update_bulk(cls, constraint: Any, upsert_on: Any, data) -> List[UUID]:
+        """
+        Performs a bulk update (upsert) operation with conflict handling.
+
+        Args:
+            constraint: The unique constraint to use for conflict resolution.
+            upsert_on: The column to update on conflict.
+            data (list): A list of dictionaries, where each dictionary represents a row to upsert.
+
+        Returns:
+            list: A list of IDs of the upserted records.
+        """
         with db_engine.get_session() as session:
             table = cls.__table__
             stmt = pg_insert(table).on_conflict_do_update(constraint=constraint, set_={upsert_on: stmt.excluded[upsert_on]}).returning(table.c.id)
@@ -189,7 +367,16 @@ class BaseModel(DeclarativeBase, SerializeMixin):
         
 
     @classmethod
-    def delete_bulk(cls, data):
+    def delete_bulk(cls, data: Any) -> bool:
+        """
+        Performs a bulk delete operation.
+
+        Args:
+            data (list): A list of IDs of the records to delete.
+
+        Returns:
+            bool: True if deletion was successful.
+        """
         with db_engine.get_session() as session:
             table = cls.__table__
             stmt = delete(table).where(table.c.id.in_(data))
@@ -197,7 +384,21 @@ class BaseModel(DeclarativeBase, SerializeMixin):
             return True
         
     @classmethod
-    def update_parameter(cls, instance, parameter_name, parameter_value):
+    def update_parameter(cls, instance: Any, parameter_name: str, parameter_value: Any) -> BaseModel:
+        """
+        Updates a specific parameter (column) of an existing instance.
+
+        Args:
+            instance (BaseModel): The instance to update.
+            parameter_name (str): The name of the parameter (column) to update.
+            parameter_value: The new value for the parameter.
+
+        Returns:
+            BaseModel: The updated model instance.
+
+        Raises:
+            ValueError: If `parameter_name` is not a valid column.
+        """
         # Check if parameter_name is a valid column in the table
         if parameter_name not in cls.__table__.columns:
             raise ValueError(f"{parameter_name} is not a valid column in {cls.__tablename__}")
@@ -209,7 +410,17 @@ class BaseModel(DeclarativeBase, SerializeMixin):
         
         
     @classmethod
-    def update_or_create(cls, constraint, **kwargs):
+    def update_or_create(cls, constraint: Any, **kwargs: Any) -> Optional[BaseModel]:
+        """
+        Updates an existing instance or creates a new one if it doesn't exist, based on a unique constraint.
+
+        Args:
+            constraint: The unique constraint to use for identifying existing records.
+            **kwargs: Keyword arguments to search for or create/update the instance.
+
+        Returns:
+            BaseModel or None: An existing, updated, or newly created model instance, or None if unique fields are missing.
+        """
         unique_fields = cls.unique_fields()
         kwargs = cls.validate_fields(**kwargs)
         unique_kwargs = {key: value for key, value in kwargs.items() if key in unique_fields}
@@ -225,7 +436,18 @@ class BaseModel(DeclarativeBase, SerializeMixin):
         
 
     @classmethod
-    def search(cls, **kwargs):
+    def search(cls, **kwargs: Any) -> List[BaseModel]:
+        """
+        Searches for instances based on provided parameters.
+
+        Supports searching by exact match for most types, and `contains` for JSONB fields.
+
+        Args:
+            **kwargs: Keyword arguments to filter the search.
+
+        Returns:
+            list: A list of matching model instances.
+        """
         with db_engine.get_session() as session:
             query = select(cls)
             kwargs = cls.validate_fields(**kwargs)
@@ -244,7 +466,19 @@ class BaseModel(DeclarativeBase, SerializeMixin):
         
 
     @classmethod
-    def paginate(cls, order_by, page_number, page_limit, **kwargs):
+    def paginate(cls, order_by: Any, page_number: int, page_limit: int, **kwargs: Any) -> tuple[int, int, List[BaseModel]]:
+        """
+        Paginates through instances of the model based on provided parameters.
+
+        Args:
+            order_by: The column to order the results by.
+            page_number (int): The current page number (1-indexed).
+            page_limit (int): The maximum number of records per page.
+            **kwargs: Keyword arguments to filter the query.
+
+        Returns:
+            tuple: A tuple containing (total_records, total_pages, current_page_results).
+        """
         with db_engine.get_session() as session:
             query = session.query(cls)
             kwargs = cls.validate_fields(**kwargs)
@@ -268,7 +502,16 @@ class BaseModel(DeclarativeBase, SerializeMixin):
     
 
     @classmethod
-    def stream(cls, **kwargs):
+    def stream(cls, **kwargs: Any) -> Any:
+        """
+        Streams instances of the model in partitions.
+
+        Args:
+            **kwargs: Keyword arguments to filter the stream.
+
+        Yields:
+            BaseModel: Instances of the model.
+        """
         query = select(cls)
         kwargs = cls.validate_fields(**kwargs)
         for key, value in kwargs.items():
@@ -289,7 +532,16 @@ class BaseModel(DeclarativeBase, SerializeMixin):
 
 
     @classmethod
-    def rawstream(cls, **kwargs):
+    def rawstream(cls, **kwargs: Any) -> Any:
+        """
+        Streams instances of the model directly from the database connection in partitions.
+
+        Args:
+            **kwargs: Keyword arguments to filter the stream.
+
+        Yields:
+            BaseModel: Instances of the model.
+        """
         query = select(cls)
         kwargs = cls.validate_fields(**kwargs)
         for key, value in kwargs.items():
@@ -312,66 +564,107 @@ class BaseModel(DeclarativeBase, SerializeMixin):
 
 
 class ViewBaseModel(BaseModel):
+    """
+    Base class for database views.
+    """
 
     __abstract__ = True
 
 
 class MaterializedViewBaseModel(BaseModel):
+    """
+    Base class for materialized database views.
+
+    Provides methods for refreshing the materialized view and
+    overrides standard retrieval methods to ensure data freshness.
+    """
 
     __abstract__ = True
 
 
     @classmethod
-    def refresh(cls):
+    def refresh(cls) -> None:
+        """
+        Refreshes the materialized view.
+        """
         with db_engine.get_session() as session:
             query = text(f"REFRESH MATERIALIZED VIEW {cls.__table__.name}")
             session.execute(query)
         
 
     @classmethod
-    def get(cls):
+    def get(cls) -> Optional[BaseModel]:
+        """
+        Retrieves a single instance of the materialized view by its ID, refreshing it first.
+        """
         cls.refresh()
         return super().get()
     
 
     @classmethod
-    def all(cls):
+    def all(cls) -> List[BaseModel]:
+        """
+        Retrieves all instances of the materialized view, refreshing it first.
+        """
         cls.refresh()
         return super().all()
     
 
     @classmethod
-    def get_by_parameters(cls, **kwargs):
+    def get_by_parameters(cls, **kwargs) -> Optional[BaseModel]:
+        """
+        Retrieves a single instance of the materialized view based on provided parameters, refreshing it first.
+        """
         cls.refresh()
         return super().get_by_parameters(**kwargs)
     
 
     @classmethod
-    def search(cls, **kwargs):
+    def search(cls, **kwargs) -> List[BaseModel]:
+        """
+        Searches for instances in the materialized view, refreshing it first.
+        """
         cls.refresh()
         return super().search(**kwargs)
     
 
     @classmethod
-    def paginate(cls, order_by, page_number, page_limit, **kwargs):
+    def paginate(cls, order_by: Any, page_number: int, page_limit: int, **kwargs) -> tuple[int, int, List[BaseModel]]:
+        """
+        Paginates through instances of the materialized view, refreshing it first.
+        """
         cls.refresh()
         return super().paginate(order_by, page_number, page_limit, **kwargs)
     
 
     @classmethod
-    def stream(cls, **kwargs):
+    def stream(cls, **kwargs) -> Any:
+        """
+        Streams instances of the materialized view, refreshing it first.
+        """
         cls.refresh()
         return super().stream(**kwargs)
     
 class ColumnarBaseModel(BaseModel):
+    """
+    Base class for columnar database models.
+    """
 
     __abstract__ = True
     
 
     @classmethod
-    def all(cls, limit=100):
+    def all(cls, limit: int = 100) -> List[Any]:
+        """
+        Retrieves all instances of the columnar model with an optional limit.
+
+        Args:
+            limit (int): The maximum number of records to retrieve.
+
+        Returns:
+            list: A list of all columnar model instances.
+        """
         query = select(cls).limit(limit)
         with db_engine.get_session() as session:
             result = session.execute(query).scalars().all()
         return result
-        

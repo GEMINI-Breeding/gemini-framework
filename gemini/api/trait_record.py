@@ -1,33 +1,63 @@
+"""
+This module defines the TraitRecord class, which represents a record of a trait, including metadata, associations to datasets, experiments, sites, seasons, and plots, and related operations.
+
+It includes methods for creating, retrieving, updating, and deleting trait records, as well as methods for checking existence, searching, filtering, and managing additional information.
+
+This module includes the following methods:
+
+- `exists`: Check if a trait record with the given parameters exists.
+- `create`: Create a new trait record.
+- `insert`: Insert a list of trait records into the database.
+- `get`: Retrieve a trait record by its parameters.
+- `get_by_id`: Retrieve a trait record by its ID.
+- `get_all`: Retrieve all trait records.
+- `search`: Search for trait records based on various criteria.
+- `filter`: Filter trait records based on custom logic.
+- `update`: Update the details of a trait record.
+- `delete`: Delete a trait record.
+- `refresh`: Refresh the trait record's data from the database.
+- `get_info`: Get the additional information of the trait record.
+- `set_info`: Set the additional information of the trait record.
+
+"""
+
 from typing import Optional, List, Generator
 from uuid import UUID
 from tqdm import tqdm
 
 from gemini.api.types import ID
 from pydantic import Field, AliasChoices
-from gemini.api.base import APIBase, FileHandlerMixin
-from gemini.api.dataset import Dataset, GEMINIDatasetType
-from gemini.api.plot import Plot
-from gemini.db.models.traits import TraitModel
-from gemini.db.models.datasets import DatasetModel
+from gemini.api.base import APIBase
 from gemini.db.models.columnar.trait_records import TraitRecordModel
 from gemini.db.models.views.trait_records_immv import TraitRecordsIMMVModel
-from gemini.db.models.views.validation_views import ValidTraitDatasetCombinationsViewModel
-from gemini.db.models.views.dataset_views import TraitDatasetsViewModel
-from gemini.db.models.views.plot_view import PlotViewModel
-from gemini.db.models.views.experiment_views import (
-    ExperimentTraitsViewModel,
-    ExperimentDatasetsViewModel,
-    ExperimentSitesViewModel,
-    ExperimentSeasonsViewModel,
-)
-
-from gemini.db.models.experiments import ExperimentModel
-from gemini.db.models.datasets import DatasetModel
-from gemini.db.models.associations import TraitDatasetModel
 
 from datetime import date, datetime
 
 class TraitRecord(APIBase):
+    """
+    Represents a record of a trait, including metadata, associations to datasets, experiments, sites, seasons, and plots, and related operations.
+
+    Attributes:
+        id (Optional[ID]): The unique identifier of the trait record.
+        timestamp (Optional[datetime]): The timestamp of the record.
+        collection_date (Optional[date]): The collection date of the record.
+        dataset_id (Optional[ID]): The ID of the associated dataset.
+        dataset_name (Optional[str]): The name of the associated dataset.
+        trait_id (Optional[ID]): The ID of the associated trait.
+        trait_name (Optional[str]): The name of the associated trait.
+        trait_value (Optional[float]): The value of the trait.
+        experiment_id (Optional[ID]): The ID of the associated experiment.
+        experiment_name (Optional[str]): The name of the associated experiment.
+        season_id (Optional[ID]): The ID of the associated season.
+        season_name (Optional[str]): The name of the associated season.
+        site_id (Optional[ID]): The ID of the associated site.
+        site_name (Optional[str]): The name of the associated site.
+        plot_id (Optional[ID]): The ID of the associated plot.
+        plot_number (Optional[int]): The number of the associated plot.
+        plot_row_number (Optional[int]): The row number of the associated plot.
+        plot_column_number (Optional[int]): The column number of the associated plot.
+        record_info (Optional[dict]): Additional information about the record.
+    """
 
     id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "trait_record_id"))
 
@@ -51,9 +81,11 @@ class TraitRecord(APIBase):
     record_info: Optional[dict] = None
 
     def __str__(self):
+        """Return a string representation of the TraitRecord object."""
         return f"TraitRecord(id={self.id}, timestamp={self.timestamp}, trait_name={self.trait_name}, dataset_name={self.dataset_name}, experiment_name={self.experiment_name}, site_name={self.site_name}, season_name={self.season_name}, plot_number={self.plot_number}, plot_row_number={self.plot_row_number}, plot_column_number={self.plot_column_number})"
 
     def __repr__(self):
+        """Return a detailed string representation of the TraitRecord object."""
         return f"TraitRecord(id={self.id}, timestamp={self.timestamp}, trait_name={self.trait_name}, dataset_name={self.dataset_name}, experiment_name={self.experiment_name}, site_name={self.site_name}, season_name={self.season_name}, plot_number={self.plot_number}, plot_row_number={self.plot_row_number}, plot_column_number={self.plot_column_number})"
     
     @classmethod
@@ -69,6 +101,37 @@ class TraitRecord(APIBase):
         plot_row_number: int = None,
         plot_column_number: int = None
     ) -> bool:
+        """
+        Check if a trait record with the given parameters exists.
+
+        Examples:
+            >>> TraitRecord.exists(
+            ...     timestamp=datetime(2023, 10, 1, 12, 0),
+            ...     trait_name="Height",
+            ...     dataset_name="Plant Growth Study",
+            ...     experiment_name="Growth Experiment 1",
+            ...     site_name="Research Farm A",
+            ...     season_name="Spring 2023",
+            ...     plot_number=1,
+            ...     plot_row_number=2,
+            ...     plot_column_number=3
+            ... )
+            True
+
+
+        Args:
+            timestamp (datetime): The timestamp of the record.
+            trait_name (str): The name of the trait.
+            dataset_name (str): The name of the dataset.
+            experiment_name (str): The name of the experiment.
+            season_name (str): The name of the season.
+            site_name (str): The name of the site.
+            plot_number (int, optional): The plot number. Defaults to None.
+            plot_row_number (int, optional): The plot row number. Defaults to None.
+            plot_column_number (int, optional): The plot column number. Defaults to None.
+        Returns:
+            bool: True if the trait record exists, False otherwise.
+        """
         try:
             exists = TraitRecordModel.exists(
                 timestamp=timestamp,
@@ -103,6 +166,44 @@ class TraitRecord(APIBase):
         record_info: dict = {},
         insert_on_create: bool = True
     ) -> Optional["TraitRecord"]:
+        """
+        Create a new trait record.
+
+        Examples:
+            >>> TraitRecord.create(
+            ...     timestamp=datetime(2023, 10, 1, 12, 0),
+            ...     collection_date=date(2023, 10, 1),
+            ...     dataset_name="Plant Growth Study",
+            ...     trait_name="Height",
+            ...     trait_value=150.0,
+            ...     experiment_name="Growth Experiment 1",
+            ...     site_name="Research Farm A",
+            ...     season_name="Spring 2023",
+            ...     plot_number=1,
+            ...     plot_row_number=2,
+            ...     plot_column_number=3,
+            ...     record_info={"notes": "Initial measurement"},
+            ...     insert_on_create=True
+            ... )
+            TraitRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), trait_name='Height', dataset_name='Plant Growth Study', experiment_name='Growth Experiment 1', site_name='Research Farm A', season_name='Spring 2023', plot_number=1, plot_row_number=2, plot_column_number=3)
+
+        Args:
+            timestamp (datetime, optional): The timestamp of the record. Defaults to now.
+            collection_date (date, optional): The collection date. Defaults to None.
+            dataset_name (str, optional): The name of the dataset. Defaults to None.
+            trait_name (str, optional): The name of the trait. Defaults to None.
+            trait_value (float, optional): The value of the trait. Defaults to None.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            plot_number (int, optional): The plot number. Defaults to None.
+            plot_row_number (int, optional): The plot row number. Defaults to None.
+            plot_column_number (int, optional): The plot column number. Defaults to None.
+            record_info (dict, optional): Additional info. Defaults to {{}}.
+            insert_on_create (bool, optional): Whether to insert on create. Defaults to True.
+        Returns:
+            Optional[TraitRecord]: The created trait record, or None if an error occurred.
+        """
         try:
             if not any([experiment_name, site_name, season_name]):
                 raise ValueError("At least one of experiment_name, site_name, or season_name must be provided.")
@@ -149,6 +250,14 @@ class TraitRecord(APIBase):
         
     @classmethod
     def insert(cls, records: List["TraitRecord"]) -> tuple[bool, List[str]]:
+        """
+        Insert a list of trait records into the database.
+
+        Args:
+            records (List[TraitRecord]): The records to insert.
+        Returns:
+            tuple[bool, List[str]]: Success status and list of inserted record IDs.
+        """
         try:
             if not records or len(records) == 0:
                 print(f"No records provided to insert.")
@@ -179,6 +288,36 @@ class TraitRecord(APIBase):
         plot_row_number: int = None,
         plot_column_number: int = None
     ) -> Optional["TraitRecord"]:
+        """
+        Retrieve a trait record by its parameters.
+
+        Examples:
+            >>> TraitRecord.get(
+            ...     timestamp=datetime(2023, 10, 1, 12, 0),
+            ...     trait_name="Height",
+            ...     dataset_name="Plant Growth Study",
+            ...     experiment_name="Growth Experiment 1",
+            ...     site_name="Research Farm A",
+            ...     season_name="Spring 2023",
+            ...     plot_number=1,
+            ...     plot_row_number=2,
+            ...     plot_column_number=3
+            ... )
+            TraitRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), trait_name='Height', dataset_name='Plant Growth Study', experiment_name='Growth Experiment 1', site_name='Research Farm A', season_name='Spring 2023', plot_number=1, plot_row_number=2, plot_column_number=3)
+
+        Args:
+            timestamp (datetime): The timestamp of the record.
+            trait_name (str): The name of the trait.
+            dataset_name (str): The name of the dataset.
+            experiment_name (str): The name of the experiment.
+            site_name (str): The name of the site.
+            season_name (str): The name of the season.
+            plot_number (int, optional): The plot number. Defaults to None.
+            plot_row_number (int, optional): The plot row number. Defaults to None.
+            plot_column_number (int, optional): The plot column number. Defaults to None.
+        Returns:
+            Optional[TraitRecord]: The trait record, or None if not found.
+        """
         try:
             if not timestamp:
                 print("Timestamp is required to get TraitRecord.")
@@ -217,6 +356,18 @@ class TraitRecord(APIBase):
         
     @classmethod
     def get_by_id(cls, id: UUID | int | str) -> Optional["TraitRecord"]:
+        """
+        Retrieve a trait record by its ID.
+
+        Examples:
+            >>> TraitRecord.get_by_id(UUID('...'))
+            TraitRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), trait_name='Height', dataset_name='Plant Growth Study', experiment_name='Growth Experiment 1', site_name='Research Farm A', season_name='Spring 2023', plot_number=1, plot_row_number=2, plot_column_number=3)
+
+        Args:
+            id (UUID | int | str): The ID of the trait record.
+        Returns:
+            Optional[TraitRecord]: The trait record, or None if not found.
+        """
         try:
             db_instance = TraitRecordModel.get(id)
             if not db_instance:
@@ -230,6 +381,21 @@ class TraitRecord(APIBase):
         
     @classmethod
     def get_all(cls, limit: int = 100) -> Optional[List["TraitRecord"]]:
+        """
+        Retrieve all trait records, up to a specified limit.
+
+        Examples:
+            >>> TraitRecord.get_all(limit=10)
+            >>> for record in TraitRecord.get_all(limit=10):
+            ...     print(record)
+            TraitRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), trait_name='Height', dataset_name='Plant Growth Study', experiment_name='Growth Experiment 1', site_name='Research Farm A', season_name='Spring 2023', plot_number=1, plot_row_number=2, plot_column_number=3)
+            TraitRecord(id=UUID('...'), timestamp=datetime(2023, 10, 2, 12, 0), trait_name='Width', dataset_name='Plant Growth Study', experiment_name='Growth Experiment 1', site_name='Research Farm A', season_name='Spring 2023', plot_number=1, plot_row_number=2, plot_column_number=3)
+
+        Args:
+            limit (int, optional): The maximum number of records to retrieve. Defaults to 100.
+        Returns:
+            Optional[List[TraitRecord]]: List of trait records, or None if not found.
+        """
         try:
             records = TraitRecordModel.all(limit=limit)
             if not records or len(records) == 0:
@@ -256,6 +422,30 @@ class TraitRecord(APIBase):
         collection_date: date = None,
         record_info: dict = None
     ) -> Generator["TraitRecord", None, None]:
+        """
+        Search for trait records based on various criteria.
+
+        Examples:
+            >>> for record in TraitRecord.search(dataset_name="Plant Growth Study", trait_name="Height"):
+            ...     print(record)
+            TraitRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), trait_name='Height', dataset_name='Plant Growth Study', experiment_name='Growth Experiment 1', site_name='Research Farm A', season_name='Spring 2023', plot_number=1, plot_row_number=2, plot_column_number=3)
+            TraitRecord(id=UUID('...'), timestamp=datetime(2023, 10, 2, 12, 0), trait_name='Height', dataset_name='Plant Growth Study', experiment_name='Growth Experiment 1', site_name='Research Farm A', season_name='Spring 2023', plot_number=1, plot_row_number=2, plot_column_number=3)
+
+        Args:
+            dataset_name (str, optional): The name of the dataset. Defaults to None.
+            trait_name (str, optional): The name of the trait. Defaults to None.
+            trait_value (float, optional): The value of the trait. Defaults to None.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            plot_number (int, optional): The plot number. Defaults to None.
+            plot_row_number (int, optional): The plot row number. Defaults to None.
+            plot_column_number (int, optional): The plot column number. Defaults to None.
+            collection_date (date, optional): The collection date. Defaults to None.
+            record_info (dict, optional): Additional info. Defaults to None.
+        Yields:
+            TraitRecord: Matching trait records.
+        """
         try:
             if not any([dataset_name, trait_name, trait_value, experiment_name, site_name, season_name, plot_number, plot_row_number, plot_column_number, collection_date, record_info]):
                 print("At least one search parameter must be provided.")
@@ -292,6 +482,34 @@ class TraitRecord(APIBase):
         season_names: Optional[List[str]] = None,
         site_names: Optional[List[str]] = None
     ) -> Generator["TraitRecord", None, None]:
+        """
+        Filter trait records based on custom logic.
+
+        Examples:
+            >>> records = TraitRecord.filter(
+            ...     start_timestamp=datetime(2023, 10, 1, 0, 0),
+            ...     end_timestamp=datetime(2023, 10, 31, 23, 59),
+            ...     trait_names=["Height", "Width"],
+            ...     dataset_names=["Plant Growth Study"],
+            ...     experiment_names=["Growth Experiment 1"],
+            ...     season_names=["Spring 2023"],
+            ...     site_names=["Research Farm A"]
+            ... )
+            >>> for record in records:
+            ...     print(record)
+            TraitRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), trait_name='Height', dataset_name='Plant Growth Study', experiment_name='Growth Experiment 1', site_name='Research Farm A', season_name='Spring 2023', plot_number=1, plot_row_number=2, plot_column_number=3)
+
+        Args:
+            start_timestamp (datetime, optional): Start of timestamp range. Defaults to None.
+            end_timestamp (datetime, optional): End of timestamp range. Defaults to None.
+            trait_names (List[str], optional): List of trait names. Defaults to None.
+            dataset_names (List[str], optional): List of dataset names. Defaults to None.
+            experiment_names (List[str], optional): List of experiment names. Defaults to None.
+            season_names (List[str], optional): List of season names. Defaults to None.
+            site_names (List[str], optional): List of site names. Defaults to None.
+        Yields:
+            TraitRecord: Filtered trait records.
+        """
         try:
             if not any([start_timestamp, end_timestamp, trait_names, dataset_names, experiment_names, season_names, site_names]):
                 print("At least one filter parameter must be provided.")
@@ -317,6 +535,24 @@ class TraitRecord(APIBase):
         trait_value: float = None,
         record_info: dict = None
     ) -> Optional["TraitRecord"]:
+        """
+        Update the details of the trait record.
+
+        Examples:
+            >>> trait_record = TraitRecord.get_by_id(UUID('...'))
+            >>> updated_record = trait_record.update(
+            ...     trait_value=160.0,
+            ...     record_info={"notes": "Updated measurement"}
+            ... )
+            >>> print(updated_record)
+            TraitRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), trait_name='Height', dataset_name='Plant Growth Study', experiment_name='Growth Experiment 1', site_name='Research Farm A', season_name='Spring 2023', plot_number=1, plot_row_number=2, plot_column_number=3)
+
+        Args:
+            trait_value (float, optional): The new trait value. Defaults to None.
+            record_info (dict, optional): The new record information. Defaults to None.
+        Returns:
+            Optional[TraitRecord]: The updated trait record, or None if an error occurred.
+        """
         try:
             if not any([trait_value, record_info]):
                 print("At least one parameter must be provided to update TraitRecord.")
@@ -339,6 +575,18 @@ class TraitRecord(APIBase):
             return None
         
     def delete(self) -> bool:
+        """
+        Delete the trait record.
+
+        Examples:
+            >>> trait_record = TraitRecord.get_by_id(UUID('...'))
+            >>> success = trait_record.delete()
+            >>> print(success)
+            True
+
+        Returns:
+            bool: True if the trait record was deleted, False otherwise.
+        """
         try:
             current_id = self.id
             trait_record = TraitRecordModel.get(current_id)
@@ -352,6 +600,18 @@ class TraitRecord(APIBase):
             return False
         
     def refresh(self) -> Optional["TraitRecord"]:
+        """
+        Refresh the trait record's data from the database.
+
+        Examples:
+            >>> trait_record = TraitRecord.get_by_id(UUID('...'))
+            >>> refreshed_record = trait_record.refresh()
+            >>> print(refreshed_record)
+            TraitRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), trait_name='Height', dataset_name='Plant Growth Study', experiment_name='Growth Experiment 1', site_name='Research Farm A', season_name='Spring 2023', plot_number=1, plot_row_number=2, plot_column_number=3)
+
+        Returns:
+            Optional[TraitRecord]: The refreshed trait record, or None if an error occurred.
+        """
         try:
             db_instance = TraitRecordModel.get(self.id)
             if not db_instance:
@@ -367,6 +627,18 @@ class TraitRecord(APIBase):
             return None
         
     def get_info(self) -> Optional[dict]:
+        """
+        Get the additional information of the trait record.
+
+        Examples:
+            >>> trait_record = TraitRecord.get_by_id(UUID('...'))
+            >>> record_info = trait_record.get_info()
+            >>> print(record_info)
+            {'notes': 'Initial measurement', 'source': 'Field observation'}
+
+        Returns:
+            Optional[dict]: The record's info, or None if not found.
+        """
         try:
             current_id = self.id
             trait_record = TraitRecordModel.get(current_id)
@@ -383,6 +655,22 @@ class TraitRecord(APIBase):
             return None
         
     def set_info(self, record_info: dict) -> Optional["TraitRecord"]:
+        """
+        Set the additional information of the trait record.
+
+        Examples:
+            >>> trait_record = TraitRecord.get_by_id(UUID('...'))
+            >>> updated_record = trait_record.set_info(
+            ...     record_info={"notes": "Updated measurement", "source": "Field observation"}
+            ... )
+            >>> print(updated_record.record_info)
+            {'notes': 'Updated measurement', 'source': 'Field observation'}
+
+        Args:
+            record_info (dict): The new information to set.
+        Returns:
+            Optional[TraitRecord]: The updated trait record, or None if an error occurred.
+        """
         try:
             current_id = self.id
             trait_record = TraitRecordModel.get(current_id)

@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for columnar ScriptRecord entities in the GEMINI database.
+"""
+
 from sqlalchemy.orm import relationship, mapped_column, Mapped, Relationship
 from sqlalchemy import UUID, JSON, String, Integer, UniqueConstraint, Index, ForeignKey, TIMESTAMP, DATE
 from sqlalchemy.dialects.postgresql import JSONB
@@ -9,6 +13,27 @@ from typing import Optional, List
 
 
 class ScriptRecordModel(ColumnarBaseModel):
+    """
+    Represents a script record in the GEMINI database.
+
+    Attributes:
+        id (uuid.UUID): Unique identifier for the script record.
+        timestamp (datetime): Timestamp of the record.
+        collection_date (date): The date when the data was collected.
+        dataset_id (UUID): Foreign key referencing the dataset.
+        dataset_name (str): The name of the dataset.
+        script_id (UUID): Foreign key referencing the script.
+        script_name (str): The name of the script.
+        script_data (dict): Additional JSONB data for the script.
+        experiment_id (UUID): Foreign key referencing the experiment.
+        experiment_name (str): The name of the experiment.
+        season_id (UUID): Foreign key referencing the season.
+        season_name (str): The name of the season.
+        site_id (UUID): Foreign key referencing the site.
+        site_name (str): The name of the site.
+        record_file (str): The file where the record is stored.
+        record_info (dict): Additional JSONB data for the record.
+    """
 
     __tablename__ = "script_records"
 

@@ -1,3 +1,6 @@
+"""
+SQLAlchemy model for Experiment entities in the GEMINI database.
+"""
 from sqlalchemy import (
     JSON,
     String,
@@ -19,6 +22,18 @@ import uuid
 
 
 class ExperimentModel(BaseModel):
+    """
+    Represents an experiment in the GEMINI database.
+
+    Attributes:
+        id (uuid.UUID): Unique identifier for the experiment.
+        experiment_name (str): The name of the experiment.
+        experiment_info (dict): Additional JSONB data for the experiment.
+        experiment_start_date (date): The start date of the experiment.
+        experiment_end_date (date): The end date of the experiment.
+        created_at (datetime): Timestamp when the record was created.
+        updated_at (datetime): Timestamp when the record was last updated.
+    """
     __tablename__ = "experiments"
 
     id: Mapped[uuid.UUID] = mapped_column(

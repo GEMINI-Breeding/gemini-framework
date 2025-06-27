@@ -1,3 +1,7 @@
+"""
+This module provides CLI commands for managing GEMINI configuration settings.
+"""
+
 import click
 import os
 from pathlib import Path
@@ -6,6 +10,11 @@ from gemini.config.settings import GEMINISettings
 from gemini.manager import GEMINIManager
 
 class GEMINISettingsContext:
+    """
+    Context object for GEMINI settings CLI.
+
+    This class holds the GEMINI manager instance and paths relevant to the settings CLI.
+    """
     def __init__(self) -> None:
         self.manager = GEMINIManager()
         self.script_dir = Path(__file__).parent
@@ -22,6 +31,12 @@ def settings(ctx):
 @click.option('--enable/--disable', default=None, help="Enable or disable local mode.")
 @click.pass_obj
 def set_local(ctx: GEMINISettingsContext, enable: bool):
+    """
+    Enables or disables local mode for the GEMINI pipeline.
+
+    Args:
+        enable (bool): True to enable local mode, False to disable.
+    """
     settings = ctx.manager.get_settings()
     if enable is None:
         click.echo(click.style("Please specify --enable or --disable.", fg="red"))
@@ -82,5 +97,3 @@ def set_ip(ctx: GEMINISettingsContext, ip: str):
     ctx.manager.set_setting("GEMINI_PUBLIC_IP", ip)
     ctx.manager.set_setting("GEMINI_TYPE", "public")
     click.echo(click.style(f"IP set to: {ip}", fg="green"))
-
-

@@ -1,15 +1,50 @@
-from typing import List, Optional
+"""
+This module defines the Season class, which represents a season entity, including its metadata, associations to experiments, and related operations.
+
+It includes methods for creating, retrieving, updating, and deleting seasons, as well as methods for checking existence, searching, and managing associations with experiments.
+
+This module includes the following methods:
+
+- `exists`: Check if a season with the given name and experiment exists.
+- `create`: Create a new season.
+- `get`: Retrieve a season by its name and experiment.
+- `get_by_id`: Retrieve a season by its ID.
+- `get_all`: Retrieve all seasons.
+- `search`: Search for seasons based on various criteria.
+- `update`: Update the details of a season.
+- `delete`: Delete a season.
+- `refresh`: Refresh the season's data from the database.
+- `get_info`: Get the additional information of the season.
+- `set_info`: Set the additional information of the season.
+- Association methods for experiments.
+
+"""
+
+from typing import List, Optional, TYPE_CHECKING
 from uuid import UUID
 
 from pydantic import Field, AliasChoices
 from gemini.api.types import ID
 from gemini.api.base import APIBase
 from gemini.db.models.seasons import SeasonModel
-from gemini.db.models.experiments import ExperimentModel
 from gemini.db.models.views.experiment_views import ExperimentSeasonsViewModel
-from datetime import datetime, date, timedelta
+from datetime import date, timedelta
+
+if TYPE_CHECKING:
+    from gemini.api.experiment import Experiment
 
 class Season(APIBase):
+    """
+    Represents a season entity, including its metadata, associations to experiments, and related operations.
+
+    Attributes:
+        id (Optional[ID]): The unique identifier of the season.
+        season_name (str): The name of the season.
+        season_start_date (date): The start date of the season.
+        season_end_date (date): The end date of the season.
+        season_info (Optional[dict]): Additional information about the season.
+        experiment_id (Optional[ID]): The ID of the associated experiment.
+    """
 
     id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "season_id"))
 
@@ -20,10 +55,12 @@ class Season(APIBase):
     experiment_id: Optional[ID] = None
 
     def __str__(self):
-        return f"Season(name={self.season_name}, start_date={self.season_start_date}, end_date={self.season_end_date})"
+        """Return a string representation of the Season object."""
+        return f"Season(season_name={self.season_name}, season_start_date={self.season_start_date}, season_end_date={self.season_end_date}, id={self.id})"
     
     def __repr__(self):
-        return f"Season(id={self.id}, name={self.season_name}, start_date={self.season_start_date}, end_date={self.season_end_date})"
+        """Return a detailed string representation of the Season object."""
+        return f"Season(id={self.id}, season_name={self.season_name}, season_start_date={self.season_start_date}, season_end_date={self.season_end_date})"
 
     @classmethod
     def exists(
@@ -31,6 +68,21 @@ class Season(APIBase):
         season_name: str,
         experiment_name: str,
     ) -> bool:
+        """
+        Check if a season with the given name and experiment exists.
+
+        Examples:
+            >>> Season.exists(season_name="Summer 2023", experiment_name="Experiment A")
+            True
+            >>> Season.exists(season_name="Winter 2023", experiment_name="Experiment B")
+            False
+
+        Args:
+            season_name (str): The name of the season.
+            experiment_name (str): The name of the experiment.
+        Returns:
+            bool: True if the season exists, False otherwise.
+        """
         try:
             exists = ExperimentSeasonsViewModel.exists(
                 season_name=season_name,
@@ -50,6 +102,23 @@ class Season(APIBase):
         season_info: dict = {},
         experiment_name: str = None
     ) -> Optional["Season"]:
+        """
+        Create a new season.
+
+        Examples:
+            >>> season = Season.create(season_name="Summer 2023", season_start_date=date(2023, 6, 1), season_end_date=date(2023, 8, 31), season_info={"description": "Summer season"})
+            >>> print(season)
+            Season(season_name=Summer 2023, season_start_date=2023-06-01, season_end_date=2023-08-31, id=UUID(...))
+
+        Args:
+            season_name (str): The name of the season.
+            season_start_date (date, optional): The start date. Defaults to today.
+            season_end_date (date, optional): The end date. Defaults to today + 30 days.
+            season_info (dict, optional): Additional information. Defaults to {{}}.
+            experiment_name (str, optional): The name of the experiment to associate. Defaults to None.
+        Returns:
+            Optional[Season]: The created season, or None if an error occurred.
+        """
         try:
             db_instance = SeasonModel.get_or_create(
                 season_name=season_name,
@@ -71,6 +140,20 @@ class Season(APIBase):
         season_name: str,
         experiment_name: str = None
     ) -> Optional["Season"]:
+        """
+        Retrieve a season by its name and experiment.
+
+        Examples:
+            >>> season = Season.get(season_name="Summer 2023", experiment_name="Experiment A")
+            >>> print(season)
+            Season(season_name=Summer 2023, season_start_date=2023-06-01, season_end_date=2023-08-31, id=UUID(...))
+
+        Args:
+            season_name (str): The name of the season.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+        Returns:
+            Optional[Season]: The season, or None if not found.
+        """
         try:
             db_instance = ExperimentSeasonsViewModel.get_by_parameters(
                 season_name=season_name,
@@ -87,6 +170,19 @@ class Season(APIBase):
         
     @classmethod
     def get_by_id(cls, id: UUID | int | str) -> Optional["Season"]:
+        """
+        Retrieve a season by its ID.
+
+        Examples:
+            >>> season = Season.get_by_id(UUID('...'))
+            >>> print(season)
+            Season(season_name=Summer 2023, season_start_date=2023-06-01, season_end_date=2023-08-31, id=UUID(...))
+
+        Args:
+            id (UUID | int | str): The ID of the season.
+        Returns:
+            Optional[Season]: The season, or None if not found.
+        """
         try:
             db_instance = SeasonModel.get(id)
             if not db_instance:
@@ -101,6 +197,18 @@ class Season(APIBase):
 
     @classmethod
     def get_all(cls) -> Optional[List["Season"]]:
+        """
+        Retrieve all seasons.
+
+        Examples:
+            >>> seasons = Season.get_all()
+            >>> for season in seasons:
+            ...     print(season)
+            Season(season_name=Summer 2023, season_start_date=2023-06-01, season_end_date=2023-08-31, id=UUID(...))
+
+        Returns:
+            Optional[List[Season]]: List of all seasons, or None if not found.
+        """
         try:
             seasons = SeasonModel.all()
             if not seasons or len(seasons) == 0:
@@ -114,13 +222,32 @@ class Season(APIBase):
         
     @classmethod
     def search(
-        cls, 
+        cls,
         season_name: str = None,
         experiment_name: str = None,
-        season_start_date: datetime = None,
-        season_end_date: datetime = None,
+        season_start_date: date = None,
+        season_end_date: date = None,
         season_info: dict = None
     ) -> Optional[List["Season"]]:
+        """
+        Search for seasons based on various criteria.
+
+        Examples:
+            >>> seasons = Season.search(season_name="Summer 2023")
+            >>> for season in seasons:
+            ...     print(season)
+            Season(season_name=Summer 2023, season_start_date=2023-06-01, season_end_date=2023-08-31, id=UUID(...))
+            Season(season_name=Summer 2023, season_start_date=2023-07-01, season_end_date=2023-09-30, id=UUID(...))
+
+        Args:
+            season_name (str, optional): The name of the season. Defaults to None.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            season_start_date (date, optional): The start date. Defaults to None.
+            season_end_date (date, optional): The end date. Defaults to None.
+            season_info (dict, optional): Additional information. Defaults to None.
+        Returns:
+            Optional[List[Season]]: List of matching seasons, or None if not found.
+        """
         try:
             if not any([season_name, experiment_name, season_start_date, season_end_date, season_info]):
                 print("At least one search parameter must be provided.")
@@ -148,6 +275,23 @@ class Season(APIBase):
         season_end_date: date = None,
         season_info: dict = None
     ) -> Optional["Season"]:
+        """
+        Update the details of the season.
+
+        Examples:
+            >>> season = Season.get_by_id(UUID('...'))
+            >>> updated_season = season.update(season_name="Updated Summer 2023", season_start_date=date(2023, 6, 15))
+            >>> print(updated_season)
+            Season(season_name=Updated Summer 2023, season_start_date=2023-06-15, season_end_date=2023-08-31, id=UUID(...))
+
+        Args:
+            season_name (str, optional): The new name. Defaults to None.
+            season_start_date (date, optional): The new start date. Defaults to None.
+            season_end_date (date, optional): The new end date. Defaults to None.
+            season_info (dict, optional): The new information. Defaults to None.
+        Returns:
+            Optional[Season]: The updated season, or None if an error occurred.
+        """
         try:
             if not any([season_start_date, season_end_date, season_info, season_name]):
                 print("At least one update parameter must be provided.")
@@ -172,6 +316,18 @@ class Season(APIBase):
             return None
         
     def delete(self) -> bool:
+        """
+        Delete the season.
+
+        Examples:
+            >>> season = Season.get_by_id(UUID('...'))
+            >>> success = season.delete()
+            >>> print(success)
+            True
+
+        Returns:
+            bool: True if the season was deleted, False otherwise.
+        """
         try:
             current_id = self.id
             season = SeasonModel.get(current_id)
@@ -185,6 +341,18 @@ class Season(APIBase):
             return False
         
     def refresh(self) -> Optional["Season"]:
+        """
+        Refresh the season's data from the database.
+
+        Examples:
+            >>> season = Season.get_by_id(UUID('...'))
+            >>> refreshed_season = season.refresh()
+            >>> print(refreshed_season)
+            Season(season_name=Summer 2023, season_start_date=2023-06-01, season_end_date=2023-08-31, id=UUID(...))
+
+        Returns:
+            Optional[Season]: The refreshed season, or None if an error occurred.
+        """
         try:
             db_instance = SeasonModel.get(self.id)
             if not db_instance:
@@ -200,6 +368,18 @@ class Season(APIBase):
             return None
         
     def get_info(self) -> Optional[dict]:
+        """
+        Get the additional information of the season.
+
+        Examples:
+            >>> season = Season.get_by_id(UUID('...'))
+            >>> season_info = season.get_info()
+            >>> print(season_info)
+            {'description': 'Summer season', 'temperature': 'warm'}
+
+        Returns:
+            Optional[dict]: The season's info, or None if not found.
+        """
         try:
             current_id = self.id
             season = SeasonModel.get(current_id)
@@ -216,6 +396,20 @@ class Season(APIBase):
             return None
         
     def set_info(self, season_info: dict) -> Optional["Season"]:
+        """
+        Set the additional information of the season.
+
+        Examples:
+            >>> season = Season.get_by_id(UUID('...'))
+            >>> updated_season = season.set_info({"description": "Updated summer season", "temperature": "hot"})
+            >>> print(updated_season.get_info())
+            {'description': 'Updated summer season', 'temperature': 'hot'}
+
+        Args:
+            season_info (dict): The new information to set.
+        Returns:
+            Optional[Season]: The updated season, or None if an error occurred.
+        """
         try:
             current_id = self.id
             season = SeasonModel.get(current_id)
@@ -232,8 +426,20 @@ class Season(APIBase):
         except Exception as e:
             print(f"Error setting season info: {e}")
             return None
-        
-    def get_associated_experiment(self):
+
+    def get_associated_experiment(self) -> Optional["Experiment"]:
+        """
+        Get the experiment associated with this season.
+
+        Examples:
+            >>> season = Season.get_by_id(UUID('...'))
+            >>> experiment = season.get_associated_experiment()
+            >>> print(experiment)
+            Experiment(experiment_name=Experiment A, experiment_start_date=2023-01-01, experiment_end_date=2023-12-31, id=UUID(...))
+
+        Returns:
+            Optional[Experiment]: The associated experiment, or None if not found.
+        """
         try:
             from gemini.api.experiment import Experiment
             if not self.experiment_id:
@@ -248,7 +454,21 @@ class Season(APIBase):
             print(f"Error retrieving experiment for season: {e}")
             return None
 
-    def associate_experiment(self, experiment_name: str):
+    def associate_experiment(self, experiment_name: str) -> Optional["Experiment"]:
+        """
+        Associate this season with an experiment.
+
+        Examples:
+            >>> season = Season.get_by_id(UUID('...'))
+            >>> experiment = season.associate_experiment(experiment_name="Experiment A")
+            >>> print(experiment)
+            Experiment(experiment_name=Experiment A, experiment_start_date=2023-01-01, experiment_end_date=2023-12-31, id=UUID(...))
+
+        Args:
+            experiment_name (str): The name of the experiment to associate.
+        Returns:
+            Optional[Experiment]: The associated experiment, or None if an error occurred.
+        """
         try:
             from gemini.api.experiment import Experiment
             experiment = Experiment.get(experiment_name=experiment_name)
@@ -273,7 +493,19 @@ class Season(APIBase):
             print(f"Error assigning experiment to season: {e}")
             return None
 
-    def unassociate_experiment(self):
+    def unassociate_experiment(self) -> Optional["Experiment"]:
+        """
+        Unassociate this season from its experiment.
+
+        Examples:
+            >>> season = Season.get_by_id(UUID('...'))
+            >>> experiment = season.unassociate_experiment()
+            >>> print(experiment)
+            Experiment(experiment_name=Experiment A, experiment_start_date=2023-01-01, experiment_end_date=2023-12-31, id=UUID(...))
+
+        Returns:
+            Optional[Experiment]: The unassociated experiment, or None if an error occurred.
+        """
         try:
             from gemini.api.experiment import Experiment
             if not self.experiment_id:
@@ -295,6 +527,20 @@ class Season(APIBase):
             return None
 
     def belongs_to_experiment(self, experiment_name: str) -> bool:
+        """
+        Check if this season is associated with a specific experiment.
+
+        Examples:
+            >>> season = Season.get_by_id(UUID('...'))
+            >>> is_associated = season.belongs_to_experiment(experiment_name="Experiment A")
+            >>> print(is_associated)
+            True
+
+        Args:
+            experiment_name (str): The name of the experiment to check.
+        Returns:
+            bool: True if associated, False otherwise.
+        """
         try:
             from gemini.api.experiment import Experiment
             experiment = Experiment.get(experiment_name=experiment_name)

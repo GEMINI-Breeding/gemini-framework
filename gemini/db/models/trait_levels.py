@@ -1,3 +1,7 @@
+"""
+SQLAlchemy model for TraitLevel entities in the GEMINI database.
+"""
+
 from sqlalchemy import JSON, String, TIMESTAMP, UniqueConstraint, Index, Integer
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
@@ -11,6 +15,16 @@ import uuid
 
 
 class TraitLevelModel(BaseModel):
+    """
+    Represents a trait level in the GEMINI database.
+
+    Attributes:
+        id (int): Unique identifier for the trait level.
+        trait_level_name (str): The name of the trait level.
+        trait_level_info (dict): Additional JSONB data for the trait level.
+        created_at (datetime): Timestamp when the record was created.
+        updated_at (datetime): Timestamp when the record was last updated.
+    """
     __tablename__ = "trait_levels"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

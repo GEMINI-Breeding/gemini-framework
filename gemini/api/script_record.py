@@ -1,3 +1,26 @@
+"""
+This module defines the ScriptRecord class, which represents a record of a script, including metadata, associations to datasets, experiments, sites, and seasons, and file handling capabilities.
+
+It includes methods for creating, retrieving, updating, and deleting script records, as well as methods for checking existence, searching, filtering, and managing file handling for records.
+
+This module includes the following methods:
+
+- `exists`: Check if a script record with the given parameters exists.
+- `create`: Create a new script record.
+- `get`: Retrieve a script record by its parameters.
+- `get_by_id`: Retrieve a script record by its ID.
+- `get_all`: Retrieve all script records.
+- `search`: Search for script records based on various criteria.
+- `filter`: Filter script records based on custom logic.
+- `update`: Update the details of a script record.
+- `delete`: Delete a script record.
+- `refresh`: Refresh the script record's data from the database.
+- `get_info`: Get the additional information of the script record.
+- `set_info`: Set the additional information of the script record.
+- File handling methods from FileHandlerMixin for managing record files.
+
+"""
+
 from typing import Optional, List, Generator
 import os, mimetypes
 from uuid import UUID
@@ -6,27 +29,32 @@ from tqdm import tqdm
 from gemini.api.types import ID
 from pydantic import Field, AliasChoices
 from gemini.api.base import APIBase, FileHandlerMixin
-from gemini.api.dataset import Dataset, GEMINIDatasetType
-from gemini.db.models.scripts import ScriptModel
-from gemini.db.models.datasets import DatasetModel
 from gemini.db.models.columnar.script_records import ScriptRecordModel
 from gemini.db.models.views.script_records_immv import ScriptRecordsIMMVModel
-from gemini.db.models.views.dataset_views import ScriptDatasetsViewModel
-from gemini.db.models.views.validation_views import ValidScriptDatasetCombinationsViewModel
-from gemini.db.models.views.experiment_views import (
-    ExperimentScriptsViewModel,
-    ExperimentDatasetsViewModel,
-    ExperimentSeasonsViewModel,
-    ExperimentSitesViewModel
-)
-
-from gemini.db.models.experiments import ExperimentModel
-from gemini.db.models.datasets import DatasetModel
-from gemini.db.models.associations import ScriptDatasetModel
-
 from datetime import date, datetime
 
 class ScriptRecord(APIBase, FileHandlerMixin):
+    """
+    Represents a record of a script, including metadata, associations to datasets, experiments, sites, and seasons, and file handling capabilities.
+
+    Attributes:
+        id (Optional[ID]): The unique identifier of the script record.
+        timestamp (Optional[datetime]): The timestamp of the record.
+        collection_date (Optional[date]): The collection date of the record.
+        dataset_id (Optional[ID]): The ID of the associated dataset.
+        dataset_name (Optional[str]): The name of the associated dataset.
+        script_id (Optional[ID]): The ID of the associated script.
+        script_name (Optional[str]): The name of the associated script.
+        script_data (Optional[dict]): The data content of the script record.
+        experiment_id (Optional[ID]): The ID of the associated experiment.
+        experiment_name (Optional[str]): The name of the associated experiment.
+        season_id (Optional[ID]): The ID of the associated season.
+        season_name (Optional[str]): The name of the associated season.
+        site_id (Optional[ID]): The ID of the associated site.
+        site_name (Optional[str]): The name of the associated site.
+        record_file (Optional[str]): The file path or URI of the record file.
+        record_info (Optional[dict]): Additional information about the record.
+    """
 
     id: Optional[ID] = Field(None, validation_alias=AliasChoices("id", "script_record_id"))
 
@@ -47,9 +75,11 @@ class ScriptRecord(APIBase, FileHandlerMixin):
     record_info: Optional[dict] = None
 
     def __str__(self):
+        """Return a string representation of the ScriptRecord object."""
         return f"ScriptRecord(id={self.id}, timestamp={self.timestamp}, script_name={self.script_name}, dataset_name={self.dataset_name}, experiment_name={self.experiment_name}, site_name={self.site_name}, season_name={self.season_name})"
     
     def __repr__(self):
+        """Return a detailed string representation of the ScriptRecord object."""
         return f"ScriptRecord(id={self.id}, timestamp={self.timestamp}, script_name={self.script_name}, dataset_name={self.dataset_name}, experiment_name={self.experiment_name}, site_name={self.site_name}, season_name={self.season_name})"
     
     @classmethod
@@ -62,6 +92,30 @@ class ScriptRecord(APIBase, FileHandlerMixin):
         season_name: str,
         site_name: str
     ) -> bool:
+        """
+        Check if a script record with the given parameters exists.
+
+        Examples:
+            >>> ScriptRecord.exists(
+            ...     timestamp=datetime(2023, 10, 1, 12, 0, 0),
+            ...     script_name="example_script",
+            ...     dataset_name="example_dataset",
+            ...     experiment_name="example_experiment",
+            ...     season_name="example_season",
+            ...     site_name="example_site"
+            ... )
+            True
+
+        Args:
+            timestamp (datetime): The timestamp of the record.
+            script_name (str): The name of the script.
+            dataset_name (str): The name of the dataset.
+            experiment_name (str): The name of the experiment.
+            season_name (str): The name of the season.
+            site_name (str): The name of the site.
+        Returns:
+            bool: True if the script record exists, False otherwise.
+        """
         try:
             exists = ScriptRecordModel.exists(
                 timestamp=timestamp,
@@ -91,6 +145,40 @@ class ScriptRecord(APIBase, FileHandlerMixin):
         record_info: dict = {},
         insert_on_create: bool = True
     ) -> Optional["ScriptRecord"]:
+        """
+        Create a new script record.
+
+        Examples:
+            >>> script_record = ScriptRecord.create(
+            ...     timestamp=datetime(2023, 10, 1, 12, 0, 0),
+            ...     collection_date=date(2023, 10, 1),
+            ...     dataset_name="example_dataset",
+            ...     script_name="example_script",
+            ...     script_data={"key": "value"},
+            ...     experiment_name="example_experiment",
+            ...     site_name="example_site",
+            ...     season_name="example_season",
+            ...     record_file="/path/to/file.txt",
+            ...     record_info={"info_key": "info_value"}
+            ... )
+            >>> print(script_record)
+            ScriptRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), script_name='example_script', dataset_name='example_dataset', experiment_name='example_experiment', site_name='example_site', season_name='example_season)
+
+        Args:
+            timestamp (datetime, optional): The timestamp of the record. Defaults to now.
+            collection_date (date, optional): The collection date. Defaults to None.
+            dataset_name (str, optional): The name of the dataset. Defaults to None.
+            script_name (str, optional): The name of the script. Defaults to None.
+            script_data (dict, optional): The data content. Defaults to {{}}.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            record_file (str, optional): The file path or URI. Defaults to None.
+            record_info (dict, optional): Additional info. Defaults to {{}}.
+            insert_on_create (bool, optional): Whether to insert on create. Defaults to True.
+        Returns:
+            Optional[ScriptRecord]: The created script record, or None if an error occurred.
+        """
         try:
             if not any([experiment_name, site_name, season_name]):
                 raise ValueError("At least one of experiment_name, site_name, or season_name must be provided.")
@@ -133,6 +221,14 @@ class ScriptRecord(APIBase, FileHandlerMixin):
         
     @classmethod
     def insert(cls, records: List["ScriptRecord"]) -> tuple[bool, List[str]]:
+        """
+        Insert a list of script records into the database.
+
+        Args:
+            records (List[ScriptRecord]): The records to insert.
+        Returns:
+            tuple[bool, List[str]]: Success status and list of inserted record IDs.
+        """
         try:
             if not records or len(records) == 0:
                 print(f"No records provided for insertion.")
@@ -161,6 +257,31 @@ class ScriptRecord(APIBase, FileHandlerMixin):
         season_name: str = None,
         site_name: str = None
     ) -> Optional["ScriptRecord"]:
+        """
+        Retrieve a script record by its parameters.
+
+        Examples:
+            >>> script_record = ScriptRecord.get(
+            ...     timestamp=datetime(2023, 10, 1, 12, 0, 0),
+            ...     script_name="example_script",
+            ...     dataset_name="example_dataset",
+            ...     experiment_name="example_experiment",
+            ...     season_name="example_season",
+            ...     site_name="example_site"
+            ... )
+            >>> print(script_record)
+            ScriptRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), script_name='example_script', dataset_name='example_dataset', experiment_name='example_experiment', site_name='example_site', season_name='example_season)
+
+        Args:
+            timestamp (datetime): The timestamp of the record.
+            script_name (str): The name of the script.
+            dataset_name (str): The name of the dataset.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+        Returns:
+            Optional[ScriptRecord]: The script record, or None if not found.
+        """
         try:
             if not timestamp:
                 print(f"Timestamp is required to get ScriptRecord.")
@@ -193,6 +314,19 @@ class ScriptRecord(APIBase, FileHandlerMixin):
         
     @classmethod
     def get_by_id(cls, id: UUID | int | str) -> Optional["ScriptRecord"]:
+        """
+        Retrieve a script record by its ID.
+
+        Examples:
+            >>> script_record = ScriptRecord.get_by_id(UUID('...'))
+            >>> print(script_record)
+            ScriptRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), script_name='example_script', dataset_name='example_dataset', experiment_name='example_experiment', site_name='example_site', season_name='example_season)
+
+        Args:
+            id (UUID | int | str): The ID of the script record.
+        Returns:
+            Optional[ScriptRecord]: The script record, or None if not found.
+        """
         try:
             db_instance = ScriptRecordModel.get(id)
             if not db_instance:
@@ -206,6 +340,21 @@ class ScriptRecord(APIBase, FileHandlerMixin):
         
     @classmethod
     def get_all(cls, limit: int = 100) -> Optional[List["ScriptRecord"]]:
+        """
+        Retrieve all script records, up to a specified limit.
+
+        Examples:
+            >>> script_records = ScriptRecord.get_all(limit=10)
+            >>> for record in script_records:
+            ...     print(record)
+            ScriptRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), script_name='example_script', dataset_name='example_dataset', experiment_name='example_experiment', site_name='example_site', season_name='example_season)
+            ScriptRecord(id=UUID('...'), timestamp=datetime(2023, 10, 2, 12, 0), script_name='another_script', dataset_name='another_dataset', experiment_name='another_experiment', site_name='another_site', season_name='another_season)
+
+        Args:
+            limit (int, optional): The maximum number of records to retrieve. Defaults to 100.
+        Returns:
+            Optional[List[ScriptRecord]]: List of script records, or None if not found.
+        """
         try:
             records = ScriptRecordModel.all(limit=limit)
             if not records or len(records) == 0:
@@ -229,6 +378,35 @@ class ScriptRecord(APIBase, FileHandlerMixin):
         collection_date: date = None,
         record_info: dict = None
     ) -> Generator["ScriptRecord", None, None]:
+        """
+        Search for script records based on various criteria.
+
+        Examples:
+            >>> script_records = ScriptRecord.search(
+            ...     script_name="example_script",
+            ...     dataset_name="example_dataset",
+            ...     experiment_name="example_experiment",
+            ...     site_name="example_site",
+            ...     season_name="example_season",
+            ...     collection_date=date(2023, 10, 1),
+            ...     record_info={"info_key": "info_value"}
+            ... )
+            >>> for record in script_records:
+            ...     print(record)
+            ScriptRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), script_name='example_script', dataset_name='example_dataset', experiment_name='example_experiment', site_name='example_site', season_name='example_season)
+
+        Args:
+            script_name (str, optional): The name of the script. Defaults to None.
+            script_data (dict, optional): The data content. Defaults to None.
+            dataset_name (str, optional): The name of the dataset. Defaults to None.
+            experiment_name (str, optional): The name of the experiment. Defaults to None.
+            site_name (str, optional): The name of the site. Defaults to None.
+            season_name (str, optional): The name of the season. Defaults to None.
+            collection_date (date, optional): The collection date. Defaults to None.
+            record_info (dict, optional): Additional info. Defaults to None.
+        Yields:
+            ScriptRecord: Matching script records.
+        """
         try:
             if not any([script_name, dataset_name, experiment_name, site_name, season_name, collection_date, record_info]):
                 print(f"At least one parameter must be provided for search.")
@@ -261,6 +439,35 @@ class ScriptRecord(APIBase, FileHandlerMixin):
         season_names: List[str] = None,
         site_names: List[str] = None
     ) -> Generator["ScriptRecord", None, None]:
+        """
+        Filter script records based on custom logic.
+
+        Examples:
+            >>> script_records = ScriptRecord.filter(
+            ...     start_timestamp=datetime(2023, 10, 1, 0, 0, 0),
+            ...     end_timestamp=datetime(2023, 10, 31, 23, 59, 59),
+            ...     script_names=["example_script"],
+            ...     dataset_names=["example_dataset"],
+            ...     experiment_names=["example_experiment"],
+            ...     season_names=["example_season"],
+            ...     site_names=["example_site"]
+            ... )
+            >>> for record in script_records:
+            ...     print(record)
+            ScriptRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), script_name='example_script', dataset_name='example_dataset', experiment_name='example_experiment', site_name='example_site', season_name='example_season)
+            ScriptRecord(id=UUID('...'), timestamp=datetime(2023, 10, 2, 12, 0), script_name='another_script', dataset_name='another_dataset', experiment_name='another_experiment', site_name='another_site', season_name='another_season)
+
+        Args:
+            start_timestamp (datetime, optional): Start of timestamp range. Defaults to None.
+            end_timestamp (datetime, optional): End of timestamp range. Defaults to None.
+            script_names (List[str], optional): List of script names. Defaults to None.
+            dataset_names (List[str], optional): List of dataset names. Defaults to None.
+            experiment_names (List[str], optional): List of experiment names. Defaults to None.
+            season_names (List[str], optional): List of season names. Defaults to None.
+            site_names (List[str], optional): List of site names. Defaults to None.
+        Yields:
+            ScriptRecord: Filtered script records.
+        """
         try:
             if not any([start_timestamp, end_timestamp, script_names, dataset_names, experiment_names, season_names, site_names]):
                 print(f"At least one parameter must be provided for filter.")
@@ -287,6 +494,24 @@ class ScriptRecord(APIBase, FileHandlerMixin):
         script_data: dict = None,
         record_info: dict = None
     ) -> Optional["ScriptRecord"]:
+        """
+        Update the details of the script record.
+
+        Examples:
+            >>> script_record = ScriptRecord.get_by_id(UUID('...'))
+            >>> updated_record = script_record.update(
+            ...     script_data={"new_key": "new_value"},
+            ...     record_info={"new_info_key": "new_info_value"}
+            ... )
+            >>> print(updated_record)
+            ScriptRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), script_name='example_script', dataset_name='example_dataset', experiment_name='example_experiment', site_name='example_site', season_name='example_season)
+
+        Args:
+            script_data (dict, optional): The new script data. Defaults to None.
+            record_info (dict, optional): The new record information. Defaults to None.
+        Returns:
+            Optional[ScriptRecord]: The updated script record, or None if an error occurred.
+        """
         try:
             if not any([script_data, record_info]):
                 print(f"At least one parameter must be provided for update.")
@@ -309,6 +534,18 @@ class ScriptRecord(APIBase, FileHandlerMixin):
             return None
         
     def delete(self) -> bool:
+        """
+        Delete the script record.
+
+        Examples:
+            >>> script_record = ScriptRecord.get_by_id(UUID('...'))
+            >>> success = script_record.delete()
+            >>> print(success)
+            True
+
+        Returns:
+            bool: True if the script record was deleted, False otherwise.
+        """
         try:
             current_id = self.id
             script_record = ScriptRecordModel.get(current_id)
@@ -322,6 +559,18 @@ class ScriptRecord(APIBase, FileHandlerMixin):
             return False
         
     def refresh(self) -> Optional["ScriptRecord"]:
+        """
+        Refresh the script record's data from the database.
+
+        Examples:
+            >>> script_record = ScriptRecord.get_by_id(UUID('...'))
+            >>> refreshed_record = script_record.refresh()
+            >>> print(refreshed_record)
+            ScriptRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), script_name='example_script', dataset_name='example_dataset', experiment_name='example_experiment', site_name='example_site', season_name='example_season)
+
+        Returns:
+            Optional[ScriptRecord]: The refreshed script record, or None if an error occurred.
+        """
         try:
             db_instance = ScriptRecordModel.get(self.id)
             if not db_instance:
@@ -337,6 +586,18 @@ class ScriptRecord(APIBase, FileHandlerMixin):
             return None
         
     def get_info(self) -> Optional[dict]:
+        """
+        Get the additional information of the script record.
+
+        Examples:
+            >>> script_record = ScriptRecord.get_by_id(UUID('...'))
+            >>> record_info = script_record.get_info()
+            >>> print(record_info)
+            {'info_key': 'info_value'}
+
+        Returns:
+            Optional[dict]: The record's info, or None if not found.
+        """
         try:
             current_id = self.id
             script_record = ScriptRecordModel.get(current_id)
@@ -353,6 +614,22 @@ class ScriptRecord(APIBase, FileHandlerMixin):
             return None
         
     def set_info(self, record_info: dict) -> Optional["ScriptRecord"]:
+        """
+        Set the additional information of the script record.
+
+        Examples:
+            >>> script_record = ScriptRecord.get_by_id(UUID('...'))
+            >>> updated_record = script_record.set_info(
+            ...     record_info={"new_info_key": "new_info_value"}
+            ... )
+            >>> print(updated_record)
+            ScriptRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), script_name='example_script', dataset_name='example_dataset', experiment_name='example_experiment', site_name='example_site', season_name='example_season)
+
+        Args:
+            record_info (dict): The new information to set.
+        Returns:
+            Optional[ScriptRecord]: The updated script record, or None if an error occurred.
+        """
         try:
             current_id = self.id
             script_record = ScriptRecordModel.get(current_id)
@@ -372,6 +649,29 @@ class ScriptRecord(APIBase, FileHandlerMixin):
         
     @classmethod
     def create_file_uri(cls, record: "ScriptRecord") -> Optional[str]:
+        """
+        Create a file URI for the given script record.
+
+        Examples:
+            >>> record = ScriptRecord(
+            ...     timestamp=datetime(2023, 10, 1, 12, 0, 0),
+            ...     collection_date=date(2023, 10, 1),
+            ...     dataset_name="example_dataset",
+            ...     script_name="example_script",
+            ...     experiment_name="example_experiment",
+            ...     site_name="example_site",
+            ...     season_name="example_season",
+            ...     record_file="/path/to/file.txt"
+            ... )
+            >>> file_uri = ScriptRecord.create_file_uri(record)
+            >>> print(file_uri)
+            script_data/example_experiment/example_script/example_dataset/2023-10-01/example_site/example_season/1706467200000.txt
+
+        Args:
+            record (ScriptRecord): The script record for which to create the file URI.
+        Returns:
+            Optional[str]: The file URI, or None if creation failed.
+        """
         try:
             original_file_path = record.record_file
             if not original_file_path:
@@ -397,6 +697,29 @@ class ScriptRecord(APIBase, FileHandlerMixin):
 
     @classmethod
     def process_record(cls, record: "ScriptRecord") -> "ScriptRecord":
+        """
+        Process a script record (custom logic, e.g., file upload).
+
+        Examples:
+            >>> record = ScriptRecord(
+            ...     timestamp=datetime(2023, 10, 1, 12, 0, 0),
+            ...     collection_date=date(2023, 10, 1),
+            ...     dataset_name="example_dataset",
+            ...     script_name="example_script",
+            ...     experiment_name="example_experiment",
+            ...     site_name="example_site",
+            ...     season_name="example_season",
+            ...     record_file="/path/to/file.txt"
+            ... )
+            >>> processed_record = ScriptRecord.process_record(record)
+            >>> print(processed_record)
+            ScriptRecord(id=UUID('...'), timestamp=datetime(2023, 10, 1, 12, 0), script_name='example_script', dataset_name='example_dataset', experiment_name='example_experiment', site_name='example_site', season_name='example_season)
+
+        Args:
+            record (ScriptRecord): The script record to process.
+        Returns:
+            ScriptRecord: The processed script record.
+        """
         try:
             file = record.record_file
             if not file:
