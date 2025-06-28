@@ -15,7 +15,7 @@ Many staple crops that are important for food, nutritional, and economic securit
 - Minimum 16 GB of RAM
 - Minimum 256 GB Storage
 - Python >= 3.11
-- [Poetry] (https://python-poetry.org/docs/)
+- [Poetry](https://python-poetry.org/docs/)
 
 ## Further Reading
 
